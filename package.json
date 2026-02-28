@@ -1,0 +1,36 @@
+{
+  "name": "pre",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cinema-quality visual presentations as an agent-native API.",
+  "workspaces": [
+    "packages/shared",
+    "packages/illustrations",
+    "packages/compiler",
+    "packages/player",
+    "packages/mcp-server"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "build": "npm run build --workspaces",
+    "lint": "eslint packages/*/src/**/*.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.0.0",
+    "eslint": "^9.0.0",
+    "jsdom": "^28.1.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BabaScience/pre"
+  },
+  "license": "MIT"
+}
