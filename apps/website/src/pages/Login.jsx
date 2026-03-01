@@ -61,7 +61,7 @@ export default function Login() {
             type="password"
             placeholder="Your password"
             required
-            minLength={6}
+            minLength={8}
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

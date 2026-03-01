@@ -87,7 +87,7 @@ export default function Settings() {
             id="current-pw"
             type="password"
             required
-            minLength={6}
+            minLength={8}
             value={currentPw}
             onChange={(e) => setCurrentPw(e.target.value)}
           />
@@ -96,8 +96,8 @@ export default function Settings() {
             id="new-pw"
             type="password"
             required
-            minLength={6}
-            placeholder="Min. 6 characters"
+            minLength={8}
+            placeholder="Min. 8 characters"
             value={newPw}
             onChange={(e) => setNewPw(e.target.value)}
           />

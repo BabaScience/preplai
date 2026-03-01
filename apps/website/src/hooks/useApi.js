@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { setApiToken } from '../lib/api';
 
@@ -33,5 +33,7 @@ export function useApi(apiFn) {
  */
 export function useSyncApiToken() {
   const { token } = useAuth();
-  setApiToken(token);
+  useEffect(() => {
+    setApiToken(token);
+  }, [token]);
 }

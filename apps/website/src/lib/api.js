@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Detect if we're using CGI backend or Node.js API
 const isCGI = (import.meta.env.VITE_API_URL || '').includes('api.py');
-const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 // Module-level token store (in-memory, no localStorage)
 let _token = null;
@@ -44,14 +44,14 @@ client.interceptors.response.use(
 
 // Auth
 export async function apiLogin(email, password) {
-  const path = isCGI ? '/login' : '/auth/login';
+  const path = isCGI ? '/login' : 'auth/login';
   const { data } = await client.post(path, { email, password });
   setApiToken(data.token);
   return data;
 }
 
 export async function apiSignup(email, password) {
-  const path = isCGI ? '/signup' : '/auth/signup';
+  const path = isCGI ? '/signup' : 'auth/signup';
   const { data } = await client.post(path, { email, password });
   setApiToken(data.token);
   return data;
@@ -59,20 +59,22 @@ export async function apiSignup(email, password) {
 
 // Overview
 export async function apiGetOverview() {
-  // CGI backend: /overview, Node.js: /usage/overview
-  const path = isCGI ? '/overview' : '/usage/overview';
+  // CGI backend: /overview, Node.js: usage/overview
+  const path = isCGI ? '/overview' : 'usage/overview';
   const { data } = await client.get(path);
   return data;
 }
 
 // API Keys
 export async function apiGetKeys() {
-  const { data } = await client.get('/keys');
+  const path = isCGI ? '/keys' : 'keys';
+  const { data } = await client.get(path);
   return data;
 }
 
 export async function apiCreateKey(name) {
-  const { data } = await client.post('/keys', { name });
+  const path = isCGI ? '/keys' : 'keys';
+  const { data } = await client.post(path, { name });
   return data;
 }
 
@@ -82,15 +84,16 @@ export async function apiRevokeKey(id) {
     const { data } = await client.delete(`/keys?id=${id}`);
     return data;
   } else {
-    // Node.js API uses path param: DELETE /keys/:id
-    const { data } = await client.delete(`/keys/${id}`);
+    // Node.js API uses path param: DELETE keys/:id
+    const { data } = await client.delete(`keys/${id}`);
     return data;
   }
 }
 
 // Usage
 export async function apiGetUsage() {
-  const { data } = await client.get('/usage');
+  const path = isCGI ? '/usage' : 'usage';
+  const { data } = await client.get(path);
   return data;
 }
 
@@ -103,7 +106,7 @@ export async function apiChangePassword(currentPassword, newPassword) {
     });
     return data;
   }
-  const { data } = await client.patch('/settings/password', {
+  const { data } = await client.patch('settings/password', {
     currentPassword,
     newPassword,
   });
@@ -116,8 +119,8 @@ export async function apiDeleteAccount() {
     const { data } = await client.delete('/account');
     return data;
   } else {
-    // Node.js API: DELETE /settings/account
-    const { data } = await client.delete('/settings/account');
+    // Node.js API: DELETE settings/account
+    const { data } = await client.delete('settings/account');
     return data;
   }
 }

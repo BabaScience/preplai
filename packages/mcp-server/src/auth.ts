@@ -5,7 +5,7 @@
  * Keys are hashed with SHA-256 — only the hash is stored.
  */
 import { randomUUID, createHash, randomBytes } from 'node:crypto';
-import { ApiKey, McpUsageLog, Session } from '@preplai/db';
+import { ApiKey, McpUsageLog, Session, UsageLog } from '@preplai/db';
 
 // ── Tier limits ──────────────────────────────────────────────────────
 
@@ -132,6 +132,17 @@ export async function trackUsage(
     sessionId: sessionId ?? null,
     createdAt: Date.now(),
   });
+
+  // Also write to UsageLog for dashboard when key has userId (dashboard-created keys)
+  const key = await ApiKey.findById(apiKeyId).select('userId').lean() as { userId?: unknown } | null;
+  if (key?.userId) {
+    await UsageLog.create({
+      userId: key.userId,
+      apiKeyId,
+      endpoint: action,
+      tokensUsed: 0,
+    });
+  }
 }
 
 // ── Limit checking ───────────────────────────────────────────────────

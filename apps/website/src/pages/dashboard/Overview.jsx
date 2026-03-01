@@ -30,7 +30,7 @@ export default function Overview() {
             <Skeleton height="16px" width="160px" />
           </div>
           <div className="kpi-grid">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="kpi-card">
                 <Skeleton height="14px" width="80px" style={{ marginBottom: 'var(--space-2)' }} />
                 <Skeleton height="28px" width="60px" />
@@ -61,10 +61,6 @@ export default function Overview() {
             <div className="kpi-card">
               <div className="kpi-label">Requests This Month</div>
               <div className="kpi-value">{data?.month_requests ?? 0}</div>
-            </div>
-            <div className="kpi-card">
-              <div className="kpi-label">Active Sessions</div>
-              <div className="kpi-value">{data?.active_sessions ?? 0}</div>
             </div>
             <div className="kpi-card">
               <div className="kpi-label">Total Scenes</div>
