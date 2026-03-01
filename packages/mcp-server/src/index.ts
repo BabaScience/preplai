@@ -1,5 +1,5 @@
 /**
- * @pre/mcp-server — Package Entry Point
+ * @preplai/mcp-server — Package Entry Point
  *
  * Re-exports all public modules for the MCP server package.
  */
@@ -27,4 +27,7 @@ export {
   handleUpdateScene,
   handleAddNarration,
   handleGetSessionUrl,
+  handleListSessions,
+  handleDeleteSession,
+  handleRemoveScene,
 } from './tools.js';

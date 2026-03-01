@@ -1,5 +1,5 @@
 /**
- * @pre/mcp-server — Server Entry Point
+ * @preplai/mcp-server — Server Entry Point
  *
  * Thin Fastify boot file that wires all logic modules:
  * - McpServer SDK with 5 tool handlers
@@ -21,6 +21,9 @@ import {
   handleUpdateScene,
   handleAddNarration,
   handleGetSessionUrl,
+  handleListSessions,
+  handleDeleteSession,
+  handleRemoveScene,
 } from './tools.js';
 import { withErrorBoundary } from './errors.js';
 import { PLAYER_HTML_TEMPLATE } from './player-html.js';
@@ -41,8 +44,8 @@ export function getDefaultConfig(): ServerConfig {
     port: Number(process.env.PORT ?? 3001),
     host: process.env.HOST ?? '0.0.0.0',
     baseUrl: process.env.BASE_URL ?? 'http://localhost:3001',
-    dbPath: process.env.DB_PATH ?? './pre.db',
-    corsOrigin: process.env.ALLOWED_ORIGINS ?? '*',
+    dbPath: process.env.DB_PATH ?? './preplai.db',
+    corsOrigin: process.env.ALLOWED_ORIGINS ?? 'http://localhost:3001',
     logLevel: process.env.LOG_LEVEL ?? 'info',
   };
 }
@@ -69,6 +72,18 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   const store = new SessionStore(db);
   store.loadFromDb();
 
+  // Clean expired sessions on startup
+  const cleaned = store.cleanExpiredSessions();
+  if (cleaned > 0) {
+    console.log(`[preplai] Cleaned ${cleaned} expired sessions`);
+  }
+
+  // Periodic cleanup every 6 hours
+  setInterval(() => {
+    const c = store.cleanExpiredSessions();
+    if (c > 0) console.log(`[preplai] Periodic cleanup: removed ${c} expired sessions`);
+  }, 6 * 60 * 60 * 1000);
+
   // ── SSE Registry ──────────────────────────────────────────────────
   const sse = new SseRegistry();
 
@@ -80,8 +95,8 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   // ── CORS ──────────────────────────────────────────────────────────
   app.addHook('onRequest', async (request, reply) => {
     reply.header('Access-Control-Allow-Origin', cfg.corsOrigin);
-    reply.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    reply.header('Access-Control-Allow-Headers', 'Content-Type, Mcp-Session-Id, X-PRE-API-Key');
+    reply.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+    reply.header('Access-Control-Allow-Headers', 'Content-Type, Mcp-Session-Id, X-Preplai-API-Key');
 
     if (request.method === 'OPTIONS') {
       reply.status(204).send();
@@ -198,6 +213,31 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     },
   );
 
+  app.get<{ Querystring: { limit?: string } }>(
+    '/api/sessions',
+    async (request) => {
+      const limit = Number(request.query.limit) || 20;
+      const handler = withErrorBoundary((args: any) => handleListSessions(args, { store: store, baseUrl: cfg.baseUrl }));
+      return handler({ limit });
+    },
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/api/sessions/:id',
+    async (request) => {
+      const handler = withErrorBoundary((args: any) => handleDeleteSession(args, { store }));
+      return handler({ session_id: request.params.id });
+    },
+  );
+
+  app.delete<{ Params: { sessionId: string }; Body: { frame_indices?: number[]; last_n?: number } }>(
+    '/api/sessions/:sessionId/frames',
+    async (request) => {
+      const handler = withErrorBoundary((args: any) => handleRemoveScene(args, sceneDeps));
+      return handler({ session_id: request.params.sessionId, ...request.body });
+    },
+  );
+
   return { app, store, sse, db };
 }
 
@@ -208,9 +248,9 @@ export async function startServer(config: Partial<ServerConfig> = {}): Promise<S
   const cfg: ServerConfig = { ...getDefaultConfig(), ...config };
 
   await ctx.app.listen({ port: cfg.port, host: cfg.host });
-  console.log(`[PRE] Server running at ${cfg.baseUrl}`);
-  console.log(`[PRE] Player: ${cfg.baseUrl}/player/:sessionId`);
-  console.log(`[PRE] Health: ${cfg.baseUrl}/health`);
+  console.log(`[preplai] Server running at ${cfg.baseUrl}`);
+  console.log(`[preplai] Player: ${cfg.baseUrl}/player/:sessionId`);
+  console.log(`[preplai] Health: ${cfg.baseUrl}/health`);
 
   return ctx;
 }
@@ -219,7 +259,7 @@ export async function startServer(config: Partial<ServerConfig> = {}): Promise<S
 const isMainModule = process.argv[1]?.endsWith('server.js') || process.argv[1]?.endsWith('server.ts');
 if (isMainModule) {
   startServer().catch((err) => {
-    console.error('[PRE] Failed to start:', err);
+    console.error('[preplai] Failed to start:', err);
     process.exit(1);
   });
 }

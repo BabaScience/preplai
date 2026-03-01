@@ -1,5 +1,5 @@
 /**
- * @pre/mcp-server — MCP Tool Handlers
+ * @preplai/mcp-server — MCP Tool Handlers
  *
  * Pure handler functions for all 5 MCP tools.
  * Dependencies (store, sse, baseUrl) are injected, enabling unit testing.
@@ -238,4 +238,112 @@ export async function handleGetSessionUrl(
   }
 
   return mcpOk(data);
+}
+
+// ── Tool 6: list_sessions ─────────────────────────────────────────────
+
+export async function handleListSessions(
+  args: { limit?: number },
+  deps: { store: SessionStore; baseUrl: string },
+): Promise<McpToolContent> {
+  const { limit = 20 } = args;
+  const { store, baseUrl } = deps;
+
+  const sessions = store.listSessions().slice(0, Math.min(limit, 100));
+
+  return mcpOk({
+    sessions: sessions.map(s => ({
+      session_id: s.id,
+      title: s.title,
+      player_url: `${baseUrl}/player/${s.id}`,
+      frame_count: s.script?.frames?.length ?? 0,
+      created_at: new Date(s.created_at).toISOString(),
+    })),
+    total: sessions.length,
+  });
+}
+
+// ── Tool 8: remove_scene ─────────────────────────────────────────────
+
+export async function handleRemoveScene(
+  args: { session_id: string; frame_indices?: number[]; last_n?: number },
+  deps: SceneDeps,
+): Promise<McpToolContent> {
+  const { session_id, frame_indices, last_n } = args;
+  const { store, sse } = deps;
+
+  const session = store.getSession(session_id);
+  if (!session) return mcpNotFound(session_id);
+
+  if (!session.script || !session.script.frames || session.script.frames.length === 0) {
+    return mcpErr(
+      'NO_FRAMES',
+      'Session has no frames to remove.',
+      'Add scenes first with add_scene.',
+    );
+  }
+
+  let newFrames = [...session.script.frames];
+  let removedCount = 0;
+
+  if (frame_indices && frame_indices.length > 0) {
+    // Remove specific frames by index (descending order to preserve indices during splice)
+    const sorted = [...frame_indices].sort((a, b) => b - a);
+    for (const idx of sorted) {
+      if (idx >= 0 && idx < newFrames.length) {
+        newFrames.splice(idx, 1);
+        removedCount++;
+      }
+    }
+  } else if (last_n && last_n > 0) {
+    // Remove last N frames
+    const toRemove = Math.min(last_n, newFrames.length);
+    newFrames = newFrames.slice(0, newFrames.length - toRemove);
+    removedCount = toRemove;
+  } else {
+    // Remove all frames
+    removedCount = newFrames.length;
+    newFrames = [];
+  }
+
+  // Recalculate totalDuration from remaining frames
+  const totalDuration = newFrames.length > 0
+    ? Math.max(...newFrames.map((f: any) => f.endTime || 0))
+    : 0;
+
+  const updatedScript = {
+    ...session.script,
+    frames: newFrames,
+    totalDuration,
+  };
+
+  store.setScript(session_id, updatedScript);
+
+  // Push SSE update so player reflects the removal immediately
+  sse.emit(session_id, { type: 'script_update', script: updatedScript });
+
+  return mcpOk({
+    session_id,
+    removed_count: removedCount,
+    remaining_frames: newFrames.length,
+    total_duration_ms: totalDuration,
+  });
+}
+
+// ── Tool 7: delete_session ────────────────────────────────────────────
+
+export async function handleDeleteSession(
+  args: { session_id: string },
+  deps: { store: SessionStore },
+): Promise<McpToolContent> {
+  const { session_id } = args;
+  const { store } = deps;
+
+  const existed = store.deleteSession(session_id);
+  if (!existed) return mcpNotFound(session_id);
+
+  return mcpOk({
+    session_id,
+    deleted: true,
+  });
 }

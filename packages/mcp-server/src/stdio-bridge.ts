@@ -1,5 +1,5 @@
 /**
- * @pre/mcp-server — stdio Bridge for Claude Desktop
+ * @preplai/mcp-server — stdio Bridge for Claude Desktop
  *
  * This file creates an MCP server using the stdio transport, which is
  * what Claude Desktop expects. It registers the same 5 tool handlers
@@ -11,7 +11,7 @@
  * Claude Desktop config (claude_desktop_config.json):
  *   {
  *     "mcpServers": {
- *       "pre": {
+ *       "preplai": {
  *         "command": "node",
  *         "args": ["/absolute/path/to/packages/mcp-server/dist/stdio-bridge.js"],
  *         "env": {
@@ -36,6 +36,9 @@ import {
   handleUpdateScene,
   handleAddNarration,
   handleGetSessionUrl,
+  handleListSessions,
+  handleDeleteSession,
+  handleRemoveScene,
 } from './tools.js';
 import { withErrorBoundary } from './errors.js';
 
@@ -186,12 +189,12 @@ async function main() {
   });
   await ctx.app.listen({ port: cfg.port, host: cfg.host });
   // Log to stderr (stdout is reserved for MCP JSON-RPC)
-  console.error(`[PRE] HTTP server running at ${cfg.baseUrl}`);
-  console.error(`[PRE] Player: ${cfg.baseUrl}/player/:sessionId`);
+  console.error(`[preplai] HTTP server running at ${cfg.baseUrl}`);
+  console.error(`[preplai] Player: ${cfg.baseUrl}/player/:sessionId`);
 
   // 2. Create MCP server with stdio transport
   const mcp = new McpServer({
-    name: 'Presentation Rendering Engine',
+    name: 'preplai',
     version: '0.1.0',
   });
 
@@ -223,13 +226,13 @@ async function main() {
             : process.platform === 'win32' ? 'start'
             : 'xdg-open';
           exec(cmd + ' ' + JSON.stringify(url), (err) => {
-            if (err) console.error('[PRE] Could not auto-open browser:', err.message);
+            if (err) console.error('[preplai] Could not auto-open browser:', err.message);
           });
-          console.error('[PRE] Auto-opened player:', url);
+          console.error('[preplai] Auto-opened player:', url);
         }
       } catch (e) {
         // Non-fatal: if auto-open fails, the URL is still in the response
-        console.error('[PRE] Auto-open failed:', e);
+        console.error('[preplai] Auto-open failed:', e);
       }
 
       return { content: result.content };
@@ -301,13 +304,60 @@ async function main() {
     },
   );
 
+  // ── Tool: list_sessions ────────────────────────────────────────────
+  mcp.tool(
+    'list_sessions',
+    'List all presentation sessions. Returns session IDs, titles, player URLs, and frame counts. Most recent first.',
+    {
+      limit: z.number().optional().describe('Max sessions to return (default 20, max 100)'),
+    },
+    async (args) => {
+      const result = await withErrorBoundary(
+        (a: any) => handleListSessions(a, { store, baseUrl }),
+      )(args);
+      return { content: result.content };
+    },
+  );
+
+  // ── Tool: delete_session ───────────────────────────────────────────
+  mcp.tool(
+    'delete_session',
+    'Delete a presentation session and all its data (visual script, narrations). This cannot be undone.',
+    {
+      session_id: z.string().describe('Session ID to delete'),
+    },
+    async (args) => {
+      const result = await withErrorBoundary(
+        (a: any) => handleDeleteSession(a, { store }),
+      )(args);
+      return { content: result.content };
+    },
+  );
+
+  // ── Tool: remove_scene ──────────────────────────────────────────────
+  mcp.tool(
+    'remove_scene',
+    'Remove frames from a presentation session. Specify frame_indices to remove specific frames (0-based), last_n to remove the last N frames, or neither to clear all frames.',
+    {
+      session_id: z.string().describe('Session ID'),
+      frame_indices: z.array(z.number()).optional().describe('Specific frame indices to remove (0-based)'),
+      last_n: z.number().optional().describe('Remove the last N frames'),
+    },
+    async (args) => {
+      const result = await withErrorBoundary(
+        (a: any) => handleRemoveScene(a, { store, sse }),
+      )(args);
+      return { content: result.content };
+    },
+  );
+
   // 3. Connect via stdio
   const transport = new StdioServerTransport();
   await mcp.connect(transport);
-  console.error('[PRE] MCP stdio bridge connected — ready for Claude Desktop');
+  console.error('[preplai] MCP stdio bridge connected — ready for Claude Desktop');
 }
 
 main().catch((err) => {
-  console.error('[PRE] Fatal error:', err);
+  console.error('[preplai] Fatal error:', err);
   process.exit(1);
 });
