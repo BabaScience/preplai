@@ -1,16 +1,21 @@
 /**
  * @pre/illustrations — Database Component
- * Cylinder: top ellipse + body rect + bottom ellipse + side lines + data stripes
+ * Cylinder: top ellipse + gradient body + bottom ellipse + side lines + data stripes (stack visual)
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
+import { createLinearGradient, ensureDefs } from '../visual-utils.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
 import type { VisualEntity } from '@pre/shared';
 
 export function renderDatabase(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const size = getSizeParam(entity);
-  const color = entity.color ?? '#b388ff';
+  const color = entity.color ?? getCategoryColor('Database');
+  const defs = ensureDefs(parentEl);
+  const gradId = `grad-db-${color.replace(/[^a-fA-F0-9]/g, '')}`;
+  createLinearGradient(gradId, color, 'vertical', defs);
 
   const rx = size / 2;
   const ry = size / 6;
@@ -24,18 +29,18 @@ export function renderDatabase(entity: VisualEntity, parentEl: SVGElement): SVGG
   topEllipse.setAttribute('cy', String(topY));
   topEllipse.setAttribute('rx', String(rx));
   topEllipse.setAttribute('ry', String(ry));
-  topEllipse.setAttribute('fill', `${color}15`);
+  topEllipse.setAttribute('fill', `${color}25`);
   topEllipse.setAttribute('stroke', color);
-  topEllipse.setAttribute('stroke-width', '2');
+  topEllipse.setAttribute('stroke-width', String(SHAPES.strokeWidth));
   innerG.appendChild(topEllipse);
 
-  // ── Body fill rect
+  // ── Body fill with gradient for 3D effect
   const bodyFill = document.createElementNS(SVG_NS, 'rect');
   bodyFill.setAttribute('x', String(-rx));
   bodyFill.setAttribute('y', String(topY));
   bodyFill.setAttribute('width', String(rx * 2));
   bodyFill.setAttribute('height', String(bodyH));
-  bodyFill.setAttribute('fill', `${color}15`);
+  bodyFill.setAttribute('fill', `url(#${gradId})`);
   bodyFill.setAttribute('stroke', 'none');
   innerG.appendChild(bodyFill);
 
@@ -47,7 +52,7 @@ export function renderDatabase(entity: VisualEntity, parentEl: SVGElement): SVGG
   botEllipse.setAttribute('ry', String(ry));
   botEllipse.setAttribute('fill', `${color}15`);
   botEllipse.setAttribute('stroke', color);
-  botEllipse.setAttribute('stroke-width', '2');
+  botEllipse.setAttribute('stroke-width', String(SHAPES.strokeWidth));
   innerG.appendChild(botEllipse);
 
   // ── Vertical side lines
@@ -58,23 +63,23 @@ export function renderDatabase(entity: VisualEntity, parentEl: SVGElement): SVGG
     line.setAttribute('x2', String(xSign * rx));
     line.setAttribute('y2', String(botY));
     line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', '2');
+    line.setAttribute('stroke-width', String(SHAPES.strokeWidth));
     innerG.appendChild(line);
   }
 
-  // ── Horizontal data stripe lines
-  const stripeOffsets = [0.25, 0.55];
+  // ── Horizontal data stripes (more visible, stack visual)
+  const stripeOffsets = [0.2, 0.45, 0.7];
   for (const t of stripeOffsets) {
     const sy = topY + bodyH * t;
-    const sw = rx * 0.8;
+    const sw = rx * 0.85;
     const stripe = document.createElementNS(SVG_NS, 'line');
     stripe.setAttribute('x1', String(-sw));
     stripe.setAttribute('y1', String(sy));
     stripe.setAttribute('x2', String(sw));
     stripe.setAttribute('y2', String(sy));
     stripe.setAttribute('stroke', color);
-    stripe.setAttribute('stroke-width', '1');
-    stripe.setAttribute('opacity', '0.3');
+    stripe.setAttribute('stroke-width', '1.5');
+    stripe.setAttribute('opacity', '0.5');
     innerG.appendChild(stripe);
   }
 
@@ -85,9 +90,9 @@ export function renderDatabase(entity: VisualEntity, parentEl: SVGElement): SVGG
     text.setAttribute('y', String(botY + ry + 20));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', '14');
-    text.setAttribute('font-weight', '500');
-    text.setAttribute('font-family', 'Inter, DM Sans, sans-serif');
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeTitle));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;
     innerG.appendChild(text);
   }

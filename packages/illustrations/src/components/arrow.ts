@@ -8,6 +8,7 @@
 
 import { SVG_NS } from '../utils.js';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@pre/shared';
+import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
 import type { VisualEntity } from '@pre/shared';
 
 /**
@@ -87,7 +88,7 @@ export function renderArrow(
   const x2 = (target.position.x / 100) * CANVAS_WIDTH;
   const y2 = (target.position.y / 100) * CANVAS_HEIGHT;
 
-  const color = entity.color ?? '#ffffff';
+  const color = entity.color ?? getCategoryColor('Arrow');
 
   // Unique arrowhead marker
   const markerId = `arrowhead-${entity.id}`;
@@ -112,18 +113,31 @@ export function renderArrow(
   line.setAttribute('marker-end', `url(#${markerId})`);
   g.appendChild(line);
 
-  // Optional midpoint label
+  // Optional midpoint label with background pill for readability
   if (entity.label) {
     const midX = (x1 + x2) / 2;
     const midY = (y1 + y2) / 2;
+    const labelLen = entity.label.length * 6;
+    const pillW = Math.max(labelLen + 16, 40);
+    const pillH = 20;
+    const pill = document.createElementNS(SVG_NS, 'rect');
+    pill.setAttribute('x', String(midX - pillW / 2));
+    pill.setAttribute('y', String(midY - pillH - 14));
+    pill.setAttribute('width', String(pillW));
+    pill.setAttribute('height', String(pillH));
+    pill.setAttribute('rx', '10');
+    pill.setAttribute('fill', 'rgba(12, 13, 20, 0.9)');
+    pill.setAttribute('stroke', `${color}60`);
+    pill.setAttribute('stroke-width', '1');
+    g.appendChild(pill);
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', String(midX));
-    text.setAttribute('y', String(midY - 10));
+    text.setAttribute('y', String(midY - 6));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
     text.setAttribute('font-size', '12');
-    text.setAttribute('font-weight', '500');
-    text.setAttribute('font-family', 'Inter, DM Sans, sans-serif');
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;
     g.appendChild(text);
   }
@@ -160,7 +174,11 @@ export function renderDataFlow(
   const y1 = (source.position.y / 100) * CANVAS_HEIGHT;
   const x2 = (target.position.x / 100) * CANVAS_WIDTH;
   const y2 = (target.position.y / 100) * CANVAS_HEIGHT;
-  const color = entity.color ?? '#b388ff';
+  const color = entity.color ?? getCategoryColor('DataFlow');
+
+  const svgRoot = parentEl.ownerSVGElement ?? parentEl;
+  const markerId = `arrowhead-dataflow-${entity.id}`;
+  ensureArrowheadMarker(markerId, color, svgRoot);
 
   const g = document.createElementNS(SVG_NS, 'g');
   g.setAttribute('id', entity.id);
@@ -175,7 +193,8 @@ export function renderDataFlow(
   line.setAttribute('stroke-width', '4');
   line.setAttribute('stroke-dasharray', '8,4');
   line.setAttribute('stroke-dashoffset', '0');
-  line.setAttribute('opacity', '0.6');
+  line.setAttribute('opacity', '0.7');
+  line.setAttribute('marker-end', `url(#${markerId})`);
 
   // SMIL dash animation
   const anim = document.createElementNS(SVG_NS, 'animate');

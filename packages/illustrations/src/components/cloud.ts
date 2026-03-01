@@ -1,16 +1,21 @@
 /**
  * @pre/illustrations — Cloud Component
- * Cloud shape: overlapping ellipses
+ * Cloud shape: overlapping ellipses with subtle gradient per ellipse for depth
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
+import { createRadialGradient, ensureDefs } from '../visual-utils.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
 import type { VisualEntity } from '@pre/shared';
 
 export function renderCloud(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const color = entity.color ?? '#00bcd4';
+  const color = entity.color ?? getCategoryColor('Cloud');
+  const defs = ensureDefs(parentEl);
+  const gradId = `grad-cloud-${color.replace(/[^a-fA-F0-9]/g, '')}`;
+  createRadialGradient(gradId, color, defs);
 
   const ellipses = [
     { cx: -s / 4, cy: 0, rx: s / 3, ry: s / 4 },
@@ -24,9 +29,9 @@ export function renderCloud(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     el.setAttribute('cy', String(e.cy));
     el.setAttribute('rx', String(e.rx));
     el.setAttribute('ry', String(e.ry));
-    el.setAttribute('fill', `${color}20`);
+    el.setAttribute('fill', `url(#${gradId})`);
     el.setAttribute('stroke', color);
-    el.setAttribute('stroke-width', '2');
+    el.setAttribute('stroke-width', String(SHAPES.strokeWidth));
     innerG.appendChild(el);
   }
 
@@ -36,8 +41,9 @@ export function renderCloud(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     text.setAttribute('y', String(s / 2 + 20));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', '13');
-    text.setAttribute('font-family', 'Inter, DM Sans, sans-serif');
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;
     innerG.appendChild(text);
   }

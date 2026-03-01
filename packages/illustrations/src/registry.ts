@@ -22,65 +22,78 @@ import { renderConcept } from './components/concept.js';
 import { renderCodeBlock } from './components/codeblock.js';
 import { renderArrow, renderDataFlow } from './components/arrow.js';
 import { renderGraph2D } from './components/graph2d.js';
+import { renderContainer } from './components/container.js';
+import { renderNetwork } from './components/network.js';
+import { renderDevice } from './components/device.js';
+import { renderCache } from './components/cache.js';
+import { renderLoadBalancer } from './components/loadbalancer.js';
+import { renderLambda } from './components/lambda.js';
+import { renderPipeline } from './components/pipeline.js';
+import { renderGroup } from './components/group.js';
+import { renderMetric } from './components/metric.js';
+import { renderBadge } from './components/badge.js';
+import { renderTimeline } from './components/timeline.js';
+import { renderStepList } from './components/steplist.js';
+import { renderDefinition } from './components/definition.js';
+import { renderCallout } from './components/callout.js';
+import { renderArray } from './components/array.js';
+import { renderLinkedList } from './components/linkedlist.js';
+import { renderBinaryTree } from './components/binarytree.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
+import { getCategoryColor } from './design-tokens.js';
 
-// ── Build generic renderers per category / default color
-const infra    = createGenericRenderer('#00e5ff');         // Infrastructure default
-const infraAlt = createGenericRenderer('#00e676');         // Infrastructure green
-const infraOrg = createGenericRenderer('#ffab00');         // Infrastructure orange
-const infraPrp = createGenericRenderer('#b388ff');         // Infrastructure purple
-const infraRed = createGenericRenderer('#ff4444');         // Infrastructure red
-const infraBlu = createGenericRenderer('#4488ff');         // Infrastructure blue
-const univCyan = createGenericRenderer('#00e5ff');         // Universal
-const univOrg  = createGenericRenderer('#ffab00');         // Universal orange
-const univGrn  = createGenericRenderer('#00e676');         // Universal green
-const univBcd  = createGenericRenderer('#00bcd4');         // Universal teal
-const univPrp  = createGenericRenderer('#b388ff');         // Universal purple
-const univPink = createGenericRenderer('#ff2d7b');         // Universal pink
-const univRed  = createGenericRenderer('#ff6b6b');         // Universal red
-const mathSci  = createGenericRenderer('#00e5ff');         // Math
-const mathPrp  = createGenericRenderer('#b388ff');         // Math purple
-const physOrg  = createGenericRenderer('#ffab00');         // Physics orange
-const physBcd  = createGenericRenderer('#00bcd4');         // Physics teal
-const physPnk  = createGenericRenderer('#ff6b9d');         // Physics pink
-const physPrp  = createGenericRenderer('#b388ff');         // Physics purple
-const genGrn   = createGenericRenderer('#00e676');         // General green
-const genBcd   = createGenericRenderer('#00bcd4');         // General teal
-const genOrg   = createGenericRenderer('#ffab00');         // General orange
-const pedGrn   = createGenericRenderer('#00e676');         // Pedagogical green
-const pedOrg   = createGenericRenderer('#ffab00');         // Pedagogical orange
-const pedPrp   = createGenericRenderer('#b388ff');         // Pedagogical purple
-const dsGrn    = createGenericRenderer('#00e676');         // Data structure green
-const dsOrg    = createGenericRenderer('#ffab00');         // Data structure orange
-const dsBcd    = createGenericRenderer('#00bcd4');         // Data structure teal
-const dsPrp    = createGenericRenderer('#b388ff');         // Data structure purple
-const algoGrn  = createGenericRenderer('#00e5ff');         // Algorithm
-const algoRed  = createGenericRenderer('#ff6b6b');         // Algorithm red
-const algoPrp  = createGenericRenderer('#b388ff');         // Algorithm purple
-const csArch   = createGenericRenderer('#00e5ff');         // Computer Architecture
-const csArchOrg = createGenericRenderer('#ffab00');        // Comp arch orange
-const csArchPrp = createGenericRenderer('#b388ff');        // Comp arch purple
-const csArchGrn = createGenericRenderer('#00e676');        // Comp arch green
-const osBcd    = createGenericRenderer('#00bcd4');         // OS teal
-const osGrn    = createGenericRenderer('#00e676');         // OS green
-const osPrp    = createGenericRenderer('#b388ff');         // OS purple
-const netCyan  = createGenericRenderer('#00e5ff');         // Networking
-const netOrg   = createGenericRenderer('#ffab00');         // Networking orange
-const mlPrp    = createGenericRenderer('#b388ff');         // ML purple
-const mlCyan   = createGenericRenderer('#00e5ff');         // ML cyan
+// ── Build generic renderers using design tokens
+const generic = (type: string, shape: 'rect' | 'circle' | 'diamond' | 'hexagon' = 'rect') =>
+  createGenericRenderer(getCategoryColor(type), shape);
 
-// Diamond shape for Decision
-const decisionDiamond = createGenericRenderer('#ffab00', 'diamond');
-// Hexagon for LoadBalancer
-const loadBalancerHex = createGenericRenderer('#00e5ff', 'hexagon');
-// Circle shapes
-const circleCache = createGenericRenderer('#00e676', 'circle');
-const circleMetric = createGenericRenderer('#ff2d7b', 'circle');
-const circleCycle = createGenericRenderer('#00bcd4', 'circle');
-const circleParticle = createGenericRenderer('#ff6b9d', 'circle');
-const circleCluster = createGenericRenderer('#4488ff', 'circle');
+const infra = generic('Service');
+const infraAlt = generic('Pod');
+const infraOrg = generic('Queue');
+const infraPrp = generic('Volume');
+const infraRed = generic('Firewall');
+const infraBlu = generic('Subnet');
+const univCyan = generic('Entity');
+const univOrg = generic('Label');
+const univGrn = generic('Tree');
+const univBcd = generic('Group');
+const univPrp = generic('Stack');
+const univRed = generic('Badge');
+const mathSci = generic('Equation');
+const mathPrp = generic('Matrix');
+const physOrg = generic('Circuit');
+const physBcd = generic('Wave');
+const physPnk = generic('Vector');
+const physPrp = generic('Field');
+const genGrn = generic('Histogram');
+const genBcd = generic('FlowDiagram');
+const genOrg = generic('Annotation');
+const pedPrp = generic('Proof');
+const dsGrn = generic('LinkedList');
+const dsOrg = generic('HashTable');
+const dsBcd = generic('Heap');
+const dsPrp = generic('BinaryTree');
+const algoGrn = generic('ArrayCell');
+const algoRed = generic('Pointer');
+const algoPrp = generic('RecursionTree');
+const csArch = generic('CPU');
+const csArchOrg = generic('Register');
+const csArchPrp = generic('MemoryBlock');
+const csArchGrn = generic('LogicGate');
+const osBcd = generic('ProcessBlock');
+const osGrn = generic('Thread');
+const osPrp = generic('MemoryMap');
+const netCyan = generic('Packet');
+const netOrg = generic('ProtocolStack');
+const mlPrp = generic('NeuralNetwork');
+const mlCyan = generic('DecisionBoundary');
+
+const decisionDiamond = generic('Decision', 'diamond');
+const circleCache = generic('StateNode', 'circle');
+const circleCycle = generic('Cycle', 'circle');
+const circleParticle = generic('Particle', 'circle');
+const circleCluster = generic('Cluster', 'circle');
 
 /**
  * The global component registry.
@@ -93,24 +106,24 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Database: renderDatabase,
   Cloud: renderCloud,
 
-  // ── Infrastructure (generic stubs)
-  Container: infraAlt,
+  // ── Infrastructure (fully implemented)
+  Container: renderContainer,
   Pod: infraAlt,
-  Network: infra,
-  Device: infraOrg,
+  Network: renderNetwork,
+  Device: renderDevice,
   Process: univBcd,
   Queue: infraOrg,
-  Cache: circleCache,
-  LoadBalancer: loadBalancerHex,
+  Cache: renderCache,
+  LoadBalancer: renderLoadBalancer,
   Service: infra,
   Firewall: infraRed,
   APIGateway: infra,
-  Lambda: infraOrg,
+  Lambda: renderLambda,
   Subnet: infraBlu,
   Volume: infraPrp,
   Registry: infraAlt,
   Monitor: infraAlt,
-  Pipeline: univBcd,
+  Pipeline: renderPipeline,
   Decision: decisionDiamond,
   Cluster: circleCluster,
 
@@ -121,15 +134,15 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   // ── Universal
   Concept: renderConcept,
   Entity: univCyan,
-  Group: univBcd,
+  Group: renderGroup,
   Label: univOrg,
   Comparison: univOrg,
-  Timeline: univGrn,
-  Metric: circleMetric,
+  Timeline: renderTimeline,
+  Metric: renderMetric,
   Cycle: circleCycle,
   Stack: univPrp,
   Tree: univGrn,
-  Badge: univRed,
+  Badge: renderBadge,
   Quote: univPrp,
 
   // ── Math & Science (Graph2D fully implemented)
@@ -159,17 +172,17 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   ScatterPlot: infra,
 
   // ── Pedagogical (CodeBlock fully implemented)
-  StepList: infra,
+  StepList: renderStepList,
   CodeBlock: renderCodeBlock,
-  Definition: pedGrn,
-  Callout: pedOrg,
+  Definition: renderDefinition,
+  Callout: renderCallout,
   Proof: pedPrp,
   Analogy: infra,
 
   // ── Data Structures
-  Array: infra,
-  LinkedList: dsGrn,
-  BinaryTree: dsPrp,
+  Array: renderArray,
+  LinkedList: renderLinkedList,
+  BinaryTree: renderBinaryTree,
   HashTable: dsOrg,
   Heap: dsBcd,
   GraphDS: infra,

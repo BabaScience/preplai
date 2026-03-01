@@ -4,6 +4,8 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
+import { createDarkGradient, ensureDefs } from '../visual-utils.js';
+import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
 import type { VisualEntity } from '@pre/shared';
 
 export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -14,7 +16,10 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
   const totalH = s * 3;
 
   const meta = entity.metadata ?? {};
-  const color = entity.color ?? '#00e5ff';
+  const color = entity.color ?? getCategoryColor('Graph2D');
+  const defs = ensureDefs(parentEl);
+  const bgGradId = `grad-graph2d-${color.replace(/[^a-fA-F0-9]/g, '')}`;
+  createDarkGradient(bgGradId, defs, color);
   const domain = (meta.domain as [number, number]) ?? (meta.xRange as [number, number]) ?? [-5, 5];
   const range = (meta.range as [number, number]) ?? (meta.yRange as [number, number]) ?? [-5, 5];
   const showGrid = meta.showGrid !== false;
@@ -29,19 +34,19 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
   const mapX = (v: number) => -totalW / 2 + pad + ((v - domain[0]) / (domain[1] - domain[0])) * chartW;
   const mapY = (v: number) => totalH / 2 - pad - ((v - range[0]) / (range[1] - range[0])) * chartH;
 
-  // ── Background
+  // ── Background with subtle gradient
   const bg = document.createElementNS(SVG_NS, 'rect');
   bg.setAttribute('x', String(-totalW / 2));
   bg.setAttribute('y', String(-totalH / 2));
   bg.setAttribute('width', String(totalW));
   bg.setAttribute('height', String(totalH));
   bg.setAttribute('rx', '8');
-  bg.setAttribute('fill', '#0b0d1460');
+  bg.setAttribute('fill', `url(#${bgGradId})`);
   bg.setAttribute('stroke', color);
   bg.setAttribute('stroke-width', '1');
   innerG.appendChild(bg);
 
-  // ── Grid lines
+  // ── Grid lines (more visible)
   if (showGrid) {
     for (let v = Math.ceil(domain[0]); v <= Math.floor(domain[1]); v++) {
       const gx = mapX(v);
@@ -50,7 +55,7 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
       gl.setAttribute('y1', String(-totalH / 2 + pad));
       gl.setAttribute('x2', String(gx));
       gl.setAttribute('y2', String(totalH / 2 - pad));
-      gl.setAttribute('stroke', '#ffffff08');
+      gl.setAttribute('stroke', '#ffffff12');
       gl.setAttribute('stroke-width', '1');
       innerG.appendChild(gl);
     }
@@ -61,7 +66,7 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
       gl.setAttribute('y1', String(gy));
       gl.setAttribute('x2', String(totalW / 2 - pad));
       gl.setAttribute('y2', String(gy));
-      gl.setAttribute('stroke', '#ffffff08');
+      gl.setAttribute('stroke', '#ffffff12');
       gl.setAttribute('stroke-width', '1');
       innerG.appendChild(gl);
     }
@@ -73,7 +78,7 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
   xAxis.setAttribute('y1', String(mapY(0)));
   xAxis.setAttribute('x2', String(totalW / 2 - pad));
   xAxis.setAttribute('y2', String(mapY(0)));
-  xAxis.setAttribute('stroke', '#ffffff30');
+  xAxis.setAttribute('stroke', '#ffffff40');
   xAxis.setAttribute('stroke-width', '1.5');
   innerG.appendChild(xAxis);
 
@@ -82,7 +87,7 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
   yAxis.setAttribute('y1', String(-totalH / 2 + pad));
   yAxis.setAttribute('x2', String(mapX(0)));
   yAxis.setAttribute('y2', String(totalH / 2 - pad));
-  yAxis.setAttribute('stroke', '#ffffff30');
+  yAxis.setAttribute('stroke', '#ffffff40');
   yAxis.setAttribute('stroke-width', '1.5');
   innerG.appendChild(yAxis);
 
@@ -182,9 +187,9 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
     title.setAttribute('y', String(-totalH / 2 + 18));
     title.setAttribute('text-anchor', 'middle');
     title.setAttribute('fill', color);
-    title.setAttribute('font-size', '12');
-    title.setAttribute('font-weight', '600');
-    title.setAttribute('font-family', 'Inter, DM Sans, sans-serif');
+    title.setAttribute('font-size', String(TYPOGRAPHY.fontSizeTitle));
+    title.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightTitle));
+    title.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     title.textContent = entity.label;
     innerG.appendChild(title);
   }
