@@ -1,20 +1,20 @@
 /**
- * @pre/mcp-server — Player Bootstrap JS (v3)
+ * @pre/mcp-server — Player Bootstrap JS (v4)
  *
- * Complete rewrite with all 24 fixes:
- * - Type-specific SVG renderers (Server, Database, Cloud, User, Concept, Label, CodeBlock, etc.)
- * - Bezier curve arrows with glow, larger arrowheads, subtle flow animation
- * - Label overflow handling (multi-line tspan wrapping)
- * - Dot grid background (more visible)
- * - Frame navigation (keyboard arrows + buttons)
- * - GSAP entrance choreography (type-specific animations)
- * - Canvas margin/safe-zone system
- * - Visual weight hierarchy for labels
- * - Semi-transparent pill backgrounds on arrow labels
- * - Drop-shadow filter on entity shapes
- * - Increased gradient opacity
- * - Hover/focus interactive states
- * - Frame crossfade transitions
+ * Complete rewrite with all v3 fixes retained PLUS v4 improvements:
+ * - BUG FIX 1: Double labels on Generic entities removed (interior label only)
+ * - BUG FIX 2: Concept circle — interior label only (no addLabel call)
+ * - BUG FIX 3: Cache/Queue circle interior text truncated to 16 chars, hexagon 18
+ * - BUG FIX 4: Arrow label collision — offset further if too close to endpoints
+ * - IMPROVEMENT 1: COLORS constant object
+ * - IMPROVEMENT 2: Dot grid refinement (spacing 80, r 1.2, opacity 0.05)
+ * - IMPROVEMENT 3: Entity gradient opacity boost (0.35/0.25/0.15)
+ * - IMPROVEMENT 4: Frame navigation with clickable dot indicators
+ * - IMPROVEMENT 5: Keyboard hint auto-hide after 4 seconds
+ * - IMPROVEMENT 6: Ambient particles layer
+ * - IMPROVEMENT 7: Better server entity interior (more opaque stripes + arrow icon)
+ * - IMPROVEMENT 8: Scene transition stagger timing (60ms/50ms, faster)
+ * - IMPROVEMENT 9: Narrator GSAP entrance animation
  *
  * Served at GET /player.js as vanilla ES5-compat IIFE.
  */
@@ -28,11 +28,23 @@ export const PLAYER_JS = `(function() {
   var SVG_NS = 'http://www.w3.org/2000/svg';
   var CW = 1920;  // Canvas width
   var CH = 1080;  // Canvas height
-  var LABEL_MAX_CHARS = 80;  // Fix #3: was 28, now 80
-  var MARGIN_X = 80;         // Fix #8: safe-zone horizontal margin
-  var MARGIN_Y = 60;         // Fix #8: safe-zone vertical margin
+  var LABEL_MAX_CHARS = 80;
+  var MARGIN_X = 80;
+  var MARGIN_Y = 60;
   var FONT_UI = "'Inter', sans-serif";
   var FONT_MONO = "'JetBrains Mono', monospace";
+
+  // IMPROVEMENT 1: Color constants
+  var COLORS = {
+    bgDeep:        '#060610',
+    bgBase:        '#0c0d14',
+    bgElevated:    '#12131c',
+    bgSurface:     '#1a1b26',
+    textPrimary:   '#e8e8f0',
+    textSecondary: '#a0a0b8',
+    textTertiary:  '#6b6b80',
+    accent:        '#C9A84C'
+  };
 
   // ═══════════════════════════════════════════════════════════════════
   // Session & DOM
@@ -57,23 +69,45 @@ export const PLAYER_JS = `(function() {
   var currentFrame  = 0;
 
   // ═══════════════════════════════════════════════════════════════════
-  // Init: Dot grid — Fix #22: bigger dots, more opaque fill
+  // Init: Dot grid — IMPROVEMENT 2: spacing 80, r 1.2, opacity 0.05
   // ═══════════════════════════════════════════════════════════════════
   function initDotGrid() {
     if (!dotGrid) return;
-    var spacing = 60;
+    var spacing = 80;
     for (var x = spacing; x < CW; x += spacing) {
       for (var y = spacing; y < CH; y += spacing) {
         var dot = document.createElementNS(SVG_NS, 'circle');
         dot.setAttribute('cx', String(x));
         dot.setAttribute('cy', String(y));
-        dot.setAttribute('r', '1.5');                          // Fix #22: was '1'
-        dot.setAttribute('fill', 'rgba(255,255,255,0.7)');    // Fix #22: was 0.5
+        dot.setAttribute('r', '1.2');
+        dot.setAttribute('fill', 'rgba(255,255,255,0.05)');
         dotGrid.appendChild(dot);
       }
     }
   }
   initDotGrid();
+
+  // IMPROVEMENT 6: Ambient floating particles
+  function initAmbientParticles() {
+    var ambientLayer = document.getElementById('ambient-layer');
+    if (!ambientLayer) return;
+    var particleColors = ['#4ECDC4', '#9B59B6', '#F1C40F', '#3498DB', '#E67E22'];
+    for (var pi = 0; pi < 12; pi++) {
+      var pc = document.createElementNS(SVG_NS, 'circle');
+      var px = 100 + Math.random() * (CW - 200);
+      var py = 100 + Math.random() * (CH - 200);
+      var pr = 2 + Math.random() * 4;
+      pc.setAttribute('cx', String(px));
+      pc.setAttribute('cy', String(py));
+      pc.setAttribute('r', String(pr));
+      pc.setAttribute('fill', particleColors[pi % particleColors.length]);
+      pc.setAttribute('opacity', String(0.03 + Math.random() * 0.04));
+      pc.classList.add('ambient-particle');
+      pc.style.animationDelay = (Math.random() * 6) + 's';
+      ambientLayer.appendChild(pc);
+    }
+  }
+  initAmbientParticles();
 
   // ═══════════════════════════════════════════════════════════════════
   // SVG filter defs: soft-shadow, entity-glow
@@ -86,7 +120,7 @@ export const PLAYER_JS = `(function() {
       canvas.insertBefore(defs, canvas.firstChild);
     }
 
-    // soft-shadow filter — Fix #19
+    // soft-shadow filter
     if (!defs.querySelector('#soft-shadow')) {
       var filt = document.createElementNS(SVG_NS, 'filter');
       filt.setAttribute('id', 'soft-shadow');
@@ -143,7 +177,7 @@ export const PLAYER_JS = `(function() {
   })();
 
   // ═══════════════════════════════════════════════════════════════════
-  // Utility: multi-line text wrapping — Fix #2, #3
+  // Utility: multi-line text wrapping
   // ═══════════════════════════════════════════════════════════════════
   function wrapText(text, maxCharsPerLine) {
     if (!text) return [];
@@ -166,7 +200,7 @@ export const PLAYER_JS = `(function() {
     return lines;
   }
 
-  // Utility: create multi-line SVG text with tspan elements — Fix #2, #3
+  // Utility: create multi-line SVG text with tspan elements
   function createMultiLineText(parentEl, lines, opts) {
     opts = opts || {};
     var x = opts.x || 0;
@@ -213,10 +247,10 @@ export const PLAYER_JS = `(function() {
     return text.length > max ? text.substring(0, max - 1) + '\u2026' : text;
   }
 
-  // Utility: Parse size param → pixel base — Fix #1
+  // Utility: Parse size param → pixel base
   function sizeToPixels(s) {
     s = s || 1;
-    return Math.min(Math.max(s * 110, 60), 400);  // Fix #1: was s*50, 20, 140
+    return Math.min(Math.max(s * 110, 60), 400);
   }
 
   // Utility: hex color → rgba with alpha
@@ -230,7 +264,8 @@ export const PLAYER_JS = `(function() {
     return color;
   }
 
-  // Utility: create a linear gradient def and return its ID — Fix #19
+  // Utility: create a linear gradient def and return its ID
+  // IMPROVEMENT 3: boosted stop alphas 0.35/0.25/0.15
   var gradientCounter = 0;
   function createGradient(color, parentSvg) {
     var id = 'eg-' + (++gradientCounter);
@@ -244,21 +279,22 @@ export const PLAYER_JS = `(function() {
     lg.setAttribute('x2', '0');
     lg.setAttribute('y2', '1');
 
-    // Fix #19: increased alpha from 0.18/0.06 to 0.30/0.12
+    // IMPROVEMENT 3: alpha 0.35 (was 0.30)
     var s1 = document.createElementNS(SVG_NS, 'stop');
     s1.setAttribute('offset', '0%');
-    s1.setAttribute('stop-color', colorAlpha(color, 0.30));
+    s1.setAttribute('stop-color', colorAlpha(color, 0.35));
     lg.appendChild(s1);
 
-    // Inner glow stop — Fix #19
+    // IMPROVEMENT 3: alpha 0.25 (was 0.22)
     var s2 = document.createElementNS(SVG_NS, 'stop');
     s2.setAttribute('offset', '45%');
-    s2.setAttribute('stop-color', colorAlpha(color, 0.22));
+    s2.setAttribute('stop-color', colorAlpha(color, 0.25));
     lg.appendChild(s2);
 
+    // IMPROVEMENT 3: alpha 0.15 (was 0.12)
     var s3 = document.createElementNS(SVG_NS, 'stop');
     s3.setAttribute('offset', '100%');
-    s3.setAttribute('stop-color', colorAlpha(color, 0.12));
+    s3.setAttribute('stop-color', colorAlpha(color, 0.15));
     lg.appendChild(s3);
 
     defs.appendChild(lg);
@@ -266,7 +302,7 @@ export const PLAYER_JS = `(function() {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // Utility: compute entity canvas position with margin — Fix #8
+  // Utility: compute entity canvas position with margin
   // ═══════════════════════════════════════════════════════════════════
   function entityCX(entity) {
     return MARGIN_X + ((entity.position.x / 100) * (CW - 2 * MARGIN_X));
@@ -276,7 +312,7 @@ export const PLAYER_JS = `(function() {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // Utility: type-specific default entrance animation — Fix #18
+  // Utility: type-specific default entrance animation
   // ═══════════════════════════════════════════════════════════════════
   function defaultEntrance(type) {
     switch (type) {
@@ -315,7 +351,6 @@ export const PLAYER_JS = `(function() {
     outerG.setAttribute('id', entity.id);
     outerG.setAttribute('data-type', entity.type || 'Unknown');
 
-    // Fix #8: use margin-aware position helpers
     var cx = entityCX(entity);
     var cy = entityCY(entity);
     outerG.setAttribute('transform', 'translate(' + cx + ', ' + cy + ')');
@@ -325,7 +360,6 @@ export const PLAYER_JS = `(function() {
       outerG.classList.add('entity-highlighted');
     }
 
-    // Fix #17: interactive class for hover/focus states
     outerG.classList.add('entity-interactive');
 
     var innerG = document.createElementNS(SVG_NS, 'g');
@@ -339,14 +373,12 @@ export const PLAYER_JS = `(function() {
     }
     innerG.style.animationDelay = d + 'ms';
 
-    // Fix #18: type-specific default entrance, overridable by entity.animation.entrance
     var entranceName = defaultEntrance(entity.type);
     if (entity.animation && entity.animation.entrance) {
       entranceName = entity.animation.entrance;
     }
     innerG.setAttribute('class', 'animate-element entrance-' + entranceName);
 
-    // Fix #17: hover interaction
     outerG.addEventListener('mouseenter', function() {
       if (typeof gsap !== 'undefined') {
         gsap.to(innerG, { scale: 1.06, duration: 0.18, ease: 'power2.out',
@@ -371,16 +403,14 @@ export const PLAYER_JS = `(function() {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // Label renderer: adds text below entity — Fix #12, #13, #14
+  // Label renderer: adds text below entity
   // ═══════════════════════════════════════════════════════════════════
   function addLabel(innerG, entity, yOffset, opts) {
     if (!entity.label) return;
     opts = opts || {};
     var color = opts.color || entity.color || '#c8c8e0';
     var s = sizeToPixels(entity.size);
-    // Fix #12: adaptive font size
     var fontSize = opts.fontSize || Math.max(12, Math.min(s * 0.18, 22));
-    // Fix #14: font-weight 600
     var fontWeight = opts.fontWeight || '600';
     var fontFamily = opts.fontFamily || FONT_UI;
     var maxChars = opts.maxChars || LABEL_MAX_CHARS;
@@ -391,11 +421,11 @@ export const PLAYER_JS = `(function() {
     text.setAttribute('x', '0');
     text.setAttribute('y', String(yOffset));
     text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', color);   // Fix #13: full-opacity color
+    text.setAttribute('fill', color);
     text.setAttribute('font-size', String(fontSize));
     text.setAttribute('font-weight', fontWeight);
     text.setAttribute('font-family', fontFamily);
-    text.setAttribute('letter-spacing', '0.02em');  // Fix #14
+    text.setAttribute('letter-spacing', '0.02em');
     text.textContent = label;
     innerG.appendChild(text);
   }
@@ -404,7 +434,7 @@ export const PLAYER_JS = `(function() {
   // Entity Renderers — type-specific SVG shapes
   // ═══════════════════════════════════════════════════════════════════
 
-  // ── Server: rack with stripe lines + LED dots ───────────────────
+  // ── Server: rack with stripe lines + LED dots + arrow icon (IMPROVEMENT 7) ──
   function renderServer(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
@@ -414,7 +444,7 @@ export const PLAYER_JS = `(function() {
     var h = s * 0.9;
     var fill = createGradient(color, canvas);
 
-    // Body — Fix #19: drop-shadow filter
+    // Body
     var body = document.createElementNS(SVG_NS, 'rect');
     body.setAttribute('x', String(-w/2));
     body.setAttribute('y', String(-h/2));
@@ -424,10 +454,10 @@ export const PLAYER_JS = `(function() {
     body.setAttribute('fill', fill);
     body.setAttribute('stroke', color);
     body.setAttribute('stroke-width', '1.5');
-    body.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
+    body.setAttribute('filter', 'url(#soft-shadow)');
     innerG.appendChild(body);
 
-    // Rack stripe lines (3 horizontal)
+    // IMPROVEMENT 7: rack stripe lines — more opaque (0.4 instead of 0.3)
     for (var i = -1; i <= 1; i++) {
       var lineY = i * (h / 4);
       var line = document.createElementNS(SVG_NS, 'line');
@@ -437,7 +467,7 @@ export const PLAYER_JS = `(function() {
       line.setAttribute('y2', String(lineY));
       line.setAttribute('stroke', color);
       line.setAttribute('stroke-width', '0.8');
-      line.setAttribute('opacity', '0.3');
+      line.setAttribute('opacity', '0.4');
       innerG.appendChild(line);
     }
 
@@ -452,6 +482,21 @@ export const PLAYER_JS = `(function() {
       dot.setAttribute('opacity', '0.9');
       innerG.appendChild(dot);
     }
+
+    // IMPROVEMENT 7: directional arrow icon (server processing direction)
+    var arrow = document.createElementNS(SVG_NS, 'path');
+    var arrowScale = w * 0.2;
+    arrow.setAttribute('d',
+      'M' + (-arrowScale*0.5) + ',0 L' + (arrowScale*0.5) + ',0 M' +
+      (arrowScale*0.25) + ',' + (-arrowScale*0.25) + ' L' + (arrowScale*0.5) + ',0 L' +
+      (arrowScale*0.25) + ',' + (arrowScale*0.25)
+    );
+    arrow.setAttribute('stroke', color);
+    arrow.setAttribute('stroke-width', '2');
+    arrow.setAttribute('fill', 'none');
+    arrow.setAttribute('opacity', '0.5');
+    arrow.setAttribute('stroke-linecap', 'round');
+    innerG.appendChild(arrow);
 
     addLabel(innerG, entity, h/2 + 22);
     parentEl.appendChild(g.outerG);
@@ -471,14 +516,14 @@ export const PLAYER_JS = `(function() {
     var botY = topY + bodyH;
     var fill = createGradient(color, canvas);
 
-    // Body fill (rect behind ellipses) — Fix #19: drop-shadow
+    // Body fill (rect behind ellipses)
     var bodyFill = document.createElementNS(SVG_NS, 'rect');
     bodyFill.setAttribute('x', String(-rx));
     bodyFill.setAttribute('y', String(topY));
     bodyFill.setAttribute('width', String(rx * 2));
     bodyFill.setAttribute('height', String(bodyH));
     bodyFill.setAttribute('fill', fill);
-    bodyFill.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
+    bodyFill.setAttribute('filter', 'url(#soft-shadow)');
     innerG.appendChild(bodyFill);
 
     // Side lines
@@ -536,7 +581,7 @@ export const PLAYER_JS = `(function() {
     return g.outerG;
   }
 
-  // ── Cloud: rounded blob shape ───────────────────────────────────
+  // ── Cloud: rounded blob shape ────────────────────────────────────
   function renderCloud(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
@@ -558,7 +603,7 @@ export const PLAYER_JS = `(function() {
     path.setAttribute('fill', fill);
     path.setAttribute('stroke', color);
     path.setAttribute('stroke-width', '1.5');
-    path.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
+    path.setAttribute('filter', 'url(#soft-shadow)');
     innerG.appendChild(path);
 
     addLabel(innerG, entity, s * 0.45 + 20);
@@ -566,7 +611,7 @@ export const PLAYER_JS = `(function() {
     return g.outerG;
   }
 
-  // ── User: head circle + body arc ────────────────────────────────
+  // ── User: head circle + body arc ─────────────────────────────────
   function renderUser(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
@@ -583,7 +628,7 @@ export const PLAYER_JS = `(function() {
     head.setAttribute('fill', fill);
     head.setAttribute('stroke', color);
     head.setAttribute('stroke-width', '1.5');
-    head.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
+    head.setAttribute('filter', 'url(#soft-shadow)');
     innerG.appendChild(head);
 
     // Body arc
@@ -606,7 +651,8 @@ export const PLAYER_JS = `(function() {
     return g.outerG;
   }
 
-  // ── Concept: circle — Fix #2: auto-size radius to fit label ─────
+  // ── Concept: circle with interior label ──────────────────────────
+  // BUG FIX 2: interior label only — no addLabel() call
   function renderConcept(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
@@ -614,14 +660,13 @@ export const PLAYER_JS = `(function() {
     var color = entity.color || '#00e5ff';
     var fill = createGradient(color, canvas);
 
-    // Fix #2: compute radius from label length to avoid overflow
+    // Compute radius from label length to avoid overflow
     var labelText = entity.label || '';
     var lines = wrapText(labelText, 14);
     var longestLine = 0;
     for (var li = 0; li < lines.length; li++) {
       if (lines[li].length > longestLine) longestLine = lines[li].length;
     }
-    // Base radius is s*0.5, but grow if needed to fit text
     var labelFontSize = Math.min(16, s * 0.18);
     var textW = longestLine * labelFontSize * 0.58;
     var textH = lines.length * (labelFontSize * 1.3);
@@ -635,7 +680,7 @@ export const PLAYER_JS = `(function() {
     outer.setAttribute('fill', fill);
     outer.setAttribute('stroke', color);
     outer.setAttribute('stroke-width', '2');
-    outer.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
+    outer.setAttribute('filter', 'url(#soft-shadow)');
     innerG.appendChild(outer);
 
     var inner = document.createElementNS(SVG_NS, 'circle');
@@ -648,7 +693,7 @@ export const PLAYER_JS = `(function() {
     inner.setAttribute('stroke-dasharray', '4,4');
     innerG.appendChild(inner);
 
-    // Fix #2: multi-line tspan label inside the circle
+    // Multi-line tspan label inside the circle
     if (labelText) {
       if (lines.length <= 1) {
         var text = document.createElementNS(SVG_NS, 'text');
@@ -659,7 +704,7 @@ export const PLAYER_JS = `(function() {
         text.setAttribute('font-size', String(labelFontSize));
         text.setAttribute('font-weight', '600');
         text.setAttribute('font-family', FONT_UI);
-        text.setAttribute('letter-spacing', '0.02em');  // Fix #14
+        text.setAttribute('letter-spacing', '0.02em');
         text.textContent = labelText;
         innerG.appendChild(text);
       } else {
@@ -677,13 +722,13 @@ export const PLAYER_JS = `(function() {
       }
     }
 
+    // BUG FIX 2: NO addLabel() call here — interior label is sufficient
     parentEl.appendChild(g.outerG);
     return g.outerG;
   }
 
-  // ── Label: clean text with pill background — Fix #3, #5, #7 ─────
+  // ── Label: clean text with pill background ───────────────────────
   function renderLabel(entity, parentEl, delay) {
-    // Fix #5: skip blank labels entirely
     if (!entity.label || !entity.label.trim()) return null;
 
     var g = createEntityGroup(entity, delay);
@@ -691,28 +736,22 @@ export const PLAYER_JS = `(function() {
     var s = sizeToPixels(entity.size);
     var color = entity.color || '#FFFFFF';
 
-    // Fix #7: visual weight hierarchy based on entity.size
     var fontSize, fontWeight;
     if (entity.size >= 2) {
-      // Title labels
       fontSize = Math.min(Math.max(s * 0.30, 42), 48);
       fontWeight = '700';
     } else if (entity.size >= 1.4) {
-      // Subtitle labels
       fontSize = Math.min(Math.max(s * 0.24, 28), 32);
       fontWeight = '600';
     } else {
-      // Regular labels
       fontSize = Math.min(Math.max(s * 0.18, 16), 20);
       fontWeight = '500';
     }
 
-    // Fix #3: allow up to 120 chars, multi-line wrapping for Label entities
     var maxCharsPerLine = 28;
     var label = entity.label || '';
     var lines = wrapText(label, maxCharsPerLine);
 
-    // Pill background sized to content
     var lineHeight = fontSize * 1.35;
     var totalH = lines.length * lineHeight + 24;
     var maxLineLen = 0;
@@ -739,7 +778,7 @@ export const PLAYER_JS = `(function() {
       text.setAttribute('font-size', String(fontSize));
       text.setAttribute('font-weight', fontWeight);
       text.setAttribute('font-family', FONT_UI);
-      text.setAttribute('letter-spacing', '0.02em');  // Fix #14
+      text.setAttribute('letter-spacing', '0.02em');
       text.textContent = truncLabel(label, 120);
       innerG.appendChild(text);
     } else {
@@ -760,19 +799,18 @@ export const PLAYER_JS = `(function() {
     return g.outerG;
   }
 
-  // ── CodeBlock: dark rect with monospace text ────────────────────
+  // ── CodeBlock: dark rect with monospace text ─────────────────────
   function renderCodeBlock(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
     var color = entity.color || '#4FC3F7';
     var code = entity.textContent || entity.label || 'code';
-    var lines = code.split('\\n').slice(0, 8);  // max 8 lines
+    var lines = code.split('\\n').slice(0, 8);
     var lineH = 16;
     var w = Math.min(Math.max(s * 2.5, 160), 500);
     var h = lines.length * lineH + 28;
 
-    // Background — Fix #19
     var bg = document.createElementNS(SVG_NS, 'rect');
     bg.setAttribute('x', String(-w/2));
     bg.setAttribute('y', String(-h/2));
@@ -782,7 +820,7 @@ export const PLAYER_JS = `(function() {
     bg.setAttribute('fill', 'rgba(8, 8, 20, 0.8)');
     bg.setAttribute('stroke', colorAlpha(color, 0.25));
     bg.setAttribute('stroke-width', '1');
-    bg.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
+    bg.setAttribute('filter', 'url(#soft-shadow)');
     innerG.appendChild(bg);
 
     // Title bar dots
@@ -814,7 +852,9 @@ export const PLAYER_JS = `(function() {
     return g.outerG;
   }
 
-  // ── Generic: rounded rect/circle/diamond — Fix #6: label centered, no type badge
+  // ── Generic: rounded rect / circle / diamond / hexagon ───────────
+  // BUG FIX 1: REMOVED addLabel() call — interior label is sufficient
+  // BUG FIX 3: Smaller truncation and font for circle (16 chars) and hexagon (18 chars)
   function renderGeneric(entity, parentEl, delay, shape) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
@@ -831,7 +871,7 @@ export const PLAYER_JS = `(function() {
       circ.setAttribute('fill', fill);
       circ.setAttribute('stroke', color);
       circ.setAttribute('stroke-width', '1.5');
-      circ.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
+      circ.setAttribute('filter', 'url(#soft-shadow)');
       innerG.appendChild(circ);
     } else if (shape === 'diamond') {
       var dd = s * 0.5;
@@ -840,7 +880,7 @@ export const PLAYER_JS = `(function() {
       poly.setAttribute('fill', fill);
       poly.setAttribute('stroke', color);
       poly.setAttribute('stroke-width', '1.5');
-      poly.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
+      poly.setAttribute('filter', 'url(#soft-shadow)');
       innerG.appendChild(poly);
     } else if (shape === 'hexagon') {
       var pts = [];
@@ -853,7 +893,7 @@ export const PLAYER_JS = `(function() {
       hex.setAttribute('fill', fill);
       hex.setAttribute('stroke', color);
       hex.setAttribute('stroke-width', '1.5');
-      hex.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
+      hex.setAttribute('filter', 'url(#soft-shadow)');
       innerG.appendChild(hex);
     } else {
       // Rounded rect (default)
@@ -868,11 +908,12 @@ export const PLAYER_JS = `(function() {
       rect.setAttribute('fill', fill);
       rect.setAttribute('stroke', color);
       rect.setAttribute('stroke-width', '1.5');
-      rect.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
+      rect.setAttribute('filter', 'url(#soft-shadow)');
       innerG.appendChild(rect);
     }
 
-    // Fix #6: remove type badge; place entity label centered inside shape instead
+    // Interior label centered inside shape
+    // BUG FIX 3: reduced truncation and font size for circle and hexagon
     if (entity.label) {
       var labelInside = document.createElementNS(SVG_NS, 'text');
       labelInside.setAttribute('x', '0');
@@ -880,17 +921,32 @@ export const PLAYER_JS = `(function() {
       labelInside.setAttribute('text-anchor', 'middle');
       labelInside.setAttribute('dominant-baseline', 'middle');
       labelInside.setAttribute('fill', color);
-      var insideFontSize = Math.max(12, Math.min(s * 0.16, 20));
+
+      var truncMax, insideFontSize;
+      if (shape === 'circle') {
+        // BUG FIX 3: smaller font and tighter truncation for circles
+        insideFontSize = Math.max(10, Math.min(s * 0.13, 16));
+        truncMax = 16;
+      } else if (shape === 'hexagon') {
+        // BUG FIX 3: slightly tighter truncation for hexagons
+        insideFontSize = Math.max(12, Math.min(s * 0.16, 20));
+        truncMax = 18;
+      } else {
+        insideFontSize = Math.max(12, Math.min(s * 0.16, 20));
+        truncMax = 22;
+      }
+
       labelInside.setAttribute('font-size', String(insideFontSize));
-      labelInside.setAttribute('font-weight', '600');      // Fix #14
+      labelInside.setAttribute('font-weight', '600');
       labelInside.setAttribute('font-family', FONT_UI);
-      labelInside.setAttribute('letter-spacing', '0.02em'); // Fix #14
-      labelInside.textContent = truncLabel(entity.label, 22);
+      labelInside.setAttribute('letter-spacing', '0.02em');
+      labelInside.textContent = truncLabel(entity.label, truncMax);
       innerG.appendChild(labelInside);
     }
 
-    var labelY = (shape === 'circle') ? s * 0.45 + 20 : s * 0.45 + 18;
-    addLabel(innerG, entity, labelY);
+    // BUG FIX 1: NO addLabel() call here — interior label handles it.
+    // Only render exterior label if entity has NO label property (very rare).
+    // (When entity.label is absent, neither interior nor exterior label renders.)
 
     parentEl.appendChild(g.outerG);
     return g.outerG;
@@ -908,7 +964,6 @@ export const PLAYER_JS = `(function() {
   function dispatchEntity(entity, parentEl, delay) {
     var t = entity.type || 'Entity';
 
-    // Dedicated renderers
     if (t === 'Server' || t === 'Service' || t === 'APIGateway' || t === 'Lambda')
       return renderServer(entity, parentEl, delay);
     if (t === 'Database' || t === 'HashTable')
@@ -930,7 +985,7 @@ export const PLAYER_JS = `(function() {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // Arrow Renderer — bezier curves with glow — Fix #4, #23
+  // Arrow Renderer — bezier curves with glow
   // ═══════════════════════════════════════════════════════════════════
   function findEntity(entities, id) {
     if (!id) return null;
@@ -949,8 +1004,8 @@ export const PLAYER_JS = `(function() {
 
     var marker = document.createElementNS(SVG_NS, 'marker');
     marker.setAttribute('id', id);
-    marker.setAttribute('markerWidth', '16');   // Fix #23: was 12
-    marker.setAttribute('markerHeight', '10');  // Fix #23: was 8
+    marker.setAttribute('markerWidth', '16');
+    marker.setAttribute('markerHeight', '10');
     marker.setAttribute('refX', '13');
     marker.setAttribute('refY', '5');
     marker.setAttribute('orient', 'auto');
@@ -967,7 +1022,6 @@ export const PLAYER_JS = `(function() {
     var target = findEntity(allEntities, entity.targetEntityId);
     if (!source || !target) return null;
 
-    // Fix #8: use margin-aware position helpers for arrow endpoints
     var x1 = entityCX(source);
     var y1 = entityCY(source);
     var x2 = entityCX(target);
@@ -988,7 +1042,6 @@ export const PLAYER_JS = `(function() {
     var dy = y2 - y1;
     var dist = Math.sqrt(dx*dx + dy*dy);
     var curvature = Math.min(dist * 0.12, 50);
-    // Perpendicular offset for the arc
     var nx = (dist > 0) ? (-dy / dist * curvature) : 0;
     var ny = (dist > 0) ? ( dx / dist * curvature) : 0;
     var cx1 = mx + nx;
@@ -1014,7 +1067,7 @@ export const PLAYER_JS = `(function() {
     line.setAttribute('stroke-linecap', 'round');
     line.setAttribute('marker-end', 'url(#' + markerId + ')');
 
-    // Fix #23: subtle slow flow animation on all arrows
+    // Subtle slow flow animation on all arrows
     line.setAttribute('stroke-dasharray', '8,0');
     var flowAnim = document.createElementNS(SVG_NS, 'animate');
     flowAnim.setAttribute('attributeName', 'stroke-dashoffset');
@@ -1024,12 +1077,11 @@ export const PLAYER_JS = `(function() {
     flowAnim.setAttribute('repeatCount', 'indefinite');
     line.appendChild(flowAnim);
 
-    // DataFlow: animated dash (overrides flow anim) — Fix #23
+    // DataFlow: animated dash (overrides flow anim)
     if (entity.type === 'DataFlow') {
       line.setAttribute('stroke-dasharray', '8,5');
       line.setAttribute('stroke-width', '3');
       line.setAttribute('opacity', '0.5');
-      // Replace animation
       line.removeChild(flowAnim);
       var anim = document.createElementNS(SVG_NS, 'animate');
       anim.setAttribute('attributeName', 'stroke-dashoffset');
@@ -1042,14 +1094,19 @@ export const PLAYER_JS = `(function() {
 
     ag.appendChild(line);
 
-    // Fix #4: perpendicular offset for arrow midpoint label + semi-transparent pill background
+    // BUG FIX 4: Arrow label with collision avoidance
     if (entity.label) {
       var lx = (x1 + 2*cx1 + x2) / 4;
-      // Fix #4: was -10, now perpendicular offset -25 minimum
       var rawLY = (y1 + 2*cy1 + y2) / 4;
       var ly = rawLY - 25;
 
-      // Pill background behind arrow label — Fix #4
+      // BUG FIX 4: if label Y is within 40px of either endpoint Y, offset further
+      if (Math.abs(ly - y1) < 40 || Math.abs(ly - y2) < 40) {
+        // Determine which direction to push (away from the closer endpoint)
+        var closerY = (Math.abs(rawLY - y1) < Math.abs(rawLY - y2)) ? y1 : y2;
+        ly = rawLY + (rawLY < closerY ? -65 : 65);
+      }
+
       var labelText = truncLabel(entity.label, 24);
       var labelFontSize = 13;
       var pillW = labelText.length * labelFontSize * 0.56 + 20;
@@ -1087,7 +1144,7 @@ export const PLAYER_JS = `(function() {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // Frame Renderer — Fix #16: crossfade transition
+  // Frame Renderer — crossfade transition
   // ═══════════════════════════════════════════════════════════════════
   var ARROW_TYPES = {
     Arrow: 1, DataFlow: 1, BidirectArrow: 1, DottedArrow: 1, Transition: 1, Bus: 1
@@ -1096,7 +1153,6 @@ export const PLAYER_JS = `(function() {
   function renderFrame(frame) {
     if (!frame) return;
 
-    // Fix #16: crossfade via GSAP if available
     if (typeof gsap !== 'undefined') {
       canvas.classList.add('frame-transitioning');
       gsap.to(entityLayer, { opacity: 0, duration: 0.2, onComplete: function() {
@@ -1127,14 +1183,16 @@ export const PLAYER_JS = `(function() {
     }
 
     // Pass 1: Render entities with staggered delays
+    // IMPROVEMENT 8: j * 60 (was j * 80) — faster stagger
     for (var j = 0; j < nonArrows.length; j++) {
-      dispatchEntity(nonArrows[j], entityLayer, j * 80);  // Fix: stagger pattern j*80
+      dispatchEntity(nonArrows[j], entityLayer, j * 60);
     }
 
     // Pass 2: Render connections (after entities, so positions exist)
-    var arrowBaseDelay = nonArrows.length * 80 + 100;
+    // IMPROVEMENT 8: nonArrows.length * 60 + 150 (was *80 + 100), k * 50 (was k * 60)
+    var arrowBaseDelay = nonArrows.length * 60 + 150;
     for (var k = 0; k < arrows.length; k++) {
-      renderArrowEntity(arrows[k], connectionLayer, entities, arrowBaseDelay + k * 60);
+      renderArrowEntity(arrows[k], connectionLayer, entities, arrowBaseDelay + k * 50);
     }
 
     // Narrator
@@ -1159,6 +1217,13 @@ export const PLAYER_JS = `(function() {
     if (!narratorText) return;
     if (text && text.trim()) {
       narratorText.textContent = text;
+      // IMPROVEMENT 9: GSAP smooth entrance if available
+      if (typeof gsap !== 'undefined') {
+        gsap.fromTo(narratorText,
+          { y: 16, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }
+        );
+      }
       narratorText.classList.add('visible');
     } else {
       narratorText.classList.remove('visible');
@@ -1169,11 +1234,34 @@ export const PLAYER_JS = `(function() {
   // ═══════════════════════════════════════════════════════════════════
   // Frame Navigation
   // ═══════════════════════════════════════════════════════════════════
+  // IMPROVEMENT 4: dot indicators for frame navigation
   function updateFrameCounter() {
     if (!frameCounter || !currentScript) return;
     var total = currentScript.frames ? currentScript.frames.length : 1;
     frameCounter.textContent = (currentFrame + 1) + ' / ' + total;
     if (frameNav) frameNav.classList.add('visible');
+
+    // Render frame dots
+    var dotsContainer = document.getElementById('frame-dots');
+    if (dotsContainer) {
+      dotsContainer.innerHTML = '';
+      for (var di = 0; di < total; di++) {
+        var dot = document.createElement('div');
+        dot.className = 'frame-dot';
+        if (di < currentFrame) dot.classList.add('visited');
+        if (di === currentFrame) dot.classList.add('current');
+        (function(idx) {
+          dot.addEventListener('click', function() {
+            if (currentScript && idx >= 0 && idx < currentScript.frames.length) {
+              currentFrame = idx;
+              renderFrame(currentScript.frames[idx]);
+              updateFrameCounter();
+            }
+          });
+        })(di);
+        dotsContainer.appendChild(dot);
+      }
+    }
   }
 
   function goNext() {
@@ -1201,6 +1289,12 @@ export const PLAYER_JS = `(function() {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goNext(); }
     if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); goPrev(); }
   });
+
+  // IMPROVEMENT 5: Auto-hide keyboard hint after 4 seconds
+  setTimeout(function() {
+    var hint = document.getElementById('keyboard-hint');
+    if (hint) hint.classList.add('hidden');
+  }, 4000);
 
   // ═══════════════════════════════════════════════════════════════════
   // Empty state: "Waiting for content" message
@@ -1293,7 +1387,7 @@ export const PLAYER_JS = `(function() {
         // If frames were appended, navigate to the first new frame
         // If this is the initial load or a full replace, go to frame 0
         if (prevFrameCount > 0 && currentScript.frames.length > prevFrameCount) {
-          currentFrame = prevFrameCount;  // Jump to first new frame
+          currentFrame = prevFrameCount;
         } else {
           currentFrame = 0;
         }
@@ -1339,6 +1433,6 @@ export const PLAYER_JS = `(function() {
     getFrame:  function() { return currentFrame; },
   };
 
-  console.log('[PRE] Player v3 initialized for session:', sessionId);
+  console.log('[PRE] Player v4 initialized for session:', sessionId);
 })();
 `;

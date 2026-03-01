@@ -1,17 +1,18 @@
 /**
- * @pre/mcp-server — Player CSS
+ * @pre/mcp-server — Player CSS v4
  *
  * Cinematic dark theme with refined typography, animations, and layout.
  * Served as a string at GET /player.css.
  *
  * Design system:
  * - Font: Inter for all UI, JetBrains Mono for code/technical content
- * - Background: #12122a → #0a0a14 radial gradient
- * - Accent palette: Cyan #00e5ff, Violet #b388ff, Warm #FFD54F
- * - Narrator: frosted glass panel with typewriter entrance
+ * - Background: #0c0d14 center → #060610 edges (radial gradient)
+ * - Accent palette: Cyan #4ECDC4, Violet #9B59B6, Gold #C9A84C
+ * - Narrator: frosted glass panel, 800px max, custom scrollbar
+ * - Frame nav: bottom-center pill, dot indicators, always-visible at 0.7
  */
 
-export const PLAYER_CSS = `/* ── PRE Player — Cinematic Dark Theme v2 ─────────────────────────── */
+export const PLAYER_CSS = `/* ── PRE Player — Cinematic Dark Theme v4 ─────────────────────────── */
 
 /* Reset */
 *, *::before, *::after {
@@ -24,7 +25,7 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: radial-gradient(ellipse at center, #12122a 0%, #0a0a14 70%);
+  background: radial-gradient(ellipse at center, #0c0d14 0%, #060610 70%);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: #e8e8f0;
   -webkit-font-smoothing: antialiased;
@@ -54,6 +55,12 @@ svg text {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── Empty state ─────────────────────────────────────────────────── */
+
+#empty-state text {
+  font-family: 'Inter', sans-serif;
+}
+
 /* ── SVG entity shape subtle transitions ─────────────────────────── */
 
 svg rect, svg circle, svg ellipse, svg polygon, svg path {
@@ -75,20 +82,19 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 }
 
 #narrator-text {
-  max-width: 880px;
-  max-height: 120px;
+  max-width: 800px;
+  max-height: 100px;
   overflow-y: auto;
   padding: 20px 36px;
-  background: rgba(12, 12, 24, 0.82);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(12, 13, 20, 0.88);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.03),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  color: #c8c8e0;
+    0 12px 40px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  color: #a0a0b8;
   font-family: 'Inter', sans-serif;
   font-size: 17px;
   font-weight: 400;
@@ -110,22 +116,44 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   display: none;
 }
 
+/* ── Narrator custom scrollbar ───────────────────────────────────── */
+
+#narrator-text::-webkit-scrollbar {
+  width: 4px;
+}
+
+#narrator-text::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#narrator-text::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+
+#narrator-text {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
 /* ── Frame navigation ────────────────────────────────────────────── */
 
 #frame-nav {
   position: fixed;
-  bottom: 12px;
-  right: 16px;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 150;
   display: flex;
   align-items: center;
-  gap: 8px;
-  opacity: 0.4;
+  gap: 12px;
+  opacity: 0.7;
   transition: opacity 0.3s ease;
-  background: rgba(12, 12, 24, 0.6);
-  backdrop-filter: blur(8px);
-  border-radius: 12px;
-  padding: 6px 10px;
+  background: rgba(12, 13, 20, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 8px 16px;
 }
 
 #frame-nav.visible {
@@ -139,7 +167,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 #frame-counter {
   font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
   min-width: 48px;
   text-align: center;
   user-select: none;
@@ -149,10 +177,10 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.5);
-  border-radius: 8px;
-  width: 36px;
-  height: 36px;
-  font-size: 20px;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -163,6 +191,26 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 #frame-nav button:hover {
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.8);
+}
+
+/* ── Frame dot indicators ────────────────────────────────────────── */
+
+.frame-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.frame-dot.visited {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.frame-dot.current {
+  background: #C9A84C;
+  box-shadow: 0 0 8px rgba(201, 168, 76, 0.4);
+  transform: scale(1.2);
 }
 
 /* ── Frame crossfade transition ──────────────────────────────────── */
@@ -234,6 +282,21 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+@keyframes pathDraw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes gentlePulse {
+  0%, 100% { opacity: 0.05; }
+  50%      { opacity: 0.1; }
+}
+
+@keyframes subtleFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-4px); }
+}
+
 /* ── Entrance animation classes ──────────────────────────────────── */
 
 .entrance-fadeInUp {
@@ -268,6 +331,17 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   animation: dropIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.entrance-pathDraw {
+  stroke-dashoffset: 1;
+  animation: pathDraw 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Utility classes ─────────────────────────────────────────────── */
+
+.ambient-particle {
+  animation: gentlePulse 6s ease-in-out infinite, subtleFloat 8s ease-in-out infinite;
+}
+
 /* ── Connection status indicator ─────────────────────────────────── */
 
 #connection-status {
@@ -282,6 +356,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   opacity: 0;
   transition: opacity 0.3s ease;
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 #connection-status.disconnected {
@@ -306,11 +381,11 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 
 .entity-interactive {
   cursor: pointer;
-  transition: filter 0.2s ease;
+  transition: filter 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .entity-interactive:hover {
-  filter: brightness(1.2) drop-shadow(0 0 8px rgba(255, 255, 255, 0.15));
+  filter: brightness(1.15) drop-shadow(0 0 12px rgba(255, 255, 255, 0.12));
 }
 
 /* ── Entity tooltip ──────────────────────────────────────────────── */
@@ -319,8 +394,9 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   position: fixed;
   z-index: 300;
   padding: 8px 14px;
-  background: rgba(12, 12, 24, 0.92);
+  background: rgba(12, 13, 20, 0.92);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   color: #e8e8f0;
@@ -338,5 +414,24 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 .entity-tooltip.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ── Keyboard hint ───────────────────────────────────────────────── */
+
+.keyboard-hint {
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  opacity: 1;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.keyboard-hint.hidden {
+  opacity: 0;
 }
 `;
