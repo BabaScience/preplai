@@ -93,6 +93,8 @@ const VisualScriptSchema = z.object({
 
 const ADD_SCENE_DESCRIPTION = `Add a visual scene to a presentation session. The scene is rendered as animated SVG on a 1920x1080 dark canvas with vignette background, drop shadows, and rich gradients.
 
+APPEND BEHAVIOR: Calling add_scene multiple times APPENDS new frames to the existing presentation. Frame timings are automatically offset so new frames play after existing ones. Use update_scene instead if you want to REPLACE the entire script.
+
 IMPORTANT: The visual_script must follow the exact schema below. Positions use percentages (0-100). An 80px horizontal and 60px vertical margin/safe zone is applied automatically.
 
 DESIGN GUIDELINES:

@@ -191,6 +191,124 @@ describe('MCP Tool Handlers', () => {
     });
   });
 
+  // ── add_scene: append behavior ──────────────────────────────────
+  describe('handleAddScene — append mode', () => {
+    let sessionId: string;
+
+    beforeEach(async () => {
+      const result = await handleCreateSession(
+        { title: 'Append Test' },
+        { store, baseUrl }
+      );
+      sessionId = parse(result).data.session_id;
+    });
+
+    it('appends frames to an existing script instead of replacing', async () => {
+      // First call: add 2 frames
+      const script1 = {
+        sceneId: 'scene-1',
+        totalDuration: 8000,
+        frames: [
+          { id: 'f-1', startTime: 0, endTime: 4000, entities: [{ id: 'a', type: 'Server', position: { x: 30, y: 50 } }], narrationSegment: 'First frame', description: 'frame 1' },
+          { id: 'f-2', startTime: 4000, endTime: 8000, entities: [{ id: 'b', type: 'Database', position: { x: 70, y: 50 } }], narrationSegment: 'Second frame', description: 'frame 2' },
+        ],
+      };
+      await handleAddScene({ session_id: sessionId, visual_script: script1 }, { store, sse });
+
+      // Second call: add 1 more frame
+      const script2 = {
+        sceneId: 'scene-2',
+        totalDuration: 4000,
+        frames: [
+          { id: 'f-3', startTime: 0, endTime: 4000, entities: [{ id: 'c', type: 'User', position: { x: 50, y: 50 } }], narrationSegment: 'Third frame', description: 'frame 3' },
+        ],
+      };
+      const result = await handleAddScene({ session_id: sessionId, visual_script: script2 }, { store, sse });
+      const data = parse(result);
+
+      // Should report cumulative totals
+      expect(data.success).toBe(true);
+      expect(data.data.frame_count).toBe(3);  // 2 + 1
+      expect(data.data.total_duration_ms).toBe(12000);  // 8000 + 4000
+    });
+
+    it('preserves entities from previously added scenes', async () => {
+      const script1 = makeScript(sessionId, 2);
+      await handleAddScene({ session_id: sessionId, visual_script: script1 }, { store, sse });
+
+      const script2 = {
+        sceneId: 'scene-2',
+        totalDuration: 5000,
+        frames: [
+          { id: 'f-extra', startTime: 0, endTime: 5000, entities: [{ id: 'extra-1', type: 'Cloud', position: { x: 50, y: 50 } }], narrationSegment: '', description: '' },
+        ],
+      };
+      await handleAddScene({ session_id: sessionId, visual_script: script2 }, { store, sse });
+
+      // Verify stored script still has frames from first call
+      const session = store.getSession(sessionId);
+      expect(session!.script.frames).toHaveLength(3); // 2 from first + 1 from second
+      expect(session!.script.frames[0].id).toBe('frame-0'); // from first call
+      expect(session!.script.frames[1].id).toBe('frame-1'); // from first call
+      expect(session!.script.frames[2].id).toBe('f-extra');  // from second call
+    });
+
+    it('emits SSE with the full merged script', async () => {
+      const script1 = makeScript(sessionId, 1);
+      await handleAddScene({ session_id: sessionId, visual_script: script1 }, { store, sse });
+
+      const emitSpy = vi.spyOn(sse, 'emit');
+      const script2 = {
+        sceneId: 'scene-2',
+        totalDuration: 3000,
+        frames: [
+          { id: 'f-new', startTime: 0, endTime: 3000, entities: [], narrationSegment: '', description: '' },
+        ],
+      };
+      await handleAddScene({ session_id: sessionId, visual_script: script2 }, { store, sse });
+
+      // The SSE event should contain the full merged script (2 frames total)
+      const emitCall = emitSpy.mock.calls[0];
+      expect(emitCall[0]).toBe(sessionId);
+      expect(emitCall[1].type).toBe('script_update');
+      expect(emitCall[1].script.frames).toHaveLength(2);
+    });
+
+    it('adjusts startTime/endTime of appended frames to continue from the previous scene', async () => {
+      const script1 = {
+        sceneId: 'scene-1',
+        totalDuration: 6000,
+        frames: [
+          { id: 'f-1', startTime: 0, endTime: 6000, entities: [], narrationSegment: '', description: '' },
+        ],
+      };
+      await handleAddScene({ session_id: sessionId, visual_script: script1 }, { store, sse });
+
+      const script2 = {
+        sceneId: 'scene-2',
+        totalDuration: 4000,
+        frames: [
+          { id: 'f-2', startTime: 0, endTime: 4000, entities: [], narrationSegment: '', description: '' },
+        ],
+      };
+      await handleAddScene({ session_id: sessionId, visual_script: script2 }, { store, sse });
+
+      const session = store.getSession(sessionId);
+      // Second frame's times should be offset by the previous totalDuration (6000)
+      expect(session!.script.frames[1].startTime).toBe(6000);
+      expect(session!.script.frames[1].endTime).toBe(10000);
+      expect(session!.script.totalDuration).toBe(10000);
+    });
+
+    it('works on the first call with no existing script (no merge needed)', async () => {
+      const script = makeScript(sessionId, 2);
+      const result = await handleAddScene({ session_id: sessionId, visual_script: script }, { store, sse });
+      const data = parse(result);
+      expect(data.success).toBe(true);
+      expect(data.data.frame_count).toBe(2);
+    });
+  });
+
   // ── update_scene ────────────────────────────────────────────────
   describe('handleUpdateScene', () => {
     let sessionId: string;

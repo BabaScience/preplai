@@ -101,15 +101,38 @@ export async function handleAddScene(
     return mcpValidationError(validationError);
   }
 
-  store.setScript(session_id, visual_script);
+  // Merge: append new frames to existing script (if any)
+  let mergedScript: any;
+  if (session.script && session.script.frames && session.script.frames.length > 0) {
+    const existingFrames = session.script.frames;
+    const existingDuration = session.script.totalDuration || 0;
 
-  sse.emit(session_id, { type: 'script_update', script: visual_script });
+    // Offset the new frames' startTime/endTime so they continue after the existing ones
+    const offsetFrames = visual_script.frames.map((f: any) => ({
+      ...f,
+      startTime: f.startTime + existingDuration,
+      endTime: f.endTime + existingDuration,
+    }));
+
+    mergedScript = {
+      ...session.script,
+      frames: [...existingFrames, ...offsetFrames],
+      totalDuration: existingDuration + visual_script.totalDuration,
+    };
+  } else {
+    // First scene — no merge needed
+    mergedScript = visual_script;
+  }
+
+  store.setScript(session_id, mergedScript);
+
+  sse.emit(session_id, { type: 'script_update', script: mergedScript });
 
   return mcpOk({
     session_id,
-    frame_count: visual_script.frames.length,
-    total_duration_ms: visual_script.totalDuration,
-    entity_count: visual_script.frames.reduce(
+    frame_count: mergedScript.frames.length,
+    total_duration_ms: mergedScript.totalDuration,
+    entity_count: mergedScript.frames.reduce(
       (sum: number, f: any) => sum + (f.entities?.length ?? 0), 0
     ),
     updated_at: new Date().toISOString(),
