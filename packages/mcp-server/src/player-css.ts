@@ -8,7 +8,7 @@
  * - Font: Inter for all UI, JetBrains Mono for code/technical content
  * - Background: #0c0d14 center → #060610 edges (radial gradient)
  * - Accent palette: Cyan #4ECDC4, Violet #9B59B6, Gold #C9A84C
- * - Narrator: frosted glass panel, 800px max, custom scrollbar
+ * - Narrator: liquid glass panel (blur 40px, raised 88px), 800px max, custom scrollbar
  * - Frame nav: bottom-center pill, dot indicators, always-visible at 0.7
  */
 
@@ -67,35 +67,36 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   transition: filter 0.2s ease;
 }
 
-/* ── Narrator overlay ────────────────────────────────────────────── */
+/* ── Narrator overlay (liquid glass, raised for visibility) ───────── */
 
 #narrator-overlay {
   position: fixed;
-  bottom: 0;
+  bottom: 88px;
   left: 0;
   right: 0;
   z-index: 100;
   pointer-events: none;
   display: flex;
   justify-content: center;
-  padding: 48px 64px;
+  padding: 0 64px;
 }
 
 #narrator-text {
   max-width: 800px;
-  max-height: 120px;
+  max-height: calc(3.4em + 40px);
   overflow-y: auto;
   scrollbar-gutter: stable;
   padding: 20px 36px;
-  background: rgba(12, 13, 20, 0.88);
-  backdrop-filter: blur(24px) saturate(1.3);
-  -webkit-backdrop-filter: blur(24px) saturate(1.3);
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(18, 20, 28, 0.65);
+  backdrop-filter: blur(40px) saturate(1.4);
+  -webkit-backdrop-filter: blur(40px) saturate(1.4);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-left: 3px solid #C9A84C;
   box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   color: #b8b8d0;
   font-family: 'Inter', sans-serif;
   font-size: 17px;
