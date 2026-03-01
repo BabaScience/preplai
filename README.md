@@ -1,170 +1,108 @@
 # preplai
 
-**Cinema-quality visual presentations as an agent-native MCP API**
+> Cinema-quality visual presentations as an agent-native API.
 
-Turn structured tool calls into live SVG + GSAP animations. An AI agent calls 8 MCP tools → preplai compiles visual scripts into animated scenes → a browser player renders them in real-time over SSE.
+preplai is a SaaS presentation engine that AI agents use to create live, animated, voice-synced visual experiences. Not slides. Cinema.
 
----
+## Monorepo Layout
+
+```
+preplai/
+├── packages/           ← npm workspaces (TypeScript)
+│   ├── shared/         @preplai/shared — types, schemas, utilities
+│   ├── illustrations/  @preplai/illustrations — SVG illustration library
+│   ├── compiler/       @preplai/compiler — PML scene compiler
+│   ├── player/         @preplai/player — cinema viewer/renderer
+│   └── mcp-server/     @preplai/mcp-server — Fastify API + MCP bridge (v1)
+├── apps/               ← deployable applications
+│   └── website/        preplai.com — marketing site + user dashboard
+├── architecture/       design docs (01–08 + FLOW)
+└── docs/               setup guides, deployment, design system
+```
+
+## Quick Reference
+
+| Component | What it does | Deploy independently? |
+|-----------|-------------|----------------------|
+| `packages/mcp-server` | Fastify HTTP server + Claude Desktop MCP bridge | Yes — `npm run start` or `npm run start:mcp` |
+| `apps/website` | preplai.com landing page + API key dashboard | Yes — static files + Python CGI |
+| `packages/shared` | Shared types and schemas | Library — consumed by other packages |
+| `packages/compiler` | PML → render tree compilation | Library — consumed by mcp-server |
+| `packages/illustrations` | SVG illustration matching | Library — consumed by player |
+| `packages/player` | Cinema-quality presentation renderer | Library — consumed by mcp-server |
 
 ## Getting Started
 
-### 1. Get your API key
-
 ```bash
-curl -X POST https://api.preplai.com/api/keys \
-  -H "Content-Type: application/json" \
-  -d '{"email": "you@example.com"}'
+# Clone
+git clone git@github.com:BabaScience/preplai.git
+cd preplai
+
+# Install all dependencies (workspaces)
+npm install
+
+# Build all packages
+npm run build
+
+# Run tests
+npm test
+
+# Start MCP server (HTTP)
+cd packages/mcp-server && npm start
+
+# Start MCP server (Claude Desktop stdio)
+cd packages/mcp-server && npm run start:mcp
 ```
 
-You'll receive a key like `plai_a1b2c3d4e5f6...` — store it securely, it's shown only once.
+## Architecture
 
-### 2. Connect to Claude Desktop
+See [`architecture/`](./architecture/) for detailed design documents:
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+1. [System Overview](./architecture/01-system-overview.md)
+2. [MCP Server](./architecture/02-mcp-server.md)
+3. [PML Scene Compiler](./architecture/03-pml-scene-compiler.md)
+4. [Player Renderer](./architecture/04-player-renderer.md)
+5. [Illustration System](./architecture/05-illustration-system.md)
+6. [Data Model](./architecture/06-data-model.md)
+7. [API Specification](./architecture/07-api-spec.md)
+8. [Deployment](./architecture/08-deployment.md)
+9. [Flow: User Prompt → UI](./architecture/FLOW-user-prompt-to-ui.md)
+
+## Claude Desktop Setup
 
 ```json
 {
   "mcpServers": {
     "preplai": {
-      "command": "node",
-      "args": ["/path/to/packages/mcp-server/dist/stdio-bridge.js"],
+      "command": "npx",
+      "args": ["-y", "@preplai/mcp-server"],
       "env": {
         "PREPLAI_API_KEY": "plai_your_key_here",
-        "BASE_URL": "http://localhost:3001"
+        "BASE_URL": "https://api.preplai.com"
       }
     }
   }
 }
 ```
 
-Restart Claude Desktop → look for the 🔨 icon → 8 tools available.
+See [Claude Desktop Setup Guide](./docs/claude-desktop-setup.md) for detailed instructions.
 
-### 3. Create your first presentation
+## API Key Format
 
-Ask Claude: *"Create a presentation about how DNS resolution works"*
-
-The player opens automatically at `http://localhost:3001/player/:sessionId`.
-
----
-
-## API Authentication
-
-All API endpoints require an `X-Preplai-API-Key` header:
-
-```bash
-curl -X POST https://api.preplai.com/api/create-session \
-  -H "Content-Type: application/json" \
-  -H "X-Preplai-API-Key: plai_your_key_here" \
-  -d '{"title": "System Architecture"}'
-```
-
-Player URLs are accessible to anyone with the link (the session ID acts as a capability token).
-
----
-
-## MCP Tools
-
-| Tool | Description |
-|---|---|
-| `create_session` | Create a new presentation session. Returns `session_id` and `player_url`. |
-| `add_scene` | Add a visual scene with SVG elements, transitions, and timing. |
-| `update_scene` | Replace an existing scene's visual script. |
-| `remove_scene` | Remove frames by index, last N, or clear all. |
-| `add_narration` | Add narration text overlay to a specific frame. |
-| `get_session_url` | Get the player URL (optionally with session stats). |
-| `list_sessions` | List your presentation sessions. |
-| `delete_session` | Delete a session and all its data. |
-
----
-
-## Plans & Limits
-
-| | Free | Pro | Enterprise |
-|---|---|---|---|
-| Sessions | 5 | 100 | Unlimited |
-| Scenes/month | 50 | 2,000 | Unlimited |
-| Scenes/session | 10 | 100 | Unlimited |
-| Session expiry | 7 days | 90 days | 365 days |
-
-Upgrade at [preplai.com/pricing](https://preplai.com/pricing).
-
----
-
-## REST API
-
-### Create session
-```bash
-curl -X POST http://localhost:3001/api/create-session \
-  -H "Content-Type: application/json" \
-  -H "X-Preplai-API-Key: plai_..." \
-  -d '{"title": "Binary Search Explained"}'
-```
-
-### Add scene
-```bash
-curl -X POST http://localhost:3001/api/add-scene \
-  -H "Content-Type: application/json" \
-  -H "X-Preplai-API-Key: plai_..." \
-  -d '{"session_id": "...", "visual_script": {...}}'
-```
-
-### Health check (no auth required)
-```bash
-curl http://localhost:3001/health
-```
-
----
-
-## Player Features
-
-- 1920×1080 SVG canvas with percentage-based positioning
-- GSAP 3.13 smooth transitions (fade, slide, scale, morph)
-- Dark cinematic theme with radial vignette
-- Keyboard navigation (← → arrows) with clickable frame dots
-- SSE live updates with auto-reconnect and exponential backoff
-- Narrator overlay with glass-morphism styling
-- Mobile responsive with touch-friendly controls
-
----
-
-## Entity Types
-
-**Dedicated renderers**: Server, Database, User, Cloud, Concept, Label, CodeBlock
-
-**Shaped renderers**: Cache (circle), LoadBalancer (hexagon), Decision (diamond), Metric (circle)
-
-**Generic (rounded rect)**: Array, Pointer, BinaryTree, LinkedList, Group, Table, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation, Process, Queue, Service, NeuralNetwork, FSM, CPU, Register, MemoryBlock, Packet, ProtocolStack
-
-**Connections**: Arrow, DataFlow (animated dashes), BidirectArrow, DottedArrow
-
----
-
-## Architecture
-
-Monorepo with 5 packages:
-
-| Package | Status | Purpose |
-|---|---|---|
-| `@preplai/mcp-server` | **Active (v1)** | Fastify server, SQLite, SSE, MCP tools, auth |
-| `@preplai/shared` | Active | Types, schemas, constants |
-| `@preplai/compiler` | Future | 5-stage compilation pipeline |
-| `@preplai/illustrations` | Future | 88+ SVG component types |
-| `@preplai/player` | Future | Scene controller, narrator, iframe bridge |
-
----
+- Prefix: `plai_` + 40 random hex characters
+- Header: `X-Preplai-API-Key`
+- Tiers: Free (5 sessions, 50 scenes/mo) → Pro ($19/mo) → Enterprise (custom)
 
 ## Tech Stack
 
-- **TypeScript** — strict mode, ESM
-- **Fastify 5** — HTTP server
-- **better-sqlite3** — WAL-mode persistence
-- **@modelcontextprotocol/sdk** — MCP stdio transport
-- **Zod** — runtime schema validation
-- **GSAP 3.13** — animation engine (CDN, player-side)
-- **Vitest + jsdom** — 490+ tests
-
----
+- **Runtime**: Node.js 18+ (ES2022)
+- **Server**: Fastify 5
+- **Database**: SQLite (better-sqlite3)
+- **MCP**: @modelcontextprotocol/sdk
+- **Types**: TypeScript 5 (strict mode)
+- **Tests**: Vitest
+- **Website**: Vanilla HTML/CSS/JS + Python CGI
 
 ## License
 
-Proprietary — see [LICENSE](LICENSE).
+UNLICENSED — Private. All rights reserved.
