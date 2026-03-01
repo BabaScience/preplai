@@ -91,11 +91,31 @@ const VisualScriptSchema = z.object({
 
 // ── Rich tool descriptions with examples ─────────────────────────────
 
-const ADD_SCENE_DESCRIPTION = `Add a visual scene to a presentation session. The scene is rendered as animated SVG on a 1920x1080 canvas.
+const ADD_SCENE_DESCRIPTION = `Add a visual scene to a presentation session. The scene is rendered as animated SVG on a 1920x1080 dark canvas (vignette background).
 
 IMPORTANT: The visual_script must follow the exact schema below. Positions use percentages (0-100).
 
-Entity types available: Server, Database, User, Cloud, Arrow, DataFlow, Concept, Label, CodeBlock, Array, Pointer, BinaryTree, LinkedList, Group, Table, Metric, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation, Process, Queue, Cache, LoadBalancer, Service, NeuralNetwork, FSM, CPU, Register, MemoryBlock, Packet, ProtocolStack, and more.
+DESIGN GUIDELINES:
+- Keep labels SHORT (under 28 chars). Long labels get truncated. Use narrationSegment for detailed text.
+- Use a COHESIVE color palette: pick 2-3 colors max per scene. Recommended combos:
+  - Cyan (#4FC3F7) + Violet (#b388ff) + Warm (#FFD54F) — great for CS/tech
+  - Blue (#64B5F6) + Green (#81C784) + White (#FFFFFF) — clean and professional
+  - Teal (#4DD0E1) + Pink (#F48FB1) + Amber (#FFB74D) — vibrant and modern
+- Title labels should use type "Label" with color "#FFFFFF" and size 2.
+- Space entities evenly. Minimum 15% gap between entity positions.
+- Use "highlight": true to emphasize the currently discussed entity.
+
+Entity types with DEDICATED renderers (look best):
+  Server, Database, User, Cloud, Concept, Label, CodeBlock
+
+Entity types with SHAPED renderers:
+  Cache (circle), LoadBalancer (hexagon), Decision (diamond), Metric (circle)
+
+All other entity types render as rounded rectangles with a type badge:
+  Array, Pointer, BinaryTree, LinkedList, Group, Table, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation, Process, Queue, Service, NeuralNetwork, FSM, CPU, Register, MemoryBlock, Packet, ProtocolStack, and more.
+
+Connection types (rendered as bezier curve arrows):
+  Arrow, DataFlow (animated dashes), BidirectArrow, DottedArrow
 
 Example visual_script for a simple scene with a title and two entities:
 {

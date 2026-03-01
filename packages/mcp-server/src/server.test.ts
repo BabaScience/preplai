@@ -100,7 +100,6 @@ describe('GET /player/:sessionId', () => {
     });
 
     expect(res.body).toContain('gsap/3.13.0/gsap.min.js');
-    expect(res.body).toContain('DrawSVGPlugin.min.js');
   });
 
   it('should include narrator overlay elements', async () => {
@@ -119,8 +118,38 @@ describe('GET /player/:sessionId', () => {
       url: '/player/any-session',
     });
 
-    expect(res.body).toContain('id="arrowhead"');
+    expect(res.body).toContain('id="arrowhead-default"');
     expect(res.body).toContain('<marker');
+  });
+
+  it('should include vignette gradient in defs', async () => {
+    const res = await ctx.app.inject({
+      method: 'GET',
+      url: '/player/any-session',
+    });
+
+    expect(res.body).toContain('id="bg-vignette"');
+    expect(res.body).toContain('id="entity-glow"');
+    expect(res.body).toContain('id="soft-shadow"');
+  });
+
+  it('should include dot grid layer', async () => {
+    const res = await ctx.app.inject({
+      method: 'GET',
+      url: '/player/any-session',
+    });
+
+    expect(res.body).toContain('id="dot-grid"');
+  });
+
+  it('should include frame navigation', async () => {
+    const res = await ctx.app.inject({
+      method: 'GET',
+      url: '/player/any-session',
+    });
+
+    expect(res.body).toContain('id="frame-nav"');
+    expect(res.body).toContain('id="frame-counter"');
   });
 });
 
@@ -173,7 +202,29 @@ describe('GET /player.css', () => {
 
   it('should use cinematic dark theme background', async () => {
     const res = await ctx.app.inject({ method: 'GET', url: '/player.css' });
-    expect(res.body).toContain('#0f0f1a');
+    expect(res.body).toContain('#0a0a14');
+  });
+
+  it('should contain Inter font family', async () => {
+    const res = await ctx.app.inject({ method: 'GET', url: '/player.css' });
+    expect(res.body).toContain("'Inter'");
+  });
+
+  it('should contain frame navigation styles', async () => {
+    const res = await ctx.app.inject({ method: 'GET', url: '/player.css' });
+    expect(res.body).toContain('#frame-nav');
+    expect(res.body).toContain('#frame-counter');
+  });
+
+  it('should contain floatIn and pulseGlow keyframes', async () => {
+    const res = await ctx.app.inject({ method: 'GET', url: '/player.css' });
+    expect(res.body).toContain('@keyframes floatIn');
+    expect(res.body).toContain('@keyframes pulseGlow');
+  });
+
+  it('should contain entity-highlighted class', async () => {
+    const res = await ctx.app.inject({ method: 'GET', url: '/player.css' });
+    expect(res.body).toContain('.entity-highlighted');
   });
 });
 
@@ -230,6 +281,63 @@ describe('GET /player.js', () => {
     const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
     expect(res.body).toContain('updateNarrator');
     expect(res.body).toContain('narrator-text');
+  });
+
+  it('should contain type-specific renderers', async () => {
+    const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
+    expect(res.body).toContain('renderServer');
+    expect(res.body).toContain('renderDatabase');
+    expect(res.body).toContain('renderCloud');
+    expect(res.body).toContain('renderUser');
+    expect(res.body).toContain('renderConcept');
+    expect(res.body).toContain('renderLabel');
+    expect(res.body).toContain('renderCodeBlock');
+    expect(res.body).toContain('renderGeneric');
+  });
+
+  it('should contain dispatch table and entity routing', async () => {
+    const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
+    expect(res.body).toContain('dispatchEntity');
+    expect(res.body).toContain('SHAPE_MAP');
+  });
+
+  it('should contain gradient creation utility', async () => {
+    const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
+    expect(res.body).toContain('createGradient');
+    expect(res.body).toContain('linearGradient');
+  });
+
+  it('should contain label truncation logic', async () => {
+    const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
+    expect(res.body).toContain('truncLabel');
+    expect(res.body).toContain('LABEL_MAX_CHARS');
+  });
+
+  it('should contain bezier arrow rendering with glow', async () => {
+    const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
+    expect(res.body).toContain('renderArrowEntity');
+    expect(res.body).toContain('ensureMarker');
+    expect(res.body).toContain('curvature');
+  });
+
+  it('should contain frame navigation functions', async () => {
+    const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
+    expect(res.body).toContain('goNext');
+    expect(res.body).toContain('goPrev');
+    expect(res.body).toContain('updateFrameCounter');
+    expect(res.body).toContain('ArrowRight');
+  });
+
+  it('should contain dot grid initialization', async () => {
+    const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
+    expect(res.body).toContain('initDotGrid');
+    expect(res.body).toContain('dot-grid');
+  });
+
+  it('should contain staggered entrance delays', async () => {
+    const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
+    expect(res.body).toContain('animationDelay');
+    expect(res.body).toContain('j * 70');
   });
 });
 
