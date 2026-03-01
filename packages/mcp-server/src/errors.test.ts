@@ -70,6 +70,14 @@ describe('Error helpers', () => {
       const parsed = JSON.parse(result.content[0].text);
       expect(parsed.error.code).toBe('VALIDATION_ERROR');
     });
+
+    it('accepts a plain string message', () => {
+      const result = mcpValidationError('visual_script.frames must be an array');
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.success).toBe(false);
+      expect(parsed.error.code).toBe('VALIDATION_ERROR');
+      expect(parsed.error.message).toContain('visual_script.frames must be an array');
+    });
   });
 
   // ── withErrorBoundary ───────────────────────────────────────────

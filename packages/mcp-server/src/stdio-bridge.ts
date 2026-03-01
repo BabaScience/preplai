@@ -30,8 +30,6 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { buildServer, getDefaultConfig } from './server.js';
-import type { SessionStore } from './session-store.js';
-import type { SseRegistry } from './sse.js';
 import {
   handleCreateSession,
   handleAddScene,
@@ -40,6 +38,118 @@ import {
   handleGetSessionUrl,
 } from './tools.js';
 import { withErrorBoundary } from './errors.js';
+
+// ── Zod schemas for tool parameters ──────────────────────────────────
+
+const VisualEntitySchema = z.object({
+  id: z.string(),
+  type: z.string().describe('Entity type. Common types: Server, Database, User, Cloud, Arrow, DataFlow, Concept, Label, CodeBlock, Array, Pointer, BinaryTree, LinkedList, Group, Table, Metric, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation'),
+  position: z.object({
+    x: z.number().describe('X position as percentage 0-100 of the 1920px canvas'),
+    y: z.number().describe('Y position as percentage 0-100 of the 1080px canvas'),
+  }),
+  size: z.number().optional().default(1).describe('Scale factor, default 1'),
+  label: z.string().optional().describe('Text label displayed on the entity'),
+  color: z.string().optional().describe('CSS color, e.g. "#4FC3F7" or "cyan"'),
+  highlight: z.boolean().optional().describe('Whether to highlight/glow this entity'),
+  animation: z.object({
+    delay: z.number().optional().default(0).describe('Delay in ms before animation starts'),
+    duration: z.number().optional().default(600).describe('Animation duration in ms'),
+    easing: z.string().optional().default('power2.out'),
+    entrance: z.string().optional().default('fadeInUp').describe('Entrance animation: fadeInUp, fadeIn, drawIn, scaleIn'),
+  }).optional(),
+  sourceEntityId: z.string().optional().describe('For Arrow/DataFlow: ID of the source entity'),
+  targetEntityId: z.string().optional().describe('For Arrow/DataFlow: ID of the target entity'),
+  textContent: z.string().optional().describe('For CodeBlock: the code text. For Label/Definition: longer text content'),
+  codeLanguage: z.string().optional().describe('For CodeBlock: language (javascript, python, etc.)'),
+  metadata: z.record(z.unknown()).optional().describe('Extra data for specific entity types'),
+});
+
+const EntityTransitionSchema = z.object({
+  entityId: z.string().describe('ID of entity to animate'),
+  from: z.record(z.unknown()).describe('Starting state (partial entity props)'),
+  to: z.record(z.unknown()).describe('Ending state (partial entity props)'),
+  duration: z.number().describe('Transition duration in ms'),
+  easing: z.string().optional().default('power2.inOut'),
+});
+
+const IllustrationFrameSchema = z.object({
+  id: z.string().describe('Unique frame ID, e.g. "frame-1", "title-slide"'),
+  startTime: z.number().describe('Frame start time in ms from beginning'),
+  endTime: z.number().describe('Frame end time in ms'),
+  entities: z.array(VisualEntitySchema).describe('Array of visual entities in this frame'),
+  transitions: z.array(EntityTransitionSchema).optional().describe('Animations between entity states'),
+  narrationSegment: z.string().describe('Narration text for this frame (shown as subtitle overlay)'),
+  description: z.string().describe('Brief description of what this frame shows'),
+});
+
+const VisualScriptSchema = z.object({
+  sceneId: z.string().describe('Unique scene ID, e.g. "scene-1"'),
+  frames: z.array(IllustrationFrameSchema).min(1).describe('Array of frames (at least one)'),
+  totalDuration: z.number().describe('Total duration in ms (should be >= last frame endTime)'),
+});
+
+// ── Rich tool descriptions with examples ─────────────────────────────
+
+const ADD_SCENE_DESCRIPTION = `Add a visual scene to a presentation session. The scene is rendered as animated SVG on a 1920x1080 canvas.
+
+IMPORTANT: The visual_script must follow the exact schema below. Positions use percentages (0-100).
+
+Entity types available: Server, Database, User, Cloud, Arrow, DataFlow, Concept, Label, CodeBlock, Array, Pointer, BinaryTree, LinkedList, Group, Table, Metric, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation, Process, Queue, Cache, LoadBalancer, Service, NeuralNetwork, FSM, CPU, Register, MemoryBlock, Packet, ProtocolStack, and more.
+
+Example visual_script for a simple scene with a title and two entities:
+{
+  "sceneId": "scene-1",
+  "totalDuration": 5000,
+  "frames": [
+    {
+      "id": "frame-1",
+      "startTime": 0,
+      "endTime": 5000,
+      "description": "Shows a server connecting to a database",
+      "narrationSegment": "The server sends queries to the database",
+      "entities": [
+        {
+          "id": "title",
+          "type": "Label",
+          "position": {"x": 50, "y": 8},
+          "label": "System Architecture",
+          "color": "#FFFFFF",
+          "size": 2,
+          "animation": {"entrance": "fadeIn", "duration": 800}
+        },
+        {
+          "id": "srv",
+          "type": "Server",
+          "position": {"x": 30, "y": 45},
+          "label": "API Server",
+          "color": "#4FC3F7",
+          "animation": {"entrance": "fadeInUp", "delay": 200}
+        },
+        {
+          "id": "db",
+          "type": "Database",
+          "position": {"x": 70, "y": 45},
+          "label": "PostgreSQL",
+          "color": "#81C784",
+          "animation": {"entrance": "fadeInUp", "delay": 400}
+        },
+        {
+          "id": "arrow1",
+          "type": "Arrow",
+          "position": {"x": 50, "y": 45},
+          "sourceEntityId": "srv",
+          "targetEntityId": "db",
+          "label": "SQL Queries",
+          "color": "#FFD54F",
+          "animation": {"entrance": "drawIn", "delay": 800}
+        }
+      ]
+    }
+  ]
+}`;
+
+const UPDATE_SCENE_DESCRIPTION = `Replace the visual script for a session with a new one. Use this to modify an existing scene. The visual_script format is the same as add_scene — it must include sceneId, frames array, and totalDuration.`;
 
 // ── Boot ──────────────────────────────────────────────────────────────
 
@@ -68,10 +178,10 @@ async function main() {
   // ── Tool: create_session ──────────────────────────────────────────
   mcp.tool(
     'create_session',
-    'Create a new presentation session. Returns a session_id and player URL.',
+    'Create a new presentation session. Returns a session_id and a player_url you can open in a browser to see the live presentation.',
     {
       title: z.string().describe('Title of the presentation'),
-      aspect_ratio: z.string().optional().describe('Aspect ratio, e.g. "16:9" or "4:3"'),
+      aspect_ratio: z.string().optional().describe('Aspect ratio, default "16:9". Options: "16:9", "4:3"'),
     },
     async (args) => {
       const result = await withErrorBoundary(
@@ -84,10 +194,10 @@ async function main() {
   // ── Tool: add_scene ───────────────────────────────────────────────
   mcp.tool(
     'add_scene',
-    'Add a visual scene (frame) to a session. The visual_script contains frames with SVG elements, transitions, and timing.',
+    ADD_SCENE_DESCRIPTION,
     {
       session_id: z.string().describe('Session ID from create_session'),
-      visual_script: z.any().describe('VisualScript object with frames array'),
+      visual_script: VisualScriptSchema.describe('The visual script defining the scene. Must include sceneId, frames array, and totalDuration.'),
     },
     async (args) => {
       const result = await withErrorBoundary(
@@ -100,10 +210,10 @@ async function main() {
   // ── Tool: update_scene ────────────────────────────────────────────
   mcp.tool(
     'update_scene',
-    'Replace the visual script for a session. Use this to modify an existing scene.',
+    UPDATE_SCENE_DESCRIPTION,
     {
       session_id: z.string().describe('Session ID'),
-      visual_script: z.any().describe('Updated VisualScript object'),
+      visual_script: VisualScriptSchema.describe('The replacement visual script. Same format as add_scene.'),
     },
     async (args) => {
       const result = await withErrorBoundary(
@@ -116,11 +226,11 @@ async function main() {
   // ── Tool: add_narration ───────────────────────────────────────────
   mcp.tool(
     'add_narration',
-    'Add narration text to a specific frame in a session.',
+    'Add narration text to a specific frame in a session. The text appears as a subtitle overlay in the player.',
     {
       session_id: z.string().describe('Session ID'),
-      text: z.string().describe('Narration text'),
-      frame_index: z.number().optional().describe('Frame index (default 0)'),
+      text: z.string().describe('Narration text to display'),
+      frame_index: z.number().optional().describe('Frame index (0-based, default 0)'),
     },
     async (args) => {
       const result = await withErrorBoundary(
@@ -133,7 +243,7 @@ async function main() {
   // ── Tool: get_session_url ─────────────────────────────────────────
   mcp.tool(
     'get_session_url',
-    'Get the player URL for a session. Optionally include session stats.',
+    'Get the player URL for a session. Open this URL in a browser to view the presentation. Set include_stats to true to also get frame count and duration.',
     {
       session_id: z.string().describe('Session ID'),
       include_stats: z.boolean().optional().describe('Include frame count, duration, etc.'),

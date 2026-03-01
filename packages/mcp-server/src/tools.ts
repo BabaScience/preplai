@@ -6,7 +6,7 @@
  */
 import type { SessionStore } from './session-store.js';
 import type { SseRegistry } from './sse.js';
-import { mcpOk, mcpNotFound, mcpErr, type McpToolContent } from './errors.js';
+import { mcpOk, mcpNotFound, mcpErr, mcpValidationError, type McpToolContent } from './errors.js';
 
 // ── Dependency injection interfaces ───────────────────────────────────
 
@@ -23,6 +23,43 @@ interface SceneDeps {
 interface SessionUrlDeps {
   store: SessionStore;
   baseUrl: string;
+}
+
+// ── Validation helpers ────────────────────────────────────────────────
+
+function validateVisualScript(visual_script: any): string | null {
+  if (!visual_script || typeof visual_script !== 'object') {
+    return 'visual_script must be an object with { sceneId, frames, totalDuration }';
+  }
+  if (!visual_script.frames || !Array.isArray(visual_script.frames)) {
+    return 'visual_script.frames must be an array of IllustrationFrame objects. Example: { "sceneId": "scene-1", "frames": [{ "id": "frame-1", "startTime": 0, "endTime": 5000, "entities": [...], "narrationSegment": "...", "description": "..." }], "totalDuration": 5000 }';
+  }
+  if (visual_script.frames.length === 0) {
+    return 'visual_script.frames must contain at least one frame';
+  }
+  if (typeof visual_script.totalDuration !== 'number') {
+    return 'visual_script.totalDuration must be a number (milliseconds)';
+  }
+  if (!visual_script.sceneId || typeof visual_script.sceneId !== 'string') {
+    return 'visual_script.sceneId must be a string, e.g. "scene-1"';
+  }
+  // Validate each frame has at least the required fields
+  for (let i = 0; i < visual_script.frames.length; i++) {
+    const frame = visual_script.frames[i];
+    if (!frame.id) {
+      return `frames[${i}].id is required (e.g. "frame-1")`;
+    }
+    if (!Array.isArray(frame.entities)) {
+      return `frames[${i}].entities must be an array of VisualEntity objects`;
+    }
+    if (typeof frame.startTime !== 'number') {
+      return `frames[${i}].startTime must be a number (ms)`;
+    }
+    if (typeof frame.endTime !== 'number') {
+      return `frames[${i}].endTime must be a number (ms)`;
+    }
+  }
+  return null; // valid
 }
 
 // ── Tool 1: create_session ────────────────────────────────────────────
@@ -58,6 +95,12 @@ export async function handleAddScene(
   const session = store.getSession(session_id);
   if (!session) return mcpNotFound(session_id);
 
+  // Validate visual_script structure
+  const validationError = validateVisualScript(visual_script);
+  if (validationError) {
+    return mcpValidationError(validationError);
+  }
+
   store.setScript(session_id, visual_script);
 
   sse.emit(session_id, { type: 'script_update', script: visual_script });
@@ -66,6 +109,9 @@ export async function handleAddScene(
     session_id,
     frame_count: visual_script.frames.length,
     total_duration_ms: visual_script.totalDuration,
+    entity_count: visual_script.frames.reduce(
+      (sum: number, f: any) => sum + (f.entities?.length ?? 0), 0
+    ),
     updated_at: new Date().toISOString(),
   });
 }
@@ -82,6 +128,12 @@ export async function handleUpdateScene(
   const session = store.getSession(session_id);
   if (!session) return mcpNotFound(session_id);
 
+  // Validate visual_script structure
+  const validationError = validateVisualScript(visual_script);
+  if (validationError) {
+    return mcpValidationError(validationError);
+  }
+
   store.setScript(session_id, visual_script);
 
   sse.emit(session_id, { type: 'script_update', script: visual_script });
@@ -90,6 +142,9 @@ export async function handleUpdateScene(
     session_id,
     frame_count: visual_script.frames.length,
     total_duration_ms: visual_script.totalDuration,
+    entity_count: visual_script.frames.reduce(
+      (sum: number, f: any) => sum + (f.entities?.length ?? 0), 0
+    ),
     updated_at: new Date().toISOString(),
   });
 }

@@ -53,14 +53,15 @@ export function mcpNotFound(sessionId: string): McpToolContent {
 }
 
 /**
- * Format Zod-like validation issues into an MCP error.
+ * Format validation error into an MCP error.
+ * Accepts either a plain string message or Zod-style issues array.
  */
 export function mcpValidationError(
-  issues: Array<{ path: (string | number)[]; message: string }>,
+  issues: string | Array<{ path: (string | number)[]; message: string }>,
 ): McpToolContent {
-  const detail = issues
-    .map(i => `${i.path.join('.')}: ${i.message}`)
-    .join('; ');
+  const detail = typeof issues === 'string'
+    ? issues
+    : issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ');
 
   return mcpErr(
     'VALIDATION_ERROR',

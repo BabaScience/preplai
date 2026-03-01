@@ -135,6 +135,60 @@ describe('MCP Tool Handlers', () => {
       expect(data.success).toBe(false);
       expect(data.error.code).toBe('SESSION_NOT_FOUND');
     });
+
+    it('returns VALIDATION_ERROR when visual_script is null', async () => {
+      const result = await handleAddScene(
+        { session_id: sessionId, visual_script: null },
+        { store, sse }
+      );
+      const data = parse(result);
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns VALIDATION_ERROR when frames is missing', async () => {
+      const result = await handleAddScene(
+        { session_id: sessionId, visual_script: { sceneId: 'scene-1', totalDuration: 5000 } },
+        { store, sse }
+      );
+      const data = parse(result);
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('VALIDATION_ERROR');
+      expect(data.error.message).toContain('frames');
+    });
+
+    it('returns VALIDATION_ERROR when frames is empty', async () => {
+      const result = await handleAddScene(
+        { session_id: sessionId, visual_script: { sceneId: 'scene-1', frames: [], totalDuration: 5000 } },
+        { store, sse }
+      );
+      const data = parse(result);
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('VALIDATION_ERROR');
+      expect(data.error.message).toContain('at least one frame');
+    });
+
+    it('returns VALIDATION_ERROR when sceneId is missing', async () => {
+      const result = await handleAddScene(
+        { session_id: sessionId, visual_script: { frames: [{ id: 'f1', startTime: 0, endTime: 5000, entities: [], narrationSegment: '', description: '' }], totalDuration: 5000 } },
+        { store, sse }
+      );
+      const data = parse(result);
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('VALIDATION_ERROR');
+      expect(data.error.message).toContain('sceneId');
+    });
+
+    it('returns VALIDATION_ERROR when frame missing entities array', async () => {
+      const result = await handleAddScene(
+        { session_id: sessionId, visual_script: { sceneId: 'scene-1', frames: [{ id: 'f1', startTime: 0, endTime: 5000 }], totalDuration: 5000 } },
+        { store, sse }
+      );
+      const data = parse(result);
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('VALIDATION_ERROR');
+      expect(data.error.message).toContain('entities');
+    });
   });
 
   // ── update_scene ────────────────────────────────────────────────
