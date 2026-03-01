@@ -1,0 +1,136 @@
+/* tokens.css — preplai design tokens */
+
+/* ===== FONTS ===== */
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300..700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ===== DESIGN TOKENS ===== */
+:root {
+  /* Type scale */
+  --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
+  --text-sm:   clamp(0.875rem, 0.8rem  + 0.35vw, 1rem);
+  --text-base: clamp(1rem,     0.9rem  + 0.5vw,  1.125rem);
+  --text-lg:   clamp(1.125rem, 0.95rem + 0.85vw, 1.5rem);
+  --text-xl:   clamp(1.5rem,   1rem    + 1.5vw,  2.25rem);
+  --text-2xl:  clamp(2rem,     1.2rem  + 2.5vw,  3.5rem);
+  --text-3xl:  clamp(2.5rem,   1rem    + 4vw,    5rem);
+  --text-hero: clamp(3rem,     0.5rem  + 7vw,    8rem);
+
+  /* Spacing (4px system) */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
+
+  /* Fonts */
+  --font-display: 'Instrument Serif', 'Georgia', serif;
+  --font-body: 'Inter', 'Helvetica Neue', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+
+  /* Transition */
+  --transition-interactive: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Content widths */
+  --content-narrow: 640px;
+  --content-default: 960px;
+  --content-wide: 1200px;
+  --content-full: 100%;
+}
+
+/* ===== LIGHT MODE ===== */
+:root, [data-theme="light"] {
+  --color-bg:              #FAFAF8;
+  --color-surface:         #F5F4F1;
+  --color-surface-2:       #EFEEEB;
+  --color-surface-offset:  #F2F1EE;
+  --color-surface-offset-2:#ECEAE7;
+  --color-surface-dynamic: #E5E3DF;
+  --color-divider:         #D8D6D1;
+  --color-border:          #CBC9C3;
+
+  --color-text:            #1a1b24;
+  --color-text-muted:      #6b6c78;
+  --color-text-faint:      #a0a1aa;
+  --color-text-inverse:    #FAFAF8;
+
+  --color-primary:         #B8952F;
+  --color-primary-hover:   #A3822A;
+  --color-primary-active:  #8D7024;
+  --color-primary-highlight: rgba(184, 149, 47, 0.1);
+
+  --color-error:           #a13544;
+  --color-error-hover:     #882c39;
+  --color-error-highlight: rgba(161, 53, 68, 0.08);
+  --color-success:         #437a22;
+  --color-success-highlight: rgba(67, 122, 34, 0.08);
+  --color-warning:         #964219;
+
+  --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
+  --shadow-md: 0 4px 12px oklch(0.2 0.01 80 / 0.08);
+  --shadow-lg: 0 12px 32px oklch(0.2 0.01 80 / 0.12);
+}
+
+/* ===== DARK MODE ===== */
+[data-theme="dark"] {
+  --color-bg:              #0b0c10;
+  --color-surface:         #12131a;
+  --color-surface-2:       #1a1b24;
+  --color-surface-offset:  #15161e;
+  --color-surface-offset-2:#1e1f28;
+  --color-surface-dynamic: #252630;
+  --color-divider:         #2a2b36;
+  --color-border:          #333444;
+
+  --color-text:            #e8e6e3;
+  --color-text-muted:      #8a8b95;
+  --color-text-faint:      #555666;
+  --color-text-inverse:    #0b0c10;
+
+  --color-primary:         #C9A84C;
+  --color-primary-hover:   #D4B85E;
+  --color-primary-active:  #B8972F;
+  --color-primary-highlight: rgba(201, 168, 76, 0.1);
+
+  --color-error:           #dd6974;
+  --color-error-hover:     #c24a59;
+  --color-error-highlight: rgba(221, 105, 116, 0.1);
+  --color-success:         #6daa45;
+  --color-success-highlight: rgba(109, 170, 69, 0.1);
+  --color-warning:         #bb653b;
+
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.25);
+  --shadow-md: 0 4px 12px oklch(0 0 0 / 0.35);
+  --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.45);
+}
+
+/* System preference fallback */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-bg:#0b0c10;--color-surface:#12131a;--color-surface-2:#1a1b24;
+    --color-surface-offset:#15161e;--color-surface-offset-2:#1e1f28;
+    --color-surface-dynamic:#252630;--color-divider:#2a2b36;--color-border:#333444;
+    --color-text:#e8e6e3;--color-text-muted:#8a8b95;--color-text-faint:#555666;
+    --color-text-inverse:#0b0c10;
+    --color-primary:#C9A84C;--color-primary-hover:#D4B85E;--color-primary-active:#B8972F;
+    --color-primary-highlight:rgba(201,168,76,0.1);
+    --color-error:#dd6974;--color-success:#6daa45;--color-warning:#bb653b;
+    --shadow-sm:0 1px 2px oklch(0 0 0 / 0.25);
+    --shadow-md:0 4px 12px oklch(0 0 0 / 0.35);
+    --shadow-lg:0 12px 32px oklch(0 0 0 / 0.45);
+  }
+}
