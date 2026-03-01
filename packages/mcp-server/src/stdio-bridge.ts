@@ -91,31 +91,37 @@ const VisualScriptSchema = z.object({
 
 // ── Rich tool descriptions with examples ─────────────────────────────
 
-const ADD_SCENE_DESCRIPTION = `Add a visual scene to a presentation session. The scene is rendered as animated SVG on a 1920x1080 dark canvas (vignette background).
+const ADD_SCENE_DESCRIPTION = `Add a visual scene to a presentation session. The scene is rendered as animated SVG on a 1920x1080 dark canvas with vignette background, drop shadows, and rich gradients.
 
-IMPORTANT: The visual_script must follow the exact schema below. Positions use percentages (0-100).
+IMPORTANT: The visual_script must follow the exact schema below. Positions use percentages (0-100). An 80px horizontal and 60px vertical margin/safe zone is applied automatically.
 
 DESIGN GUIDELINES:
-- Keep labels SHORT (under 28 chars). Long labels get truncated. Use narrationSegment for detailed text.
+- Labels can be up to ~80 chars. Longer labels auto-wrap to multiple lines. Use narrationSegment for full paragraphs.
 - Use a COHESIVE color palette: pick 2-3 colors max per scene. Recommended combos:
   - Cyan (#4FC3F7) + Violet (#b388ff) + Warm (#FFD54F) — great for CS/tech
   - Blue (#64B5F6) + Green (#81C784) + White (#FFFFFF) — clean and professional
   - Teal (#4DD0E1) + Pink (#F48FB1) + Amber (#FFB74D) — vibrant and modern
-- Title labels should use type "Label" with color "#FFFFFF" and size 2.
+- Title labels: type "Label", color "#FFFFFF", size 2 or higher. They render with large bold text (42-48px).
+- Subtitle labels: type "Label", size ~1.5, renders at 28-32px.
 - Space entities evenly. Minimum 15% gap between entity positions.
 - Use "highlight": true to emphasize the currently discussed entity.
+- Entities are large and visually rich (drop shadows, gradient fills). Size 1 = ~110px, size 2 = ~220px.
+- Each entity type has a smart default entrance animation. You can override with the animation.entrance property.
 
 Entity types with DEDICATED renderers (look best):
-  Server, Database, User, Cloud, Concept, Label, CodeBlock
+  Server (rack with LEDs), Database (cylinder), User (avatar), Cloud (blob), Concept (auto-sized circle), Label (text with optional pill), CodeBlock (dark terminal with traffic-light dots)
 
 Entity types with SHAPED renderers:
   Cache (circle), LoadBalancer (hexagon), Decision (diamond), Metric (circle)
 
-All other entity types render as rounded rectangles with a type badge:
+All other entity types render as rounded rectangles with their label centered inside:
   Array, Pointer, BinaryTree, LinkedList, Group, Table, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation, Process, Queue, Service, NeuralNetwork, FSM, CPU, Register, MemoryBlock, Packet, ProtocolStack, and more.
 
-Connection types (rendered as bezier curve arrows):
-  Arrow, DataFlow (animated dashes), BidirectArrow, DottedArrow
+Connection types (rendered as bezier curve arrows with glow and animated flow):
+  Arrow, DataFlow (fast animated dashes), BidirectArrow, DottedArrow
+  Arrow labels render above the curve with a dark pill background for readability.
+
+Entrance animations available: fadeInUp (default for Server/Database), fadeIn (default for Label), scaleIn (default for User), drawIn (default for Concept), floatIn (default for Cloud), slideInLeft (default for CodeBlock), dropIn.
 
 Example visual_script for a simple scene with a title and two entities:
 {
@@ -132,27 +138,24 @@ Example visual_script for a simple scene with a title and two entities:
         {
           "id": "title",
           "type": "Label",
-          "position": {"x": 50, "y": 8},
+          "position": {"x": 50, "y": 6},
           "label": "System Architecture",
           "color": "#FFFFFF",
-          "size": 2,
-          "animation": {"entrance": "fadeIn", "duration": 800}
+          "size": 2
         },
         {
           "id": "srv",
           "type": "Server",
           "position": {"x": 30, "y": 45},
           "label": "API Server",
-          "color": "#4FC3F7",
-          "animation": {"entrance": "fadeInUp", "delay": 200}
+          "color": "#4FC3F7"
         },
         {
           "id": "db",
           "type": "Database",
           "position": {"x": 70, "y": 45},
           "label": "PostgreSQL",
-          "color": "#81C784",
-          "animation": {"entrance": "fadeInUp", "delay": 400}
+          "color": "#81C784"
         },
         {
           "id": "arrow1",
@@ -161,8 +164,7 @@ Example visual_script for a simple scene with a title and two entities:
           "sourceEntityId": "srv",
           "targetEntityId": "db",
           "label": "SQL Queries",
-          "color": "#FFD54F",
-          "animation": {"entrance": "drawIn", "delay": 800}
+          "color": "#FFD54F"
         }
       ]
     }

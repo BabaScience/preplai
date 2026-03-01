@@ -42,6 +42,9 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
     <button id="next-frame" aria-label="Next frame">›</button>
   </div>
 
+  <!-- Tooltip for entity hover -->
+  <div id="entity-tooltip" class="entity-tooltip"></div>
+
   <div id="canvas-wrapper">
     <!--
       viewBox="0 0 1920 1080"  — 16:9, 1920×1080 coordinate space

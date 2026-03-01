@@ -92,7 +92,7 @@ describe('E2E: Complete presentation lifecycle', () => {
   beforeAll(async () => {
     ctx = await createE2EServer();
     const address = await ctx.app.listen({ port: 0, host: '127.0.0.1' });
-    port = Number(address.match(/:(\d+)$/)?.[1]);
+    port = Number(address.match(/(\d+)$/)?.[1]);
   });
 
   afterAll(async () => {
@@ -120,6 +120,7 @@ describe('E2E: Complete presentation lifecycle', () => {
       totalDuration: 12000,
       frames: [
         {
+          id: 'f-1',
           startTime: 0,
           endTime: 6000,
           entities: [
@@ -133,6 +134,7 @@ describe('E2E: Complete presentation lifecycle', () => {
           narrationSegment: { text: 'Binary search maintains two pointers, lo and hi, narrowing the search space by half each step.' },
         },
         {
+          id: 'f-2',
           startTime: 6000,
           endTime: 12000,
           entities: [
@@ -197,7 +199,7 @@ describe('E2E: SSE real-time delivery pipeline', () => {
   beforeAll(async () => {
     ctx = await createE2EServer();
     const address = await ctx.app.listen({ port: 0, host: '127.0.0.1' });
-    port = Number(address.match(/:(\d+)$/)?.[1]);
+    port = Number(address.match(/(\d+)$/)?.[1]);
   });
 
   afterAll(async () => {
@@ -231,6 +233,7 @@ describe('E2E: SSE real-time delivery pipeline', () => {
           sceneId: sid,
           totalDuration: 3000,
           frames: [{
+            id: 'f-1',
             startTime: 0,
             endTime: 3000,
             entities: [
@@ -271,7 +274,7 @@ describe('E2E: SSE real-time delivery pipeline', () => {
         visual_script: {
           sceneId: sid,
           totalDuration: 3000,
-          frames: [{ startTime: 0, endTime: 3000, entities: [] }],
+          frames: [{ id: 'f-1', startTime: 0, endTime: 3000, entities: [] }],
         },
       }),
     });
@@ -320,7 +323,7 @@ describe('E2E: SSE real-time delivery pipeline', () => {
         visual_script: {
           sceneId: sid,
           totalDuration: 3000,
-          frames: [{ startTime: 0, endTime: 3000, entities: [{ id: 'a', type: 'Server', position: { x: 50, y: 50 } }] }],
+          frames: [{ id: 'f-1', startTime: 0, endTime: 3000, entities: [{ id: 'a', type: 'Server', position: { x: 50, y: 50 } }] }],
         },
       }),
     });
@@ -340,8 +343,8 @@ describe('E2E: SSE real-time delivery pipeline', () => {
           sceneId: sid,
           totalDuration: 6000,
           frames: [
-            { startTime: 0, endTime: 3000, entities: [{ id: 'a', type: 'Server', position: { x: 30, y: 50 } }] },
-            { startTime: 3000, endTime: 6000, entities: [{ id: 'b', type: 'Database', position: { x: 70, y: 50 } }] },
+            { id: 'f-1', startTime: 0, endTime: 3000, entities: [{ id: 'a', type: 'Server', position: { x: 30, y: 50 } }] },
+            { id: 'f-2', startTime: 3000, endTime: 6000, entities: [{ id: 'b', type: 'Database', position: { x: 70, y: 50 } }] },
           ],
         },
       }),
@@ -416,7 +419,7 @@ describe('E2E: Error propagation', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         session_id: 'non-existent-uuid',
-        visual_script: { sceneId: 'x', totalDuration: 1000, frames: [{ startTime: 0, endTime: 1000, entities: [] }] },
+        visual_script: { sceneId: 'x', totalDuration: 1000, frames: [{ id: 'f-1', startTime: 0, endTime: 1000, entities: [] }] },
       }),
     });
 
@@ -433,7 +436,7 @@ describe('E2E: Error propagation', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         session_id: 'fake-id',
-        visual_script: { sceneId: 'x', totalDuration: 1000, frames: [{ startTime: 0, endTime: 1000, entities: [] }] },
+        visual_script: { sceneId: 'x', totalDuration: 1000, frames: [{ id: 'f-1', startTime: 0, endTime: 1000, entities: [] }] },
       }),
     });
 
@@ -478,7 +481,7 @@ describe('E2E: Error propagation', () => {
         visual_script: {
           sceneId: sid,
           totalDuration: 3000,
-          frames: [{ startTime: 0, endTime: 3000, entities: [] }],
+          frames: [{ id: 'f-1', startTime: 0, endTime: 3000, entities: [] }],
         },
       }),
     });
@@ -540,7 +543,7 @@ describe('E2E: Session persistence', () => {
           sceneId: sid,
           totalDuration: 5000,
           frames: [
-            { startTime: 0, endTime: 5000, entities: [{ id: 's1', type: 'Server', position: { x: 50, y: 50 } }] },
+            { id: 'f-1', startTime: 0, endTime: 5000, entities: [{ id: 's1', type: 'Server', position: { x: 50, y: 50 } }] },
           ],
         },
       }),
@@ -579,7 +582,7 @@ describe('E2E: Multi-session isolation', () => {
   beforeAll(async () => {
     ctx = await createE2EServer();
     const address = await ctx.app.listen({ port: 0, host: '127.0.0.1' });
-    port = Number(address.match(/:(\d+)$/)?.[1]);
+    port = Number(address.match(/(\d+)$/)?.[1]);
   });
 
   afterAll(async () => {
@@ -619,7 +622,7 @@ describe('E2E: Multi-session isolation', () => {
         visual_script: {
           sceneId: sidB,
           totalDuration: 1000,
-          frames: [{ startTime: 0, endTime: 1000, entities: [{ id: 'b1', type: 'Server', position: { x: 50, y: 50 } }] }],
+          frames: [{ id: 'f-1', startTime: 0, endTime: 1000, entities: [{ id: 'b1', type: 'Server', position: { x: 50, y: 50 } }] }],
         },
       }),
     });
@@ -634,7 +637,7 @@ describe('E2E: Multi-session isolation', () => {
         visual_script: {
           sceneId: sidA,
           totalDuration: 2000,
-          frames: [{ startTime: 0, endTime: 2000, entities: [{ id: 'a1', type: 'Database', position: { x: 50, y: 50 } }] }],
+          frames: [{ id: 'f-1', startTime: 0, endTime: 2000, entities: [{ id: 'a1', type: 'Database', position: { x: 50, y: 50 } }] }],
         },
       }),
     });
@@ -681,6 +684,7 @@ describe('E2E: Complex scene with multiple entity types', () => {
       totalDuration: 15000,
       frames: [
         {
+          id: 'f-1',
           startTime: 0,
           endTime: 5000,
           entities: [
@@ -702,6 +706,7 @@ describe('E2E: Complex scene with multiple entity types', () => {
           },
         },
         {
+          id: 'f-2',
           startTime: 5000,
           endTime: 10000,
           entities: [
@@ -714,6 +719,7 @@ describe('E2E: Complex scene with multiple entity types', () => {
           },
         },
         {
+          id: 'f-3',
           startTime: 10000,
           endTime: 15000,
           entities: [

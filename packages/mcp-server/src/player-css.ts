@@ -6,7 +6,7 @@
  *
  * Design system:
  * - Font: Inter for all UI, JetBrains Mono for code/technical content
- * - Background: #16162a → #08080f radial vignette
+ * - Background: #12122a → #0a0a14 radial gradient
  * - Accent palette: Cyan #00e5ff, Violet #b388ff, Warm #FFD54F
  * - Narrator: frosted glass panel with typewriter entrance
  */
@@ -24,7 +24,7 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #0a0a14;
+  background: radial-gradient(ellipse at center, #12122a 0%, #0a0a14 70%);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: #e8e8f0;
   -webkit-font-smoothing: antialiased;
@@ -54,6 +54,12 @@ svg text {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── SVG entity shape subtle transitions ─────────────────────────── */
+
+svg rect, svg circle, svg ellipse, svg polygon, svg path {
+  transition: filter 0.2s ease;
+}
+
 /* ── Narrator overlay ────────────────────────────────────────────── */
 
 #narrator-overlay {
@@ -65,11 +71,13 @@ svg text {
   pointer-events: none;
   display: flex;
   justify-content: center;
-  padding: 32px 64px;
+  padding: 48px 64px;
 }
 
 #narrator-text {
   max-width: 880px;
+  max-height: 120px;
+  overflow-y: auto;
   padding: 20px 36px;
   background: rgba(12, 12, 24, 0.82);
   backdrop-filter: blur(20px) saturate(1.2);
@@ -112,12 +120,16 @@ svg text {
   display: flex;
   align-items: center;
   gap: 8px;
-  opacity: 0;
+  opacity: 0.4;
   transition: opacity 0.3s ease;
+  background: rgba(12, 12, 24, 0.6);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 6px 10px;
 }
 
 #frame-nav.visible {
-  opacity: 1;
+  opacity: 0.85;
 }
 
 #frame-nav:hover {
@@ -126,8 +138,8 @@ svg text {
 
 #frame-counter {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
   min-width: 48px;
   text-align: center;
   user-select: none;
@@ -138,9 +150,9 @@ svg text {
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.5);
   border-radius: 8px;
-  width: 32px;
-  height: 32px;
-  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -151,6 +163,18 @@ svg text {
 #frame-nav button:hover {
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.8);
+}
+
+/* ── Frame crossfade transition ──────────────────────────────────── */
+
+.frame-fade-out {
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+.frame-fade-in {
+  opacity: 1;
+  transition: opacity 0.3s ease-in;
 }
 
 /* ── Animate element base class ──────────────────────────────────── */
@@ -204,10 +228,16 @@ svg text {
   50%      { filter: drop-shadow(0 0 12px currentColor); }
 }
 
+@keyframes dropIn {
+  0%   { opacity: 0; transform: translateY(-20px) scale(0.95); }
+  60%  { opacity: 1; transform: translateY(4px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* ── Entrance animation classes ──────────────────────────────────── */
 
 .entrance-fadeInUp {
-  animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: fadeInUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .entrance-fadeIn {
@@ -215,7 +245,7 @@ svg text {
 }
 
 .entrance-drawIn {
-  animation: drawIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: drawIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 .entrance-slideInLeft {
@@ -227,11 +257,15 @@ svg text {
 }
 
 .entrance-scaleIn {
-  animation: scaleIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 .entrance-floatIn {
   animation: floatIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.entrance-dropIn {
+  animation: dropIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* ── Connection status indicator ─────────────────────────────────── */
@@ -266,5 +300,43 @@ svg text {
 
 .entity-highlighted {
   animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* ── Interactive entity hover/focus states ───────────────────────── */
+
+.entity-interactive {
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.entity-interactive:hover {
+  filter: brightness(1.2) drop-shadow(0 0 8px rgba(255, 255, 255, 0.15));
+}
+
+/* ── Entity tooltip ──────────────────────────────────────────────── */
+
+.entity-tooltip {
+  position: fixed;
+  z-index: 300;
+  padding: 8px 14px;
+  background: rgba(12, 12, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #e8e8f0;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+  max-width: 300px;
+}
+
+.entity-tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 `;

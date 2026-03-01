@@ -1,13 +1,20 @@
 /**
- * @pre/mcp-server — Player Bootstrap JS (v2)
+ * @pre/mcp-server — Player Bootstrap JS (v3)
  *
- * Complete rewrite with:
+ * Complete rewrite with all 24 fixes:
  * - Type-specific SVG renderers (Server, Database, Cloud, User, Concept, Label, CodeBlock, etc.)
- * - Bezier curve arrows with glow
- * - Label overflow handling (truncation + multi-line)
- * - Dot grid background
+ * - Bezier curve arrows with glow, larger arrowheads, subtle flow animation
+ * - Label overflow handling (multi-line tspan wrapping)
+ * - Dot grid background (more visible)
  * - Frame navigation (keyboard arrows + buttons)
- * - GSAP entrance choreography
+ * - GSAP entrance choreography (type-specific animations)
+ * - Canvas margin/safe-zone system
+ * - Visual weight hierarchy for labels
+ * - Semi-transparent pill backgrounds on arrow labels
+ * - Drop-shadow filter on entity shapes
+ * - Increased gradient opacity
+ * - Hover/focus interactive states
+ * - Frame crossfade transitions
  *
  * Served at GET /player.js as vanilla ES5-compat IIFE.
  */
@@ -21,7 +28,9 @@ export const PLAYER_JS = `(function() {
   var SVG_NS = 'http://www.w3.org/2000/svg';
   var CW = 1920;  // Canvas width
   var CH = 1080;  // Canvas height
-  var LABEL_MAX_CHARS = 28;  // Truncate labels beyond this
+  var LABEL_MAX_CHARS = 80;  // Fix #3: was 28, now 80
+  var MARGIN_X = 80;         // Fix #8: safe-zone horizontal margin
+  var MARGIN_Y = 60;         // Fix #8: safe-zone vertical margin
   var FONT_UI = "'Inter', sans-serif";
   var FONT_MONO = "'JetBrains Mono', monospace";
 
@@ -48,7 +57,7 @@ export const PLAYER_JS = `(function() {
   var currentFrame  = 0;
 
   // ═══════════════════════════════════════════════════════════════════
-  // Init: Dot grid
+  // Init: Dot grid — Fix #22: bigger dots, more opaque fill
   // ═══════════════════════════════════════════════════════════════════
   function initDotGrid() {
     if (!dotGrid) return;
@@ -58,13 +67,142 @@ export const PLAYER_JS = `(function() {
         var dot = document.createElementNS(SVG_NS, 'circle');
         dot.setAttribute('cx', String(x));
         dot.setAttribute('cy', String(y));
-        dot.setAttribute('r', '1');
-        dot.setAttribute('fill', 'rgba(255,255,255,0.5)');
+        dot.setAttribute('r', '1.5');                          // Fix #22: was '1'
+        dot.setAttribute('fill', 'rgba(255,255,255,0.7)');    // Fix #22: was 0.5
         dotGrid.appendChild(dot);
       }
     }
   }
   initDotGrid();
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SVG filter defs: soft-shadow, entity-glow
+  // ═══════════════════════════════════════════════════════════════════
+  (function ensureFilterDefs() {
+    if (!canvas) return;
+    var defs = canvas.querySelector('defs');
+    if (!defs) {
+      defs = document.createElementNS(SVG_NS, 'defs');
+      canvas.insertBefore(defs, canvas.firstChild);
+    }
+
+    // soft-shadow filter — Fix #19
+    if (!defs.querySelector('#soft-shadow')) {
+      var filt = document.createElementNS(SVG_NS, 'filter');
+      filt.setAttribute('id', 'soft-shadow');
+      filt.setAttribute('x', '-20%');
+      filt.setAttribute('y', '-20%');
+      filt.setAttribute('width', '140%');
+      filt.setAttribute('height', '140%');
+      var feGauss = document.createElementNS(SVG_NS, 'feGaussianBlur');
+      feGauss.setAttribute('in', 'SourceAlpha');
+      feGauss.setAttribute('stdDeviation', '6');
+      feGauss.setAttribute('result', 'blur');
+      var feOffset = document.createElementNS(SVG_NS, 'feOffset');
+      feOffset.setAttribute('in', 'blur');
+      feOffset.setAttribute('dx', '0');
+      feOffset.setAttribute('dy', '4');
+      feOffset.setAttribute('result', 'offsetBlur');
+      var feFlood = document.createElementNS(SVG_NS, 'feFlood');
+      feFlood.setAttribute('flood-color', 'rgba(0,0,0,0.5)');
+      feFlood.setAttribute('result', 'color');
+      var feComposite = document.createElementNS(SVG_NS, 'feComposite');
+      feComposite.setAttribute('in', 'color');
+      feComposite.setAttribute('in2', 'offsetBlur');
+      feComposite.setAttribute('operator', 'in');
+      feComposite.setAttribute('result', 'shadow');
+      var feMerge = document.createElementNS(SVG_NS, 'feMerge');
+      var feMergeNode1 = document.createElementNS(SVG_NS, 'feMergeNode');
+      feMergeNode1.setAttribute('in', 'shadow');
+      var feMergeNode2 = document.createElementNS(SVG_NS, 'feMergeNode');
+      feMergeNode2.setAttribute('in', 'SourceGraphic');
+      feMerge.appendChild(feMergeNode1);
+      feMerge.appendChild(feMergeNode2);
+      filt.appendChild(feGauss);
+      filt.appendChild(feOffset);
+      filt.appendChild(feFlood);
+      filt.appendChild(feComposite);
+      filt.appendChild(feMerge);
+      defs.appendChild(filt);
+    }
+
+    // entity-glow filter
+    if (!defs.querySelector('#entity-glow')) {
+      var gf = document.createElementNS(SVG_NS, 'filter');
+      gf.setAttribute('id', 'entity-glow');
+      gf.setAttribute('x', '-30%');
+      gf.setAttribute('y', '-30%');
+      gf.setAttribute('width', '160%');
+      gf.setAttribute('height', '160%');
+      var gBlur = document.createElementNS(SVG_NS, 'feGaussianBlur');
+      gBlur.setAttribute('in', 'SourceGraphic');
+      gBlur.setAttribute('stdDeviation', '8');
+      gf.appendChild(gBlur);
+      defs.appendChild(gf);
+    }
+  })();
+
+  // ═══════════════════════════════════════════════════════════════════
+  // Utility: multi-line text wrapping — Fix #2, #3
+  // ═══════════════════════════════════════════════════════════════════
+  function wrapText(text, maxCharsPerLine) {
+    if (!text) return [];
+    maxCharsPerLine = maxCharsPerLine || 20;
+    var words = text.split(' ');
+    var lines = [];
+    var current = '';
+    for (var i = 0; i < words.length; i++) {
+      var word = words[i];
+      if (current.length === 0) {
+        current = word;
+      } else if (current.length + 1 + word.length <= maxCharsPerLine) {
+        current = current + ' ' + word;
+      } else {
+        lines.push(current);
+        current = word;
+      }
+    }
+    if (current.length > 0) lines.push(current);
+    return lines;
+  }
+
+  // Utility: create multi-line SVG text with tspan elements — Fix #2, #3
+  function createMultiLineText(parentEl, lines, opts) {
+    opts = opts || {};
+    var x = opts.x || 0;
+    var y = opts.y || 0;
+    var lineHeight = opts.lineHeight || 20;
+    var textAnchor = opts.textAnchor || 'middle';
+    var fill = opts.fill || '#FFFFFF';
+    var fontSize = opts.fontSize || 14;
+    var fontWeight = opts.fontWeight || '500';
+    var fontFamily = opts.fontFamily || FONT_UI;
+    var letterSpacing = opts.letterSpacing || '0.02em';
+
+    var text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', String(x));
+    text.setAttribute('y', String(y));
+    text.setAttribute('text-anchor', textAnchor);
+    text.setAttribute('fill', fill);
+    text.setAttribute('font-size', String(fontSize));
+    text.setAttribute('font-weight', fontWeight);
+    text.setAttribute('font-family', fontFamily);
+    text.setAttribute('letter-spacing', letterSpacing);
+
+    var totalH = lines.length * lineHeight;
+    var startY = -(totalH / 2) + lineHeight * 0.5;
+
+    for (var i = 0; i < lines.length; i++) {
+      var tspan = document.createElementNS(SVG_NS, 'tspan');
+      tspan.setAttribute('x', String(x));
+      tspan.setAttribute('dy', i === 0 ? String(startY) : String(lineHeight));
+      tspan.textContent = lines[i];
+      text.appendChild(tspan);
+    }
+
+    parentEl.appendChild(text);
+    return text;
+  }
 
   // ═══════════════════════════════════════════════════════════════════
   // Utility: Label truncation
@@ -75,15 +213,14 @@ export const PLAYER_JS = `(function() {
     return text.length > max ? text.substring(0, max - 1) + '\u2026' : text;
   }
 
-  // Utility: Parse size param → pixel base
+  // Utility: Parse size param → pixel base — Fix #1
   function sizeToPixels(s) {
     s = s || 1;
-    return Math.min(Math.max(s * 50, 20), 140);
+    return Math.min(Math.max(s * 110, 60), 400);  // Fix #1: was s*50, 20, 140
   }
 
   // Utility: hex color → rgba with alpha
   function colorAlpha(color, alpha) {
-    // For hex colors, append alpha hex. For others, wrap in rgba.
     if (!color) color = '#4FC3F7';
     if (color.charAt(0) === '#' && color.length === 7) {
       var a = Math.round(alpha * 255).toString(16);
@@ -93,7 +230,7 @@ export const PLAYER_JS = `(function() {
     return color;
   }
 
-  // Utility: create a linear gradient def and return its ID
+  // Utility: create a linear gradient def and return its ID — Fix #19
   var gradientCounter = 0;
   function createGradient(color, parentSvg) {
     var id = 'eg-' + (++gradientCounter);
@@ -107,18 +244,67 @@ export const PLAYER_JS = `(function() {
     lg.setAttribute('x2', '0');
     lg.setAttribute('y2', '1');
 
+    // Fix #19: increased alpha from 0.18/0.06 to 0.30/0.12
     var s1 = document.createElementNS(SVG_NS, 'stop');
     s1.setAttribute('offset', '0%');
-    s1.setAttribute('stop-color', colorAlpha(color, 0.18));
+    s1.setAttribute('stop-color', colorAlpha(color, 0.30));
     lg.appendChild(s1);
 
+    // Inner glow stop — Fix #19
     var s2 = document.createElementNS(SVG_NS, 'stop');
-    s2.setAttribute('offset', '100%');
-    s2.setAttribute('stop-color', colorAlpha(color, 0.06));
+    s2.setAttribute('offset', '45%');
+    s2.setAttribute('stop-color', colorAlpha(color, 0.22));
     lg.appendChild(s2);
+
+    var s3 = document.createElementNS(SVG_NS, 'stop');
+    s3.setAttribute('offset', '100%');
+    s3.setAttribute('stop-color', colorAlpha(color, 0.12));
+    lg.appendChild(s3);
 
     defs.appendChild(lg);
     return 'url(#' + id + ')';
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // Utility: compute entity canvas position with margin — Fix #8
+  // ═══════════════════════════════════════════════════════════════════
+  function entityCX(entity) {
+    return MARGIN_X + ((entity.position.x / 100) * (CW - 2 * MARGIN_X));
+  }
+  function entityCY(entity) {
+    return MARGIN_Y + ((entity.position.y / 100) * (CH - 2 * MARGIN_Y));
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // Utility: type-specific default entrance animation — Fix #18
+  // ═══════════════════════════════════════════════════════════════════
+  function defaultEntrance(type) {
+    switch (type) {
+      case 'Server':
+      case 'Service':
+      case 'APIGateway':
+      case 'Lambda':
+      case 'Database':
+      case 'HashTable':
+        return 'fadeInUp';
+      case 'Cloud':
+        return 'floatIn';
+      case 'User':
+        return 'scaleIn';
+      case 'Concept':
+        return 'drawIn';
+      case 'Label':
+      case 'Annotation':
+      case 'Definition':
+      case 'Callout':
+      case 'Quote':
+      case 'Badge':
+        return 'fadeIn';
+      case 'CodeBlock':
+        return 'slideInLeft';
+      default:
+        return 'fadeInUp';
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════
@@ -129,8 +315,9 @@ export const PLAYER_JS = `(function() {
     outerG.setAttribute('id', entity.id);
     outerG.setAttribute('data-type', entity.type || 'Unknown');
 
-    var cx = (entity.position.x / 100) * CW;
-    var cy = (entity.position.y / 100) * CH;
+    // Fix #8: use margin-aware position helpers
+    var cx = entityCX(entity);
+    var cy = entityCY(entity);
     outerG.setAttribute('transform', 'translate(' + cx + ', ' + cy + ')');
 
     if (entity.highlight) {
@@ -138,8 +325,10 @@ export const PLAYER_JS = `(function() {
       outerG.classList.add('entity-highlighted');
     }
 
+    // Fix #17: interactive class for hover/focus states
+    outerG.classList.add('entity-interactive');
+
     var innerG = document.createElementNS(SVG_NS, 'g');
-    innerG.setAttribute('class', 'animate-element entrance-fadeInUp');
     innerG.style.transformBox = 'fill-box';
     innerG.style.transformOrigin = 'center center';
     innerG.style.willChange = 'transform, opacity';
@@ -150,27 +339,49 @@ export const PLAYER_JS = `(function() {
     }
     innerG.style.animationDelay = d + 'ms';
 
-    // Override entrance animation if specified
+    // Fix #18: type-specific default entrance, overridable by entity.animation.entrance
+    var entranceName = defaultEntrance(entity.type);
     if (entity.animation && entity.animation.entrance) {
-      var eName = entity.animation.entrance;
-      if (eName !== 'fadeInUp') {
-        innerG.setAttribute('class', 'animate-element entrance-' + eName);
-      }
+      entranceName = entity.animation.entrance;
     }
+    innerG.setAttribute('class', 'animate-element entrance-' + entranceName);
+
+    // Fix #17: hover interaction
+    outerG.addEventListener('mouseenter', function() {
+      if (typeof gsap !== 'undefined') {
+        gsap.to(innerG, { scale: 1.06, duration: 0.18, ease: 'power2.out',
+          transformOrigin: 'center center' });
+      } else {
+        innerG.style.transform = 'scale(1.06)';
+      }
+      outerG.classList.add('entity-hovered');
+    });
+    outerG.addEventListener('mouseleave', function() {
+      if (typeof gsap !== 'undefined') {
+        gsap.to(innerG, { scale: 1, duration: 0.22, ease: 'power2.inOut',
+          transformOrigin: 'center center' });
+      } else {
+        innerG.style.transform = '';
+      }
+      outerG.classList.remove('entity-hovered');
+    });
 
     outerG.appendChild(innerG);
     return { outerG: outerG, innerG: innerG };
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // Label renderer: adds text below entity with truncation
+  // Label renderer: adds text below entity — Fix #12, #13, #14
   // ═══════════════════════════════════════════════════════════════════
   function addLabel(innerG, entity, yOffset, opts) {
     if (!entity.label) return;
     opts = opts || {};
     var color = opts.color || entity.color || '#c8c8e0';
-    var fontSize = opts.fontSize || 14;
-    var fontWeight = opts.fontWeight || '500';
+    var s = sizeToPixels(entity.size);
+    // Fix #12: adaptive font size
+    var fontSize = opts.fontSize || Math.max(12, Math.min(s * 0.18, 22));
+    // Fix #14: font-weight 600
+    var fontWeight = opts.fontWeight || '600';
     var fontFamily = opts.fontFamily || FONT_UI;
     var maxChars = opts.maxChars || LABEL_MAX_CHARS;
 
@@ -180,10 +391,11 @@ export const PLAYER_JS = `(function() {
     text.setAttribute('x', '0');
     text.setAttribute('y', String(yOffset));
     text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', color);   // Fix #13: full-opacity color
     text.setAttribute('font-size', String(fontSize));
     text.setAttribute('font-weight', fontWeight);
     text.setAttribute('font-family', fontFamily);
+    text.setAttribute('letter-spacing', '0.02em');  // Fix #14
     text.textContent = label;
     innerG.appendChild(text);
   }
@@ -202,7 +414,7 @@ export const PLAYER_JS = `(function() {
     var h = s * 0.9;
     var fill = createGradient(color, canvas);
 
-    // Body
+    // Body — Fix #19: drop-shadow filter
     var body = document.createElementNS(SVG_NS, 'rect');
     body.setAttribute('x', String(-w/2));
     body.setAttribute('y', String(-h/2));
@@ -212,16 +424,17 @@ export const PLAYER_JS = `(function() {
     body.setAttribute('fill', fill);
     body.setAttribute('stroke', color);
     body.setAttribute('stroke-width', '1.5');
+    body.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
     innerG.appendChild(body);
 
     // Rack stripe lines (3 horizontal)
     for (var i = -1; i <= 1; i++) {
-      var ly = i * (h / 4);
+      var lineY = i * (h / 4);
       var line = document.createElementNS(SVG_NS, 'line');
       line.setAttribute('x1', String(-w/2 + 6));
       line.setAttribute('x2', String(w/2 - 6));
-      line.setAttribute('y1', String(ly));
-      line.setAttribute('y2', String(ly));
+      line.setAttribute('y1', String(lineY));
+      line.setAttribute('y2', String(lineY));
       line.setAttribute('stroke', color);
       line.setAttribute('stroke-width', '0.8');
       line.setAttribute('opacity', '0.3');
@@ -230,12 +443,12 @@ export const PLAYER_JS = `(function() {
 
     // LED dots (top-left)
     var dotColors = [color, '#4CAF50'];
-    for (var d = 0; d < 2; d++) {
+    for (var di = 0; di < 2; di++) {
       var dot = document.createElementNS(SVG_NS, 'circle');
-      dot.setAttribute('cx', String(-w/2 + 12 + d * 10));
+      dot.setAttribute('cx', String(-w/2 + 12 + di * 10));
       dot.setAttribute('cy', String(-h/2 + 10));
       dot.setAttribute('r', '3');
-      dot.setAttribute('fill', dotColors[d]);
+      dot.setAttribute('fill', dotColors[di]);
       dot.setAttribute('opacity', '0.9');
       innerG.appendChild(dot);
     }
@@ -258,13 +471,14 @@ export const PLAYER_JS = `(function() {
     var botY = topY + bodyH;
     var fill = createGradient(color, canvas);
 
-    // Body fill (rect behind ellipses)
+    // Body fill (rect behind ellipses) — Fix #19: drop-shadow
     var bodyFill = document.createElementNS(SVG_NS, 'rect');
     bodyFill.setAttribute('x', String(-rx));
     bodyFill.setAttribute('y', String(topY));
     bodyFill.setAttribute('width', String(rx * 2));
     bodyFill.setAttribute('height', String(bodyH));
     bodyFill.setAttribute('fill', fill);
+    bodyFill.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
     innerG.appendChild(bodyFill);
 
     // Side lines
@@ -344,6 +558,7 @@ export const PLAYER_JS = `(function() {
     path.setAttribute('fill', fill);
     path.setAttribute('stroke', color);
     path.setAttribute('stroke-width', '1.5');
+    path.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
     innerG.appendChild(path);
 
     addLabel(innerG, entity, s * 0.45 + 20);
@@ -368,6 +583,7 @@ export const PLAYER_JS = `(function() {
     head.setAttribute('fill', fill);
     head.setAttribute('stroke', color);
     head.setAttribute('stroke-width', '1.5');
+    head.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
     innerG.appendChild(head);
 
     // Body arc
@@ -390,14 +606,27 @@ export const PLAYER_JS = `(function() {
     return g.outerG;
   }
 
-  // ── Concept: circle with dashed inner ring ──────────────────────
+  // ── Concept: circle — Fix #2: auto-size radius to fit label ─────
   function renderConcept(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
     var color = entity.color || '#00e5ff';
     var fill = createGradient(color, canvas);
-    var r = s * 0.5;
+
+    // Fix #2: compute radius from label length to avoid overflow
+    var labelText = entity.label || '';
+    var lines = wrapText(labelText, 14);
+    var longestLine = 0;
+    for (var li = 0; li < lines.length; li++) {
+      if (lines[li].length > longestLine) longestLine = lines[li].length;
+    }
+    // Base radius is s*0.5, but grow if needed to fit text
+    var labelFontSize = Math.min(16, s * 0.18);
+    var textW = longestLine * labelFontSize * 0.58;
+    var textH = lines.length * (labelFontSize * 1.3);
+    var minR = Math.sqrt(textW * textW + textH * textH) * 0.65;
+    var r = Math.max(s * 0.5, minR);
 
     var outer = document.createElementNS(SVG_NS, 'circle');
     outer.setAttribute('cx', '0');
@@ -406,6 +635,7 @@ export const PLAYER_JS = `(function() {
     outer.setAttribute('fill', fill);
     outer.setAttribute('stroke', color);
     outer.setAttribute('stroke-width', '2');
+    outer.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
     innerG.appendChild(outer);
 
     var inner = document.createElementNS(SVG_NS, 'circle');
@@ -418,60 +648,113 @@ export const PLAYER_JS = `(function() {
     inner.setAttribute('stroke-dasharray', '4,4');
     innerG.appendChild(inner);
 
-    // Center label inside
-    if (entity.label) {
-      var lbl = truncLabel(entity.label, 20);
-      var text = document.createElementNS(SVG_NS, 'text');
-      text.setAttribute('x', '0');
-      text.setAttribute('y', '5');
-      text.setAttribute('text-anchor', 'middle');
-      text.setAttribute('fill', color);
-      text.setAttribute('font-size', String(Math.min(14, r * 0.35)));
-      text.setAttribute('font-weight', '600');
-      text.setAttribute('font-family', FONT_UI);
-      text.textContent = lbl;
-      innerG.appendChild(text);
+    // Fix #2: multi-line tspan label inside the circle
+    if (labelText) {
+      if (lines.length <= 1) {
+        var text = document.createElementNS(SVG_NS, 'text');
+        text.setAttribute('x', '0');
+        text.setAttribute('y', String(labelFontSize * 0.35));
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('fill', color);
+        text.setAttribute('font-size', String(labelFontSize));
+        text.setAttribute('font-weight', '600');
+        text.setAttribute('font-family', FONT_UI);
+        text.setAttribute('letter-spacing', '0.02em');  // Fix #14
+        text.textContent = labelText;
+        innerG.appendChild(text);
+      } else {
+        createMultiLineText(innerG, lines, {
+          x: 0,
+          y: 0,
+          lineHeight: labelFontSize * 1.3,
+          textAnchor: 'middle',
+          fill: color,
+          fontSize: labelFontSize,
+          fontWeight: '600',
+          fontFamily: FONT_UI,
+          letterSpacing: '0.02em'
+        });
+      }
     }
 
     parentEl.appendChild(g.outerG);
     return g.outerG;
   }
 
-  // ── Label: clean text with optional pill background ─────────────
+  // ── Label: clean text with pill background — Fix #3, #5, #7 ─────
   function renderLabel(entity, parentEl, delay) {
+    // Fix #5: skip blank labels entirely
+    if (!entity.label || !entity.label.trim()) return null;
+
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
     var color = entity.color || '#FFFFFF';
-    var fontSize = Math.min(Math.max(s * 0.4, 14), 36);
-    var label = entity.label || '';
 
-    // Pill background (subtle)
-    if (label.length > 0) {
-      var pw = Math.min(label.length * fontSize * 0.55 + 32, 600);
-      var ph = fontSize + 20;
-      var pill = document.createElementNS(SVG_NS, 'rect');
-      pill.setAttribute('x', String(-pw/2));
-      pill.setAttribute('y', String(-ph/2));
-      pill.setAttribute('width', String(pw));
-      pill.setAttribute('height', String(ph));
-      pill.setAttribute('rx', String(ph/2));
-      pill.setAttribute('fill', colorAlpha(color, 0.06));
-      pill.setAttribute('stroke', 'none');
-      innerG.appendChild(pill);
+    // Fix #7: visual weight hierarchy based on entity.size
+    var fontSize, fontWeight;
+    if (entity.size >= 2) {
+      // Title labels
+      fontSize = Math.min(Math.max(s * 0.30, 42), 48);
+      fontWeight = '700';
+    } else if (entity.size >= 1.4) {
+      // Subtitle labels
+      fontSize = Math.min(Math.max(s * 0.24, 28), 32);
+      fontWeight = '600';
+    } else {
+      // Regular labels
+      fontSize = Math.min(Math.max(s * 0.18, 16), 20);
+      fontWeight = '500';
     }
 
-    var text = document.createElementNS(SVG_NS, 'text');
-    text.setAttribute('x', '0');
-    text.setAttribute('y', String(fontSize * 0.35));
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(fontSize));
-    text.setAttribute('font-weight', '600');
-    text.setAttribute('font-family', FONT_UI);
-    text.setAttribute('letter-spacing', '0.01em');
-    text.textContent = truncLabel(label, 50);
-    innerG.appendChild(text);
+    // Fix #3: allow up to 120 chars, multi-line wrapping for Label entities
+    var maxCharsPerLine = 28;
+    var label = entity.label || '';
+    var lines = wrapText(label, maxCharsPerLine);
+
+    // Pill background sized to content
+    var lineHeight = fontSize * 1.35;
+    var totalH = lines.length * lineHeight + 24;
+    var maxLineLen = 0;
+    for (var li = 0; li < lines.length; li++) {
+      if (lines[li].length > maxLineLen) maxLineLen = lines[li].length;
+    }
+    var pw = Math.min(maxLineLen * fontSize * 0.58 + 40, 900);
+    var pill = document.createElementNS(SVG_NS, 'rect');
+    pill.setAttribute('x', String(-pw/2));
+    pill.setAttribute('y', String(-totalH/2));
+    pill.setAttribute('width', String(pw));
+    pill.setAttribute('height', String(totalH));
+    pill.setAttribute('rx', String(totalH / 2 > 30 ? 16 : totalH / 2));
+    pill.setAttribute('fill', colorAlpha(color, 0.07));
+    pill.setAttribute('stroke', 'none');
+    innerG.appendChild(pill);
+
+    if (lines.length <= 1) {
+      var text = document.createElementNS(SVG_NS, 'text');
+      text.setAttribute('x', '0');
+      text.setAttribute('y', String(fontSize * 0.35));
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('fill', color);
+      text.setAttribute('font-size', String(fontSize));
+      text.setAttribute('font-weight', fontWeight);
+      text.setAttribute('font-family', FONT_UI);
+      text.setAttribute('letter-spacing', '0.02em');  // Fix #14
+      text.textContent = truncLabel(label, 120);
+      innerG.appendChild(text);
+    } else {
+      createMultiLineText(innerG, lines, {
+        x: 0,
+        y: 0,
+        lineHeight: lineHeight,
+        textAnchor: 'middle',
+        fill: color,
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        fontFamily: FONT_UI,
+        letterSpacing: '0.02em'
+      });
+    }
 
     parentEl.appendChild(g.outerG);
     return g.outerG;
@@ -489,7 +772,7 @@ export const PLAYER_JS = `(function() {
     var w = Math.min(Math.max(s * 2.5, 160), 500);
     var h = lines.length * lineH + 28;
 
-    // Background
+    // Background — Fix #19
     var bg = document.createElementNS(SVG_NS, 'rect');
     bg.setAttribute('x', String(-w/2));
     bg.setAttribute('y', String(-h/2));
@@ -499,29 +782,30 @@ export const PLAYER_JS = `(function() {
     bg.setAttribute('fill', 'rgba(8, 8, 20, 0.8)');
     bg.setAttribute('stroke', colorAlpha(color, 0.25));
     bg.setAttribute('stroke-width', '1');
+    bg.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
     innerG.appendChild(bg);
 
     // Title bar dots
-    var dotColors = ['#ff5f57', '#febc2e', '#28c840'];
+    var dotColorsCode = ['#ff5f57', '#febc2e', '#28c840'];
     for (var di = 0; di < 3; di++) {
       var dot = document.createElementNS(SVG_NS, 'circle');
       dot.setAttribute('cx', String(-w/2 + 16 + di * 14));
       dot.setAttribute('cy', String(-h/2 + 12));
       dot.setAttribute('r', '4');
-      dot.setAttribute('fill', dotColors[di]);
+      dot.setAttribute('fill', dotColorsCode[di]);
       dot.setAttribute('opacity', '0.8');
       innerG.appendChild(dot);
     }
 
     // Code lines
-    for (var li = 0; li < lines.length; li++) {
+    for (var cli = 0; cli < lines.length; cli++) {
       var tl = document.createElementNS(SVG_NS, 'text');
       tl.setAttribute('x', String(-w/2 + 16));
-      tl.setAttribute('y', String(-h/2 + 32 + li * lineH));
+      tl.setAttribute('y', String(-h/2 + 32 + cli * lineH));
       tl.setAttribute('fill', colorAlpha(color, 0.85));
       tl.setAttribute('font-size', '13');
       tl.setAttribute('font-family', FONT_MONO);
-      tl.textContent = truncLabel(lines[li], 48);
+      tl.textContent = truncLabel(lines[cli], 48);
       innerG.appendChild(tl);
     }
 
@@ -530,7 +814,7 @@ export const PLAYER_JS = `(function() {
     return g.outerG;
   }
 
-  // ── Generic: rounded rect/circle/diamond with type badge ────────
+  // ── Generic: rounded rect/circle/diamond — Fix #6: label centered, no type badge
   function renderGeneric(entity, parentEl, delay, shape) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
@@ -547,14 +831,16 @@ export const PLAYER_JS = `(function() {
       circ.setAttribute('fill', fill);
       circ.setAttribute('stroke', color);
       circ.setAttribute('stroke-width', '1.5');
+      circ.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
       innerG.appendChild(circ);
     } else if (shape === 'diamond') {
-      var d = s * 0.5;
+      var dd = s * 0.5;
       var poly = document.createElementNS(SVG_NS, 'polygon');
-      poly.setAttribute('points', '0,' + (-d) + ' ' + d + ',0 0,' + d + ' ' + (-d) + ',0');
+      poly.setAttribute('points', '0,' + (-dd) + ' ' + dd + ',0 0,' + dd + ' ' + (-dd) + ',0');
       poly.setAttribute('fill', fill);
       poly.setAttribute('stroke', color);
       poly.setAttribute('stroke-width', '1.5');
+      poly.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
       innerG.appendChild(poly);
     } else if (shape === 'hexagon') {
       var pts = [];
@@ -567,6 +853,7 @@ export const PLAYER_JS = `(function() {
       hex.setAttribute('fill', fill);
       hex.setAttribute('stroke', color);
       hex.setAttribute('stroke-width', '1.5');
+      hex.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
       innerG.appendChild(hex);
     } else {
       // Rounded rect (default)
@@ -581,20 +868,26 @@ export const PLAYER_JS = `(function() {
       rect.setAttribute('fill', fill);
       rect.setAttribute('stroke', color);
       rect.setAttribute('stroke-width', '1.5');
+      rect.setAttribute('filter', 'url(#soft-shadow)');  // Fix #19
       innerG.appendChild(rect);
     }
 
-    // Type badge (small, subtle)
-    var badge = document.createElementNS(SVG_NS, 'text');
-    badge.setAttribute('x', '0');
-    badge.setAttribute('y', '-3');
-    badge.setAttribute('text-anchor', 'middle');
-    badge.setAttribute('fill', colorAlpha(color, 0.4));
-    badge.setAttribute('font-size', '9');
-    badge.setAttribute('font-family', FONT_MONO);
-    badge.setAttribute('font-weight', '500');
-    badge.textContent = entity.type;
-    innerG.appendChild(badge);
+    // Fix #6: remove type badge; place entity label centered inside shape instead
+    if (entity.label) {
+      var labelInside = document.createElementNS(SVG_NS, 'text');
+      labelInside.setAttribute('x', '0');
+      labelInside.setAttribute('y', String(s * 0.06));
+      labelInside.setAttribute('text-anchor', 'middle');
+      labelInside.setAttribute('dominant-baseline', 'middle');
+      labelInside.setAttribute('fill', color);
+      var insideFontSize = Math.max(12, Math.min(s * 0.16, 20));
+      labelInside.setAttribute('font-size', String(insideFontSize));
+      labelInside.setAttribute('font-weight', '600');      // Fix #14
+      labelInside.setAttribute('font-family', FONT_UI);
+      labelInside.setAttribute('letter-spacing', '0.02em'); // Fix #14
+      labelInside.textContent = truncLabel(entity.label, 22);
+      innerG.appendChild(labelInside);
+    }
 
     var labelY = (shape === 'circle') ? s * 0.45 + 20 : s * 0.45 + 18;
     addLabel(innerG, entity, labelY);
@@ -637,7 +930,7 @@ export const PLAYER_JS = `(function() {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // Arrow Renderer — bezier curves with glow
+  // Arrow Renderer — bezier curves with glow — Fix #4, #23
   // ═══════════════════════════════════════════════════════════════════
   function findEntity(entities, id) {
     if (!id) return null;
@@ -656,14 +949,14 @@ export const PLAYER_JS = `(function() {
 
     var marker = document.createElementNS(SVG_NS, 'marker');
     marker.setAttribute('id', id);
-    marker.setAttribute('markerWidth', '12');
-    marker.setAttribute('markerHeight', '8');
-    marker.setAttribute('refX', '10');
-    marker.setAttribute('refY', '4');
+    marker.setAttribute('markerWidth', '16');   // Fix #23: was 12
+    marker.setAttribute('markerHeight', '10');  // Fix #23: was 8
+    marker.setAttribute('refX', '13');
+    marker.setAttribute('refY', '5');
     marker.setAttribute('orient', 'auto');
 
     var p = document.createElementNS(SVG_NS, 'path');
-    p.setAttribute('d', 'M 0 0.5 L 10 4 L 0 7.5 L 2.5 4 Z');
+    p.setAttribute('d', 'M 0 0.5 L 12 5 L 0 9.5 L 3 5 Z');
     p.setAttribute('fill', color);
     marker.appendChild(p);
     defs.appendChild(marker);
@@ -674,10 +967,11 @@ export const PLAYER_JS = `(function() {
     var target = findEntity(allEntities, entity.targetEntityId);
     if (!source || !target) return null;
 
-    var x1 = (source.position.x / 100) * CW;
-    var y1 = (source.position.y / 100) * CH;
-    var x2 = (target.position.x / 100) * CW;
-    var y2 = (target.position.y / 100) * CH;
+    // Fix #8: use margin-aware position helpers for arrow endpoints
+    var x1 = entityCX(source);
+    var y1 = entityCY(source);
+    var x2 = entityCX(target);
+    var y2 = entityCY(target);
     var color = entity.color || 'rgba(255,255,255,0.5)';
 
     var markerId = 'ah-' + entity.id.replace(/[^a-zA-Z0-9]/g, '');
@@ -695,8 +989,8 @@ export const PLAYER_JS = `(function() {
     var dist = Math.sqrt(dx*dx + dy*dy);
     var curvature = Math.min(dist * 0.12, 50);
     // Perpendicular offset for the arc
-    var nx = -dy / dist * curvature;
-    var ny =  dx / dist * curvature;
+    var nx = (dist > 0) ? (-dy / dist * curvature) : 0;
+    var ny = (dist > 0) ? ( dx / dist * curvature) : 0;
     var cx1 = mx + nx;
     var cy1 = my + ny;
 
@@ -719,13 +1013,24 @@ export const PLAYER_JS = `(function() {
     line.setAttribute('opacity', '0.7');
     line.setAttribute('stroke-linecap', 'round');
     line.setAttribute('marker-end', 'url(#' + markerId + ')');
-    ag.appendChild(line);
 
-    // DataFlow: animated dash
+    // Fix #23: subtle slow flow animation on all arrows
+    line.setAttribute('stroke-dasharray', '8,0');
+    var flowAnim = document.createElementNS(SVG_NS, 'animate');
+    flowAnim.setAttribute('attributeName', 'stroke-dashoffset');
+    flowAnim.setAttribute('from', '16');
+    flowAnim.setAttribute('to', '0');
+    flowAnim.setAttribute('dur', '3s');
+    flowAnim.setAttribute('repeatCount', 'indefinite');
+    line.appendChild(flowAnim);
+
+    // DataFlow: animated dash (overrides flow anim) — Fix #23
     if (entity.type === 'DataFlow') {
       line.setAttribute('stroke-dasharray', '8,5');
       line.setAttribute('stroke-width', '3');
       line.setAttribute('opacity', '0.5');
+      // Replace animation
+      line.removeChild(flowAnim);
       var anim = document.createElementNS(SVG_NS, 'animate');
       anim.setAttribute('attributeName', 'stroke-dashoffset');
       anim.setAttribute('from', '13');
@@ -735,20 +1040,40 @@ export const PLAYER_JS = `(function() {
       line.appendChild(anim);
     }
 
-    // Midpoint label
+    ag.appendChild(line);
+
+    // Fix #4: perpendicular offset for arrow midpoint label + semi-transparent pill background
     if (entity.label) {
       var lx = (x1 + 2*cx1 + x2) / 4;
-      var ly = (y1 + 2*cy1 + y2) / 4 - 10;
+      // Fix #4: was -10, now perpendicular offset -25 minimum
+      var rawLY = (y1 + 2*cy1 + y2) / 4;
+      var ly = rawLY - 25;
+
+      // Pill background behind arrow label — Fix #4
+      var labelText = truncLabel(entity.label, 24);
+      var labelFontSize = 13;
+      var pillW = labelText.length * labelFontSize * 0.56 + 20;
+      var pillH = labelFontSize + 10;
+      var lpill = document.createElementNS(SVG_NS, 'rect');
+      lpill.setAttribute('x', String(lx - pillW/2));
+      lpill.setAttribute('y', String(ly - pillH * 0.75));
+      lpill.setAttribute('width', String(pillW));
+      lpill.setAttribute('height', String(pillH));
+      lpill.setAttribute('rx', String(pillH / 2));
+      lpill.setAttribute('fill', 'rgba(0,0,0,0.55)');
+      lpill.setAttribute('stroke', 'none');
+      ag.appendChild(lpill);
+
       var lt = document.createElementNS(SVG_NS, 'text');
       lt.setAttribute('x', String(lx));
       lt.setAttribute('y', String(ly));
       lt.setAttribute('text-anchor', 'middle');
       lt.setAttribute('fill', color);
-      lt.setAttribute('font-size', '12');
+      lt.setAttribute('font-size', String(labelFontSize));
       lt.setAttribute('font-weight', '500');
       lt.setAttribute('font-family', FONT_UI);
-      lt.setAttribute('opacity', '0.8');
-      lt.textContent = truncLabel(entity.label, 24);
+      lt.setAttribute('opacity', '0.95');
+      lt.textContent = labelText;
       ag.appendChild(lt);
     }
 
@@ -762,7 +1087,7 @@ export const PLAYER_JS = `(function() {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // Frame Renderer
+  // Frame Renderer — Fix #16: crossfade transition
   // ═══════════════════════════════════════════════════════════════════
   var ARROW_TYPES = {
     Arrow: 1, DataFlow: 1, BidirectArrow: 1, DottedArrow: 1, Transition: 1, Bus: 1
@@ -771,6 +1096,20 @@ export const PLAYER_JS = `(function() {
   function renderFrame(frame) {
     if (!frame) return;
 
+    // Fix #16: crossfade via GSAP if available
+    if (typeof gsap !== 'undefined') {
+      canvas.classList.add('frame-transitioning');
+      gsap.to(entityLayer, { opacity: 0, duration: 0.2, onComplete: function() {
+        _doRenderFrame(frame);
+        gsap.to(entityLayer, { opacity: 1, duration: 0.3 });
+        canvas.classList.remove('frame-transitioning');
+      }});
+    } else {
+      _doRenderFrame(frame);
+    }
+  }
+
+  function _doRenderFrame(frame) {
     // Clear layers
     entityLayer.innerHTML = '';
     connectionLayer.innerHTML = '';
@@ -789,11 +1128,11 @@ export const PLAYER_JS = `(function() {
 
     // Pass 1: Render entities with staggered delays
     for (var j = 0; j < nonArrows.length; j++) {
-      dispatchEntity(nonArrows[j], entityLayer, j * 70);
+      dispatchEntity(nonArrows[j], entityLayer, j * 80);  // Fix: stagger pattern j*80
     }
 
     // Pass 2: Render connections (after entities, so positions exist)
-    var arrowBaseDelay = nonArrows.length * 70 + 100;
+    var arrowBaseDelay = nonArrows.length * 80 + 100;
     for (var k = 0; k < arrows.length; k++) {
       renderArrowEntity(arrows[k], connectionLayer, entities, arrowBaseDelay + k * 60);
     }
@@ -860,7 +1199,7 @@ export const PLAYER_JS = `(function() {
 
   document.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goNext(); }
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp')    { e.preventDefault(); goPrev(); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); goPrev(); }
   });
 
   // ═══════════════════════════════════════════════════════════════════
@@ -919,9 +1258,9 @@ export const PLAYER_JS = `(function() {
   window.__PRE = {
     sessionId: sessionId,
     getScript: function() { return currentScript; },
-    getFrame: function() { return currentFrame; },
+    getFrame:  function() { return currentFrame; },
   };
 
-  console.log('[PRE] Player v2 initialized for session:', sessionId);
+  console.log('[PRE] Player v3 initialized for session:', sessionId);
 })();
 `;

@@ -258,7 +258,7 @@ describe('GET /player.js', () => {
     const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
     expect(res.body).toContain('createElementNS');
     expect(res.body).toContain('animate-element');
-    expect(res.body).toContain('entrance-fadeInUp');
+    expect(res.body).toContain('entrance-');
   });
 
   it('should contain postMessage bridge', async () => {
@@ -337,7 +337,7 @@ describe('GET /player.js', () => {
   it('should contain staggered entrance delays', async () => {
     const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
     expect(res.body).toContain('animationDelay');
-    expect(res.body).toContain('j * 70');
+    expect(res.body).toContain('j * 80');
   });
 });
 
@@ -415,6 +415,7 @@ describe('POST /api/add-scene', () => {
       sceneId: sessionId,
       totalDuration: 6000,
       frames: [{
+        id: 'frame-1',
         startTime: 0,
         endTime: 6000,
         entities: [
@@ -445,7 +446,7 @@ describe('POST /api/add-scene', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         session_id: 'non-existent-id',
-        visual_script: { sceneId: 'x', totalDuration: 1000, frames: [{ startTime: 0, endTime: 1000, entities: [] }] },
+        visual_script: { sceneId: 'x', totalDuration: 1000, frames: [{ id: 'f-1', startTime: 0, endTime: 1000, entities: [] }] },
       }),
     });
 
@@ -480,7 +481,7 @@ describe('POST /api/update-scene', () => {
 
   it('should update a scene successfully', async () => {
     // First add a scene
-    const script1 = { sceneId: sessionId, totalDuration: 3000, frames: [{ startTime: 0, endTime: 3000, entities: [] }] };
+    const script1 = { sceneId: sessionId, totalDuration: 3000, frames: [{ id: 'f-1', startTime: 0, endTime: 3000, entities: [] }] };
     await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
@@ -493,8 +494,8 @@ describe('POST /api/update-scene', () => {
       sceneId: sessionId,
       totalDuration: 9000,
       frames: [
-        { startTime: 0, endTime: 4500, entities: [{ id: 'a', type: 'Server', position: { x: 50, y: 50 } }] },
-        { startTime: 4500, endTime: 9000, entities: [{ id: 'b', type: 'Database', position: { x: 70, y: 50 } }] },
+        { id: 'f-1', startTime: 0, endTime: 4500, entities: [{ id: 'a', type: 'Server', position: { x: 50, y: 50 } }] },
+        { id: 'f-2', startTime: 4500, endTime: 9000, entities: [{ id: 'b', type: 'Database', position: { x: 70, y: 50 } }] },
       ],
     };
 
@@ -538,7 +539,7 @@ describe('POST /api/add-narration', () => {
         visual_script: {
           sceneId: sessionId,
           totalDuration: 3000,
-          frames: [{ startTime: 0, endTime: 3000, entities: [] }],
+          frames: [{ id: 'f-1', startTime: 0, endTime: 3000, entities: [] }],
         },
       }),
     });
@@ -753,6 +754,7 @@ describe('GET /session/:id/events (SSE)', () => {
                     sceneId: sid,
                     totalDuration: 3000,
                     frames: [{
+                      id: 'f-sse-1',
                       startTime: 0,
                       endTime: 3000,
                       entities: [{ id: 'e1', type: 'Server', position: { x: 50, y: 50 } }],
