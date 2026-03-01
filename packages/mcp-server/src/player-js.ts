@@ -1211,6 +1211,46 @@ export const PLAYER_JS = `(function() {
   }
 
   // ═══════════════════════════════════════════════════════════════════
+  // TTS: native browser speech (Web Speech API)
+  // ═══════════════════════════════════════════════════════════════════
+  var synth = (typeof window !== 'undefined' && window.speechSynthesis) ? window.speechSynthesis : null;
+  var ttsEnabled = (function() {
+    try {
+      var stored = localStorage.getItem('preplai-tts-enabled');
+      return stored === null ? true : stored === 'true';
+    } catch (e) { return true; }
+  })();
+
+  function speakNarration(text) {
+    if (!synth || !ttsEnabled || !text || !text.trim()) return;
+    synth.cancel();
+    var u = new SpeechSynthesisUtterance(text.trim());
+    u.rate = 0.95;
+    u.pitch = 1;
+    u.volume = 1;
+    synth.speak(u);
+  }
+
+  function stopTTS() {
+    if (synth) synth.cancel();
+  }
+
+  function updateTTSToggleUI() {
+    var btn = document.getElementById('tts-toggle');
+    if (btn) {
+      if (!synth) {
+        btn.style.display = 'none';
+        return;
+      }
+      btn.style.display = '';
+      btn.setAttribute('aria-pressed', ttsEnabled ? 'true' : 'false');
+      btn.setAttribute('title', ttsEnabled ? 'Voice narration on (click to mute)' : 'Voice narration off (click to enable)');
+      btn.classList.toggle('tts-on', ttsEnabled);
+      btn.classList.toggle('tts-off', !ttsEnabled);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
   // Narrator
   // ═══════════════════════════════════════════════════════════════════
   function updateNarrator(text) {
@@ -1225,7 +1265,9 @@ export const PLAYER_JS = `(function() {
         );
       }
       narratorText.classList.add('visible');
+      if (ttsEnabled && synth) speakNarration(text);
     } else {
+      stopTTS();
       narratorText.classList.remove('visible');
       setTimeout(function() { narratorText.textContent = ''; }, 400);
     }
@@ -1293,6 +1335,18 @@ export const PLAYER_JS = `(function() {
 
   if (prevBtn) prevBtn.addEventListener('click', goPrev);
   if (nextBtn) nextBtn.addEventListener('click', goNext);
+
+  // TTS toggle
+  var ttsToggle = document.getElementById('tts-toggle');
+  if (ttsToggle) {
+    updateTTSToggleUI();
+    ttsToggle.addEventListener('click', function() {
+      ttsEnabled = !ttsEnabled;
+      try { localStorage.setItem('preplai-tts-enabled', String(ttsEnabled)); } catch (e) {}
+      updateTTSToggleUI();
+      if (!ttsEnabled) stopTTS();
+    });
+  }
 
   document.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goNext(); }

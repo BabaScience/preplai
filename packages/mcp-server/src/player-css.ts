@@ -212,6 +212,29 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   pointer-events: none;
 }
 
+/* ── TTS toggle ──────────────────────────────────────────────────── */
+
+#tts-toggle {
+  margin-left: 4px;
+}
+
+#tts-toggle.tts-on .tts-icon-on {
+  display: block;
+}
+
+#tts-toggle.tts-on .tts-icon-off {
+  display: none;
+}
+
+#tts-toggle.tts-off .tts-icon-on {
+  display: none;
+}
+
+#tts-toggle.tts-off .tts-icon-off {
+  display: block;
+  opacity: 0.5;
+}
+
 /* ── Frame dot indicators ────────────────────────────────────────── */
 
 #frame-dots {
