@@ -1,13 +1,19 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import Logo from '../components/Logo';
 import Alert from '../components/Alert';
 import Input from '../components/Input';
 import { useAuth } from '../context/AuthContext';
 
 export default function Signup() {
-  const { signup } = useAuth();
+  const { token, signup } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  if (token) {
+    const from = location.state?.from?.pathname ?? '/dashboard/overview';
+    return <Navigate to={from} replace />;
+  }
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');

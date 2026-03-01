@@ -1,25 +1,36 @@
 /**
- * @pre/mcp-server — Session Store Tests (TDD)
+ * @preplai/mcp-server — Session Store Tests
  *
- * Tests for the in-memory session store with SQLite backing.
+ * Tests for the in-memory session store with MongoDB backing.
  */
-import { describe, it, expect, beforeEach } from 'vitest';
-import { createDatabase } from './db.js';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { connectDb, closeDb } from '@preplai/db';
 import { SessionStore } from './session-store.js';
 
+let mongod: MongoMemoryServer;
+
+beforeAll(async () => {
+  mongod = await MongoMemoryServer.create();
+  process.env.MONGODB_URI = mongod.getUri();
+  await connectDb();
+}, 30000);
+
+afterAll(async () => {
+  await closeDb();
+  if (mongod) await mongod.stop();
+});
+
 describe('SessionStore', () => {
-  let db: ReturnType<typeof createDatabase>;
   let store: SessionStore;
 
   beforeEach(() => {
-    db = createDatabase(':memory:');
-    store = new SessionStore(db);
+    store = new SessionStore();
   });
 
-  // ── Basic operations ────────────────────────────────────────────
   describe('create + get', () => {
-    it('createSession returns session with generated UUID', () => {
-      const session = store.createSession('Test Title', '16:9');
+    it('createSession returns session with generated UUID', async () => {
+      const session = await store.createSession('Test Title', '16:9');
       expect(session.id).toMatch(/^[0-9a-f]{8}-/);
       expect(session.title).toBe('Test Title');
       expect(session.aspect_ratio).toBe('16:9');
@@ -27,8 +38,8 @@ describe('SessionStore', () => {
       expect(session.created_at).toBeGreaterThan(0);
     });
 
-    it('getSession retrieves created session', () => {
-      const created = store.createSession('Retrieve Test', '16:9');
+    it('getSession retrieves created session', async () => {
+      const created = await store.createSession('Retrieve Test', '16:9');
       const found = store.getSession(created.id);
       expect(found).not.toBeNull();
       expect(found!.title).toBe('Retrieve Test');
@@ -38,92 +49,82 @@ describe('SessionStore', () => {
       expect(store.getSession('nonexistent-id')).toBeNull();
     });
 
-    it('defaults aspect_ratio to 16:9', () => {
-      const session = store.createSession('Default AR');
+    it('defaults aspect_ratio to 16:9', async () => {
+      const session = await store.createSession('Default AR');
       expect(session.aspect_ratio).toBe('16:9');
     });
   });
 
-  // ── Script management ───────────────────────────────────────────
   describe('setScript', () => {
-    it('stores visual script in memory and DB', () => {
-      const session = store.createSession('Script Test', '16:9');
+    it('stores visual script in memory and DB', async () => {
+      const session = await store.createSession('Script Test', '16:9');
       const script = {
         sceneId: session.id,
         totalDuration: 4000,
         frames: [{ id: 'f1', startTime: 0, endTime: 4000, entities: [], narrationSegment: '', description: '' }],
       };
-      store.setScript(session.id, script);
+      await store.setScript(session.id, script);
 
       const found = store.getSession(session.id);
       expect(found!.script).toEqual(script);
     });
 
-    it('replaces existing script', () => {
-      const session = store.createSession('Replace Test', '16:9');
+    it('replaces existing script', async () => {
+      const session = await store.createSession('Replace Test', '16:9');
       const script1 = { sceneId: session.id, totalDuration: 1000, frames: [{ id: 'f1', startTime: 0, endTime: 1000, entities: [], narrationSegment: '', description: '' }] };
       const script2 = { sceneId: session.id, totalDuration: 2000, frames: [{ id: 'f1', startTime: 0, endTime: 1000, entities: [], narrationSegment: '', description: '' }, { id: 'f2', startTime: 1000, endTime: 2000, entities: [], narrationSegment: '', description: '' }] };
 
-      store.setScript(session.id, script1);
-      store.setScript(session.id, script2);
+      await store.setScript(session.id, script1);
+      await store.setScript(session.id, script2);
 
       expect(store.getSession(session.id)!.script!.frames).toHaveLength(2);
     });
 
-    it('throws for unknown session ID', () => {
-      expect(() => store.setScript('bad-id', {} as any)).toThrow();
+    it('throws for unknown session ID', async () => {
+      await expect(store.setScript('bad-id', {} as any)).rejects.toThrow();
     });
   });
 
-  // ── Narration management ────────────────────────────────────────
   describe('addNarration', () => {
-    it('stores narration and returns narration ID', () => {
-      const session = store.createSession('Narr Test', '16:9');
-      const result = store.addNarration(session.id, 'Hello world', 0);
+    it('stores narration and returns narration ID', async () => {
+      const session = await store.createSession('Narr Test', '16:9');
+      const result = await store.addNarration(session.id, 'Hello world', 0);
       expect(result.narration_id).toMatch(/^[0-9a-f]{8}-/);
       expect(result.text_length).toBe(11);
     });
 
-    it('throws for unknown session ID', () => {
-      expect(() => store.addNarration('bad-id', 'text', 0)).toThrow();
+    it('throws for unknown session ID', async () => {
+      await expect(store.addNarration('bad-id', 'text', 0)).rejects.toThrow();
     });
   });
 
-  // ── Warm load from DB ───────────────────────────────────────────
   describe('loadFromDb', () => {
-    it('restores sessions from SQLite into memory', () => {
-      // Create sessions in one store
-      const store1 = new SessionStore(db);
-      const s = store1.createSession('Persistent', '4:3');
+    it('restores sessions from MongoDB into memory', async () => {
+      const store1 = new SessionStore();
+      const s = await store1.createSession('Persistent', '4:3');
       const script = { sceneId: s.id, totalDuration: 1000, frames: [{ id: 'f1', startTime: 0, endTime: 1000, entities: [], narrationSegment: '', description: '' }] };
-      store1.setScript(s.id, script);
+      await store1.setScript(s.id, script);
 
-      // Create a new store from same DB (simulates server restart)
-      const store2 = new SessionStore(db);
-      store2.loadFromDb();
+      const store2 = new SessionStore();
+      await store2.loadFromDb();
 
       const restored = store2.getSession(s.id);
       expect(restored).not.toBeNull();
       expect(restored!.title).toBe('Persistent');
+      expect(restored!.aspect_ratio).toBe('4:3');
       expect(restored!.script).toEqual(script);
-    });
-
-    it('loads empty store when DB is empty', () => {
-      const freshDb = createDatabase(':memory:');
-      const freshStore = new SessionStore(freshDb);
-      freshStore.loadFromDb();
-      expect(freshStore.getSession('anything')).toBeNull();
     });
   });
 
-  // ── Size / count ────────────────────────────────────────────────
-  describe('size', () => {
-    it('returns number of sessions in memory', () => {
-      expect(store.size).toBe(0);
-      store.createSession('A');
-      expect(store.size).toBe(1);
-      store.createSession('B');
-      expect(store.size).toBe(2);
+  describe('listSessionsByKey', () => {
+    it('returns only sessions for given api key', async () => {
+      await store.createSession('A', '16:9', 'key-1');
+      await store.createSession('B', '16:9', 'key-2');
+      await store.createSession('C', '16:9', 'key-1');
+
+      const list = store.listSessionsByKey('key-1');
+      expect(list).toHaveLength(2);
+      expect(list.map((s) => s.title).sort()).toEqual(['A', 'C']);
     });
   });
 });

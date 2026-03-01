@@ -1,23 +1,19 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/index.js';
-import { initDb, closeDb } from '../src/db.js';
+import { User } from '../src/db.js';
 
 let app;
 let token;
 
 beforeEach(async () => {
-  initDb();
+  await User.deleteMany({});
   app = createApp();
 
   const res = await request(app)
     .post('/api/auth/signup')
     .send({ email: 'test@example.com', password: 'password123', name: 'Test User' });
   token = res.body.token;
-});
-
-afterEach(() => {
-  closeDb();
 });
 
 describe('GET /api/settings', () => {

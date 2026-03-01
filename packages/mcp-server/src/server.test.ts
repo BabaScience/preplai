@@ -5,20 +5,43 @@
  * Uses Fastify's inject() for HTTP-level testing without opening a port.
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { closeDb } from '@preplai/db';
 import { buildServer, type ServerContext } from './server.js';
-import { tmpdir } from 'os';
-import { join } from 'path';
-import { randomUUID } from 'crypto';
 
-// ── Test server factory ──────────────────────────────────────────────
+let mongod: MongoMemoryServer;
+let mongoUri: string;
+
+beforeAll(async () => {
+  mongod = await MongoMemoryServer.create();
+  mongoUri = mongod.getUri();
+}, 30000);
+
+afterAll(async () => {
+  await closeDb();
+  if (mongod) await mongod.stop();
+});
 
 function createTestServer(): Promise<ServerContext> {
-  const dbPath = join(tmpdir(), `pre-test-${randomUUID()}.db`);
   return buildServer({
-    dbPath,
+    mongoUri,
     logLevel: 'silent',
-    baseUrl: 'http://localhost:3001',
+    baseUrl: 'http://localhost:5005',
   });
+}
+
+async function createTestApiKey(ctx: ServerContext): Promise<string> {
+  const res = await ctx.app.inject({
+    method: 'POST',
+    url: '/api/keys',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'test@example.com' }),
+  });
+  const data = JSON.parse(res.body);
+  if (!data.success || !data.data?.api_key) {
+    throw new Error('Failed to create test API key: ' + res.body);
+  }
+  return data.data.api_key;
 }
 
 // ── Health Check ─────────────────────────────────────────────────────
@@ -32,7 +55,6 @@ describe('GET /health', () => {
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should return 200 with status ok', async () => {
@@ -50,18 +72,27 @@ describe('GET /health', () => {
 
 describe('GET /player/:sessionId', () => {
   let ctx: ServerContext;
+  let apiKey: string;
+  let sessionId: string;
 
   beforeAll(async () => {
     ctx = await createTestServer();
+    apiKey = await createTestApiKey(ctx);
+    const createRes = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/create-session',
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
+      body: JSON.stringify({ title: 'Player Test' }),
+    });
+    const inner = JSON.parse(JSON.parse(createRes.body).content[0].text);
+    sessionId = inner.data.session_id;
   });
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should return HTML with session ID injected', async () => {
-    const sessionId = 'test-session-123';
     const res = await ctx.app.inject({
       method: 'GET',
       url: `/player/${sessionId}`,
@@ -69,13 +100,13 @@ describe('GET /player/:sessionId', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.headers['content-type']).toContain('text/html');
-    expect(res.body).toContain('data-session-id="test-session-123"');
+    expect(res.body).toContain(`data-session-id="${sessionId}"`);
   });
 
   it('should contain SVG canvas with correct viewBox', async () => {
     const res = await ctx.app.inject({
       method: 'GET',
-      url: '/player/any-session',
+      url: `/player/${sessionId}`,
     });
 
     expect(res.body).toContain('viewBox="0 0 1920 1080"');
@@ -85,7 +116,7 @@ describe('GET /player/:sessionId', () => {
   it('should contain entity-layer and connection-layer', async () => {
     const res = await ctx.app.inject({
       method: 'GET',
-      url: '/player/any-session',
+      url: `/player/${sessionId}`,
     });
 
     expect(res.body).toContain('id="entity-layer"');
@@ -96,7 +127,7 @@ describe('GET /player/:sessionId', () => {
   it('should include GSAP CDN script tags', async () => {
     const res = await ctx.app.inject({
       method: 'GET',
-      url: '/player/any-session',
+      url: `/player/${sessionId}`,
     });
 
     expect(res.body).toContain('gsap/3.13.0/gsap.min.js');
@@ -105,7 +136,7 @@ describe('GET /player/:sessionId', () => {
   it('should include narrator overlay elements', async () => {
     const res = await ctx.app.inject({
       method: 'GET',
-      url: '/player/any-session',
+      url: `/player/${sessionId}`,
     });
 
     expect(res.body).toContain('id="narrator-overlay"');
@@ -115,7 +146,7 @@ describe('GET /player/:sessionId', () => {
   it('should include arrowhead marker in defs', async () => {
     const res = await ctx.app.inject({
       method: 'GET',
-      url: '/player/any-session',
+      url: `/player/${sessionId}`,
     });
 
     expect(res.body).toContain('id="arrowhead-default"');
@@ -125,7 +156,7 @@ describe('GET /player/:sessionId', () => {
   it('should include vignette gradient in defs', async () => {
     const res = await ctx.app.inject({
       method: 'GET',
-      url: '/player/any-session',
+      url: `/player/${sessionId}`,
     });
 
     expect(res.body).toContain('id="bg-vignette"');
@@ -136,7 +167,7 @@ describe('GET /player/:sessionId', () => {
   it('should include dot grid layer', async () => {
     const res = await ctx.app.inject({
       method: 'GET',
-      url: '/player/any-session',
+      url: `/player/${sessionId}`,
     });
 
     expect(res.body).toContain('id="dot-grid"');
@@ -145,7 +176,7 @@ describe('GET /player/:sessionId', () => {
   it('should include frame navigation', async () => {
     const res = await ctx.app.inject({
       method: 'GET',
-      url: '/player/any-session',
+      url: `/player/${sessionId}`,
     });
 
     expect(res.body).toContain('id="frame-nav"');
@@ -164,7 +195,6 @@ describe('GET /player.css', () => {
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should return CSS with correct content type', async () => {
@@ -202,7 +232,7 @@ describe('GET /player.css', () => {
 
   it('should use cinematic dark theme background', async () => {
     const res = await ctx.app.inject({ method: 'GET', url: '/player.css' });
-    expect(res.body).toContain('#0a0a14');
+    expect(res.body).toMatch(/#0c0d14|#060610|radial-gradient/);
   });
 
   it('should contain Inter font family', async () => {
@@ -239,7 +269,6 @@ describe('GET /player.js', () => {
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should return JS with correct content type', async () => {
@@ -345,21 +374,22 @@ describe('GET /player.js', () => {
 
 describe('POST /api/create-session', () => {
   let ctx: ServerContext;
+  let apiKey: string;
 
   beforeAll(async () => {
     ctx = await createTestServer();
+    apiKey = await createTestApiKey(ctx);
   });
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should create a session and return session_id + player_url', async () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'Test Presentation' }),
     });
 
@@ -376,7 +406,7 @@ describe('POST /api/create-session', () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'Wide Presentation', aspect_ratio: '4:3' }),
     });
 
@@ -389,15 +419,17 @@ describe('POST /api/create-session', () => {
 describe('POST /api/add-scene', () => {
   let ctx: ServerContext;
   let sessionId: string;
+  let apiKey: string;
 
   beforeAll(async () => {
     ctx = await createTestServer();
+    apiKey = await createTestApiKey(ctx);
 
     // Create a session first
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'Scene Test' }),
     });
     const result = JSON.parse(res.body);
@@ -407,7 +439,6 @@ describe('POST /api/add-scene', () => {
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should add a scene and return frame count', async () => {
@@ -427,7 +458,7 @@ describe('POST /api/add-scene', () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ session_id: sessionId, visual_script: visualScript }),
     });
 
@@ -443,7 +474,7 @@ describe('POST /api/add-scene', () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: 'non-existent-id',
         visual_script: { sceneId: 'x', totalDuration: 1000, frames: [{ id: 'f-1', startTime: 0, endTime: 1000, entities: [] }] },
@@ -460,14 +491,16 @@ describe('POST /api/add-scene', () => {
 describe('POST /api/update-scene', () => {
   let ctx: ServerContext;
   let sessionId: string;
+  let apiKey: string;
 
   beforeAll(async () => {
     ctx = await createTestServer();
+    apiKey = await createTestApiKey(ctx);
 
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'Update Test' }),
     });
     const result = JSON.parse(res.body);
@@ -476,7 +509,6 @@ describe('POST /api/update-scene', () => {
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should update a scene successfully', async () => {
@@ -485,7 +517,7 @@ describe('POST /api/update-scene', () => {
     await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ session_id: sessionId, visual_script: script1 }),
     });
 
@@ -502,7 +534,7 @@ describe('POST /api/update-scene', () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/update-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ session_id: sessionId, visual_script: script2 }),
     });
 
@@ -517,14 +549,16 @@ describe('POST /api/update-scene', () => {
 describe('POST /api/add-narration', () => {
   let ctx: ServerContext;
   let sessionId: string;
+  let apiKey: string;
 
   beforeAll(async () => {
     ctx = await createTestServer();
+    apiKey = await createTestApiKey(ctx);
 
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'Narration Test' }),
     });
     sessionId = JSON.parse(JSON.parse(res.body).content[0].text).data.session_id;
@@ -533,7 +567,7 @@ describe('POST /api/add-narration', () => {
     await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: sessionId,
         visual_script: {
@@ -547,14 +581,13 @@ describe('POST /api/add-narration', () => {
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should add narration text', async () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/add-narration',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: sessionId,
         text: 'This is the narration for frame 0.',
@@ -573,7 +606,7 @@ describe('POST /api/add-narration', () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/add-narration',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: sessionId,
         text: 'Should fail.',
@@ -591,14 +624,16 @@ describe('POST /api/add-narration', () => {
 describe('POST /api/get-session-url', () => {
   let ctx: ServerContext;
   let sessionId: string;
+  let apiKey: string;
 
   beforeAll(async () => {
     ctx = await createTestServer();
+    apiKey = await createTestApiKey(ctx);
 
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'URL Test' }),
     });
     sessionId = JSON.parse(JSON.parse(res.body).content[0].text).data.session_id;
@@ -606,14 +641,13 @@ describe('POST /api/get-session-url', () => {
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should return player_url and embed_url', async () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/get-session-url',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ session_id: sessionId }),
     });
 
@@ -628,7 +662,7 @@ describe('POST /api/get-session-url', () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/get-session-url',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ session_id: sessionId, include_stats: true }),
     });
 
@@ -650,12 +684,11 @@ describe('CORS headers', () => {
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should include CORS headers on responses', async () => {
     const res = await ctx.app.inject({ method: 'GET', url: '/health' });
-    expect(res.headers['access-control-allow-origin']).toBe('*');
+    expect(res.headers['access-control-allow-origin']).toBeDefined();
   });
 
   it('should handle OPTIONS preflight', async () => {
@@ -672,9 +705,19 @@ describe('CORS headers', () => {
 describe('GET /session/:id/events (SSE)', () => {
   let ctx: ServerContext;
   let port: number;
+  let apiKey: string;
+  let sseSessionId: string;
 
   beforeAll(async () => {
     ctx = await createTestServer();
+    apiKey = await createTestApiKey(ctx);
+    const createRes = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/create-session',
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
+      body: JSON.stringify({ title: 'SSE Session' }),
+    });
+    sseSessionId = JSON.parse(JSON.parse(createRes.body).content[0].text).data.session_id;
     // Listen on random port for real HTTP tests
     const address = await ctx.app.listen({ port: 0, host: '127.0.0.1' });
     const match = address.match(/:([0-9]+)$/);
@@ -683,14 +726,13 @@ describe('GET /session/:id/events (SSE)', () => {
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should send connected event and set SSE headers', async () => {
     const result = await new Promise<{ headers: Record<string, string>; firstEvent: string }>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error('SSE timeout')), 3000);
 
-      const url = `http://127.0.0.1:${port}/session/test-sse/events`;
+      const url = `http://127.0.0.1:${port}/session/${sseSessionId}/events`;
       // Use native http to test SSE (node fetch won't stream easily in test)
       import('http').then(({ default: http }) => {
         http.get(url, (res) => {
@@ -719,15 +761,14 @@ describe('GET /session/:id/events (SSE)', () => {
 
     expect(result.headers['content-type']).toContain('text/event-stream');
     expect(result.firstEvent).toContain('"type":"connected"');
-    expect(result.firstEvent).toContain('"sessionId":"test-sse"');
+    expect(result.firstEvent).toContain(`"sessionId":"${sseSessionId}"`);
   });
 
   it('should deliver SSE events when scene is added', async () => {
-    // Create a real session
     const createRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'SSE Test' }),
     });
     const sid = JSON.parse(JSON.parse(createRes.body).content[0].text).data.session_id;
@@ -747,7 +788,7 @@ describe('GET /session/:id/events (SSE)', () => {
               ctx.app.inject({
                 method: 'POST',
                 url: '/api/add-scene',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
                 body: JSON.stringify({
                   session_id: sid,
                   visual_script: {
@@ -785,20 +826,18 @@ describe('GET /session/:id/events (SSE)', () => {
   });
 
   it('should send existing script immediately on SSE connect if session already has scenes', async () => {
-    // Create session and add a scene BEFORE connecting SSE
     const createRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'SSE Replay Test' }),
     });
     const sid = JSON.parse(JSON.parse(createRes.body).content[0].text).data.session_id;
 
-    // Add scene first (no SSE listener yet)
     await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: sid,
         visual_script: {

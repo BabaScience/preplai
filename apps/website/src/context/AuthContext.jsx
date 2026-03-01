@@ -1,26 +1,62 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import { apiLogin, apiSignup } from '../lib/api';
 
+const AUTH_STORAGE_KEY = 'preplai_auth';
+
+function getStoredAuth() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistAuth(obj) {
+  try {
+    if (obj?.token) {
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(obj));
+    } else {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+  } catch {
+    // ignore storage errors
+  }
+}
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(null);
-  const [email, setEmail] = useState(null);
-  const [userId, setUserId] = useState(null);
+  const stored = getStoredAuth();
+  const [token, setToken] = useState(stored?.token ?? null);
+  const [email, setEmail] = useState(stored?.email ?? null);
+  const [userId, setUserId] = useState(stored?.userId ?? null);
 
   const login = useCallback(async (emailVal, password) => {
     const data = await apiLogin(emailVal, password);
-    setToken(data.token);
-    setEmail(data.email);
-    setUserId(data.user_id);
+    const auth = {
+      token: data.token,
+      email: data.user?.email ?? data.email,
+      userId: data.user?.id ?? data.user_id,
+    };
+    setToken(auth.token);
+    setEmail(auth.email);
+    setUserId(auth.userId);
+    persistAuth(auth);
     return data;
   }, []);
 
   const signup = useCallback(async (emailVal, password) => {
     const data = await apiSignup(emailVal, password);
-    setToken(data.token);
-    setEmail(data.email);
-    setUserId(data.user_id);
+    const auth = {
+      token: data.token,
+      email: data.user?.email ?? data.email,
+      userId: data.user?.id ?? data.user_id,
+    };
+    setToken(auth.token);
+    setEmail(auth.email);
+    setUserId(auth.userId);
+    persistAuth(auth);
     return data;
   }, []);
 
@@ -28,6 +64,7 @@ export function AuthProvider({ children }) {
     setToken(null);
     setEmail(null);
     setUserId(null);
+    persistAuth(null);
   }, []);
 
   return (

@@ -54,6 +54,18 @@ cd packages/mcp-server && npm start
 cd packages/mcp-server && npm run start:mcp
 ```
 
+## Local Development Ports
+
+When running services locally, each uses a distinct port:
+
+| Service | Port | Command |
+|---------|------|---------|
+| API (apps/api) | 5000 | `npm run dev --workspace=preplai-api` |
+| Website (apps/website) | 5173 | `npm run dev --workspace=website` |
+| MCP Server (packages/mcp-server) | 5005 | `npm run dev --workspace=@preplai/mcp-server` |
+
+The website calls the API at `http://localhost:5000`. Set `VITE_API_URL=http://localhost:5000/api/` in `apps/website/.env` if needed.
+
 ## Architecture
 
 See [`architecture/`](./architecture/) for detailed design documents:

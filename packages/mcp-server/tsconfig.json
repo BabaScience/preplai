@@ -5,10 +5,25 @@
     "rootDir": "./src"
   },
   "references": [
-    { "path": "../shared" },
-    { "path": "../compiler" },
-    { "path": "../player" }
+    {
+      "path": "../shared"
+    },
+    {
+      "path": "../compiler"
+    },
+    {
+      "path": "../player"
+    },
+    {
+      "path": "../db"
+    }
   ],
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts"
+  ]
 }

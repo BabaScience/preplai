@@ -49,8 +49,8 @@ node packages/mcp-server/dist/stdio-bridge.js
 
 You should see on stderr:
 ```
-[PRE] HTTP server running at http://localhost:3001
-[PRE] Player: http://localhost:3001/player/:sessionId
+[PRE] HTTP server running at http://localhost:5005
+[PRE] Player: http://localhost:5005/player/:sessionId
 [PRE] MCP stdio bridge connected — ready for Claude Desktop
 ```
 
@@ -85,8 +85,8 @@ Open the config file and add the `pre` server entry. Replace `/absolute/path/to`
         "/absolute/path/to/presentation-engine/packages/mcp-server/dist/stdio-bridge.js"
       ],
       "env": {
-        "PORT": "3001",
-        "BASE_URL": "http://localhost:3001"
+        "PORT": "5005",
+        "BASE_URL": "http://localhost:5005"
       }
     }
   }
@@ -105,8 +105,8 @@ Open the config file and add the `pre` server entry. Replace `/absolute/path/to`
         "/Users/yourname/projects/presentation-engine/packages/mcp-server/dist/stdio-bridge.js"
       ],
       "env": {
-        "PORT": "3001",
-        "BASE_URL": "http://localhost:3001"
+        "PORT": "5005",
+        "BASE_URL": "http://localhost:5005"
       }
     }
   }
@@ -123,8 +123,8 @@ Open the config file and add the `pre` server entry. Replace `/absolute/path/to`
         "C:\\Users\\yourname\\projects\\presentation-engine\\packages\\mcp-server\\dist\\stdio-bridge.js"
       ],
       "env": {
-        "PORT": "3001",
-        "BASE_URL": "http://localhost:3001"
+        "PORT": "5005",
+        "BASE_URL": "http://localhost:5005"
       }
     }
   }
@@ -173,7 +173,7 @@ Claude will:
 2. Call `add_scene` with a visual script containing SVG elements
 3. Give you the player URL
 
-Open the player URL in your browser (e.g., `http://localhost:3001/player/abc123`) to see the live presentation.
+Open the player URL in your browser (e.g., `http://localhost:5005/player/abc123`) to see the live presentation.
 
 ---
 
@@ -188,7 +188,7 @@ Open the player URL in your browser (e.g., `http://localhost:3001/player/abc123`
 └──────────────────┘                          │  └────────────────┘  │
                                                │                      │
                                                │  ┌── HTTP Server ──┐ │
-                                               │  │ Fastify :3001   │ │
+                                               │  │ Fastify :5005   │ │
                                                │  │ /player/:id     │ │
                                                │  │ /session/:id/   │ │
                                                │  │   events (SSE)  │ │
@@ -204,7 +204,7 @@ Open the player URL in your browser (e.g., `http://localhost:3001/player/abc123`
 
 The `stdio-bridge.js` runs **both**:
 - An **MCP stdio server** that Claude Desktop communicates with (over stdin/stdout)
-- A **Fastify HTTP server** on port 3001 that serves the player UI and SSE events
+- A **Fastify HTTP server** on port 5005 that serves the player UI and SSE events
 
 When Claude calls a tool (e.g., `add_scene`), the handler updates the session store and pushes the scene via SSE to any open player tab in your browser — live.
 
@@ -222,12 +222,12 @@ When Claude calls a tool (e.g., `add_scene`), the handler updates the session st
 - Check that you're using the correct `session_id` in the URL.
 - Open browser DevTools console for errors.
 
-### Port 3001 already in use
-Change the port in the config:
+### Port 5005 already in use
+Change the port in the config (e.g. to 5006):
 ```json
 "env": {
-  "PORT": "3002",
-  "BASE_URL": "http://localhost:3002"
+  "PORT": "5006",
+  "BASE_URL": "http://localhost:5006"
 }
 ```
 

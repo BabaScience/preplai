@@ -2,11 +2,8 @@
  * @preplai/mcp-server — Package Entry Point
  *
  * Re-exports all public modules for the MCP server package.
+ * Database: uses @preplai/db (MongoDB).
  */
-
-// Database layer
-export { createDatabase } from './db.js';
-export type { SessionRow, VisualScriptRow, NarrationRow } from './db.js';
 
 // Session store
 export { SessionStore } from './session-store.js';

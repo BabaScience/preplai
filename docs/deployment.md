@@ -2,15 +2,23 @@
 
 preplai can run as a hosted service so presentation URLs are shareable across the internet.
 
+## Local Development Ports
+
+| Service | Port |
+|---------|------|
+| API (apps/api) | 5000 |
+| Website (apps/website) | 5173 |
+| MCP Server (packages/mcp-server) | 5005 |
+
 ## Environment Variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `PORT` | `3001` | HTTP port |
+| `PORT` | `5005` | HTTP port (MCP server; API uses 5000) |
 | `HOST` | `0.0.0.0` | Bind address |
-| `BASE_URL` | `http://localhost:3001` | Public URL (used in player URLs returned by MCP tools) |
-| `DB_PATH` | `./preplai.db` | SQLite database file path |
-| `ALLOWED_ORIGINS` | `http://localhost:3001` | CORS allowed origins (comma-separate for multiple) |
+| `BASE_URL` | `http://localhost:5005` | Public URL (used in player URLs returned by MCP tools) |
+| `MONGODB_URI` | `mongodb://localhost:27017/preplai` | MongoDB connection string (shared by apps/api and mcp-server) |
+| `ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:5005` | CORS allowed origins (comma-separate for multiple) |
 | `LOG_LEVEL` | `info` | Fastify log level (`debug`, `info`, `warn`, `error`) |
 
 ## Local Development
@@ -32,13 +40,12 @@ COPY package.json package-lock.json ./
 COPY packages/ packages/
 RUN npm ci --production
 RUN npm run build --workspace=packages/mcp-server
-EXPOSE 3001
-ENV PORT=3001
+EXPOSE 5005
+ENV PORT=5005
 ENV HOST=0.0.0.0
 ENV BASE_URL=https://your-domain.com
 ENV ALLOWED_ORIGINS=https://your-domain.com
-ENV DB_PATH=/data/preplai.db
-VOLUME /data
+ENV MONGODB_URI=mongodb://mongo:27017/preplai
 CMD ["node", "packages/mcp-server/dist/server.js"]
 ```
 
@@ -47,8 +54,8 @@ Build and run:
 ```bash
 docker build -t preplai .
 docker run -d \
-  -p 3001:3001 \
-  -v preplai-data:/data \
+  -p 5005:5005 \
+  -e MONGODB_URI=mongodb://your-mongo-host:27017/preplai \
   -e BASE_URL=https://your-domain.com \
   -e ALLOWED_ORIGINS=https://your-domain.com \
   preplai
@@ -66,11 +73,11 @@ Type=simple
 User=preplai
 WorkingDirectory=/opt/preplai
 ExecStart=/usr/bin/node packages/mcp-server/dist/server.js
-Environment=PORT=3001
+Environment=PORT=5005
 Environment=HOST=0.0.0.0
 Environment=BASE_URL=https://your-domain.com
 Environment=ALLOWED_ORIGINS=https://your-domain.com
-Environment=DB_PATH=/var/lib/preplai/preplai.db
+Environment=MONGODB_URI=mongodb://localhost:27017/preplai
 Restart=on-failure
 RestartSec=5
 
@@ -84,8 +91,8 @@ WantedBy=multi-user.target
 2. Set environment variables:
    - `BASE_URL` = your app's public URL
    - `ALLOWED_ORIGINS` = same as BASE_URL
-   - `DB_PATH` = `/data/preplai.db` (use a persistent volume)
-3. Expose port `3001`
+   - `MONGODB_URI` = your MongoDB connection string (e.g. MongoDB Atlas URI or `mongodb://localhost:27017/preplai`)
+3. Expose port `5005`
 
 ## Reverse Proxy (nginx)
 
@@ -98,7 +105,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
 
     location / {
-        proxy_pass http://127.0.0.1:3001;
+        proxy_pass http://127.0.0.1:5005;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -128,7 +135,7 @@ When running hosted, Claude Desktop's stdio bridge connects to your remote serve
       "command": "node",
       "args": ["/path/to/packages/mcp-server/dist/stdio-bridge.js"],
       "env": {
-        "PORT": "3001",
+        "PORT": "5005",
         "BASE_URL": "https://your-domain.com",
         "ALLOWED_ORIGINS": "https://your-domain.com"
       }
@@ -157,8 +164,8 @@ Returns:
 
 ## Data Persistence
 
-preplai uses SQLite via `better-sqlite3` in WAL mode. The database file is specified by `DB_PATH`. Ensure:
+preplai uses MongoDB for persistence. The connection string is specified by `MONGODB_URI`. Both `apps/api` (dashboard users, API keys, usage) and `packages/mcp-server` (sessions, visual scripts, narrations) share the same database. Ensure:
 
-- The directory exists and is writable
-- You back up the `.db` file regularly if data matters
+- MongoDB is running and reachable at the URI
+- You back up the database regularly if data matters (e.g. `mongodump`)
 - Sessions older than 7 days are automatically cleaned up on server startup and every 6 hours

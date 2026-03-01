@@ -1,11 +1,12 @@
 /**
- * @pre/mcp-server — MCP Tool Handler Tests (TDD)
+ * @preplai/mcp-server — MCP Tool Handler Tests (TDD)
  *
  * Tests for all 5 MCP tool handlers as pure functions.
  * Handlers receive dependencies (store, sse, baseUrl) via injection.
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createDatabase } from './db.js';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { connectDb, closeDb } from '@preplai/db';
 import { SessionStore } from './session-store.js';
 import { SseRegistry } from './sse.js';
 import {
@@ -15,6 +16,19 @@ import {
   handleAddNarration,
   handleGetSessionUrl,
 } from './tools.js';
+
+let mongod: MongoMemoryServer;
+
+beforeAll(async () => {
+  mongod = await MongoMemoryServer.create();
+  process.env.MONGODB_URI = mongod.getUri();
+  await connectDb();
+}, 30000);
+
+afterAll(async () => {
+  await closeDb();
+  if (mongod) await mongod.stop();
+});
 
 /** Helper to parse MCP tool result */
 function parse(result: { content: Array<{ text: string }> }) {
@@ -40,14 +54,12 @@ function makeScript(sessionId: string, frameCount = 1) {
 }
 
 describe('MCP Tool Handlers', () => {
-  let db: ReturnType<typeof createDatabase>;
   let store: SessionStore;
   let sse: SseRegistry;
-  const baseUrl = 'http://localhost:3001';
+  const baseUrl = 'http://localhost:5005';
 
   beforeEach(() => {
-    db = createDatabase(':memory:');
-    store = new SessionStore(db);
+    store = new SessionStore();
     sse = new SseRegistry();
   });
 

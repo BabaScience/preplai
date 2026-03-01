@@ -1,30 +1,47 @@
 /**
- * @pre/mcp-server — E2E Pipeline Tests
+ * @preplai/mcp-server — E2E Pipeline Tests
  *
  * Full end-to-end pipeline tests that exercise the complete flow:
- *   Agent → API → SessionStore → SQLite → SSE → Player
- *
- * These tests verify that all packages work together correctly
- * through the server layer, with real HTTP calls and SSE streaming.
+ *   Agent → API → SessionStore → MongoDB → SSE → Player
  *
  * @vitest-environment node
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { closeDb } from '@preplai/db';
 import { buildServer, type ServerContext } from './server.js';
-import { tmpdir } from 'os';
-import { join } from 'path';
-import { randomUUID } from 'crypto';
 import http from 'http';
 
-// ── Helpers ──────────────────────────────────────────────────────────
+let mongod: MongoMemoryServer;
+let mongoUri: string;
+
+beforeAll(async () => {
+  mongod = await MongoMemoryServer.create();
+  mongoUri = mongod.getUri();
+}, 30000);
+
+afterAll(async () => {
+  await closeDb();
+  if (mongod) await mongod.stop();
+});
 
 function createE2EServer(): Promise<ServerContext> {
-  const dbPath = join(tmpdir(), `pre-e2e-${randomUUID()}.db`);
   return buildServer({
-    dbPath,
+    mongoUri,
     logLevel: 'silent',
     baseUrl: 'http://localhost:0',
   });
+}
+
+async function createTestApiKey(ctx: ServerContext): Promise<string> {
+  const res = await ctx.app.inject({
+    method: 'POST',
+    url: '/api/keys',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'e2e@example.com' }),
+  });
+  const data = JSON.parse(res.body);
+  return data.data.api_key;
 }
 
 /** Parse the nested MCP tool response format */
@@ -88,16 +105,17 @@ function collectSseEvents(
 describe('E2E: Complete presentation lifecycle', () => {
   let ctx: ServerContext;
   let port: number;
+  let apiKey: string;
 
   beforeAll(async () => {
     ctx = await createE2EServer();
+    apiKey = await createTestApiKey(ctx);
     const address = await ctx.app.listen({ port: 0, host: '127.0.0.1' });
     port = Number(address.match(/(\d+)$/)?.[1]);
   });
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should complete the full agent workflow: create → add_scene → narrate → get_url', async () => {
@@ -105,7 +123,7 @@ describe('E2E: Complete presentation lifecycle', () => {
     const createRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'How Binary Search Works' }),
     });
     const createResult = parseMcpResponse(createRes.body);
@@ -151,7 +169,7 @@ describe('E2E: Complete presentation lifecycle', () => {
     const addRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ session_id: sessionId, visual_script: visualScript }),
     });
     const addResult = parseMcpResponse(addRes.body);
@@ -163,7 +181,7 @@ describe('E2E: Complete presentation lifecycle', () => {
     const narRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/add-narration',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: sessionId,
         text: 'Binary search is O(log n) — each comparison halves the search space.',
@@ -178,7 +196,7 @@ describe('E2E: Complete presentation lifecycle', () => {
     const urlRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/get-session-url',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ session_id: sessionId, include_stats: true }),
     });
     const urlResult = parseMcpResponse(urlRes.body);
@@ -195,16 +213,17 @@ describe('E2E: Complete presentation lifecycle', () => {
 describe('E2E: SSE real-time delivery pipeline', () => {
   let ctx: ServerContext;
   let port: number;
+  let apiKey: string;
 
   beforeAll(async () => {
     ctx = await createE2EServer();
+    apiKey = await createTestApiKey(ctx);
     const address = await ctx.app.listen({ port: 0, host: '127.0.0.1' });
     port = Number(address.match(/(\d+)$/)?.[1]);
   });
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should deliver script_update event via SSE when scene is added', async () => {
@@ -212,7 +231,7 @@ describe('E2E: SSE real-time delivery pipeline', () => {
     const createRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'SSE Delivery Test' }),
     });
     const sid = parseMcpResponse(createRes.body).data.session_id;
@@ -226,7 +245,7 @@ describe('E2E: SSE real-time delivery pipeline', () => {
     await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: sid,
         visual_script: {
@@ -259,7 +278,7 @@ describe('E2E: SSE real-time delivery pipeline', () => {
     const createRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'Narration SSE Test' }),
     });
     const sid = parseMcpResponse(createRes.body).data.session_id;
@@ -268,7 +287,7 @@ describe('E2E: SSE real-time delivery pipeline', () => {
     await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: sid,
         visual_script: {
@@ -287,7 +306,7 @@ describe('E2E: SSE real-time delivery pipeline', () => {
     await ctx.app.inject({
       method: 'POST',
       url: '/api/add-narration',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: sid,
         text: 'This is the narrator speaking.',
@@ -308,7 +327,7 @@ describe('E2E: SSE real-time delivery pipeline', () => {
     const createRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'Update SSE Test' }),
     });
     const sid = parseMcpResponse(createRes.body).data.session_id;
@@ -317,7 +336,7 @@ describe('E2E: SSE real-time delivery pipeline', () => {
     await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: sid,
         visual_script: {
@@ -336,7 +355,7 @@ describe('E2E: SSE real-time delivery pipeline', () => {
     await ctx.app.inject({
       method: 'POST',
       url: '/api/update-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: sid,
         visual_script: {
@@ -365,14 +384,15 @@ describe('E2E: SSE real-time delivery pipeline', () => {
 
 describe('E2E: Player HTML integration', () => {
   let ctx: ServerContext;
+  let apiKey: string;
 
   beforeAll(async () => {
     ctx = await createE2EServer();
+    apiKey = await createTestApiKey(ctx);
   });
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should serve player HTML with correct session ID from a real session', async () => {
@@ -380,7 +400,7 @@ describe('E2E: Player HTML integration', () => {
     const createRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'Player HTML Test' }),
     });
     const sessionId = parseMcpResponse(createRes.body).data.session_id;
@@ -404,21 +424,22 @@ describe('E2E: Player HTML integration', () => {
 
 describe('E2E: Error propagation', () => {
   let ctx: ServerContext;
+  let apiKey: string;
 
   beforeAll(async () => {
     ctx = await createE2EServer();
+    apiKey = await createTestApiKey(ctx);
   });
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should return SESSION_NOT_FOUND for invalid session on add_scene', async () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: 'non-existent-uuid',
         visual_script: { sceneId: 'x', totalDuration: 1000, frames: [{ id: 'f-1', startTime: 0, endTime: 1000, entities: [] }] },
@@ -435,7 +456,7 @@ describe('E2E: Error propagation', () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/update-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: 'fake-id',
         visual_script: { sceneId: 'x', totalDuration: 1000, frames: [{ id: 'f-1', startTime: 0, endTime: 1000, entities: [] }] },
@@ -451,7 +472,7 @@ describe('E2E: Error propagation', () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/add-narration',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: 'bad-id',
         text: 'Hello',
@@ -469,7 +490,7 @@ describe('E2E: Error propagation', () => {
     const createRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'Frame Error Test' }),
     });
     const sid = parseMcpResponse(createRes.body).data.session_id;
@@ -477,7 +498,7 @@ describe('E2E: Error propagation', () => {
     await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: sid,
         visual_script: {
@@ -492,7 +513,7 @@ describe('E2E: Error propagation', () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/add-narration',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: sid,
         text: 'Should fail',
@@ -509,7 +530,7 @@ describe('E2E: Error propagation', () => {
     const res = await ctx.app.inject({
       method: 'POST',
       url: '/api/get-session-url',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ session_id: 'missing' }),
     });
 
@@ -522,15 +543,14 @@ describe('E2E: Error propagation', () => {
 // ── E2E: Session persistence across server rebuild ───────────────────
 
 describe('E2E: Session persistence', () => {
-  it('should persist sessions in SQLite and reload on restart', async () => {
-    const dbPath = join(tmpdir(), `pre-persist-${randomUUID()}.db`);
-
+  it('should persist sessions in MongoDB and reload on restart', async () => {
     // Server 1: Create session and add scene
-    const ctx1 = await buildServer({ dbPath, logLevel: 'silent' });
+    const ctx1 = await buildServer({ mongoUri, logLevel: 'silent' });
+    const apiKey1 = await createTestApiKey(ctx1);
     const createRes = await ctx1.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey1 },
       body: JSON.stringify({ title: 'Persistent Session' }),
     });
     const sid = parseMcpResponse(createRes.body).data.session_id;
@@ -538,7 +558,7 @@ describe('E2E: Session persistence', () => {
     await ctx1.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey1 },
       body: JSON.stringify({
         session_id: sid,
         visual_script: {
@@ -552,15 +572,14 @@ describe('E2E: Session persistence', () => {
     });
 
     await ctx1.app.close();
-    ctx1.db.close();
 
-    // Server 2: Rebuild from same DB — sessions should be loaded
-    const ctx2 = await buildServer({ dbPath, logLevel: 'silent' });
+    // Server 2: Rebuild from same MongoDB — sessions should be loaded
+    const ctx2 = await buildServer({ mongoUri, logLevel: 'silent' });
 
     const urlRes = await ctx2.app.inject({
       method: 'POST',
       url: '/api/get-session-url',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey1 },
       body: JSON.stringify({ session_id: sid, include_stats: true }),
     });
 
@@ -571,7 +590,6 @@ describe('E2E: Session persistence', () => {
     expect(result.data.total_duration_ms).toBe(5000);
 
     await ctx2.app.close();
-    ctx2.db.close();
   });
 });
 
@@ -580,16 +598,17 @@ describe('E2E: Session persistence', () => {
 describe('E2E: Multi-session isolation', () => {
   let ctx: ServerContext;
   let port: number;
+  let apiKey: string;
 
   beforeAll(async () => {
     ctx = await createE2EServer();
+    apiKey = await createTestApiKey(ctx);
     const address = await ctx.app.listen({ port: 0, host: '127.0.0.1' });
     port = Number(address.match(/(\d+)$/)?.[1]);
   });
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should isolate SSE events between different sessions', async () => {
@@ -597,7 +616,7 @@ describe('E2E: Multi-session isolation', () => {
     const res1 = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'Session A' }),
     });
     const sidA = parseMcpResponse(res1.body).data.session_id;
@@ -605,7 +624,7 @@ describe('E2E: Multi-session isolation', () => {
     const res2 = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'Session B' }),
     });
     const sidB = parseMcpResponse(res2.body).data.session_id;
@@ -618,7 +637,7 @@ describe('E2E: Multi-session isolation', () => {
     await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: sidB,
         visual_script: {
@@ -633,7 +652,7 @@ describe('E2E: Multi-session isolation', () => {
     await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({
         session_id: sidA,
         visual_script: {
@@ -662,21 +681,22 @@ describe('E2E: Multi-session isolation', () => {
 
 describe('E2E: Complex scene with multiple entity types', () => {
   let ctx: ServerContext;
+  let apiKey: string;
 
   beforeAll(async () => {
     ctx = await createE2EServer();
+    apiKey = await createTestApiKey(ctx);
   });
 
   afterAll(async () => {
     await ctx.app.close();
-    ctx.db.close();
   });
 
   it('should handle a scene with 6 entity types including arrows', async () => {
     const createRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ title: 'Microservice Architecture' }),
     });
     const sid = parseMcpResponse(createRes.body).data.session_id;
@@ -737,7 +757,7 @@ describe('E2E: Complex scene with multiple entity types', () => {
     const addRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/add-scene',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ session_id: sid, visual_script: complexScript }),
     });
 
@@ -750,7 +770,7 @@ describe('E2E: Complex scene with multiple entity types', () => {
     const urlRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/get-session-url',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
       body: JSON.stringify({ session_id: sid, include_stats: true }),
     });
     const urlResult = parseMcpResponse(urlRes.body);

@@ -1,19 +1,11 @@
 /**
  * @preplai/mcp-server — Authentication & Authorization
  *
- * API key generation, validation, and Fastify middleware.
- * Keys are hashed with SHA-256 before storage — only the hash is persisted.
+ * API key validation against shared api_keys collection.
+ * Keys are hashed with SHA-256 — only the hash is stored.
  */
 import { randomUUID, createHash, randomBytes } from 'node:crypto';
-import type Database from 'better-sqlite3';
-import {
-  insertApiKey,
-  getApiKeyByHash,
-  updateApiKeyLastUsed,
-  countUsageByKeyAndAction,
-  insertUsageLog,
-  type ApiKeyRow,
-} from './db.js';
+import { ApiKey, McpUsageLog, Session } from '@preplai/db';
 
 // ── Tier limits ──────────────────────────────────────────────────────
 
@@ -38,7 +30,7 @@ export const TIER_LIMITS: Record<string, TierLimits> = {
     sessionExpiryDays: 90,
   },
   enterprise: {
-    maxSessions: -1, // unlimited
+    maxSessions: -1,
     maxScenesPerMonth: -1,
     maxScenesPerSession: -1,
     sessionExpiryDays: 365,
@@ -46,16 +38,13 @@ export const TIER_LIMITS: Record<string, TierLimits> = {
 };
 
 // ── Key format ───────────────────────────────────────────────────────
-// Keys look like: plai_a1b2c3d4e5f6...  (plai_ prefix + 40 hex chars)
-
 const KEY_PREFIX = 'plai_';
 
 export function generateApiKey(): { key: string; keyHash: string; keyPrefix: string } {
-  const rawBytes = randomBytes(20); // 40 hex chars
+  const rawBytes = randomBytes(20);
   const key = KEY_PREFIX + rawBytes.toString('hex');
   const keyHash = hashKey(key);
-  const keyPrefix = key.substring(0, 12); // "plai_a1b2c3d" — enough to identify
-
+  const keyPrefix = key.substring(0, 12);
   return { key, keyHash, keyPrefix };
 }
 
@@ -63,38 +52,41 @@ export function hashKey(key: string): string {
   return createHash('sha256').update(key).digest('hex');
 }
 
-// ── API key creation ─────────────────────────────────────────────────
+// ── API key creation (quick start — writes to shared collection) ────────
 
 export interface CreateKeyResult {
   id: string;
-  key: string;          // plaintext — only returned at creation time
+  key: string;
   key_prefix: string;
   owner_email: string;
   tier: string;
   created_at: number;
 }
 
-export function createApiKey(
-  db: Database.Database,
+export async function createApiKey(
   ownerEmail: string,
   tier = 'free',
-): CreateKeyResult {
+): Promise<CreateKeyResult> {
   const { key, keyHash, keyPrefix } = generateApiKey();
-  const id = randomUUID();
   const now = Date.now();
 
-  insertApiKey(db, {
-    id,
-    key_hash: keyHash,
-    key_prefix: keyPrefix,
-    owner_email: ownerEmail,
-    tier,
-    created_at: now,
-    last_used_at: null,
-    revoked: 0,
+  const doc = await ApiKey.create({
+    userId: null,
+    name: 'Quick Start',
+    keyHash,
+    keyPrefix,
+    ownerEmail,
+    tier: tier === 'pro' || tier === 'enterprise' ? tier : 'free',
   });
 
-  return { id, key, key_prefix: keyPrefix, owner_email: ownerEmail, tier, created_at: now };
+  return {
+    id: doc._id.toString(),
+    key,
+    key_prefix: keyPrefix,
+    owner_email: ownerEmail,
+    tier: doc.tier,
+    created_at: now,
+  };
 }
 
 // ── API key validation ───────────────────────────────────────────────
@@ -106,40 +98,39 @@ export interface ValidatedKey {
   limits: TierLimits;
 }
 
-export function validateApiKey(db: Database.Database, key: string): ValidatedKey | null {
+export async function validateApiKey(key: string): Promise<ValidatedKey | null> {
   if (!key || !key.startsWith(KEY_PREFIX)) return null;
 
   const keyHash = hashKey(key);
-  const row = getApiKeyByHash(db, keyHash);
-  if (!row) return null;
+  const doc = await ApiKey.findOne({ keyHash, revoked: false });
+  if (!doc) return null;
 
-  // Update last_used_at
-  updateApiKeyLastUsed(db, row.id);
+  doc.lastUsedAt = new Date();
+  await doc.save();
 
-  const limits = TIER_LIMITS[row.tier] || TIER_LIMITS.free;
+  const limits = TIER_LIMITS[doc.tier] || TIER_LIMITS.free;
 
   return {
-    id: row.id,
-    owner_email: row.owner_email,
-    tier: row.tier,
+    id: doc._id.toString(),
+    owner_email: doc.ownerEmail,
+    tier: doc.tier,
     limits,
   };
 }
 
 // ── Usage tracking ───────────────────────────────────────────────────
 
-export function trackUsage(
-  db: Database.Database,
+export async function trackUsage(
   apiKeyId: string,
   action: string,
   sessionId?: string,
-): void {
-  insertUsageLog(db, {
+): Promise<void> {
+  await McpUsageLog.create({
     id: randomUUID(),
-    api_key_id: apiKeyId,
+    apiKeyId,
     action,
-    session_id: sessionId ?? null,
-    created_at: Date.now(),
+    sessionId: sessionId ?? null,
+    createdAt: Date.now(),
   });
 }
 
@@ -152,20 +143,21 @@ export interface LimitCheckResult {
   limit?: number;
 }
 
-export function checkSceneLimit(
-  db: Database.Database,
+export async function checkSceneLimit(
   apiKeyId: string,
   tier: string,
-): LimitCheckResult {
+): Promise<LimitCheckResult> {
   const limits = TIER_LIMITS[tier] || TIER_LIMITS.free;
-
-  // Unlimited
   if (limits.maxScenesPerMonth === -1) return { allowed: true };
 
-  // Count scenes added this month (since start of current month)
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-  const used = countUsageByKeyAndAction(db, apiKeyId, 'add_scene', monthStart);
+
+  const used = await McpUsageLog.countDocuments({
+    apiKeyId,
+    action: 'add_scene',
+    createdAt: { $gte: monthStart },
+  });
 
   if (used >= limits.maxScenesPerMonth) {
     return {
@@ -175,38 +167,30 @@ export function checkSceneLimit(
       limit: limits.maxScenesPerMonth,
     };
   }
-
   return { allowed: true, current: used, limit: limits.maxScenesPerMonth };
 }
 
-export function checkSessionLimit(
-  db: Database.Database,
+export async function checkSessionLimit(
   apiKeyId: string,
   tier: string,
-): LimitCheckResult {
+): Promise<LimitCheckResult> {
   const limits = TIER_LIMITS[tier] || TIER_LIMITS.free;
-
-  // Unlimited
   if (limits.maxSessions === -1) return { allowed: true };
 
-  // Count total active sessions for this key
-  const row = db.prepare(
-    'SELECT COUNT(*) as count FROM sessions WHERE api_key_id = ?'
-  ).get(apiKeyId) as { count: number };
+  const count = await Session.countDocuments({ apiKeyId });
 
-  if (row.count >= limits.maxSessions) {
+  if (count >= limits.maxSessions) {
     return {
       allowed: false,
-      reason: `Session limit reached (${row.count}/${limits.maxSessions}). Delete old sessions or upgrade to Pro.`,
-      current: row.count,
+      reason: `Session limit reached (${count}/${limits.maxSessions}). Delete old sessions or upgrade to Pro.`,
+      current: count,
       limit: limits.maxSessions,
     };
   }
-
-  return { allowed: true, current: row.count, limit: limits.maxSessions };
+  return { allowed: true, current: count, limit: limits.maxSessions };
 }
 
-// ── Error response for auth failures ─────────────────────────────────
+// ── Error response ──────────────────────────────────────────────────
 
 export function authError(code: string, message: string): {
   statusCode: number;

@@ -1,14 +1,15 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/index.js';
-import { initDb, closeDb, getDb } from '../src/db.js';
+import { User, UsageLog } from '../src/db.js';
 
 let app;
 let token;
 let userId;
 
 beforeEach(async () => {
-  initDb();
+  await User.deleteMany({});
+  await UsageLog.deleteMany({});
   app = createApp();
 
   const res = await request(app)
@@ -18,15 +19,13 @@ beforeEach(async () => {
   userId = res.body.user.id;
 });
 
-afterEach(() => {
-  closeDb();
-});
-
-function insertLogs(n = 5) {
-  const db = getDb();
-  const stmt = db.prepare('INSERT INTO usage_logs (user_id, endpoint, tokens_used) VALUES (?, ?, ?)');
+async function insertLogs(n = 5) {
   for (let i = 0; i < n; i++) {
-    stmt.run(userId, '/v1/chat/completions', 100 * (i + 1));
+    await UsageLog.create({
+      userId,
+      endpoint: '/v1/chat/completions',
+      tokensUsed: 100 * (i + 1),
+    });
   }
 }
 
@@ -42,7 +41,7 @@ describe('GET /api/usage/summary', () => {
   });
 
   it('returns correct totals with logs', async () => {
-    insertLogs(5);
+    await insertLogs(5);
 
     const res = await request(app)
       .get('/api/usage/summary')
@@ -71,7 +70,7 @@ describe('GET /api/usage/logs', () => {
   });
 
   it('returns paginated logs', async () => {
-    insertLogs(5);
+    await insertLogs(5);
 
     const res = await request(app)
       .get('/api/usage/logs?limit=3')

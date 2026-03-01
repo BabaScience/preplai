@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { getDb } from '../db.js';
+import { User } from '../db.js';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'preplai-dev-secret-change-in-prod';
@@ -19,26 +19,23 @@ router.post('/signup', async (req, res) => {
   }
 
   try {
-    const db = getDb();
-    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+    const existing = await User.findOne({ email });
     if (existing) {
       return res.status(409).json({ error: 'Email already in use' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const result = db.prepare(
-      'INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)'
-    ).run(email, passwordHash, name || null);
+    const user = await User.create({ email, passwordHash, name: name || null });
 
     const token = jwt.sign(
-      { userId: result.lastInsertRowid, email },
+      { userId: user._id.toString(), email },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
     res.status(201).json({
       token,
-      user: { id: result.lastInsertRowid, email, name: name || null }
+      user: { id: user._id.toString(), email, name: user.name || null }
     });
   } catch (err) {
     console.error(err);
@@ -55,26 +52,25 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const db = getDb();
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const valid = await bcrypt.compare(password, user.password_hash);
+    const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user._id.toString(), email: user.email },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name }
+      user: { id: user._id.toString(), email: user.email, name: user.name }
     });
   } catch (err) {
     console.error(err);

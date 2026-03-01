@@ -1,57 +1,68 @@
 import bcrypt from 'bcryptjs';
-import { initDb, closeDb } from '../db.js';
+import crypto from 'crypto';
+import { connectDb, closeDb, User, ApiKey, UsageLog } from '../db.js';
+
+const KEY_PREFIX = 'plai_';
 
 async function seed() {
-  const db = initDb();
+  await connectDb();
 
   console.log('Seeding database...');
 
-  // Create demo user
-  const passwordHash = await bcrypt.hash('password123', 10);
-
   try {
-    db.prepare(
-      'INSERT OR IGNORE INTO users (email, password_hash, name) VALUES (?, ?, ?)'
-    ).run('demo@preplai.com', passwordHash, 'Demo User');
+    const passwordHash = await bcrypt.hash('password123', 10);
 
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get('demo@preplai.com');
+    let user = await User.findOne({ email: 'demo@preplai.com' });
+    if (!user) {
+      user = await User.create({
+        email: 'demo@preplai.com',
+        passwordHash,
+        name: 'Demo User',
+      });
+    }
     console.log('Created demo user:', user.email);
 
-    // Create a sample API key
-    const crypto = await import('crypto');
-    const rawKey = 'pk_' + crypto.randomBytes(32).toString('hex');
+    const rawKey = KEY_PREFIX + crypto.randomBytes(20).toString('hex');
     const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
-    const keyPrefix = rawKey.substring(0, 10);
+    const keyPrefix = rawKey.substring(0, 12);
 
-    db.prepare(
-      'INSERT OR IGNORE INTO api_keys (user_id, name, key_hash, key_prefix) VALUES (?, ?, ?, ?)'
-    ).run(user.id, 'Default Key', keyHash, keyPrefix);
-
-    console.log('Created sample API key:', keyPrefix + '...');
-
-    // Create sample usage logs
-    const insertLog = db.prepare(
-      'INSERT INTO usage_logs (user_id, endpoint, tokens_used) VALUES (?, ?, ?)'
-    );
-
-    const sampleLogs = [
-      [user.id, '/v1/chat/completions', 1250],
-      [user.id, '/v1/embeddings', 500],
-      [user.id, '/v1/chat/completions', 890],
-      [user.id, '/v1/chat/completions', 2100],
-      [user.id, '/v1/completions', 750],
-    ];
-
-    for (const log of sampleLogs) {
-      insertLog.run(...log);
+    const existingKey = await ApiKey.findOne({ keyHash });
+    if (!existingKey) {
+      await ApiKey.create({
+        userId: user._id,
+        name: 'Default Key',
+        keyHash,
+        keyPrefix,
+        ownerEmail: user.email,
+        tier: 'free',
+      });
+      console.log('Created sample API key:', keyPrefix + '...');
     }
-    console.log(`Inserted ${sampleLogs.length} sample usage logs`);
 
+    const count = await UsageLog.countDocuments({ userId: user._id });
+    if (count === 0) {
+      const sampleLogs = [
+        { endpoint: '/v1/chat/completions', tokensUsed: 1250 },
+        { endpoint: '/v1/embeddings', tokensUsed: 500 },
+        { endpoint: '/v1/chat/completions', tokensUsed: 890 },
+        { endpoint: '/v1/chat/completions', tokensUsed: 2100 },
+        { endpoint: '/v1/completions', tokensUsed: 750 },
+      ];
+
+      for (const log of sampleLogs) {
+        await UsageLog.create({
+          userId: user._id,
+          endpoint: log.endpoint,
+          tokensUsed: log.tokensUsed,
+        });
+      }
+      console.log(`Inserted ${sampleLogs.length} sample usage logs`);
+    }
   } catch (err) {
     console.error('Seed error:', err.message);
   }
 
-  closeDb();
+  await closeDb();
   console.log('Seeding complete!');
 }
 

@@ -4,10 +4,12 @@
   "private": true,
   "description": "Cinema-quality visual presentations as an agent-native API.",
   "workspaces": [
+    "apps/api",
     "packages/shared",
     "packages/illustrations",
     "packages/compiler",
     "packages/player",
+    "packages/db",
     "packages/mcp-server"
   ],
   "scripts": {

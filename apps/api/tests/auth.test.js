@@ -1,17 +1,13 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/index.js';
-import { initDb, closeDb } from '../src/db.js';
+import { User } from '../src/db.js';
 
 let app;
 
-beforeEach(() => {
-  initDb();
+beforeEach(async () => {
+  await User.deleteMany({});
   app = createApp();
-});
-
-afterEach(() => {
-  closeDb();
 });
 
 describe('POST /api/auth/signup', () => {

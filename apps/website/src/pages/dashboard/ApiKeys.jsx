@@ -31,7 +31,13 @@ export default function ApiKeys() {
     setLoading(true);
     try {
       const data = await apiGetKeys();
-      setKeys(data.keys || []);
+      const rawKeys = data.keys || [];
+      setKeys(rawKeys.map((k) => ({
+        ...k,
+        key_display: k.key_display ?? (k.key_prefix ? `${k.key_prefix}...` : '—'),
+        tier: k.tier ?? 'free',
+        status: k.status ?? 'active',
+      })));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -47,7 +53,7 @@ export default function ApiKeys() {
     setCreateLoading(true);
     try {
       const data = await apiCreateKey(newKeyName || 'Default');
-      setCreatedKey(data.key);
+      setCreatedKey(data.key?.rawKey ?? (typeof data.key === 'string' ? data.key : null));
     } catch (err) {
       setCreateError(err.message);
     } finally {
@@ -170,7 +176,7 @@ export default function ApiKeys() {
 
       {/* Create Key Modal */}
       {showCreateModal && (
-        <Modal onClose={closeCreateModal}>
+        <Modal open={showCreateModal} onClose={closeCreateModal}>
           <h2>Create API Key</h2>
           <Alert variant="error">{createError}</Alert>
           {createdKey ? (
@@ -224,7 +230,7 @@ export default function ApiKeys() {
 
       {/* Revoke Confirmation Modal */}
       {showRevokeModal !== null && (
-        <Modal onClose={() => setShowRevokeModal(null)}>
+        <Modal open={showRevokeModal !== null} onClose={() => setShowRevokeModal(null)}>
           <h2>Revoke API Key</h2>
           <p style={{
             color: 'var(--color-text-muted)',

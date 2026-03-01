@@ -1,13 +1,13 @@
 import express from 'express';
 import cors from 'cors';
-import { initDb } from './db.js';
+import { connectDb } from './db.js';
 
 import authRoutes from './routes/auth.js';
 import keysRoutes from './routes/keys.js';
 import usageRoutes from './routes/usage.js';
 import settingsRoutes from './routes/settings.js';
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 
 export function createApp() {
   const app = express();
@@ -33,9 +33,15 @@ export function createApp() {
 }
 
 if (process.env.NODE_ENV !== 'test') {
-  initDb();
-  const app = createApp();
-  app.listen(PORT, () => {
-    console.log(`Preplai API running on port ${PORT}`);
-  });
+  connectDb()
+    .then(() => {
+      const app = createApp();
+      app.listen(PORT, () => {
+        console.log(`Preplai API running on port ${PORT}`);
+      });
+    })
+    .catch((err) => {
+      console.error('Failed to connect to MongoDB:', err);
+      process.exit(1);
+    });
 }

@@ -116,7 +116,7 @@ export default function Settings() {
       </div>
 
       {showDeleteModal && (
-        <Modal onClose={() => setShowDeleteModal(false)}>
+        <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
           <h2 style={{ color: 'var(--color-error)' }}>Delete Account</h2>
           <p style={{
             color: 'var(--color-text-muted)',

@@ -71,7 +71,7 @@ export async function handleCreateSession(
   const { title, aspect_ratio = '16:9', _apiKeyId } = args;
   const { store, baseUrl } = deps;
 
-  const session = store.createSession(title, aspect_ratio, _apiKeyId ?? null);
+  const session = await store.createSession(title, aspect_ratio, _apiKeyId ?? null);
 
   return mcpOk({
     session_id: session.id,
@@ -124,7 +124,7 @@ export async function handleAddScene(
     mergedScript = visual_script;
   }
 
-  store.setScript(session_id, mergedScript);
+  await store.setScript(session_id, mergedScript);
 
   sse.emit(session_id, { type: 'script_update', script: mergedScript });
 
@@ -157,7 +157,7 @@ export async function handleUpdateScene(
     return mcpValidationError(validationError);
   }
 
-  store.setScript(session_id, visual_script);
+  await store.setScript(session_id, visual_script);
 
   sse.emit(session_id, { type: 'script_update', script: visual_script });
 
@@ -193,7 +193,7 @@ export async function handleAddNarration(
     );
   }
 
-  const result = store.addNarration(session_id, text, frame_index);
+  const result = await store.addNarration(session_id, text, frame_index);
 
   sse.emit(session_id, {
     type: 'narration_update',
@@ -317,7 +317,7 @@ export async function handleRemoveScene(
     totalDuration,
   };
 
-  store.setScript(session_id, updatedScript);
+  await store.setScript(session_id, updatedScript);
 
   // Push SSE update so player reflects the removal immediately
   sse.emit(session_id, { type: 'script_update', script: updatedScript });
@@ -339,7 +339,7 @@ export async function handleDeleteSession(
   const { session_id } = args;
   const { store } = deps;
 
-  const existed = store.deleteSession(session_id);
+  const existed = await store.deleteSession(session_id);
   if (!existed) return mcpNotFound(session_id);
 
   return mcpOk({

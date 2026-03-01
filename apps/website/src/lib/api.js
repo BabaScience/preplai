@@ -44,13 +44,15 @@ client.interceptors.response.use(
 
 // Auth
 export async function apiLogin(email, password) {
-  const { data } = await client.post('/login', { email, password });
+  const path = isCGI ? '/login' : '/auth/login';
+  const { data } = await client.post(path, { email, password });
   setApiToken(data.token);
   return data;
 }
 
 export async function apiSignup(email, password) {
-  const { data } = await client.post('/signup', { email, password });
+  const path = isCGI ? '/signup' : '/auth/signup';
+  const { data } = await client.post(path, { email, password });
   setApiToken(data.token);
   return data;
 }
@@ -94,9 +96,16 @@ export async function apiGetUsage() {
 
 // Settings
 export async function apiChangePassword(currentPassword, newPassword) {
-  const { data } = await client.post('/settings/password', {
-    current_password: currentPassword,
-    new_password: newPassword,
+  if (isCGI) {
+    const { data } = await client.post('/settings/password', {
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
+    return data;
+  }
+  const { data } = await client.patch('/settings/password', {
+    currentPassword,
+    newPassword,
   });
   return data;
 }

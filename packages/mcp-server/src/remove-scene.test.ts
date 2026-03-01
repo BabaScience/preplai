@@ -1,11 +1,25 @@
 /**
  * @preplai/mcp-server — remove_scene tool tests
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { connectDb, closeDb } from '@preplai/db';
 import { handleRemoveScene, handleCreateSession, handleAddScene } from './tools.js';
 import { SessionStore } from './session-store.js';
 import { SseRegistry } from './sse.js';
-import { createDatabase } from './db.js';
+
+let mongod: MongoMemoryServer;
+
+beforeAll(async () => {
+  mongod = await MongoMemoryServer.create();
+  process.env.MONGODB_URI = mongod.getUri();
+  await connectDb();
+}, 30000);
+
+afterAll(async () => {
+  await closeDb();
+  if (mongod) await mongod.stop();
+});
 
 function makeScript(sceneId: string, frameCount: number) {
   const frames = [];
@@ -32,14 +46,13 @@ describe('handleRemoveScene', () => {
   let sessionId: string;
 
   beforeEach(async () => {
-    const db = createDatabase(':memory:');
-    store = new SessionStore(db);
+    store = new SessionStore();
     sse = new SseRegistry();
 
     // Create a session with 3 frames
     const result = await handleCreateSession(
       { title: 'Test Pres' },
-      { store, baseUrl: 'http://localhost:3001' },
+      { store, baseUrl: 'http://localhost:5005' },
     );
     const data = JSON.parse(result.content[0].text);
     sessionId = data.data.session_id;
@@ -98,7 +111,7 @@ describe('handleRemoveScene', () => {
     // Create a fresh session with no scenes
     const createResult = await handleCreateSession(
       { title: 'Empty' },
-      { store, baseUrl: 'http://localhost:3001' },
+      { store, baseUrl: 'http://localhost:5005' },
     );
     const createData = JSON.parse(createResult.content[0].text);
     const emptyId = createData.data.session_id;

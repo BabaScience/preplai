@@ -1,23 +1,20 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/index.js';
-import { initDb, closeDb } from '../src/db.js';
+import { User, ApiKey } from '../src/db.js';
 
 let app;
 let token;
 
 beforeEach(async () => {
-  initDb();
+  await User.deleteMany({});
+  await ApiKey.deleteMany({});
   app = createApp();
 
   const res = await request(app)
     .post('/api/auth/signup')
     .send({ email: 'test@example.com', password: 'password123' });
   token = res.body.token;
-});
-
-afterEach(() => {
-  closeDb();
 });
 
 describe('GET /api/keys', () => {
@@ -45,8 +42,8 @@ describe('POST /api/keys', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.key.name).toBe('My Key');
-    expect(res.body.key.rawKey).toMatch(/^pk_/);
-    expect(res.body.key.key_prefix).toBe(res.body.key.rawKey.substring(0, 10));
+    expect(res.body.key.rawKey).toMatch(/^plai_/);
+    expect(res.body.key.key_prefix).toBe(res.body.key.rawKey.substring(0, 12));
   });
 
   it('returns 400 if name is missing', async () => {
@@ -104,8 +101,9 @@ describe('DELETE /api/keys/:id', () => {
   });
 
   it('returns 404 for non-existent key', async () => {
+    const fakeId = '507f1f77bcf86cd799439011';
     const res = await request(app)
-      .delete('/api/keys/99999')
+      .delete(`/api/keys/${fakeId}`)
       .set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(404);

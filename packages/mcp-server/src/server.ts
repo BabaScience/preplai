@@ -1,18 +1,11 @@
 /**
  * @preplai/mcp-server — Server Entry Point
  *
- * Thin Fastify boot file that wires all logic modules:
- * - McpServer SDK with 5 tool handlers
- * - SSE endpoint for player (GET /session/:id/events)
- * - Player HTML route (GET /player/:sessionId)
- * - Health check (GET /health)
- * - CORS
- *
- * All business logic lives in tools.ts, session-store.ts, sse.ts, db.ts.
- * This file is pure wiring — no business logic.
+ * Thin Fastify boot file that wires all logic modules.
+ * Uses MongoDB via @preplai/db for persistence.
  */
 import Fastify, { type FastifyInstance } from 'fastify';
-import { createDatabase } from './db.js';
+import { connectDb } from '@preplai/db';
 import { SessionStore } from './session-store.js';
 import { SseRegistry } from './sse.js';
 import {
@@ -26,7 +19,15 @@ import {
 } from './tools.js';
 import { withErrorBoundary } from './errors.js';
 import { PLAYER_HTML_TEMPLATE } from './player-html.js';
-import { validateApiKey, trackUsage, checkSceneLimit, checkSessionLimit, createApiKey, authError, type ValidatedKey } from './auth.js';
+import {
+  validateApiKey,
+  trackUsage,
+  checkSceneLimit,
+  checkSessionLimit,
+  createApiKey,
+  authError,
+  type ValidatedKey,
+} from './auth.js';
 
 // ── Config ────────────────────────────────────────────────────────────
 
@@ -34,18 +35,18 @@ export interface ServerConfig {
   port: number;
   host: string;
   baseUrl: string;
-  dbPath: string;
+  mongoUri: string;
   corsOrigin: string;
   logLevel: string;
 }
 
 export function getDefaultConfig(): ServerConfig {
   return {
-    port: Number(process.env.PORT ?? 3001),
+    port: Number(process.env.PORT ?? 5005),
     host: process.env.HOST ?? '0.0.0.0',
-    baseUrl: process.env.BASE_URL ?? 'http://localhost:3001',
-    dbPath: process.env.DB_PATH ?? './preplai.db',
-    corsOrigin: process.env.ALLOWED_ORIGINS ?? 'http://localhost:3001',
+    baseUrl: process.env.BASE_URL ?? 'http://localhost:5005',
+    mongoUri: process.env.MONGODB_URI ?? 'mongodb://localhost:27017/preplai',
+    corsOrigin: process.env.ALLOWED_ORIGINS ?? 'http://localhost:5173,http://localhost:5005',
     logLevel: process.env.LOG_LEVEL ?? 'info',
   };
 }
@@ -56,31 +57,27 @@ export interface ServerContext {
   app: FastifyInstance;
   store: SessionStore;
   sse: SseRegistry;
-  db: ReturnType<typeof createDatabase>;
 }
 
 /**
  * Build and configure a Fastify server with all routes.
- * Does NOT call listen() — the caller decides when to start.
- * This makes the server fully testable via fastify.inject().
  */
 export async function buildServer(config: Partial<ServerConfig> = {}): Promise<ServerContext> {
   const cfg: ServerConfig = { ...getDefaultConfig(), ...config };
 
   // ── Database ──────────────────────────────────────────────────────
-  const db = createDatabase(cfg.dbPath);
-  const store = new SessionStore(db);
-  store.loadFromDb();
+  await connectDb(cfg.mongoUri);
 
-  // Clean expired sessions on startup
-  const cleaned = store.cleanExpiredSessions();
+  const store = new SessionStore();
+  await store.loadFromDb();
+
+  const cleaned = await store.cleanExpiredSessions();
   if (cleaned > 0) {
     console.log(`[preplai] Cleaned ${cleaned} expired sessions`);
   }
 
-  // Periodic cleanup every 6 hours
-  setInterval(() => {
-    const c = store.cleanExpiredSessions();
+  setInterval(async () => {
+    const c = await store.cleanExpiredSessions();
     if (c > 0) console.log(`[preplai] Periodic cleanup: removed ${c} expired sessions`);
   }, 6 * 60 * 60 * 1000);
 
@@ -104,28 +101,18 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   });
 
   // ── Auth: API key validation ──────────────────────────────────────
-  // Decorate request with validated key info
   app.decorateRequest('apiKey', null);
 
-  // Routes that bypass auth
   const PUBLIC_ROUTES = new Set(['/health', '/player.css', '/player.js']);
 
   app.addHook('onRequest', async (request, reply) => {
     const path = request.url.split('?')[0];
 
-    // Public routes: no auth needed
     if (PUBLIC_ROUTES.has(path)) return;
-
-    // Player pages: gated via session ownership (checked in route handler)
     if (path.startsWith('/player/')) return;
-
-    // SSE endpoint: gated via session ownership (checked in route handler)
     if (path.startsWith('/session/') && path.endsWith('/events')) return;
-
-    // API key provisioning endpoint (bootstrap): no auth
     if (path === '/api/keys' && request.method === 'POST') return;
 
-    // All other routes require API key
     const key = request.headers['x-preplai-api-key'] as string | undefined;
     if (!key) {
       const err = authError('MISSING_API_KEY', 'API key required. Include X-Preplai-API-Key header.');
@@ -133,7 +120,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       return;
     }
 
-    const validated = validateApiKey(db, key);
+    const validated = await validateApiKey(key);
     if (!validated) {
       const err = authError('INVALID_API_KEY', 'Invalid or revoked API key.');
       reply.status(err.statusCode).send(err.body);
@@ -153,8 +140,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     };
   });
 
-  // ── API Key Management ────────────────────────────────────────────
-
+  // ── API Key Management (quick start) ───────────────────────────────
   app.post<{ Body: { email: string; tier?: string } }>(
     '/api/keys',
     async (request, reply) => {
@@ -162,13 +148,19 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       if (!email || typeof email !== 'string' || !email.includes('@')) {
         reply.status(400).send({
           success: false,
-          error: { code: 'INVALID_EMAIL', message: 'A valid email is required.', suggestion: 'Provide a valid email address.' },
+          error: {
+            code: 'INVALID_EMAIL',
+            message: 'A valid email is required.',
+            suggestion: 'Provide a valid email address.',
+          },
         });
         return;
       }
 
-      // For now, anyone can create a free key. Paid tiers will require payment verification.
-      const result = createApiKey(db, email, tier === 'pro' || tier === 'enterprise' ? tier : 'free');
+      const result = await createApiKey(
+        email,
+        tier === 'pro' || tier === 'enterprise' ? tier : 'free',
+      );
 
       reply.status(201).send({
         success: true,
@@ -191,7 +183,6 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       return;
     }
 
-    // Set SSE headers
     reply.raw.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
@@ -199,28 +190,21 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       'Access-Control-Allow-Origin': cfg.corsOrigin,
     });
 
-    // Send connected event
     reply.raw.write(`data: ${JSON.stringify({ type: 'connected', sessionId: id })}\n\n`);
 
-    // If session already has a script, send it immediately so the player
-    // doesn't sit empty when opened after add_scene was already called.
     if (session.script?.frames?.length) {
       reply.raw.write(`data: ${JSON.stringify({ type: 'script_update', script: session.script })}\n\n`);
     }
 
-    // Register subscriber
     const sseReply = { raw: reply.raw };
     sse.subscribe(id, sseReply);
 
-    // Cleanup on disconnect
     request.raw.on('close', () => {
       sse.unsubscribe(id, sseReply);
     });
   });
 
   // ── Player HTML route ─────────────────────────────────────────────
-  // Player pages: accessible with session ID (UUID acts as capability token)
-  // Future: add optional password protection or require viewer auth
   app.get<{ Params: { sessionId: string } }>('/player/:sessionId', async (request, reply) => {
     const { sessionId } = request.params;
     const session = store.getSession(sessionId);
@@ -233,7 +217,6 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   });
 
   // ── Player static assets ──────────────────────────────────────────
-  // player.css served inline for simplicity in V1 (no file bundler needed)
   app.get('/player.css', async (request, reply) => {
     const { PLAYER_CSS } = await import('./player-css.js');
     reply.type('text/css').send(PLAYER_CSS);
@@ -241,22 +224,19 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
 
   app.get('/player.js', async (request, reply) => {
     const { PLAYER_JS } = await import('./player-js.js');
-    reply.type('application/javascript').send(PLAYER_JS);
+    reply.type('text/javascript').send(PLAYER_JS);
   });
 
-  // ── MCP-style API routes (REST wrappers over tool handlers) ───────
-  // In V1, we expose the tool handlers directly via REST.
-  // Full MCP SDK integration (fastify-mcp-server plugin) can be added
-  // when the SDK is installed. For now, REST endpoints mirror the tools.
-
+  // ── MCP-style API routes ──────────────────────────────────────────
   const sceneDeps = { store, sse };
   const sessionUrlDeps = { store, baseUrl: cfg.baseUrl };
   const createDeps = { store, baseUrl: cfg.baseUrl };
 
-  // Helper: verify session ownership
-  function verifySessionOwnership(sessionId: string, apiKeyId: string): boolean {
+  function verifySessionOwnership(sessionId: string, apiKeyId: string): { ok: boolean; notFound?: boolean } {
     const session = store.getSession(sessionId);
-    return session !== null && session.api_key_id === apiKeyId;
+    if (!session) return { ok: false, notFound: true };
+    if (session.api_key_id !== apiKeyId) return { ok: false };
+    return { ok: true };
   }
 
   app.post<{ Body: { title: string; aspect_ratio?: string } }>(
@@ -264,7 +244,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;
 
-      const limitCheck = checkSessionLimit(db, apiKey.id, apiKey.tier);
+      const limitCheck = await checkSessionLimit(apiKey.id, apiKey.tier);
       if (!limitCheck.allowed) {
         reply.status(429).send(authError('RATE_LIMIT_EXCEEDED', limitCheck.reason!).body);
         return;
@@ -273,11 +253,10 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       const handler = withErrorBoundary((args: any) => handleCreateSession(args, createDeps));
       const result = await handler({ ...request.body, _apiKeyId: apiKey.id });
 
-      // Track usage
       try {
         const data = JSON.parse(result.content[0].text);
         if (data.success) {
-          trackUsage(db, apiKey.id, 'create_session', data.data.session_id);
+          await trackUsage(apiKey.id, 'create_session', data.data.session_id);
         }
       } catch {}
 
@@ -290,12 +269,17 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;
 
-      if (!verifySessionOwnership(request.body.session_id, apiKey.id)) {
+      const ownership = verifySessionOwnership(request.body.session_id, apiKey.id);
+      if (!ownership.ok && !ownership.notFound) {
         reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
         return;
       }
+      if (!ownership.ok && ownership.notFound) {
+        const handler = withErrorBoundary((args: any) => handleAddScene(args, sceneDeps));
+        return handler(request.body);
+      }
 
-      const sceneCheck = checkSceneLimit(db, apiKey.id, apiKey.tier);
+      const sceneCheck = await checkSceneLimit(apiKey.id, apiKey.tier);
       if (!sceneCheck.allowed) {
         reply.status(429).send(authError('RATE_LIMIT_EXCEEDED', sceneCheck.reason!).body);
         return;
@@ -304,7 +288,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       const handler = withErrorBoundary((args: any) => handleAddScene(args, sceneDeps));
       const result = await handler(request.body);
 
-      trackUsage(db, apiKey.id, 'add_scene', request.body.session_id);
+      await trackUsage(apiKey.id, 'add_scene', request.body.session_id);
       return result;
     },
   );
@@ -314,15 +298,20 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;
 
-      if (!verifySessionOwnership(request.body.session_id, apiKey.id)) {
+      const ownership = verifySessionOwnership(request.body.session_id, apiKey.id);
+      if (!ownership.ok && !ownership.notFound) {
         reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
         return;
+      }
+      if (!ownership.ok && ownership.notFound) {
+        const handler = withErrorBoundary((args: any) => handleUpdateScene(args, sceneDeps));
+        return handler(request.body);
       }
 
       const handler = withErrorBoundary((args: any) => handleUpdateScene(args, sceneDeps));
       const result = await handler(request.body);
 
-      trackUsage(db, apiKey.id, 'update_scene', request.body.session_id);
+      await trackUsage(apiKey.id, 'update_scene', request.body.session_id);
       return result;
     },
   );
@@ -332,15 +321,20 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;
 
-      if (!verifySessionOwnership(request.body.session_id, apiKey.id)) {
+      const ownership = verifySessionOwnership(request.body.session_id, apiKey.id);
+      if (!ownership.ok && !ownership.notFound) {
         reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
         return;
+      }
+      if (!ownership.ok && ownership.notFound) {
+        const handler = withErrorBoundary((args: any) => handleAddNarration(args, sceneDeps));
+        return handler(request.body);
       }
 
       const handler = withErrorBoundary((args: any) => handleAddNarration(args, sceneDeps));
       const result = await handler(request.body);
 
-      trackUsage(db, apiKey.id, 'add_narration', request.body.session_id);
+      await trackUsage(apiKey.id, 'add_narration', request.body.session_id);
       return result;
     },
   );
@@ -350,9 +344,14 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;
 
-      if (!verifySessionOwnership(request.body.session_id, apiKey.id)) {
+      const ownership = verifySessionOwnership(request.body.session_id, apiKey.id);
+      if (!ownership.ok && !ownership.notFound) {
         reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
         return;
+      }
+      if (!ownership.ok && ownership.notFound) {
+        const handler = withErrorBoundary((args: any) => handleGetSessionUrl(args, sessionUrlDeps));
+        return handler(request.body);
       }
 
       const handler = withErrorBoundary((args: any) => handleGetSessionUrl(args, sessionUrlDeps));
@@ -366,7 +365,6 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       const apiKey = (request as any).apiKey as ValidatedKey;
       const limit = Number(request.query.limit) || 20;
 
-      // Only return sessions owned by this key
       const sessions = store.listSessionsByKey(apiKey.id).slice(0, Math.min(limit, 100));
 
       return {
@@ -375,7 +373,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
           text: JSON.stringify({
             success: true,
             data: {
-              sessions: sessions.map(s => ({
+              sessions: sessions.map((s) => ({
                 session_id: s.id,
                 title: s.title,
                 player_url: `${cfg.baseUrl}/player/${s.id}`,
@@ -395,9 +393,14 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;
 
-      if (!verifySessionOwnership(request.params.id, apiKey.id)) {
+      const ownership = verifySessionOwnership(request.params.id, apiKey.id);
+      if (!ownership.ok && !ownership.notFound) {
         reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
         return;
+      }
+      if (!ownership.ok && ownership.notFound) {
+        const handler = withErrorBoundary((args: any) => handleDeleteSession(args, { store }));
+        return handler({ session_id: request.params.id });
       }
 
       const handler = withErrorBoundary((args: any) => handleDeleteSession(args, { store }));
@@ -410,9 +413,14 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;
 
-      if (!verifySessionOwnership(request.params.sessionId, apiKey.id)) {
+      const ownership = verifySessionOwnership(request.params.sessionId, apiKey.id);
+      if (!ownership.ok && !ownership.notFound) {
         reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
         return;
+      }
+      if (!ownership.ok && ownership.notFound) {
+        const handler = withErrorBoundary((args: any) => handleRemoveScene(args, sceneDeps));
+        return handler({ session_id: request.params.sessionId, ...request.body });
       }
 
       const handler = withErrorBoundary((args: any) => handleRemoveScene(args, sceneDeps));
@@ -420,7 +428,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     },
   );
 
-  return { app, store, sse, db };
+  return { app, store, sse };
 }
 
 // ── Standalone startup ──────────────────────────────────────────────
@@ -437,7 +445,6 @@ export async function startServer(config: Partial<ServerConfig> = {}): Promise<S
   return ctx;
 }
 
-// Run if executed directly
 const isMainModule = process.argv[1]?.endsWith('server.js') || process.argv[1]?.endsWith('server.ts');
 if (isMainModule) {
   startServer().catch((err) => {

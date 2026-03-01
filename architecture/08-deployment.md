@@ -3,7 +3,7 @@
 > **Version:** V1
 > **Last updated:** 2026-02-28
 > **Scope:** Single-VPS deployment for PRE V1 (target: 100 active users)
-> **Stack:** DigitalOcean Droplet · Docker Compose · Fastify · SQLite · Nginx · Let's Encrypt · GitHub Actions
+> **Stack:** DigitalOcean Droplet · Docker Compose · Fastify · MongoDB · Nginx · Let's Encrypt · GitHub Actions
 > **Node.js:** >=18 (required by `@modelcontextprotocol/sdk@^1.18.0`)
 
 ---
@@ -17,7 +17,7 @@
 5. [Nginx Configuration](#5-nginx-configuration)
 6. [SSL Setup](#6-ssl-setup)
 7. [Environment Variables](#7-environment-variables)
-8. [SQLite Configuration](#8-sqlite-configuration)
+8. [MongoDB Configuration](#8-mongodb-configuration)
 9. [CI/CD Pipeline](#9-cicd-pipeline)
 10. [Monitoring & Alerting](#10-monitoring--alerting)
 11. [Backup & Recovery](#11-backup--recovery)
@@ -38,13 +38,13 @@ PRE V1 deploys to a **single Virtual Private Server** running Docker Compose. Th
 | Metric | V1 Target | Single VPS Capacity |
 |--------|-----------|---------------------|
 | Registered users | 100 | Thousands |
-| Concurrent sessions | ≤ 50 | ≤ 500 (Fastify + SQLite WAL) |
+| Concurrent sessions | ≤ 50 | ≤ 500 (Fastify + MongoDB) |
 | Concurrent SSE connections | ≤ 50 | ≤ 500 (Node.js async I/O) |
 | Request throughput | < 100 req/s | ~1,000 req/s (Nginx + Node) |
 | Database size | < 1 GB | Hundreds of GB (local SSD) |
 | Uptime SLA | Best-effort | ~99.9% with Docker restart policies |
 
-Fastify is one of the fastest Node.js frameworks (~80k req/s on a single core in benchmarks). SQLite with WAL mode supports hundreds of concurrent reads. Server-Sent Events (SSE) uses persistent HTTP connections — each live player session holds one `GET /session/:id/events` connection open. Node.js handles this efficiently with async I/O; 50 concurrent SSE connections is well within Node's event-loop capacity. Nginx handles SSL termination and static asset serving with negligible overhead.
+Fastify is one of the fastest Node.js frameworks (~80k req/s on a single core in benchmarks). MongoDB supports hundreds of concurrent reads. Server-Sent Events (SSE) uses persistent HTTP connections — each live player session holds one `GET /session/:id/events` connection open. Node.js handles this efficiently with async I/O; 50 concurrent SSE connections is well within Node's event-loop capacity. Nginx handles SSL termination and static asset serving with negligible overhead.
 
 ### Service topology
 
@@ -58,10 +58,10 @@ Internet
 [Fastify App]  ← MCP API (/mcp), SSE events (/session/:id/events),
    │              Player HTML (/player/:id), Health (/api/health)
    ▼
-[SQLite /data/pre.db]  ← file-based, WAL mode, in-process driver
+[MongoDB]  ← shared by apps/api and mcp-server (users, api_keys, sessions, etc.)
 ```
 
-All three "layers" run on one Droplet. Nginx and the Node.js app are Docker Compose services. SQLite is a flat file bind-mounted into the app container.
+All three "layers" run on one Droplet. Nginx and the Node.js app are Docker Compose services. MongoDB can run as a container in the same compose or as a managed service (e.g. MongoDB Atlas).
 
 ### How Fastify serves both API and player
 
@@ -143,8 +143,8 @@ This means Nginx proxies all routes — MCP API, SSE stream, and player HTML —
 ### Why 4 vCPU / 8 GB RAM
 
 - Node.js is single-threaded per worker; 4 vCPUs allow headroom for Node, Nginx, OS, and future clustering without resource contention.
-- 8 GB RAM prevents swap thrashing from SQLite page cache (configured at 64 MB in V1), Node heap, and Nginx worker processes.
-- NVMe SSD gives SQLite sequential write speeds >500 MB/s — far exceeding WAL flush requirements.
+- 8 GB RAM prevents swap thrashing from MongoDB working set, Node heap, and Nginx worker processes.
+- NVMe SSD gives MongoDB good I/O performance for the expected data volume.
 - Holding 50 concurrent SSE connections is negligible from a memory standpoint (~20 KB per HTTP keep-alive in Node.js).
 
 ### Alternative: Hetzner CX31
@@ -175,6 +175,23 @@ version: "3.9"
 services:
 
   # ──────────────────────────────────────────────
+  # MONGODB — shared by apps/api and mcp-server
+  # ──────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: pre_mongo
+    restart: unless-stopped
+    networks:
+      - pre-network
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────────────
   # APP SERVICE — Fastify Node.js (MCP + SSE + Player)
   # ──────────────────────────────────────────────
   app:
@@ -183,15 +200,15 @@ services:
     restart: unless-stopped
     networks:
       - pre-network
+    depends_on:
+      mongo:
+        condition: service_healthy
     expose:
       - "3000"
-    volumes:
-      # SQLite database — persisted on host
-      - sqlite-data:/data
     environment:
       NODE_ENV:          production
       PORT:              3000
-      DATABASE_URL:      /data/pre.db
+      MONGODB_URI:       mongodb://mongo:27017/preplai
       API_KEY_SALT:      ${API_KEY_SALT}
       CORS_ORIGIN:       ${CORS_ORIGIN}
       LOG_LEVEL:         ${LOG_LEVEL:-info}
@@ -262,12 +279,8 @@ services:
 # VOLUMES
 # ──────────────────────────────────────────────
 volumes:
-  sqlite-data:
+  mongo-data:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /opt/pre/data
   ssl-certs:
     driver: local
     driver_opts:
@@ -288,7 +301,7 @@ networks:
 
 | Volume | Host path | Purpose |
 |--------|-----------|---------|
-| `sqlite-data` | `/opt/pre/data` | SQLite `.db` + WAL files; survives container recreation |
+| `mongo-data` | (Docker managed) | MongoDB data; survives container recreation |
 | `ssl-certs` | `/etc/letsencrypt` | Let's Encrypt certs; managed by host Certbot, read-only in Nginx |
 
 Note: The old architecture included an `illustrations` volume for user-uploaded SVG files. **This volume is not present in V1.** The `@pre/illustrations` package is a programmatic component registry — all illustration rendering is pure JavaScript. No SVG files are written to or read from disk at runtime.
@@ -312,8 +325,8 @@ Multi-stage build: a `build` stage installs all dependencies and compiles TypeSc
 # ──────────────────────────────────────────────
 FROM node:20-alpine AS build
 
-# Install build tools for native addons (better-sqlite3 needs gcc/python)
-RUN apk add --no-cache python3 make g++ sqlite-dev
+# Install build tools if needed for native addons
+RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
@@ -343,8 +356,8 @@ FROM node:20-alpine AS production
 RUN addgroup -g 1001 -S preapp && \
     adduser  -u 1001 -S preapp -G preapp
 
-# Runtime deps only (better-sqlite3 needs libstdc++)
-RUN apk add --no-cache libstdc++ wget
+# Runtime deps only
+RUN apk add --no-cache wget
 
 WORKDIR /app
 
@@ -353,9 +366,6 @@ COPY --from=build --chown=preapp:preapp /app/dist         ./dist
 COPY --from=build --chown=preapp:preapp /app/node_modules ./node_modules
 COPY --from=build --chown=preapp:preapp /app/package.json ./package.json
 
-# Create SQLite data mount point with correct ownership
-RUN mkdir -p /data && \
-    chown -R preapp:preapp /data
 
 # Switch to non-root user
 USER preapp
@@ -776,8 +786,10 @@ PORT=3000
 APP_BASE_URL=https://pre.yourdomain.com
 
 # ── Database ────────────────────────────────────────────────────────────────
-# Absolute path inside container (mounted volume)
-DATABASE_URL=/data/pre.db
+# MongoDB connection string (shared by apps/api and mcp-server)
+# For Docker Compose: mongodb://mongo:27017/preplai
+# For local dev: mongodb://localhost:27017/preplai
+MONGODB_URI=mongodb://mongo:27017/preplai
 
 # ── Authentication ──────────────────────────────────────────────────────────
 # Salt for HMAC-SHA256 API key hashing — generate with: openssl rand -hex 32
@@ -840,125 +852,74 @@ SENTRY_DSN=
 
 ---
 
-## 8. SQLite Configuration
+## 8. MongoDB Configuration
 
-### File locations
+### Connection
 
-```
-/opt/pre/data/pre.db          ← main database (host path)
-/data/pre.db                  ← inside container (via bind mount)
-/opt/pre/data/pre.db-wal      ← WAL file (auto-managed by SQLite)
-/opt/pre/data/pre.db-shm      ← shared-memory file (auto-managed)
-```
+Both `apps/api` and `packages/mcp-server` connect to the same MongoDB instance via `MONGODB_URI`. The shared database (`preplai`) contains:
 
-All three files (`pre.db`, `pre.db-wal`, `pre.db-shm`) must be backed up together. Backing up only the main `.db` file without the WAL file may produce a corrupt backup if a write transaction was in progress.
+| Collection | Used by | Purpose |
+|------------|---------|---------|
+| `users` | apps/api | Dashboard users (email, password hash) |
+| `api_keys` | apps/api, mcp-server | Unified API keys (dashboard + MCP validation) |
+| `usage_logs` | apps/api | Dashboard usage tracking |
+| `sessions` | mcp-server | MCP session metadata |
+| `visual_scripts` | mcp-server | VisualScript JSON per session |
+| `narrations` | mcp-server | Narration entries per session |
+| `usage_log` | mcp-server | MCP usage tracking |
 
-### Pragmas (applied at connection open)
+### Mongoose connection
 
 ```javascript
-// packages/mcp-server/src/db/connection.js
-import Database from 'better-sqlite3';
+// packages/db/src/connection.ts
+import mongoose from 'mongoose';
 
-const db = new Database(process.env.DATABASE_URL, {
-  verbose: process.env.NODE_ENV === 'development' ? console.log : undefined,
-});
+export async function connectDb(uri?: string) {
+  const mongoUri = uri ?? process.env.MONGODB_URI ?? 'mongodb://localhost:27017/preplai';
+  await mongoose.connect(mongoUri);
+}
 
-// WAL mode: concurrent readers while writer is active
-// Required for SSE sessions reading while MCP tool calls write
-db.pragma('journal_mode = WAL');
-
-// Don't wait for OS fsync on every write — safe with WAL
-db.pragma('synchronous = NORMAL');
-
-// Wait up to 5 seconds when another connection holds a write lock
-db.pragma('busy_timeout = 5000');
-
-// 64 MB page cache (default 2 MB is insufficient for production)
-db.pragma('cache_size = -65536');     // negative = kibibytes
-
-// Enforce foreign key constraints
-db.pragma('foreign_keys = ON');
-
-// Memory-mapped I/O (128 MB) — speeds up large JSON blob reads
-db.pragma('mmap_size = 134217728');
-
-// Store temp tables in memory
-db.pragma('temp_store = MEMORY');
-
-export default db;
+export async function closeDb() {
+  await mongoose.disconnect();
+}
 ```
 
-### V1 database schema
-
-```sql
--- migrations/0001_initial.sql
-
-CREATE TABLE api_keys (
-  id          TEXT PRIMARY KEY,
-  key_hash    TEXT UNIQUE NOT NULL,   -- HMAC-SHA256 with API_KEY_SALT
-  tier        TEXT NOT NULL DEFAULT 'starter',
-  created_at  INTEGER NOT NULL,
-  label       TEXT
-);
-
-CREATE TABLE sessions (
-  id             TEXT PRIMARY KEY,    -- UUID v4
-  api_key_id     TEXT NOT NULL REFERENCES api_keys(id),
-  title          TEXT,
-  aspect_ratio   TEXT NOT NULL DEFAULT '16:9',
-  visual_script  TEXT,                -- current VisualScript JSON blob (nullable)
-  created_at     INTEGER NOT NULL,
-  expires_at     INTEGER NOT NULL
-);
-
--- Performance indexes
-CREATE INDEX idx_sessions_api_key ON sessions(api_key_id);
-CREATE INDEX idx_sessions_expires ON sessions(expires_at);
-```
-
-**Schema design note:** The `visual_script` column stores the current `VisualScript` JSON blob directly on the session row. There is no separate `scenes` or `frames` table in V1. This is intentional — the agent pushes a complete `VisualScript` via `add_scene`, which replaces the previous value. The single JSON blob approach eliminates multi-table transactions and keeps the read path simple (one `SELECT` to hydrate a player).
+**Schema design note:** The `visual_scripts` collection stores the current `VisualScript` JSON per session. The agent pushes a complete `VisualScript` via `add_scene`, which replaces the previous value. The single document approach keeps the read path simple (one lookup to hydrate a player).
 
 ### Backup strategy
 
-#### Online backup (WAL-safe, every 6 hours)
+#### Online backup (every 6 hours)
 
-The SQLite `.backup` command is safe to run while the app is writing (it uses the WAL to capture a consistent snapshot):
+Use `mongodump` to create a consistent snapshot. Run against the running MongoDB container:
 
 ```bash
 #!/bin/bash
-# /opt/pre/scripts/backup-sqlite.sh
+# /opt/pre/scripts/backup-mongo.sh
 set -euo pipefail
 
-DB_PATH="/opt/pre/data/pre.db"
 BACKUP_DIR="/opt/pre/backups"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="${BACKUP_DIR}/pre_${TIMESTAMP}.db"
+BACKUP_PATH="${BACKUP_DIR}/pre_${TIMESTAMP}"
 RETENTION_DAYS=7
 
 mkdir -p "${BACKUP_DIR}"
 
-# Online backup using SQLite3 CLI (.backup is WAL-aware)
-sqlite3 "${DB_PATH}" ".backup '${BACKUP_FILE}'"
+# Dump from MongoDB container (creates /tmp/backup/preplai/)
+docker exec pre_mongo mongodump --db preplai --out /tmp/backup
+docker cp pre_mongo:/tmp/backup "${BACKUP_PATH}"
+docker exec pre_mongo rm -rf /tmp/backup
 
-# Verify backup is readable and passes integrity check
-INTEGRITY=$(sqlite3 "${BACKUP_FILE}" "PRAGMA integrity_check;" 2>&1)
-if [ "${INTEGRITY}" != "ok" ]; then
-  echo "ERROR: Backup integrity check failed: ${INTEGRITY}"
-  rm -f "${BACKUP_FILE}"
-  exit 1
-fi
-
-echo "Backup OK: ${BACKUP_FILE} ($(du -sh "${BACKUP_FILE}" | cut -f1))"
+echo "Backup OK: ${BACKUP_PATH} ($(du -sh "${BACKUP_PATH}" | cut -f1))"
 
 # Delete backups older than RETENTION_DAYS
-find "${BACKUP_DIR}" -name "pre_*.db" -mtime +${RETENTION_DAYS} -delete
+find "${BACKUP_DIR}" -name "pre_*" -type d -mtime +${RETENTION_DAYS} -exec rm -rf {} +
 echo "Pruned backups older than ${RETENTION_DAYS} days"
 ```
 
 ```bash
 # Cron: every 6 hours
-echo "0 */6 * * * deploy /opt/pre/scripts/backup-sqlite.sh >> /var/log/pre-backup.log 2>&1" \
-  | sudo tee /etc/cron.d/pre-sqlite-backup
+echo "0 */6 * * * deploy /opt/pre/scripts/backup-mongo.sh >> /var/log/pre-backup.log 2>&1" \
+  | sudo tee /etc/cron.d/pre-mongo-backup
 ```
 
 #### Off-site upload to S3-compatible storage
@@ -966,39 +927,38 @@ echo "0 */6 * * * deploy /opt/pre/scripts/backup-sqlite.sh >> /var/log/pre-backu
 ```bash
 #!/bin/bash
 # /opt/pre/scripts/backup-offsite.sh
-# Appended to backup-sqlite.sh or run as separate cron
+# Run after backup-mongo.sh or as separate cron
 
 source /opt/pre/.env.backup   # contains AWS_* or B2_* credentials
+LATEST=$(ls -td /opt/pre/backups/pre_* 2>/dev/null | head -1)
 
-aws s3 cp "${BACKUP_FILE}" \
-  "s3://${BACKUP_S3_BUCKET}/sqlite/${TIMESTAMP}/pre.db" \
-  --endpoint-url "${BACKUP_S3_ENDPOINT}" \
-  --storage-class STANDARD_IA
-
-echo "Off-site upload OK: s3://${BACKUP_S3_BUCKET}/sqlite/${TIMESTAMP}/pre.db"
+if [ -n "${LATEST}" ]; then
+  aws s3 cp "${LATEST}" "s3://${BACKUP_S3_BUCKET}/mongo/$(basename ${LATEST})/" --recursive \
+    --endpoint-url "${BACKUP_S3_ENDPOINT}" \
+    --storage-class STANDARD_IA
+  echo "Off-site upload OK: s3://${BACKUP_S3_BUCKET}/mongo/$(basename ${LATEST})/"
+fi
 ```
 
 #### Recovery procedure
 
 ```bash
-# 1. Stop the app container only (Nginx stays up)
+# 1. Stop the app container (Nginx stays up)
 docker compose stop app
 
-# 2a. Restore from local backup
-cp /opt/pre/backups/pre_YYYYMMDD_HHMMSS.db /opt/pre/data/pre.db
+# 2a. Restore from local backup (BACKUP_PATH contains preplai/ subdir)
+docker cp /opt/pre/backups/pre_YYYYMMDD_HHMMSS pre_mongo:/tmp/restore
+docker exec pre_mongo mongorestore --db preplai --drop /tmp/restore/preplai
 
 # 2b. OR restore from S3
-aws s3 cp s3://pre-backups/sqlite/TIMESTAMP/pre.db /opt/pre/data/pre.db \
-  --endpoint-url "${BACKUP_S3_ENDPOINT}"
+aws s3 cp s3://pre-backups/mongo/pre_YYYYMMDD_HHMMSS/ /tmp/restore/ --recursive --endpoint-url "${BACKUP_S3_ENDPOINT}"
+docker cp /tmp/restore pre_mongo:/tmp/restore
+docker exec pre_mongo mongorestore --db preplai --drop /tmp/restore/preplai
 
-# 3. Verify integrity
-sqlite3 /opt/pre/data/pre.db "PRAGMA integrity_check;"
-# Expected: ok
-
-# 4. Restart the app
+# 3. Restart the app
 docker compose start app
 
-# 5. Tail logs to confirm clean startup
+# 4. Tail logs to confirm clean startup
 docker compose logs -f app --tail=50
 ```
 
@@ -1052,7 +1012,7 @@ jobs:
         run: npm test -- --reporter=verbose
         env:
           NODE_ENV: test
-          DATABASE_URL: ":memory:"
+          MONGODB_URI: mongodb://localhost:27017/preplai-test
           API_KEY_SALT: test-salt-not-for-production
 
       - name: Upload coverage
@@ -1206,18 +1166,18 @@ jobs:
 
 ### Health endpoint
 
-The Fastify app exposes `GET /api/health` with no authentication. It checks the SQLite connection and reports SSE subscriber counts:
+The Fastify app exposes `GET /api/health` with no authentication. It checks the MongoDB connection and reports SSE subscriber counts:
 
 ```javascript
 // packages/mcp-server/src/routes/health.js
 export async function healthRoutes(fastify) {
   fastify.get('/api/health', async (request, reply) => {
-    // SQLite connectivity check
+    // MongoDB connectivity check
     let dbOk = false;
     try {
-      dbOk = db.prepare('SELECT 1').get() !== undefined;
+      dbOk = mongoose.connection.readyState === 1; // connected
     } catch (err) {
-      fastify.log.error({ err }, 'Health check: SQLite error');
+      fastify.log.error({ err }, 'Health check: MongoDB error');
     }
 
     // Count active SSE connections across all sessions
@@ -1315,9 +1275,9 @@ if [ "${USAGE}" -gt "${THRESHOLD}" ]; then
   # Add email/webhook alert here
 fi
 
-# Log SQLite file size
-DB_SIZE=$(du -sh /opt/pre/data/pre.db 2>/dev/null | cut -f1)
-echo "$(date): db=${DB_SIZE}"
+# Log MongoDB data size (if using local mongo)
+DB_SIZE=$(du -sh /var/lib/docker/volumes/pre_mongo-data/_data 2>/dev/null | cut -f1 || echo "n/a")
+echo "$(date): mongo=${DB_SIZE}"
 ```
 
 ### Log-based error tracking
@@ -1371,7 +1331,7 @@ console.log({
 
 | Type | Frequency | Retention | Location |
 |------|-----------|-----------|----------|
-| SQLite local backup | Every 6 hours | 7 days | `/opt/pre/backups/` |
+| MongoDB local backup (mongodump) | Every 6 hours | 7 days | `/opt/pre/backups/` |
 | Off-site S3 backup | Every 6 hours | 30 days | S3/B2 bucket |
 | DigitalOcean snapshot | Weekly | 4 snapshots | DO managed |
 
@@ -1381,7 +1341,7 @@ Note: The old architecture included illustration file backups (`aws s3 sync uplo
 
 1. Provision new Droplet with Ubuntu 24.04.
 2. Run server setup (see [Deployment Checklist](#16-deployment-checklist)).
-3. Restore SQLite: `aws s3 cp s3://pre-backups/sqlite/LATEST/pre.db /opt/pre/data/pre.db`
+3. Restore MongoDB: `aws s3 cp s3://pre-backups/mongo/LATEST/ /tmp/restore/ --recursive` then `mongorestore`
 4. Update DNS A record to new IP.
 5. Run `docker compose up -d`.
 6. Verify health endpoint.
@@ -1449,7 +1409,7 @@ The Docker socket (`/var/run/docker.sock`) is **not** mounted into any container
 
 ### API key hashing
 
-All API keys are stored as HMAC-SHA256 hashes in SQLite. The plaintext key is shown to the user once at creation and never stored:
+All API keys are stored as SHA-256 hashes in MongoDB. The plaintext key is shown to the user once at creation and never stored:
 
 ```javascript
 // packages/mcp-server/src/lib/api-key.js
@@ -1550,7 +1510,7 @@ DNS must propagate before running Certbot (ACME challenge requires domain → VP
 | Concurrent SSE connections | > 200 sustained | Investigate keep-alive / connection leaks |
 | Concurrent SSE connections | > 400 sustained | Upgrade to V2 (Redis pub/sub for SSE fan-out) |
 | p99 API response time | > 50ms | Profile + optimize, then V2 |
-| SQLite write contention | Frequent `SQLITE_BUSY` errors | Add write queue or migrate to Postgres |
+| MongoDB write contention | Frequent slow queries | Add indexes or scale read replicas |
 | Memory usage | > 7 GB sustained | Upgrade Droplet or start V2 planning |
 | Sessions created/day | > 1,000 | Review session TTL + cleanup cron schedule |
 
@@ -1564,7 +1524,7 @@ DNS must propagate before running Certbot (ACME challenge requires domain → VP
 
 - **Redis pub/sub**: Replace in-memory `sseSubscribers` Map with Redis Pub/Sub channels. This enables horizontal scaling where multiple app instances can push SSE events to the correct player client regardless of which instance holds the SSE connection.
 - **Worker pool**: CPU-intensive tasks (if any are added post-V1) offloaded to worker containers via BullMQ.
-- **PostgreSQL**: Replace SQLite when write concurrency becomes a bottleneck.
+- **PostgreSQL**: Consider for complex queries if MongoDB becomes a bottleneck.
 - **Horizontal scaling**: Multiple app instances behind Nginx upstream or a cloud load balancer.
 
 ### SSE and horizontal scaling
@@ -1625,7 +1585,7 @@ This change is isolated to `packages/mcp-server/src/session/sse.js` and requires
 | Domain name | ~$1.00/mo | ~$12/yr via Namecheap or Cloudflare |
 | SSL certificate | $0.00 | Let's Encrypt — free |
 | GitHub Actions | $0.00 | Free tier (2,000 min/mo) |
-| S3/B2 backup storage | ~$0.30/mo | < 3 GB SQLite at B2 pricing ($0.006/GB) |
+| S3/B2 backup storage | ~$0.30/mo | < 3 GB MongoDB dumps at B2 pricing ($0.006/GB) |
 | GSAP 3.13 license | $0.00 | Free since Webflow acquisition (April 2025) |
 | Email (Resend free tier) | $0.00 | 100 emails/day free |
 | Uptime monitor (UptimeRobot) | $0.00 | Free tier (50 monitors) |
@@ -1636,7 +1596,7 @@ This change is isolated to `packages/mcp-server/src/session/sse.js` and requires
 
 The old architecture included an `illustrations` volume for SVG files, potentially requiring additional block storage ($10/mo for 100 GB). The programmatic SVG component registry eliminates this cost entirely. V1's storage footprint is purely the SQLite database (expected < 1 GB for 100 users at 24-hour TTL).
 
-At $50/month for 100 users, the infrastructure cost is **$0.50/user/month**.
+At $50/month for 100 users, the infrastructure cost is **$0.50/user/month**. V1's storage footprint is the MongoDB database (expected < 1 GB for 100 users at 24-hour session TTL).
 
 ---
 
@@ -1662,7 +1622,7 @@ docker compose version
 docker run --rm node:20-alpine node --version   # must be >= 18
 
 # ── (root) Create app directories ─────────────────────────────────
-sudo mkdir -p /opt/pre/{data,backups,scripts}
+sudo mkdir -p /opt/pre/{backups,scripts}
 sudo chown -R deploy:deploy /opt/pre
 
 # ── (root) Harden SSH ─────────────────────────────────────────────
@@ -1805,12 +1765,12 @@ for i in {1..15}; do curl -s -o /dev/null -w "%{http_code}\n" https://YOUR_ACTUA
 # ── Security headers ─────────────────────────────────────────────────
 curl -sI https://YOUR_ACTUAL_DOMAIN/ | grep -i "strict-transport\|x-frame\|x-content"
 
-# ── SQLite integrity ─────────────────────────────────────────────────
-sqlite3 /opt/pre/data/pre.db "PRAGMA integrity_check;"
-# Expected: ok
+# ── MongoDB connectivity ─────────────────────────────────────────────
+docker exec pre_mongo mongosh --eval "db.adminCommand('ping')"
+# Expected: { ok: 1 }
 
 # ── Backup script works ──────────────────────────────────────────────
-sudo bash /opt/pre/scripts/backup-sqlite.sh
+sudo bash /opt/pre/scripts/backup-mongo.sh
 ls -lh /opt/pre/backups/
 ```
 
@@ -1819,9 +1779,9 @@ ls -lh /opt/pre/backups/
 ```bash
 # ── (root) Install cron jobs ─────────────────────────────────────────
 
-# SQLite backup every 6 hours
-echo "0 */6 * * * deploy /opt/pre/scripts/backup-sqlite.sh >> /var/log/pre-backup.log 2>&1" \
-  | sudo tee /etc/cron.d/pre-sqlite-backup
+# MongoDB backup every 6 hours
+echo "0 */6 * * * deploy /opt/pre/scripts/backup-mongo.sh >> /var/log/pre-backup.log 2>&1" \
+  | sudo tee /etc/cron.d/pre-mongo-backup
 
 # Disk space check every 15 minutes
 echo "*/15 * * * * deploy /opt/pre/scripts/check-disk.sh >> /var/log/pre-disk.log 2>&1" \
@@ -1845,7 +1805,7 @@ At this point:
 - App and Nginx containers are running with health checks and auto-restart.
 - Fastify serves MCP API (`/mcp`), SSE events (`/session/:id/events`), and player HTML (`/player/:id`) from a single process.
 - SSE connections are proxied by Nginx with `proxy_buffering off` and 1-hour read timeout.
-- SQLite backups run every 6 hours.
+- MongoDB backups run every 6 hours via mongodump.
 - GitHub Actions deploys on every `v*` tag push with health-check gating and rollback.
 - Uptime monitoring is active.
 - Node.js >=18 is confirmed (required by `@modelcontextprotocol/sdk@^1.18.0`).
@@ -1897,18 +1857,19 @@ grep proxy_read_timeout nginx/nginx.conf
 
 ---
 
-### Problem: `SQLITE_BUSY` errors appearing in logs during high load
+### Problem: MongoDB connection pool exhausted or slow queries
 
-**Cause:** Multiple simultaneous write operations (MCP tool calls) are contending for the SQLite write lock.
+**Cause:** Too many concurrent operations or missing indexes.
 
 **Diagnosis:**
 ```bash
-docker compose logs app --since=1h | grep SQLITE_BUSY | wc -l
+docker compose logs app --since=1h | grep -i mongo | wc -l
+docker exec pre_mongo mongosh --eval "db.currentOp()"
 ```
 
-**Fix (V1):** Ensure `db.pragma('busy_timeout = 5000')` is set in `connection.js`. This makes SQLite wait up to 5 seconds for the lock before returning `SQLITE_BUSY`. For V1 load levels, this is sufficient.
+**Fix (V1):** Ensure indexes exist on frequently queried fields (e.g. `api_keys.keyHash`, `sessions.apiKeyId`). Check `packages/db` model definitions for index usage.
 
-**Fix (V2):** Implement a write queue — all DB write operations go through a single serial queue using a JavaScript async queue library. This ensures writes are serialized at the application level before reaching SQLite.
+**Fix (V2):** Add read replicas or scale MongoDB if write/read contention increases.
 
 ---
 

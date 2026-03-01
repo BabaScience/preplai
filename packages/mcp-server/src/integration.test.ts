@@ -9,7 +9,9 @@
  *
  * @vitest-environment jsdom
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { connectDb, closeDb } from '@preplai/db';
 
 // @pre/shared — schemas & types
 import {
@@ -27,9 +29,8 @@ import { renderEntity, buildEntityGroup, SVG_NS } from '@pre/illustrations';
 // @pre/player — scene controller + bridge
 import { SceneController, applyDefaults, assignEntranceDelays, createSSEHandler } from '@pre/player';
 
-// @pre/mcp-server — tool handlers + infra
+// @preplai/mcp-server — tool handlers + infra
 import {
-  createDatabase,
   SessionStore,
   SseRegistry,
   handleCreateSession,
@@ -37,7 +38,20 @@ import {
   handleUpdateScene,
   handleAddNarration,
   handleGetSessionUrl,
-} from '@pre/mcp-server';
+} from '@preplai/mcp-server';
+
+let mongod: MongoMemoryServer;
+
+beforeAll(async () => {
+  mongod = await MongoMemoryServer.create();
+  process.env.MONGODB_URI = mongod.getUri();
+  await connectDb();
+}, 30000);
+
+afterAll(async () => {
+  await closeDb();
+  if (mongod) await mongod.stop();
+});
 
 /** Parse MCP tool result JSON */
 function parse(result: { content: Array<{ text: string }> }) {
@@ -49,10 +63,9 @@ function parse(result: { content: Array<{ text: string }> }) {
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('End-to-End Pipeline', () => {
-  let db: ReturnType<typeof createDatabase>;
   let store: SessionStore;
   let sse: SseRegistry;
-  const baseUrl = 'http://localhost:3001';
+  const baseUrl = 'http://localhost:5005';
 
   // Minimal valid VisualScript that exercises all entity types
   const testScript = {
@@ -88,8 +101,7 @@ describe('End-to-End Pipeline', () => {
   };
 
   beforeEach(() => {
-    db = createDatabase(':memory:');
-    store = new SessionStore(db);
+    store = new SessionStore();
     sse = new SseRegistry();
   });
 
@@ -301,14 +313,12 @@ describe('Schema Parity', () => {
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('SSE Event Flow', () => {
-  let db: ReturnType<typeof createDatabase>;
   let store: SessionStore;
   let sse: SseRegistry;
-  const baseUrl = 'http://localhost:3001';
+  const baseUrl = 'http://localhost:5005';
 
   beforeEach(() => {
-    db = createDatabase(':memory:');
-    store = new SessionStore(db);
+    store = new SessionStore();
     sse = new SseRegistry();
   });
 
@@ -458,14 +468,12 @@ describe('SSE Event Flow', () => {
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('Session Lifecycle', () => {
-  let db: ReturnType<typeof createDatabase>;
   let store: SessionStore;
   let sse: SseRegistry;
-  const baseUrl = 'http://localhost:3001';
+  const baseUrl = 'http://localhost:5005';
 
   beforeEach(() => {
-    db = createDatabase(':memory:');
-    store = new SessionStore(db);
+    store = new SessionStore();
     sse = new SseRegistry();
   });
 
@@ -569,9 +577,9 @@ describe('Session Lifecycle', () => {
     };
     await handleAddScene({ session_id: sessionId, visual_script: script }, { store, sse });
 
-    // Simulate restart: create new store from same DB
-    const store2 = new SessionStore(db);
-    store2.loadFromDb();
+    // Simulate restart: create new store and load from MongoDB
+    const store2 = new SessionStore();
+    await store2.loadFromDb();
 
     const restored = store2.getSession(sessionId);
     expect(restored).not.toBeNull();
@@ -586,14 +594,12 @@ describe('Session Lifecycle', () => {
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('Error Propagation', () => {
-  let db: ReturnType<typeof createDatabase>;
   let store: SessionStore;
   let sse: SseRegistry;
-  const baseUrl = 'http://localhost:3001';
+  const baseUrl = 'http://localhost:5005';
 
   beforeEach(() => {
-    db = createDatabase(':memory:');
-    store = new SessionStore(db);
+    store = new SessionStore();
     sse = new SseRegistry();
   });
 
