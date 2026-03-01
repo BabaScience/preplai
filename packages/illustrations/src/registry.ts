@@ -39,6 +39,18 @@ import { renderCallout } from './components/callout.js';
 import { renderArray } from './components/array.js';
 import { renderLinkedList } from './components/linkedlist.js';
 import { renderBinaryTree } from './components/binarytree.js';
+import { renderHashTable } from './components/hashtable.js';
+import { renderQueue } from './components/queue.js';
+import { renderDecorator } from './components/decorator.js';
+import { renderDNSResolver } from './components/dnsresolver.js';
+import { renderVolume } from './components/volume.js';
+import { renderBindMount } from './components/bindmount.js';
+import { renderTmpfs } from './components/tmpfs.js';
+import { renderList } from './components/list.js';
+import { renderTuple } from './components/tuple.js';
+import { renderSet } from './components/set.js';
+import { renderDockerImage } from './components/dockerimage.js';
+import { renderDockerRegistry } from './components/dockerregistry.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -50,8 +62,7 @@ const generic = (type: string, shape: 'rect' | 'circle' | 'diamond' | 'hexagon' 
 
 const infra = generic('Service');
 const infraAlt = generic('Pod');
-const infraOrg = generic('Queue');
-const infraPrp = generic('Volume');
+const infraOrg = generic('Queue');  // fallback only; renderQueue used
 const infraRed = generic('Firewall');
 const infraBlu = generic('Subnet');
 const univCyan = generic('Entity');
@@ -71,7 +82,7 @@ const genBcd = generic('FlowDiagram');
 const genOrg = generic('Annotation');
 const pedPrp = generic('Proof');
 const dsGrn = generic('LinkedList');
-const dsOrg = generic('HashTable');
+const dsOrg = generic('HashTable');  // fallback only; renderHashTable used
 const dsBcd = generic('Heap');
 const dsPrp = generic('BinaryTree');
 const algoGrn = generic('ArrayCell');
@@ -112,7 +123,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Network: renderNetwork,
   Device: renderDevice,
   Process: univBcd,
-  Queue: infraOrg,
+  Queue: renderQueue,
   Cache: renderCache,
   LoadBalancer: renderLoadBalancer,
   Service: infra,
@@ -120,8 +131,14 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   APIGateway: infra,
   Lambda: renderLambda,
   Subnet: infraBlu,
-  Volume: infraPrp,
+  Volume: renderVolume,
   Registry: infraAlt,
+  DNSResolver: renderDNSResolver,
+  Decorator: renderDecorator,
+  BindMount: renderBindMount,
+  Tmpfs: renderTmpfs,
+  DockerImage: renderDockerImage,
+  DockerRegistry: renderDockerRegistry,
   Monitor: infraAlt,
   Pipeline: renderPipeline,
   Decision: decisionDiamond,
@@ -183,10 +200,14 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Array: renderArray,
   LinkedList: renderLinkedList,
   BinaryTree: renderBinaryTree,
-  HashTable: dsOrg,
+  HashTable: renderHashTable,
+  Dict: renderHashTable,
   Heap: dsBcd,
   GraphDS: infra,
   Trie: dsGrn,
+  List: renderList,
+  Tuple: renderTuple,
+  Set: renderSet,
 
   // ── Algorithm Visualization
   ArrayCell: algoGrn,

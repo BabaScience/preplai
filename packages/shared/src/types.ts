@@ -15,6 +15,9 @@ export type VisualEntityType =
   // Extended Infrastructure (10)
   | 'Firewall' | 'APIGateway' | 'Lambda' | 'Subnet' | 'Volume'
   | 'Registry' | 'Monitor' | 'Pipeline' | 'Decision' | 'Cluster'
+  // Docker & Storage (6)
+  | 'DNSResolver' | 'Decorator' | 'BindMount' | 'Tmpfs'
+  | 'DockerImage' | 'DockerRegistry'
   // Flow / Connection (2)
   | 'BidirectArrow' | 'DottedArrow'
   // Abstract / Universal (12)
@@ -31,8 +34,9 @@ export type VisualEntityType =
   | 'Annotation' | 'BarChart' | 'ScatterPlot'
   // Pedagogical (6)
   | 'StepList' | 'CodeBlock' | 'Definition' | 'Callout' | 'Proof' | 'Analogy'
-  // Data Structures (7)
+  // Data Structures (11)
   | 'Array' | 'LinkedList' | 'BinaryTree' | 'HashTable' | 'Heap' | 'GraphDS' | 'Trie'
+  | 'List' | 'Tuple' | 'Set' | 'Dict'
   // Algorithm Visualization (3)
   | 'ArrayCell' | 'Pointer' | 'RecursionTree'
   // Automata & Theory (3)

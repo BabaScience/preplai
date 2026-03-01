@@ -55,6 +55,18 @@ export { renderCallout } from './components/callout.js';
 export { renderArray } from './components/array.js';
 export { renderLinkedList } from './components/linkedlist.js';
 export { renderBinaryTree } from './components/binarytree.js';
+export { renderHashTable } from './components/hashtable.js';
+export { renderQueue } from './components/queue.js';
+export { renderDecorator } from './components/decorator.js';
+export { renderDNSResolver } from './components/dnsresolver.js';
+export { renderVolume } from './components/volume.js';
+export { renderBindMount } from './components/bindmount.js';
+export { renderTmpfs } from './components/tmpfs.js';
+export { renderList } from './components/list.js';
+export { renderTuple } from './components/tuple.js';
+export { renderSet } from './components/set.js';
+export { renderDockerImage } from './components/dockerimage.js';
+export { renderDockerRegistry } from './components/dockerregistry.js';
 
 // ── Generic component factory (for extending)
 export { createGenericRenderer } from './components/generic.js';

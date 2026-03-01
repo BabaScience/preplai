@@ -62,6 +62,8 @@ describe('registry', () => {
       'Cache', 'LoadBalancer', 'Service', 'Firewall', 'APIGateway',
       'Lambda', 'Subnet', 'Volume', 'Registry', 'Monitor', 'Pipeline',
       'Decision', 'Cluster',
+      'DNSResolver', 'Decorator', 'BindMount', 'Tmpfs',
+      'DockerImage', 'DockerRegistry',
     ];
     for (const type of infraTypes) {
       expect(typeof registry[type], `registry['${type}'] should be a function`).toBe('function');
@@ -80,8 +82,8 @@ describe('registry', () => {
 
   it('should have all data structure types registered', () => {
     const types = [
-      'Array', 'LinkedList', 'BinaryTree', 'HashTable',
-      'Heap', 'GraphDS', 'Trie',
+      'Array', 'LinkedList', 'BinaryTree', 'HashTable', 'Dict',
+      'Heap', 'GraphDS', 'Trie', 'List', 'Tuple', 'Set',
     ];
     for (const type of types) {
       expect(typeof registry[type], `registry['${type}'] should be a function`).toBe('function');

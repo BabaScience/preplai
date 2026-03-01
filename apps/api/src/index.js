@@ -7,7 +7,8 @@ import keysRoutes from './routes/keys.js';
 import usageRoutes from './routes/usage.js';
 import settingsRoutes from './routes/settings.js';
 
-const PORT = process.env.PORT || 5000;
+
+const PORT = process.env.PORT || 5001;
 
 export function createApp() {
   const app = express();
