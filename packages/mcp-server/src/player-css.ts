@@ -83,24 +83,27 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 
 #narrator-text {
   max-width: 800px;
-  max-height: 100px;
+  max-height: 120px;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   padding: 20px 36px;
   background: rgba(12, 13, 20, 0.88);
   backdrop-filter: blur(24px) saturate(1.3);
   -webkit-backdrop-filter: blur(24px) saturate(1.3);
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.04);
+  border-left: 3px solid #C9A84C;
   box-shadow:
     0 12px 40px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  color: #a0a0b8;
+  color: #b8b8d0;
   font-family: 'Inter', sans-serif;
   font-size: 17px;
   font-weight: 400;
   line-height: 1.7;
   letter-spacing: 0.01em;
   text-align: center;
+  -webkit-font-smoothing: antialiased;
   opacity: 0;
   transform: translateY(12px);
   transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
@@ -147,7 +150,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   display: flex;
   align-items: center;
   gap: 12px;
-  opacity: 0.7;
+  opacity: 0.85;
   transition: opacity 0.3s ease;
   background: rgba(12, 13, 20, 0.75);
   backdrop-filter: blur(12px);
@@ -157,7 +160,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 }
 
 #frame-nav.visible {
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 #frame-nav:hover {
@@ -166,8 +169,8 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 
 #frame-counter {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  color: #6b6b80;
   min-width: 48px;
   text-align: center;
   user-select: none;
@@ -193,24 +196,68 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   color: rgba(255, 255, 255, 0.8);
 }
 
+#frame-nav button:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+#frame-nav button:focus-visible {
+  outline: 2px solid #C9A84C;
+  outline-offset: 2px;
+}
+
+#frame-nav button[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* ── Frame dot indicators ────────────────────────────────────────── */
+
+#frame-dots {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(201, 168, 76, 0.4); }
+  50%      { box-shadow: 0 0 12px rgba(201, 168, 76, 0.6); }
+}
 
 .frame-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
   transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.frame-dot:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.15);
 }
 
 .frame-dot.visited {
   background: rgba(255, 255, 255, 0.4);
 }
 
+.frame-dot.visited:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
 .frame-dot.current {
   background: #C9A84C;
   box-shadow: 0 0 8px rgba(201, 168, 76, 0.4);
   transform: scale(1.2);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+.frame-dot.current:hover {
+  background: #C9A84C;
+  transform: scale(1.25);
 }
 
 /* ── Frame crossfade transition ──────────────────────────────────── */
@@ -420,7 +467,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 
 .keyboard-hint {
   position: fixed;
-  bottom: 60px;
+  bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
   font-family: 'JetBrains Mono', monospace;

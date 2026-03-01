@@ -39,16 +39,16 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
 
   <!-- Narrator text overlay (HTML, not SVG — better font rendering) -->
   <div id="narrator-overlay">
-    <p id="narrator-text"></p>
+    <p id="narrator-text" aria-live="polite"></p>
   </div>
 
   <!-- Frame navigation (keyboard + click) -->
   <div id="frame-nav">
-    <button id="prev-frame" aria-label="Previous frame">
+    <button id="prev-frame" aria-label="Previous frame" title="Previous frame (←)">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    <div id="frame-dots"></div>
-    <button id="next-frame" aria-label="Next frame">
+    <div id="frame-dots" role="tablist" aria-label="Scene navigation"></div>
+    <button id="next-frame" aria-label="Next frame" title="Next frame (→)">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
     <span id="frame-counter">1 / 1</span>

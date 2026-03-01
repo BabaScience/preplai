@@ -1241,9 +1241,18 @@ export const PLAYER_JS = `(function() {
     frameCounter.textContent = (currentFrame + 1) + ' / ' + total;
     if (frameNav) frameNav.classList.add('visible');
 
+    // Update prev/next button aria-disabled
+    if (prevBtn) {
+      prevBtn.setAttribute('aria-disabled', currentFrame === 0 ? 'true' : 'false');
+    }
+    if (nextBtn) {
+      nextBtn.setAttribute('aria-disabled', currentFrame >= total - 1 ? 'true' : 'false');
+    }
+
     // Render frame dots
     var dotsContainer = document.getElementById('frame-dots');
     if (dotsContainer) {
+      dotsContainer.setAttribute('aria-label', 'Scene ' + (currentFrame + 1) + ' of ' + total);
       dotsContainer.innerHTML = '';
       for (var di = 0; di < total; di++) {
         var dot = document.createElement('div');
