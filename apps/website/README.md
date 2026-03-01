@@ -1,77 +1,16 @@
-# preplai.com Website + Dashboard
+# React + Vite
 
-The marketing website and user dashboard for [preplai.com](https://preplai.com).
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Overview
+Currently, two official plugins are available:
 
-This is a single-page application (SPA) with hash-based routing and a Python CGI backend. It serves both the public marketing site and the authenticated dashboard where users manage API keys and monitor usage.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Stack
+## React Compiler
 
-- **Frontend**: Vanilla HTML/CSS/JS (no framework, no build step)
-- **Backend**: Python 3 CGI script with SQLite
-- **Fonts**: Instrument Serif (display), Inter (body/UI), JetBrains Mono (code)
-- **Charts**: Chart.js for usage visualization
-- **Icons**: Lucide
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Pages
+## Expanding the ESLint configuration
 
-### Public
-- **Landing** (`#home`) — Hero, features, pricing, setup guide, footer
-- **Sign Up** (`#signup`) — Create account form
-- **Log In** (`#login`) — Authentication form
-
-### Dashboard (authenticated)
-- **Overview** (`#dashboard/overview`) — KPI cards: API keys, requests, sessions, scenes
-- **API Keys** (`#dashboard/keys`) — Create, view, revoke API keys (plai_ prefix)
-- **Usage** (`#dashboard/usage`) — Bar chart, progress bars, recent API calls table
-- **Settings** (`#dashboard/settings`) — Password change, account deletion
-
-## API Routes
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | /signup | Create account |
-| POST | /login | Authenticate |
-| GET | /me | Current user info |
-| POST | /keys | Create API key |
-| GET | /keys | List API keys |
-| DELETE | /keys?id=X | Revoke API key |
-| GET | /usage | Usage data + daily breakdown |
-| GET | /overview | Dashboard KPI summary |
-| POST | /settings/password | Change password |
-| DELETE | /account | Delete account permanently |
-
-## API Key Format
-
-- Prefix: `plai_` + 40 random hex characters
-- Storage: SHA-256 hashed (raw key shown once at creation)
-- Display: `plai_xxxx...yyyy` (first 9 + last 4 chars)
-
-## Tier Limits
-
-| | Free | Pro | Enterprise |
-|---|---|---|---|
-| Sessions | 5 | 100/mo | Unlimited |
-| Scenes/month | 50 | 2,000 | Unlimited |
-| Scenes/session | 10 | 100 | Unlimited |
-| Link expiry | 7 days | 90 days | Never |
-| Price | $0 | $19/mo | Custom |
-
-## Local Development
-
-No build step required. Serve the directory with any static file server:
-
-```bash
-cd apps/website
-python3 -m http.server 8080
-```
-
-The CGI backend requires a CGI-capable server. In production, the `__CGI_BIN__` placeholder in app.js is replaced with the actual API URL at deploy time.
-
-## Design
-
-- **Dark-first** palette: `#0b0c10` background, `#C9A84C` gold accent
-- **Light mode**: warm off-white `#FAFAF8`, muted gold `#B8952F`
-- 4px spacing system with fluid `clamp()` type scale
-- Golden easing: `cubic-bezier(0.16, 1, 0.3, 1)` for all transitions
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
