@@ -198,6 +198,28 @@ async function main() {
     version: '0.1.0',
   });
 
+  // Auth: use provided API key or generate one for local development
+  let localApiKeyId: string | null = null;
+  const envKey = process.env.PREPLAI_API_KEY;
+
+  if (envKey) {
+    const validated = (await import('./auth.js')).validateApiKey(ctx.db, envKey);
+    if (validated) {
+      localApiKeyId = validated.id;
+      console.error(`[preplai] Authenticated as ${validated.owner_email} (${validated.tier})`);
+    } else {
+      console.error('[preplai] WARNING: PREPLAI_API_KEY is invalid. Generating a local dev key.');
+    }
+  }
+
+  if (!localApiKeyId) {
+    const { createApiKey } = await import('./auth.js');
+    const newKey = createApiKey(ctx.db, 'local@localhost', 'free');
+    localApiKeyId = newKey.id;
+    console.error(`[preplai] Generated local API key: ${newKey.key}`);
+    console.error('[preplai] Set PREPLAI_API_KEY env var to use your own key.');
+  }
+
   const store = ctx.store;
   const sse = ctx.sse;
   const baseUrl = cfg.baseUrl;
@@ -211,9 +233,22 @@ async function main() {
       aspect_ratio: z.string().optional().describe('Aspect ratio, default "16:9". Options: "16:9", "4:3"'),
     },
     async (args) => {
+      const { trackUsage, checkSessionLimit } = await import('./auth.js');
+
+      const limitCheck = checkSessionLimit(ctx.db, localApiKeyId!, 'free');
+      if (!limitCheck.allowed) {
+        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'LIMIT_EXCEEDED', message: limitCheck.reason, suggestion: 'Delete old sessions or upgrade.' } }) }] };
+      }
+
       const result = await withErrorBoundary(
-        (a: any) => handleCreateSession(a, { store, baseUrl }),
+        (a: any) => handleCreateSession({ ...a, _apiKeyId: localApiKeyId }, { store, baseUrl }),
       )(args);
+
+      // Track usage
+      try {
+        const data = JSON.parse(result.content[0].text);
+        if (data.success) trackUsage(ctx.db, localApiKeyId!, 'create_session', data.data.session_id);
+      } catch {}
 
       // Auto-open the player in the default browser
       try {
@@ -248,9 +283,18 @@ async function main() {
       visual_script: VisualScriptSchema.describe('The visual script defining the scene. Must include sceneId, frames array, and totalDuration.'),
     },
     async (args) => {
+      const { trackUsage, checkSceneLimit } = await import('./auth.js');
+
+      const sceneCheck = checkSceneLimit(ctx.db, localApiKeyId!, 'free');
+      if (!sceneCheck.allowed) {
+        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'LIMIT_EXCEEDED', message: sceneCheck.reason, suggestion: 'Upgrade your plan or delete scenes.' } }) }] };
+      }
+
       const result = await withErrorBoundary(
         (a: any) => handleAddScene(a, { store, sse }),
       )(args);
+
+      trackUsage(ctx.db, localApiKeyId!, 'add_scene', args.session_id);
       return { content: result.content };
     },
   );
@@ -264,9 +308,18 @@ async function main() {
       visual_script: VisualScriptSchema.describe('The replacement visual script. Same format as add_scene.'),
     },
     async (args) => {
+      const { trackUsage, checkSceneLimit } = await import('./auth.js');
+
+      const sceneCheck = checkSceneLimit(ctx.db, localApiKeyId!, 'free');
+      if (!sceneCheck.allowed) {
+        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'LIMIT_EXCEEDED', message: sceneCheck.reason, suggestion: 'Upgrade your plan or delete scenes.' } }) }] };
+      }
+
       const result = await withErrorBoundary(
         (a: any) => handleUpdateScene(a, { store, sse }),
       )(args);
+
+      trackUsage(ctx.db, localApiKeyId!, 'update_scene', args.session_id);
       return { content: result.content };
     },
   );
@@ -284,6 +337,10 @@ async function main() {
       const result = await withErrorBoundary(
         (a: any) => handleAddNarration(a, { store, sse }),
       )(args);
+
+      const { trackUsage } = await import('./auth.js');
+      trackUsage(ctx.db, localApiKeyId!, 'add_narration', args.session_id);
+
       return { content: result.content };
     },
   );

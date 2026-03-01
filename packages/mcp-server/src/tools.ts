@@ -65,13 +65,13 @@ function validateVisualScript(visual_script: any): string | null {
 // ── Tool 1: create_session ────────────────────────────────────────────
 
 export async function handleCreateSession(
-  args: { title: string; aspect_ratio?: string },
+  args: { title: string; aspect_ratio?: string; _apiKeyId?: string },
   deps: CreateSessionDeps,
 ): Promise<McpToolContent> {
-  const { title, aspect_ratio = '16:9' } = args;
+  const { title, aspect_ratio = '16:9', _apiKeyId } = args;
   const { store, baseUrl } = deps;
 
-  const session = store.createSession(title, aspect_ratio);
+  const session = store.createSession(title, aspect_ratio, _apiKeyId ?? null);
 
   return mcpOk({
     session_id: session.id,

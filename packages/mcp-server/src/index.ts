@@ -17,8 +17,22 @@ export { SseRegistry } from './sse.js';
 export type { SseReply } from './sse.js';
 
 // Error helpers
-export { mcpOk, mcpErr, mcpNotFound, mcpValidationError, withErrorBoundary } from './errors.js';
+export { mcpOk, mcpErr, mcpNotFound, mcpValidationError, mcpUnauthorized, mcpLimitExceeded, withErrorBoundary } from './errors.js';
 export type { McpToolContent } from './errors.js';
+
+// Auth
+export {
+  createApiKey,
+  validateApiKey,
+  trackUsage,
+  checkSceneLimit,
+  checkSessionLimit,
+  generateApiKey,
+  hashKey,
+  authError,
+  TIER_LIMITS,
+} from './auth.js';
+export type { TierLimits, ValidatedKey, CreateKeyResult, LimitCheckResult } from './auth.js';
 
 // Tool handlers
 export {

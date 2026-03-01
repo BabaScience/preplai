@@ -1,5 +1,5 @@
 /**
- * @pre/mcp-server — MCP Tool Result Helpers
+ * @preplai/mcp-server — MCP Tool Result Helpers
  *
  * Standard response formatters for MCP tool handlers.
  * All responses follow the { content: [{ type: 'text', text: JSON }] } shape.
@@ -88,4 +88,26 @@ export function withErrorBoundary<T>(
       );
     }
   };
+}
+
+/**
+ * Standard UNAUTHORIZED error response.
+ */
+export function mcpUnauthorized(message?: string): McpToolContent {
+  return mcpErr(
+    'UNAUTHORIZED',
+    message || 'Valid API key required.',
+    'Include your API key in the X-Preplai-API-Key header. Get one at https://preplai.com.',
+  );
+}
+
+/**
+ * Standard LIMIT_EXCEEDED error response.
+ */
+export function mcpLimitExceeded(message: string): McpToolContent {
+  return mcpErr(
+    'LIMIT_EXCEEDED',
+    message,
+    'Upgrade your plan at https://preplai.com/pricing or delete unused sessions.',
+  );
 }

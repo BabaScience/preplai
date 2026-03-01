@@ -1,39 +1,17 @@
 {
   "name": "@preplai/mcp-server",
   "version": "0.1.0",
-  "description": "Cinema-quality visual presentations as an agent-native MCP API. Turn structured tool calls into live SVG + GSAP animations.",
+  "private": true,
+  "description": "Cinema-quality visual presentations as an agent-native MCP API.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "bin": {
-    "preplai": "./dist/server.js",
-    "preplai-mcp": "./dist/stdio-bridge.js"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
-  "keywords": [
-    "mcp",
-    "presentation",
-    "svg",
-    "animation",
-    "gsap",
-    "claude",
-    "ai",
-    "agent",
-    "visual",
-    "cinema"
-  ],
-  "author": "BabaScience",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/BabaScience/preplai"
-  },
-  "homepage": "https://github.com/BabaScience/preplai#readme",
   "engines": {
     "node": ">=18.0.0"
   },
@@ -42,8 +20,7 @@
     "start": "node dist/server.js",
     "start:mcp": "node dist/stdio-bridge.js",
     "dev": "node --watch dist/server.js",
-    "test": "vitest run",
-    "prepublishOnly": "npm run build"
+    "test": "vitest run"
   },
   "dependencies": {
     "@preplai/shared": "*",

@@ -2,68 +2,63 @@
 
 **Cinema-quality visual presentations as an agent-native MCP API**
 
-Turn structured tool calls into live SVG + GSAP animations. An AI agent calls 8 MCP tools → preplai compiles visual scripts into animated scenes → a browser player renders them in real-time over SSE. No slides, no static images — programmatic cinema.
+Turn structured tool calls into live SVG + GSAP animations. An AI agent calls 8 MCP tools → preplai compiles visual scripts into animated scenes → a browser player renders them in real-time over SSE.
 
 ---
 
-## 60-Second Quick Start
+## Getting Started
+
+### 1. Get your API key
 
 ```bash
-# Install and run
-npx @preplai/mcp-server
-
-# Or install globally
-npm install -g @preplai/mcp-server
-preplai
+curl -X POST https://api.preplai.com/api/keys \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com"}'
 ```
 
-Verify the server is running:
+You'll receive a key like `plai_a1b2c3d4e5f6...` — store it securely, it's shown only once.
 
-```bash
-curl http://localhost:3001/health
-```
+### 2. Connect to Claude Desktop
 
-Open `http://localhost:3001/health` in a browser — you should see `{"status":"ok"}`.
-
----
-
-## Claude Desktop Integration
-
-Add preplai to Claude Desktop so you can create presentations directly from conversations.
-
-**Option 1 — direct node path (recommended):**
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "preplai": {
       "command": "node",
-      "args": ["/path/to/node_modules/@preplai/mcp-server/dist/stdio-bridge.js"]
+      "args": ["/path/to/packages/mcp-server/dist/stdio-bridge.js"],
+      "env": {
+        "PREPLAI_API_KEY": "plai_your_key_here",
+        "BASE_URL": "http://localhost:3001"
+      }
     }
   }
 }
 ```
 
-Replace `/path/to/node_modules` with the actual path where `@preplai/mcp-server` is installed (e.g. after a global install: `$(npm root -g)/@preplai/mcp-server/dist/stdio-bridge.js`).
+Restart Claude Desktop → look for the 🔨 icon → 8 tools available.
 
-**Option 2 — npx:**
+### 3. Create your first presentation
 
-```json
-{
-  "mcpServers": {
-    "preplai": {
-      "command": "npx",
-      "args": ["@preplai/mcp-server", "--stdio"]
-    }
-  }
-}
+Ask Claude: *"Create a presentation about how DNS resolution works"*
+
+The player opens automatically at `http://localhost:3001/player/:sessionId`.
+
+---
+
+## API Authentication
+
+All API endpoints require an `X-Preplai-API-Key` header:
+
+```bash
+curl -X POST https://api.preplai.com/api/create-session \
+  -H "Content-Type: application/json" \
+  -H "X-Preplai-API-Key: plai_your_key_here" \
+  -d '{"title": "System Architecture"}'
 ```
 
-Config file location:
-- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-
-Restart Claude Desktop. You should see the 🔨 icon with **8 tools** available.
+Player URLs are accessible to anyone with the link (the session ID acts as a capability token).
 
 ---
 
@@ -72,40 +67,49 @@ Restart Claude Desktop. You should see the 🔨 icon with **8 tools** available.
 | Tool | Description |
 |---|---|
 | `create_session` | Create a new presentation session. Returns `session_id` and `player_url`. |
-| `add_scene` | Add a visual scene with SVG entities, transitions, and timing. |
-| `update_scene` | Replace or update an existing scene's visual script. |
-| `remove_scene` | Remove a scene from a session by index. |
-| `add_narration` | Add a narration text overlay to a specific scene. |
-| `get_session_url` | Get the player URL for a session (optionally with stats). |
-| `list_sessions` | List all active sessions. |
-| `delete_session` | Delete a session and its data. |
+| `add_scene` | Add a visual scene with SVG elements, transitions, and timing. |
+| `update_scene` | Replace an existing scene's visual script. |
+| `remove_scene` | Remove frames by index, last N, or clear all. |
+| `add_narration` | Add narration text overlay to a specific frame. |
+| `get_session_url` | Get the player URL (optionally with session stats). |
+| `list_sessions` | List your presentation sessions. |
+| `delete_session` | Delete a session and all its data. |
+
+---
+
+## Plans & Limits
+
+| | Free | Pro | Enterprise |
+|---|---|---|---|
+| Sessions | 5 | 100 | Unlimited |
+| Scenes/month | 50 | 2,000 | Unlimited |
+| Scenes/session | 10 | 100 | Unlimited |
+| Session expiry | 7 days | 90 days | 365 days |
+
+Upgrade at [preplai.com/pricing](https://preplai.com/pricing).
 
 ---
 
 ## REST API
 
-The same operations are available as REST endpoints — no MCP SDK required.
-
+### Create session
 ```bash
-# Create a session
 curl -X POST http://localhost:3001/api/create-session \
   -H "Content-Type: application/json" \
+  -H "X-Preplai-API-Key: plai_..." \
   -d '{"title": "Binary Search Explained"}'
+```
 
-# Add a scene
+### Add scene
+```bash
 curl -X POST http://localhost:3001/api/add-scene \
   -H "Content-Type: application/json" \
-  -d '{
-    "session_id": "<session_id>",
-    "visual_script": {
-      "title": "Scene 1",
-      "entities": [
-        { "id": "node1", "type": "server", "x": 30, "y": 50, "label": "API Server" }
-      ]
-    }
-  }'
+  -H "X-Preplai-API-Key: plai_..." \
+  -d '{"session_id": "...", "visual_script": {...}}'
+```
 
-# Health check
+### Health check (no auth required)
+```bash
 curl http://localhost:3001/health
 ```
 
@@ -113,120 +117,54 @@ curl http://localhost:3001/health
 
 ## Player Features
 
-- **1920×1080 SVG canvas** — percentage-based positioning, scales to any viewport
-- **GSAP 3.13** — smooth `fade`, `slide`, `scale`, and `morph` transitions
-- **Dark cinematic theme** — deep backgrounds, high-contrast entities
-- **Keyboard navigation** — arrow keys to step through scenes
-- **SSE live updates** — scenes push instantly to open browsers via `EventSource`
-- **Auto-reconnect** — player reconnects automatically if the server restarts
-- **Narrator overlay** — typewriter-style text panels synced to scenes
-- **iframe + postMessage bridge** — embed any session in any page
-
----
-
-## Architecture
-
-preplai is a monorepo with 5 packages. Only `mcp-server` ships in v1.
-
-```
-preplai/
-├── packages/
-│   ├── mcp-server/       # Fastify 5 server, SQLite, SSE, 8 MCP tools  ← ships in v1
-│   ├── shared/           # Types, schemas, constants, type guards         (internal)
-│   ├── compiler/         # 5-stage compilation pipeline                   (future)
-│   ├── player/           # Scene controller, narrator, iframe bridge      (future)
-│   └── illustrations/    # 88+ programmatic SVG component types           (future)
-├── package.json          # npm workspaces root
-├── tsconfig.base.json    # Shared TypeScript config
-└── vitest.config.ts      # Test config (jsdom for DOM tests)
-```
+- 1920×1080 SVG canvas with percentage-based positioning
+- GSAP 3.13 smooth transitions (fade, slide, scale, morph)
+- Dark cinematic theme with radial vignette
+- Keyboard navigation (← → arrows) with clickable frame dots
+- SSE live updates with auto-reconnect and exponential backoff
+- Narrator overlay with glass-morphism styling
+- Mobile responsive with touch-friendly controls
 
 ---
 
 ## Entity Types
 
-Entities are the visual building blocks of each scene. Specify them by `type` in your visual script.
+**Dedicated renderers**: Server, Database, User, Cloud, Concept, Label, CodeBlock
 
-**Infrastructure**
-`server` · `database` · `cloud` · `loadBalancer` · `firewall` · `cdn` · `container` · `vm`
+**Shaped renderers**: Cache (circle), LoadBalancer (hexagon), Decision (diamond), Metric (circle)
 
-**Data Structures**
-`array` · `linkedList` · `binaryTree` · `hashTable` · `graph` · `stack` · `queue` · `heap`
+**Generic (rounded rect)**: Array, Pointer, BinaryTree, LinkedList, Group, Table, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation, Process, Queue, Service, NeuralNetwork, FSM, CPU, Register, MemoryBlock, Packet, ProtocolStack
 
-**Algorithms**
-`sortVisualization` · `bfsTraversal` · `dfsTraversal` · `pathfinding` · `dpTable`
-
-**Architecture**
-`microservice` · `pipeline` · `eventBus` · `messageQueue` · `apiGateway` · `cache`
-
-**Networking**
-`packet` · `dns` · `tcp` · `http` · `websocket` · `grpc`
-
-**Diagrams**
-`flowchart` · `sequenceDiagram` · `stateMachine` · `erDiagram` · `gantt`
-
-Every entity is a pure function `(props) → SVG string` — fully parameterized with colors, labels, sizes, and state.
+**Connections**: Arrow, DataFlow (animated dashes), BidirectArrow, DottedArrow
 
 ---
 
-## Hosted Mode
+## Architecture
 
-Deploy preplai behind a public URL and serve presentations to remote viewers.
+Monorepo with 5 packages:
 
-```bash
-PORT=3001 \
-BASE_URL=https://your-domain.com \
-ALLOWED_ORIGINS=https://your-domain.com \
-preplai
-```
-
-| Variable | Description |
-|---|---|
-| `PORT` | HTTP port (default: `3001`) |
-| `BASE_URL` | Public URL returned in `player_url` responses |
-| `ALLOWED_ORIGINS` | CORS allowed origins (comma-separated) |
-
----
-
-## Development
-
-```bash
-# Clone and install
-git clone https://github.com/BabaScience/preplai.git
-cd preplai
-npm install
-
-# Run all tests
-npx vitest run
-
-# Watch mode
-npx vitest
-
-# Single package
-npx vitest run packages/mcp-server
-
-# Type check
-npx tsc --noEmit
-```
-
-**487+ tests** across 20 test files. Built with TDD from the ground up.
+| Package | Status | Purpose |
+|---|---|---|
+| `@preplai/mcp-server` | **Active (v1)** | Fastify server, SQLite, SSE, MCP tools, auth |
+| `@preplai/shared` | Active | Types, schemas, constants |
+| `@preplai/compiler` | Future | 5-stage compilation pipeline |
+| `@preplai/illustrations` | Future | 88+ SVG component types |
+| `@preplai/player` | Future | Scene controller, narrator, iframe bridge |
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Language | TypeScript (strict, ESM) |
-| HTTP server | Fastify 5 |
-| Persistence | better-sqlite3 (WAL mode) |
-| MCP transport | @modelcontextprotocol/sdk |
-| Schema validation | Zod |
-| Animation engine | GSAP 3.13 (CDN, player-side) |
-| Test framework | Vitest + jsdom |
+- **TypeScript** — strict mode, ESM
+- **Fastify 5** — HTTP server
+- **better-sqlite3** — WAL-mode persistence
+- **@modelcontextprotocol/sdk** — MCP stdio transport
+- **Zod** — runtime schema validation
+- **GSAP 3.13** — animation engine (CDN, player-side)
+- **Vitest + jsdom** — 490+ tests
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Proprietary — see [LICENSE](LICENSE).

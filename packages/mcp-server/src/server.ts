@@ -21,12 +21,12 @@ import {
   handleUpdateScene,
   handleAddNarration,
   handleGetSessionUrl,
-  handleListSessions,
   handleDeleteSession,
   handleRemoveScene,
 } from './tools.js';
 import { withErrorBoundary } from './errors.js';
 import { PLAYER_HTML_TEMPLATE } from './player-html.js';
+import { validateApiKey, trackUsage, checkSceneLimit, checkSessionLimit, createApiKey, authError, type ValidatedKey } from './auth.js';
 
 // ── Config ────────────────────────────────────────────────────────────
 
@@ -103,6 +103,46 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     }
   });
 
+  // ── Auth: API key validation ──────────────────────────────────────
+  // Decorate request with validated key info
+  app.decorateRequest('apiKey', null);
+
+  // Routes that bypass auth
+  const PUBLIC_ROUTES = new Set(['/health', '/player.css', '/player.js']);
+
+  app.addHook('onRequest', async (request, reply) => {
+    const path = request.url.split('?')[0];
+
+    // Public routes: no auth needed
+    if (PUBLIC_ROUTES.has(path)) return;
+
+    // Player pages: gated via session ownership (checked in route handler)
+    if (path.startsWith('/player/')) return;
+
+    // SSE endpoint: gated via session ownership (checked in route handler)
+    if (path.startsWith('/session/') && path.endsWith('/events')) return;
+
+    // API key provisioning endpoint (bootstrap): no auth
+    if (path === '/api/keys' && request.method === 'POST') return;
+
+    // All other routes require API key
+    const key = request.headers['x-preplai-api-key'] as string | undefined;
+    if (!key) {
+      const err = authError('MISSING_API_KEY', 'API key required. Include X-Preplai-API-Key header.');
+      reply.status(err.statusCode).send(err.body);
+      return;
+    }
+
+    const validated = validateApiKey(db, key);
+    if (!validated) {
+      const err = authError('INVALID_API_KEY', 'Invalid or revoked API key.');
+      reply.status(err.statusCode).send(err.body);
+      return;
+    }
+
+    (request as any).apiKey = validated;
+  });
+
   // ── Health check ──────────────────────────────────────────────────
   app.get('/health', async () => {
     return {
@@ -113,9 +153,43 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     };
   });
 
+  // ── API Key Management ────────────────────────────────────────────
+
+  app.post<{ Body: { email: string; tier?: string } }>(
+    '/api/keys',
+    async (request, reply) => {
+      const { email, tier } = request.body || {};
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        reply.status(400).send({
+          success: false,
+          error: { code: 'INVALID_EMAIL', message: 'A valid email is required.', suggestion: 'Provide a valid email address.' },
+        });
+        return;
+      }
+
+      // For now, anyone can create a free key. Paid tiers will require payment verification.
+      const result = createApiKey(db, email, tier === 'pro' || tier === 'enterprise' ? tier : 'free');
+
+      reply.status(201).send({
+        success: true,
+        data: {
+          api_key: result.key,
+          key_prefix: result.key_prefix,
+          tier: result.tier,
+          message: 'Store this API key securely — it cannot be retrieved again.',
+        },
+      });
+    },
+  );
+
   // ── SSE endpoint for player ───────────────────────────────────────
   app.get<{ Params: { id: string } }>('/session/:id/events', (request, reply) => {
     const { id } = request.params;
+    const session = store.getSession(id);
+    if (!session) {
+      reply.status(404).send({ error: 'Session not found.' });
+      return;
+    }
 
     // Set SSE headers
     reply.raw.writeHead(200, {
@@ -130,8 +204,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
 
     // If session already has a script, send it immediately so the player
     // doesn't sit empty when opened after add_scene was already called.
-    const session = store.getSession(id);
-    if (session?.script?.frames?.length) {
+    if (session.script?.frames?.length) {
       reply.raw.write(`data: ${JSON.stringify({ type: 'script_update', script: session.script })}\n\n`);
     }
 
@@ -146,8 +219,15 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   });
 
   // ── Player HTML route ─────────────────────────────────────────────
+  // Player pages: accessible with session ID (UUID acts as capability token)
+  // Future: add optional password protection or require viewer auth
   app.get<{ Params: { sessionId: string } }>('/player/:sessionId', async (request, reply) => {
     const { sessionId } = request.params;
+    const session = store.getSession(sessionId);
+    if (!session) {
+      reply.status(404).send({ error: 'Session not found or expired.' });
+      return;
+    }
     const html = PLAYER_HTML_TEMPLATE.replace(/\{\{SESSION_ID\}\}/g, sessionId);
     reply.type('text/html').send(html);
   });
@@ -173,41 +253,108 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   const sessionUrlDeps = { store, baseUrl: cfg.baseUrl };
   const createDeps = { store, baseUrl: cfg.baseUrl };
 
+  // Helper: verify session ownership
+  function verifySessionOwnership(sessionId: string, apiKeyId: string): boolean {
+    const session = store.getSession(sessionId);
+    return session !== null && session.api_key_id === apiKeyId;
+  }
+
   app.post<{ Body: { title: string; aspect_ratio?: string } }>(
     '/api/create-session',
-    async (request) => {
+    async (request, reply) => {
+      const apiKey = (request as any).apiKey as ValidatedKey;
+
+      const limitCheck = checkSessionLimit(db, apiKey.id, apiKey.tier);
+      if (!limitCheck.allowed) {
+        reply.status(429).send(authError('RATE_LIMIT_EXCEEDED', limitCheck.reason!).body);
+        return;
+      }
+
       const handler = withErrorBoundary((args: any) => handleCreateSession(args, createDeps));
-      return handler(request.body);
+      const result = await handler({ ...request.body, _apiKeyId: apiKey.id });
+
+      // Track usage
+      try {
+        const data = JSON.parse(result.content[0].text);
+        if (data.success) {
+          trackUsage(db, apiKey.id, 'create_session', data.data.session_id);
+        }
+      } catch {}
+
+      return result;
     },
   );
 
   app.post<{ Body: { session_id: string; visual_script: any } }>(
     '/api/add-scene',
-    async (request) => {
+    async (request, reply) => {
+      const apiKey = (request as any).apiKey as ValidatedKey;
+
+      if (!verifySessionOwnership(request.body.session_id, apiKey.id)) {
+        reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
+        return;
+      }
+
+      const sceneCheck = checkSceneLimit(db, apiKey.id, apiKey.tier);
+      if (!sceneCheck.allowed) {
+        reply.status(429).send(authError('RATE_LIMIT_EXCEEDED', sceneCheck.reason!).body);
+        return;
+      }
+
       const handler = withErrorBoundary((args: any) => handleAddScene(args, sceneDeps));
-      return handler(request.body);
+      const result = await handler(request.body);
+
+      trackUsage(db, apiKey.id, 'add_scene', request.body.session_id);
+      return result;
     },
   );
 
   app.post<{ Body: { session_id: string; visual_script: any } }>(
     '/api/update-scene',
-    async (request) => {
+    async (request, reply) => {
+      const apiKey = (request as any).apiKey as ValidatedKey;
+
+      if (!verifySessionOwnership(request.body.session_id, apiKey.id)) {
+        reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
+        return;
+      }
+
       const handler = withErrorBoundary((args: any) => handleUpdateScene(args, sceneDeps));
-      return handler(request.body);
+      const result = await handler(request.body);
+
+      trackUsage(db, apiKey.id, 'update_scene', request.body.session_id);
+      return result;
     },
   );
 
   app.post<{ Body: { session_id: string; text: string; frame_index?: number } }>(
     '/api/add-narration',
-    async (request) => {
+    async (request, reply) => {
+      const apiKey = (request as any).apiKey as ValidatedKey;
+
+      if (!verifySessionOwnership(request.body.session_id, apiKey.id)) {
+        reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
+        return;
+      }
+
       const handler = withErrorBoundary((args: any) => handleAddNarration(args, sceneDeps));
-      return handler(request.body);
+      const result = await handler(request.body);
+
+      trackUsage(db, apiKey.id, 'add_narration', request.body.session_id);
+      return result;
     },
   );
 
   app.post<{ Body: { session_id: string; include_stats?: boolean } }>(
     '/api/get-session-url',
-    async (request) => {
+    async (request, reply) => {
+      const apiKey = (request as any).apiKey as ValidatedKey;
+
+      if (!verifySessionOwnership(request.body.session_id, apiKey.id)) {
+        reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
+        return;
+      }
+
       const handler = withErrorBoundary((args: any) => handleGetSessionUrl(args, sessionUrlDeps));
       return handler(request.body);
     },
@@ -216,15 +363,43 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   app.get<{ Querystring: { limit?: string } }>(
     '/api/sessions',
     async (request) => {
+      const apiKey = (request as any).apiKey as ValidatedKey;
       const limit = Number(request.query.limit) || 20;
-      const handler = withErrorBoundary((args: any) => handleListSessions(args, { store: store, baseUrl: cfg.baseUrl }));
-      return handler({ limit });
+
+      // Only return sessions owned by this key
+      const sessions = store.listSessionsByKey(apiKey.id).slice(0, Math.min(limit, 100));
+
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            data: {
+              sessions: sessions.map(s => ({
+                session_id: s.id,
+                title: s.title,
+                player_url: `${cfg.baseUrl}/player/${s.id}`,
+                frame_count: s.script?.frames?.length ?? 0,
+                created_at: new Date(s.created_at).toISOString(),
+              })),
+              total: sessions.length,
+            },
+          }),
+        }],
+      };
     },
   );
 
   app.delete<{ Params: { id: string } }>(
     '/api/sessions/:id',
-    async (request) => {
+    async (request, reply) => {
+      const apiKey = (request as any).apiKey as ValidatedKey;
+
+      if (!verifySessionOwnership(request.params.id, apiKey.id)) {
+        reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
+        return;
+      }
+
       const handler = withErrorBoundary((args: any) => handleDeleteSession(args, { store }));
       return handler({ session_id: request.params.id });
     },
@@ -232,7 +407,14 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
 
   app.delete<{ Params: { sessionId: string }; Body: { frame_indices?: number[]; last_n?: number } }>(
     '/api/sessions/:sessionId/frames',
-    async (request) => {
+    async (request, reply) => {
+      const apiKey = (request as any).apiKey as ValidatedKey;
+
+      if (!verifySessionOwnership(request.params.sessionId, apiKey.id)) {
+        reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
+        return;
+      }
+
       const handler = withErrorBoundary((args: any) => handleRemoveScene(args, sceneDeps));
       return handler({ session_id: request.params.sessionId, ...request.body });
     },
