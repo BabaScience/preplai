@@ -783,4 +783,60 @@ describe('GET /session/:id/events (SSE)', () => {
     expect(allData).toContain('"type":"connected"');
     expect(allData).toContain('"type":"script_update"');
   });
+
+  it('should send existing script immediately on SSE connect if session already has scenes', async () => {
+    // Create session and add a scene BEFORE connecting SSE
+    const createRes = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/create-session',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'SSE Replay Test' }),
+    });
+    const sid = JSON.parse(JSON.parse(createRes.body).content[0].text).data.session_id;
+
+    // Add scene first (no SSE listener yet)
+    await ctx.app.inject({
+      method: 'POST',
+      url: '/api/add-scene',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: sid,
+        visual_script: {
+          sceneId: sid,
+          totalDuration: 5000,
+          frames: [{
+            id: 'f-replay-1',
+            startTime: 0,
+            endTime: 5000,
+            entities: [{ id: 'e1', type: 'Server', position: { x: 50, y: 50 } }],
+          }],
+        },
+      }),
+    });
+
+    // NOW connect SSE — should receive connected + script_update with existing data
+    const events = await new Promise<string>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('SSE replay timeout')), 3000);
+      let body = '';
+
+      import('http').then(({ default: http }) => {
+        http.get(`http://127.0.0.1:${port}/session/${sid}/events`, (res) => {
+          res.on('data', (chunk: Buffer) => {
+            body += chunk.toString();
+            // Wait for both connected and script_update
+            if (body.includes('"type":"connected"') && body.includes('"type":"script_update"')) {
+              clearTimeout(timeout);
+              res.destroy();
+              resolve(body);
+            }
+          });
+          res.on('error', () => {});
+        }).on('error', reject);
+      });
+    });
+
+    expect(events).toContain('"type":"connected"');
+    expect(events).toContain('"type":"script_update"');
+    expect(events).toContain('"f-replay-1"');
+  });
 });

@@ -1203,6 +1203,76 @@ export const PLAYER_JS = `(function() {
   });
 
   // ═══════════════════════════════════════════════════════════════════
+  // Empty state: "Waiting for content" message
+  // ═══════════════════════════════════════════════════════════════════
+  var emptyState = null;
+  function showEmptyState() {
+    if (emptyState) return;
+    emptyState = document.createElementNS(SVG_NS, 'g');
+    emptyState.setAttribute('id', 'empty-state');
+
+    // Subtle pulsing circle
+    var circle = document.createElementNS(SVG_NS, 'circle');
+    circle.setAttribute('cx', '960');
+    circle.setAttribute('cy', '480');
+    circle.setAttribute('r', '60');
+    circle.setAttribute('fill', 'none');
+    circle.setAttribute('stroke', 'rgba(255,255,255,0.15)');
+    circle.setAttribute('stroke-width', '2');
+    emptyState.appendChild(circle);
+
+    // Inner dot
+    var dot = document.createElementNS(SVG_NS, 'circle');
+    dot.setAttribute('cx', '960');
+    dot.setAttribute('cy', '480');
+    dot.setAttribute('r', '8');
+    dot.setAttribute('fill', 'rgba(255,255,255,0.25)');
+    emptyState.appendChild(dot);
+
+    // "Waiting for content..." text
+    var text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '960');
+    text.setAttribute('y', '570');
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('fill', 'rgba(255,255,255,0.4)');
+    text.setAttribute('font-family', FONT_UI);
+    text.setAttribute('font-size', '28');
+    text.setAttribute('font-weight', '400');
+    text.textContent = 'Waiting for content\u2026';
+    emptyState.appendChild(text);
+
+    // Subtitle
+    var sub = document.createElementNS(SVG_NS, 'text');
+    sub.setAttribute('x', '960');
+    sub.setAttribute('y', '610');
+    sub.setAttribute('text-anchor', 'middle');
+    sub.setAttribute('fill', 'rgba(255,255,255,0.2)');
+    sub.setAttribute('font-family', FONT_UI);
+    sub.setAttribute('font-size', '18');
+    sub.setAttribute('font-weight', '400');
+    sub.textContent = 'The presentation will appear here once scenes are added';
+    emptyState.appendChild(sub);
+
+    entityLayer.appendChild(emptyState);
+
+    // Pulse animation
+    if (typeof gsap !== 'undefined') {
+      gsap.to(circle, { attr: { r: 70 }, opacity: 0.5, duration: 1.5, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+      gsap.to(dot, { opacity: 0.5, duration: 1, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+    }
+  }
+
+  function hideEmptyState() {
+    if (emptyState) {
+      emptyState.remove();
+      emptyState = null;
+    }
+  }
+
+  // Show empty state on load
+  showEmptyState();
+
+  // ═══════════════════════════════════════════════════════════════════
   // SSE Connection
   // ═══════════════════════════════════════════════════════════════════
   var evtSource = new EventSource('/session/' + sessionId + '/events');
@@ -1217,9 +1287,17 @@ export const PLAYER_JS = `(function() {
       }
 
       if (event.type === 'script_update') {
+        hideEmptyState();
+        var prevFrameCount = currentScript ? currentScript.frames.length : 0;
         currentScript = event.script;
-        currentFrame = 0;
-        renderFrame(currentScript.frames[0]);
+        // If frames were appended, navigate to the first new frame
+        // If this is the initial load or a full replace, go to frame 0
+        if (prevFrameCount > 0 && currentScript.frames.length > prevFrameCount) {
+          currentFrame = prevFrameCount;  // Jump to first new frame
+        } else {
+          currentFrame = 0;
+        }
+        renderFrame(currentScript.frames[currentFrame]);
         updateFrameCounter();
         return;
       }
@@ -1234,7 +1312,7 @@ export const PLAYER_JS = `(function() {
   });
 
   evtSource.addEventListener('error', function() {
-    console.warn('[PRE] SSE connection interrupted — auto-reconnecting.');
+    console.warn('[PRE] SSE connection interrupted \u2014 auto-reconnecting.');
   });
 
   // ═══════════════════════════════════════════════════════════════════

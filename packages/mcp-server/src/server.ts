@@ -113,6 +113,13 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     // Send connected event
     reply.raw.write(`data: ${JSON.stringify({ type: 'connected', sessionId: id })}\n\n`);
 
+    // If session already has a script, send it immediately so the player
+    // doesn't sit empty when opened after add_scene was already called.
+    const session = store.getSession(id);
+    if (session?.script?.frames?.length) {
+      reply.raw.write(`data: ${JSON.stringify({ type: 'script_update', script: session.script })}\n\n`);
+    }
+
     // Register subscriber
     const sseReply = { raw: reply.raw };
     sse.subscribe(id, sseReply);

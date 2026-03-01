@@ -202,7 +202,7 @@ async function main() {
   // ── Tool: create_session ──────────────────────────────────────────
   mcp.tool(
     'create_session',
-    'Create a new presentation session. Returns a session_id and a player_url you can open in a browser to see the live presentation.',
+    'Create a new presentation session. Returns a session_id and a player_url. The player URL is automatically opened in the default browser.',
     {
       title: z.string().describe('Title of the presentation'),
       aspect_ratio: z.string().optional().describe('Aspect ratio, default "16:9". Options: "16:9", "4:3"'),
@@ -211,6 +211,27 @@ async function main() {
       const result = await withErrorBoundary(
         (a: any) => handleCreateSession(a, { store, baseUrl }),
       )(args);
+
+      // Auto-open the player in the default browser
+      try {
+        const data = JSON.parse(result.content[0].text);
+        if (data.success && data.data.player_url) {
+          const { exec } = await import('child_process');
+          const url = data.data.player_url;
+          // Cross-platform open: macOS=open, Linux=xdg-open, Windows=start
+          const cmd = process.platform === 'darwin' ? 'open'
+            : process.platform === 'win32' ? 'start'
+            : 'xdg-open';
+          exec(cmd + ' ' + JSON.stringify(url), (err) => {
+            if (err) console.error('[PRE] Could not auto-open browser:', err.message);
+          });
+          console.error('[PRE] Auto-opened player:', url);
+        }
+      } catch (e) {
+        // Non-fatal: if auto-open fails, the URL is still in the response
+        console.error('[PRE] Auto-open failed:', e);
+      }
+
       return { content: result.content };
     },
   );

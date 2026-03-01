@@ -328,8 +328,8 @@ describe('E2E: SSE real-time delivery pipeline', () => {
       }),
     });
 
-    // Connect SSE
-    const eventsPromise = collectSseEvents(port, sid, { maxEvents: 2, timeoutMs: 3000 });
+    // Connect SSE — will receive: connected + replay of existing script + update_scene
+    const eventsPromise = collectSseEvents(port, sid, { maxEvents: 3, timeoutMs: 3000 });
     await new Promise(r => setTimeout(r, 100));
 
     // Update scene
@@ -352,10 +352,12 @@ describe('E2E: SSE real-time delivery pipeline', () => {
 
     const events = await eventsPromise;
 
-    const scriptUpdate = events.find(e => e.type === 'script_update');
-    expect(scriptUpdate).toBeDefined();
-    expect(scriptUpdate!.script.frames).toHaveLength(2);
-    expect(scriptUpdate!.script.totalDuration).toBe(6000);
+    // The LAST script_update should be the update_scene result (2 frames)
+    const scriptUpdates = events.filter(e => e.type === 'script_update');
+    expect(scriptUpdates.length).toBeGreaterThanOrEqual(2); // replay + update
+    const lastUpdate = scriptUpdates[scriptUpdates.length - 1];
+    expect(lastUpdate.script.frames).toHaveLength(2);
+    expect(lastUpdate.script.totalDuration).toBe(6000);
   });
 });
 
