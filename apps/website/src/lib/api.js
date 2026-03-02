@@ -76,6 +76,17 @@ export async function apiRevokeKey(id) {
   return data;
 }
 
+// Sessions
+export async function apiGetSessions(limit = 20) {
+  const { data } = await client.get('sessions', { params: { limit } });
+  return data;
+}
+
+export async function apiDeleteSession(id) {
+  const { data } = await client.delete(`sessions/${id}`);
+  return data;
+}
+
 // Usage
 export async function apiGetUsage() {
   const { data } = await client.get('usage');

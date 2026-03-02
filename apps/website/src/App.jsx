@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Overview from './pages/dashboard/Overview';
 import ApiKeys from './pages/dashboard/ApiKeys';
+import Sessions from './pages/dashboard/Sessions';
 import Usage from './pages/dashboard/Usage';
 import Settings from './pages/dashboard/Settings';
 
@@ -41,6 +42,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <ApiKeys />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/sessions"
+        element={
+          <ProtectedRoute>
+            <Sessions />
           </ProtectedRoute>
         }
       />

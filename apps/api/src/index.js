@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.js';
 import keysRoutes from './routes/keys.js';
 import usageRoutes from './routes/usage.js';
 import settingsRoutes from './routes/settings.js';
+import sessionsRoutes from './routes/sessions.js';
 
 const PORT = process.env.PORT || 5000;
 
@@ -28,6 +29,7 @@ export function createApp() {
   app.use('/api/keys', keysRoutes);
   app.use('/api/usage', usageRoutes);
   app.use('/api/settings', settingsRoutes);
+  app.use('/api/sessions', sessionsRoutes);
 
   app.use((err, req, res, next) => {
     console.error(err.stack);

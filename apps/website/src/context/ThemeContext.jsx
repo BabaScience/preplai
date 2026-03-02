@@ -1,12 +1,27 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const ThemeContext = createContext(null);
+const THEME_STORAGE_KEY = 'preplai-theme';
+
+function getStoredTheme() {
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === 'dark' || stored === 'light') return stored;
+  } catch (_) {}
+  return 'dark';
+}
 
 export function ThemeProvider({ children }) {
-  const [currentTheme, setCurrentTheme] = useState('dark');
+  const [currentTheme, setCurrentTheme] = useState(getStoredTheme);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', currentTheme);
+  }, [currentTheme]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, currentTheme);
+    } catch (_) {}
   }, [currentTheme]);
 
   const toggleTheme = useCallback(() => {
