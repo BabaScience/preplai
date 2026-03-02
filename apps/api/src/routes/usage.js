@@ -1,8 +1,14 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
 import { TIER_LIMITS } from '@pre/shared';
-import { ApiKey, UsageLog } from '../db.js';
+import { ApiKey, UsageLog, Session } from '../db.js';
 import { authenticate } from '../middleware/auth.js';
+
+function resolveBestTier(tiers) {
+  if (tiers.includes('enterprise')) return 'enterprise';
+  if (tiers.includes('pro')) return 'pro';
+  return 'free';
+}
 
 const router = Router();
 
@@ -57,11 +63,24 @@ router.get('/', async (req, res) => {
     const thirtyDaysAgo = new Date(now);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const [monthData, activeKeys, dailyAgg, recentLogs] = await Promise.all([
-      UsageLog.countDocuments({ userId, createdAt: { $gte: monthStart } }),
+    const keys = await ApiKey.find({ userId, revoked: false }).select('_id tier').lean();
+    const keyIds = keys.map((k) => k._id.toString());
+    const tier = resolveBestTier(keys.map((k) => k.tier || 'free'));
+
+    const [monthScenes, sessionCount, activeKeys, dailyAgg, recentLogs] = await Promise.all([
+      UsageLog.countDocuments({ userId, endpoint: 'add_scene', createdAt: { $gte: monthStart } }),
+      keyIds.length > 0
+        ? Session.countDocuments({ apiKeyId: { $in: keyIds } })
+        : 0,
       ApiKey.countDocuments({ userId, revoked: false }),
       UsageLog.aggregate([
-        { $match: { userId: userId, createdAt: { $gte: thirtyDaysAgo } } },
+        {
+          $match: {
+            userId,
+            endpoint: 'add_scene',
+            createdAt: { $gte: thirtyDaysAgo },
+          },
+        },
         {
           $group: {
             _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
@@ -78,11 +97,11 @@ router.get('/', async (req, res) => {
         .lean(),
     ]);
 
-    const tier = 'free';
     const limits = TIER_LIMITS[tier] || TIER_LIMITS.free;
 
     res.json({
-      month_scenes: monthData,
+      month_scenes: monthScenes,
+      session_count: sessionCount,
       limits: {
         max_scenes_month: limits.maxScenesPerMonth === -1 ? 999999 : limits.maxScenesPerMonth,
         max_sessions: limits.maxSessions === -1 ? 999999 : limits.maxSessions,

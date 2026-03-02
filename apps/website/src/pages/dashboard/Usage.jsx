@@ -86,20 +86,26 @@ export default function Usage() {
             </div>
             <div className="limit-card">
               <div className="limit-header">
-                <span className="limit-label">Sessions Limit</span>
-                <span className="limit-value">{data?.limits?.max_sessions ?? '—'}</span>
+                <span className="limit-label">Sessions</span>
+                <span className="limit-value">
+                  {data?.session_count ?? 0} / {data?.limits?.max_sessions ?? '—'}
+                </span>
               </div>
               <ProgressBar
-                value={data?.active_keys ?? 0}
+                value={data?.session_count ?? 0}
                 max={data?.limits?.max_sessions ?? 100}
               />
             </div>
             <div className="limit-card">
               <div className="limit-header">
                 <span className="limit-label">Scenes Per Session</span>
-                <span className="limit-value">{data?.limits?.max_scenes_session ?? '—'}</span>
+                <span className="limit-value">
+                  Up to {data?.limits?.max_scenes_session ?? '—'} per session
+                </span>
               </div>
-              <ProgressBar value={0} max={100} />
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginTop: 'var(--space-2)' }}>
+                Maximum frames allowed in a single presentation.
+              </p>
             </div>
           </div>
 
