@@ -7,13 +7,16 @@ import keysRoutes from './routes/keys.js';
 import usageRoutes from './routes/usage.js';
 import settingsRoutes from './routes/settings.js';
 
-
 const PORT = process.env.PORT || 5001;
+
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean)
+  : ['http://localhost:5173'];
 
 export function createApp() {
   const app = express();
 
-  app.use(cors());
+  app.use(cors({ origin: ALLOWED_ORIGINS }));
   app.use(express.json());
 
   app.get('/health', (req, res) => {

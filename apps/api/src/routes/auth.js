@@ -4,7 +4,17 @@ import jwt from 'jsonwebtoken';
 import { User } from '../db.js';
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'preplai-dev-secret-change-in-prod';
+
+const DEFAULT_SECRET = 'preplai-dev-secret-change-in-prod';
+const JWT_SECRET = process.env.JWT_SECRET || DEFAULT_SECRET;
+
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === DEFAULT_SECRET) {
+    throw new Error(
+      'JWT_SECRET must be set to a secure value in production. Generate with: openssl rand -hex 32'
+    );
+  }
+}
 
 // POST /api/auth/signup
 router.post('/signup', async (req, res) => {

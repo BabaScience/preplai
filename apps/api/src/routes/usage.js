@@ -38,7 +38,7 @@ router.get('/overview', async (req, res) => {
     res.json({
       total_keys: totalKeys,
       month_requests: monthRequests,
-      active_sessions: totalKeys,
+      active_keys: totalKeys,
       total_scenes: totalRequests,
     });
   } catch (err) {

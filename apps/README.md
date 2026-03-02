@@ -4,7 +4,7 @@ Deployable applications. Each subdirectory is an independently deployable unit.
 
 | App | Description | Stack |
 |-----|-------------|-------|
-| `website/` | preplai.com — marketing site + user dashboard | HTML/CSS/JS + Python CGI |
+| `website/` | preplai.com — marketing site + user dashboard | React + Vite |
 
 ## Adding a new app
 
