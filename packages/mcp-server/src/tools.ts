@@ -244,12 +244,13 @@ export async function handleGetSessionUrl(
 
 export async function handleListSessions(
   args: { limit?: number },
-  deps: { store: SessionStore; baseUrl: string },
+  deps: { store: SessionStore; baseUrl: string; apiKeyId?: string },
 ): Promise<McpToolContent> {
   const { limit = 20 } = args;
-  const { store, baseUrl } = deps;
+  const { store, baseUrl, apiKeyId } = deps;
 
-  const sessions = store.listSessions().slice(0, Math.min(limit, 100));
+  const sessions = (apiKeyId ? store.listSessionsByKey(apiKeyId) : store.listSessions())
+    .slice(0, Math.min(limit, 100));
 
   return mcpOk({
     sessions: sessions.map(s => ({

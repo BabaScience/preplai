@@ -2,8 +2,8 @@
  * @preplai/mcp-server — stdio Bridge for Claude Desktop
  *
  * This file creates an MCP server using the stdio transport, which is
- * what Claude Desktop expects. It registers the same 5 tool handlers
- * that the REST API exposes, but communicates over stdin/stdout.
+ * what Claude Desktop expects when configured as a subprocess. It registers
+ * the same tools as the Streamable HTTP server, but communicates over stdin/stdout.
  *
  * Usage:
  *   node dist/stdio-bridge.js
@@ -22,161 +22,19 @@
  *     }
  *   }
  *
+ * For Streamable HTTP (remote clients, Cursor, etc.), run the main server instead:
+ *   node dist/server.js
+ *   MCP endpoint: POST/GET /mcp (requires X-Preplai-API-Key header)
+ *
  * This bridge does TWO things:
  * 1. Boots the Fastify HTTP server (for the player UI + SSE)
- * 2. Exposes the 5 MCP tools via stdio for Claude Desktop
+ * 2. Exposes the MCP tools via stdio for Claude Desktop
  */
+import { exec } from 'node:child_process';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { z } from 'zod';
 import { buildServer, getDefaultConfig } from './server.js';
-import {
-  handleCreateSession,
-  handleAddScene,
-  handleUpdateScene,
-  handleAddNarration,
-  handleGetSessionUrl,
-  handleListSessions,
-  handleDeleteSession,
-  handleRemoveScene,
-} from './tools.js';
-import { withErrorBoundary } from './errors.js';
-
-// ── Zod schemas for tool parameters ──────────────────────────────────
-
-const VisualEntitySchema = z.object({
-  id: z.string(),
-  type: z.string().describe('Entity type. Common types: Server, Database, User, Cloud, Arrow, DataFlow, Concept, Label, CodeBlock, Array, Pointer, BinaryTree, LinkedList, Group, Table, Metric, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation'),
-  position: z.object({
-    x: z.number().describe('X position as percentage 0-100 of the 1920px canvas'),
-    y: z.number().describe('Y position as percentage 0-100 of the 1080px canvas'),
-  }),
-  size: z.number().optional().default(1).describe('Scale factor, default 1'),
-  label: z.string().optional().describe('Text label displayed on the entity'),
-  color: z.string().optional().describe('CSS color, e.g. "#4FC3F7" or "cyan"'),
-  highlight: z.boolean().optional().describe('Whether to highlight/glow this entity'),
-  animation: z.object({
-    delay: z.number().optional().default(0).describe('Delay in ms before animation starts'),
-    duration: z.number().optional().default(600).describe('Animation duration in ms'),
-    easing: z.string().optional().default('power2.out'),
-    entrance: z.string().optional().default('fadeInUp').describe('Entrance animation: fadeInUp, fadeIn, drawIn, scaleIn'),
-  }).optional(),
-  sourceEntityId: z.string().optional().describe('For Arrow/DataFlow: ID of the source entity'),
-  targetEntityId: z.string().optional().describe('For Arrow/DataFlow: ID of the target entity'),
-  textContent: z.string().optional().describe('For CodeBlock: the code text. For Label/Definition: longer text content'),
-  codeLanguage: z.string().optional().describe('For CodeBlock: language (javascript, python, etc.)'),
-  metadata: z.record(z.unknown()).optional().describe('Extra data for specific entity types'),
-});
-
-const EntityTransitionSchema = z.object({
-  entityId: z.string().describe('ID of entity to animate'),
-  from: z.record(z.unknown()).describe('Starting state (partial entity props)'),
-  to: z.record(z.unknown()).describe('Ending state (partial entity props)'),
-  duration: z.number().describe('Transition duration in ms'),
-  easing: z.string().optional().default('power2.inOut'),
-});
-
-const IllustrationFrameSchema = z.object({
-  id: z.string().describe('Unique frame ID, e.g. "frame-1", "title-slide"'),
-  startTime: z.number().describe('Frame start time in ms from beginning'),
-  endTime: z.number().describe('Frame end time in ms'),
-  entities: z.array(VisualEntitySchema).describe('Array of visual entities in this frame'),
-  transitions: z.array(EntityTransitionSchema).optional().describe('Animations between entity states'),
-  narrationSegment: z.string().describe('Narration text for this frame (shown as subtitle overlay)'),
-  description: z.string().describe('Brief description of what this frame shows'),
-});
-
-const VisualScriptSchema = z.object({
-  sceneId: z.string().describe('Unique scene ID, e.g. "scene-1"'),
-  frames: z.array(IllustrationFrameSchema).min(1).describe('Array of frames (at least one)'),
-  totalDuration: z.number().describe('Total duration in ms (should be >= last frame endTime)'),
-});
-
-// ── Rich tool descriptions with examples ─────────────────────────────
-
-const ADD_SCENE_DESCRIPTION = `Add a visual scene to a presentation session. The scene is rendered as animated SVG on a 1920x1080 dark canvas with vignette background, drop shadows, and rich gradients.
-
-APPEND BEHAVIOR: Calling add_scene multiple times APPENDS new frames to the existing presentation. Frame timings are automatically offset so new frames play after existing ones. Use update_scene instead if you want to REPLACE the entire script.
-
-IMPORTANT: The visual_script must follow the exact schema below. Positions use percentages (0-100). An 80px horizontal and 60px vertical margin/safe zone is applied automatically.
-
-DESIGN GUIDELINES:
-- Labels can be up to ~80 chars. Longer labels auto-wrap to multiple lines. Use narrationSegment for full paragraphs.
-- Use a COHESIVE color palette: pick 2-3 colors max per scene. Recommended combos:
-  - Cyan (#4FC3F7) + Violet (#b388ff) + Warm (#FFD54F) — great for CS/tech
-  - Blue (#64B5F6) + Green (#81C784) + White (#FFFFFF) — clean and professional
-  - Teal (#4DD0E1) + Pink (#F48FB1) + Amber (#FFB74D) — vibrant and modern
-- Title labels: type "Label", color "#FFFFFF", size 2 or higher. They render with large bold text (42-48px).
-- Subtitle labels: type "Label", size ~1.5, renders at 28-32px.
-- Space entities evenly. Minimum 15% gap between entity positions.
-- Use "highlight": true to emphasize the currently discussed entity.
-- Entities are large and visually rich (drop shadows, gradient fills). Size 1 = ~110px, size 2 = ~220px.
-- Each entity type has a smart default entrance animation. You can override with the animation.entrance property.
-
-Entity types with DEDICATED renderers (look best):
-  Server (rack with LEDs), Database (cylinder), User (avatar), Cloud (blob), Concept (auto-sized circle), Label (text with optional pill), CodeBlock (dark terminal with traffic-light dots)
-
-Entity types with SHAPED renderers:
-  Cache (circle), LoadBalancer (hexagon), Decision (diamond), Metric (circle)
-
-All other entity types render as rounded rectangles with their label centered inside:
-  Array, Pointer, BinaryTree, LinkedList, Group, Table, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation, Process, Queue, Service, NeuralNetwork, FSM, CPU, Register, MemoryBlock, Packet, ProtocolStack, and more.
-
-Connection types (rendered as bezier curve arrows with glow and animated flow):
-  Arrow, DataFlow (fast animated dashes), BidirectArrow, DottedArrow
-  Arrow labels render above the curve with a dark pill background for readability.
-
-Entrance animations available: fadeInUp (default for Server/Database), fadeIn (default for Label), scaleIn (default for User), drawIn (default for Concept), floatIn (default for Cloud), slideInLeft (default for CodeBlock), dropIn.
-
-Example visual_script for a simple scene with a title and two entities:
-{
-  "sceneId": "scene-1",
-  "totalDuration": 5000,
-  "frames": [
-    {
-      "id": "frame-1",
-      "startTime": 0,
-      "endTime": 5000,
-      "description": "Shows a server connecting to a database",
-      "narrationSegment": "The server sends queries to the database",
-      "entities": [
-        {
-          "id": "title",
-          "type": "Label",
-          "position": {"x": 50, "y": 6},
-          "label": "System Architecture",
-          "color": "#FFFFFF",
-          "size": 2
-        },
-        {
-          "id": "srv",
-          "type": "Server",
-          "position": {"x": 30, "y": 45},
-          "label": "API Server",
-          "color": "#4FC3F7"
-        },
-        {
-          "id": "db",
-          "type": "Database",
-          "position": {"x": 70, "y": 45},
-          "label": "PostgreSQL",
-          "color": "#81C784"
-        },
-        {
-          "id": "arrow1",
-          "type": "Arrow",
-          "position": {"x": 50, "y": 45},
-          "sourceEntityId": "srv",
-          "targetEntityId": "db",
-          "label": "SQL Queries",
-          "color": "#FFD54F"
-        }
-      ]
-    }
-  ]
-}`;
-
-const UPDATE_SCENE_DESCRIPTION = `Replace the visual script for a session with a new one. Use this to modify an existing scene. The visual_script format is the same as add_scene — it must include sceneId, frames array, and totalDuration.`;
+import { registerMcpTools } from './mcp-tools.js';
 
 // ── Boot ──────────────────────────────────────────────────────────────
 
@@ -192,14 +50,9 @@ async function main() {
   console.error(`[preplai] HTTP server running at ${cfg.baseUrl}`);
   console.error(`[preplai] Player: ${cfg.baseUrl}/player/:sessionId`);
 
-  // 2. Create MCP server with stdio transport
-  const mcp = new McpServer({
-    name: 'preplai',
-    version: '0.1.0',
-  });
-
-  // Auth: use provided API key or generate one for local development
+  // 2. Auth: use provided API key or generate one for local development
   let localApiKeyId: string | null = null;
+  let localApiKeyTier = 'free';
   const envKey = process.env.PREPLAI_API_KEY;
 
   if (envKey) {
@@ -207,6 +60,7 @@ async function main() {
     const validated = await validateApiKey(envKey);
     if (validated) {
       localApiKeyId = validated.id;
+      localApiKeyTier = validated.tier;
       console.error(`[preplai] Authenticated as ${validated.owner_email} (${validated.tier})`);
     } else {
       console.error('[preplai] WARNING: PREPLAI_API_KEY is invalid. Generating a local dev key.');
@@ -221,195 +75,31 @@ async function main() {
     console.error('[preplai] Set PREPLAI_API_KEY env var to use your own key.');
   }
 
-  const store = ctx.store;
-  const sse = ctx.sse;
-  const baseUrl = cfg.baseUrl;
+  const apiKey = { id: localApiKeyId!, tier: localApiKeyTier };
 
-  // ── Tool: create_session ──────────────────────────────────────────
-  mcp.tool(
-    'create_session',
-    'Create a new presentation session. Returns a session_id and a player_url. The player URL is automatically opened in the default browser.',
-    {
-      title: z.string().describe('Title of the presentation'),
-      aspect_ratio: z.string().optional().describe('Aspect ratio, default "16:9". Options: "16:9", "4:3"'),
+  // 3. Create MCP server with stdio transport
+  const mcp = new McpServer({
+    name: 'preplai',
+    version: '0.1.0',
+  });
+
+  registerMcpTools(mcp, {
+    store: ctx.store,
+    sse: ctx.sse,
+    baseUrl: cfg.baseUrl,
+    getApiKey: () => apiKey,
+    openPlayerInBrowser: (url) => {
+      const cmd = process.platform === 'darwin' ? 'open'
+        : process.platform === 'win32' ? 'start'
+        : 'xdg-open';
+      exec(cmd + ' ' + JSON.stringify(url), (err) => {
+        if (err) console.error('[preplai] Could not auto-open browser:', err.message);
+      });
+      console.error('[preplai] Auto-opened player:', url);
     },
-    async (args) => {
-      const { trackUsage, checkSessionLimit } = await import('./auth.js');
+  });
 
-      const limitCheck = await checkSessionLimit(localApiKeyId!, 'free');
-      if (!limitCheck.allowed) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'LIMIT_EXCEEDED', message: limitCheck.reason, suggestion: 'Delete old sessions or upgrade.' } }) }] };
-      }
-
-      const result = await withErrorBoundary(
-        (a: any) => handleCreateSession({ ...a, _apiKeyId: localApiKeyId }, { store, baseUrl }),
-      )(args);
-
-      // Track usage
-      try {
-        const data = JSON.parse(result.content[0].text);
-        if (data.success) await trackUsage(localApiKeyId!, 'create_session', data.data.session_id);
-      } catch {}
-
-      // Auto-open the player in the default browser
-      try {
-        const data = JSON.parse(result.content[0].text);
-        if (data.success && data.data.player_url) {
-          const { exec } = await import('child_process');
-          const url = data.data.player_url;
-          // Cross-platform open: macOS=open, Linux=xdg-open, Windows=start
-          const cmd = process.platform === 'darwin' ? 'open'
-            : process.platform === 'win32' ? 'start'
-            : 'xdg-open';
-          exec(cmd + ' ' + JSON.stringify(url), (err) => {
-            if (err) console.error('[preplai] Could not auto-open browser:', err.message);
-          });
-          console.error('[preplai] Auto-opened player:', url);
-        }
-      } catch (e) {
-        // Non-fatal: if auto-open fails, the URL is still in the response
-        console.error('[preplai] Auto-open failed:', e);
-      }
-
-      return { content: result.content };
-    },
-  );
-
-  // ── Tool: add_scene ───────────────────────────────────────────────
-  mcp.tool(
-    'add_scene',
-    ADD_SCENE_DESCRIPTION,
-    {
-      session_id: z.string().describe('Session ID from create_session'),
-      visual_script: VisualScriptSchema.describe('The visual script defining the scene. Must include sceneId, frames array, and totalDuration.'),
-    },
-    async (args) => {
-      const { trackUsage, checkSceneLimit } = await import('./auth.js');
-
-      const sceneCheck = await checkSceneLimit(localApiKeyId!, 'free');
-      if (!sceneCheck.allowed) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'LIMIT_EXCEEDED', message: sceneCheck.reason, suggestion: 'Upgrade your plan or delete scenes.' } }) }] };
-      }
-
-      const result = await withErrorBoundary(
-        (a: any) => handleAddScene(a, { store, sse }),
-      )(args);
-
-      await trackUsage(localApiKeyId!, 'add_scene', args.session_id);
-      return { content: result.content };
-    },
-  );
-
-  // ── Tool: update_scene ────────────────────────────────────────────
-  mcp.tool(
-    'update_scene',
-    UPDATE_SCENE_DESCRIPTION,
-    {
-      session_id: z.string().describe('Session ID'),
-      visual_script: VisualScriptSchema.describe('The replacement visual script. Same format as add_scene.'),
-    },
-    async (args) => {
-      const { trackUsage, checkSceneLimit } = await import('./auth.js');
-
-      const sceneCheck = await checkSceneLimit(localApiKeyId!, 'free');
-      if (!sceneCheck.allowed) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'LIMIT_EXCEEDED', message: sceneCheck.reason, suggestion: 'Upgrade your plan or delete scenes.' } }) }] };
-      }
-
-      const result = await withErrorBoundary(
-        (a: any) => handleUpdateScene(a, { store, sse }),
-      )(args);
-
-      await trackUsage(localApiKeyId!, 'update_scene', args.session_id);
-      return { content: result.content };
-    },
-  );
-
-  // ── Tool: add_narration ───────────────────────────────────────────
-  mcp.tool(
-    'add_narration',
-    'Add narration text to a specific frame in a session. The text appears as a subtitle overlay in the player.',
-    {
-      session_id: z.string().describe('Session ID'),
-      text: z.string().describe('Narration text to display'),
-      frame_index: z.number().optional().describe('Frame index (0-based, default 0)'),
-    },
-    async (args) => {
-      const result = await withErrorBoundary(
-        (a: any) => handleAddNarration(a, { store, sse }),
-      )(args);
-
-      const { trackUsage } = await import('./auth.js');
-      await trackUsage(localApiKeyId!, 'add_narration', args.session_id);
-
-      return { content: result.content };
-    },
-  );
-
-  // ── Tool: get_session_url ─────────────────────────────────────────
-  mcp.tool(
-    'get_session_url',
-    'Get the player URL for a session. Open this URL in a browser to view the presentation. Set include_stats to true to also get frame count and duration.',
-    {
-      session_id: z.string().describe('Session ID'),
-      include_stats: z.boolean().optional().describe('Include frame count, duration, etc.'),
-    },
-    async (args) => {
-      const result = await withErrorBoundary(
-        (a: any) => handleGetSessionUrl(a, { store, baseUrl }),
-      )(args);
-      return { content: result.content };
-    },
-  );
-
-  // ── Tool: list_sessions ────────────────────────────────────────────
-  mcp.tool(
-    'list_sessions',
-    'List all presentation sessions. Returns session IDs, titles, player URLs, and frame counts. Most recent first.',
-    {
-      limit: z.number().optional().describe('Max sessions to return (default 20, max 100)'),
-    },
-    async (args) => {
-      const result = await withErrorBoundary(
-        (a: any) => handleListSessions(a, { store, baseUrl }),
-      )(args);
-      return { content: result.content };
-    },
-  );
-
-  // ── Tool: delete_session ───────────────────────────────────────────
-  mcp.tool(
-    'delete_session',
-    'Delete a presentation session and all its data (visual script, narrations). This cannot be undone.',
-    {
-      session_id: z.string().describe('Session ID to delete'),
-    },
-    async (args) => {
-      const result = await withErrorBoundary(
-        (a: any) => handleDeleteSession(a, { store }),
-      )(args);
-      return { content: result.content };
-    },
-  );
-
-  // ── Tool: remove_scene ──────────────────────────────────────────────
-  mcp.tool(
-    'remove_scene',
-    'Remove frames from a presentation session. Specify frame_indices to remove specific frames (0-based), last_n to remove the last N frames, or neither to clear all frames.',
-    {
-      session_id: z.string().describe('Session ID'),
-      frame_indices: z.array(z.number()).optional().describe('Specific frame indices to remove (0-based)'),
-      last_n: z.number().optional().describe('Remove the last N frames'),
-    },
-    async (args) => {
-      const result = await withErrorBoundary(
-        (a: any) => handleRemoveScene(a, { store, sse }),
-      )(args);
-      return { content: result.content };
-    },
-  );
-
-  // 3. Connect via stdio
+  // 4. Connect via stdio
   const transport = new StdioServerTransport();
   await mcp.connect(transport);
   console.error('[preplai] MCP stdio bridge connected — ready for Claude Desktop');

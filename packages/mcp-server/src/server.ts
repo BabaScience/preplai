@@ -3,9 +3,13 @@
  *
  * Thin Fastify boot file that wires all logic modules.
  * Uses MongoDB via @preplai/db for persistence.
+ * Exposes MCP tools via Streamable HTTP at /mcp.
  */
+import { AsyncLocalStorage } from 'node:async_hooks';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { connectDb } from '@preplai/db';
+import FastifyMcpServer from 'fastify-mcp-server';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SessionStore } from './session-store.js';
 import { SseRegistry } from './sse.js';
 import {
@@ -28,6 +32,10 @@ import {
   authError,
   type ValidatedKey,
 } from './auth.js';
+import { registerMcpTools } from './mcp-tools.js';
+
+/** AsyncLocalStorage for passing API key to MCP tool handlers (Streamable HTTP) */
+export const apiKeyStore = new AsyncLocalStorage<ValidatedKey>();
 
 // ── Config ────────────────────────────────────────────────────────────
 
@@ -93,7 +101,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   app.addHook('onRequest', async (request, reply) => {
     reply.header('Access-Control-Allow-Origin', cfg.corsOrigin);
     reply.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    reply.header('Access-Control-Allow-Headers', 'Content-Type, Mcp-Session-Id, X-Preplai-API-Key');
+    reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Mcp-Session-Id, X-Preplai-API-Key');
 
     if (request.method === 'OPTIONS') {
       reply.status(204).send();
@@ -113,9 +121,14 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     if (path.startsWith('/session/') && path.endsWith('/events')) return;
     if (path === '/api/keys' && request.method === 'POST') return;
 
-    const key = request.headers['x-preplai-api-key'] as string | undefined;
+    // Accept X-Preplai-API-Key or Authorization: Bearer <key> (for MCP Inspector compatibility)
+    let key = request.headers['x-preplai-api-key'] as string | undefined;
     if (!key) {
-      const err = authError('MISSING_API_KEY', 'API key required. Include X-Preplai-API-Key header.');
+      const auth = request.headers.authorization;
+      if (auth?.startsWith('Bearer ')) key = auth.slice(7).trim();
+    }
+    if (!key) {
+      const err = authError('MISSING_API_KEY', 'API key required. Include X-Preplai-API-Key header or Authorization: Bearer <key>.');
       reply.status(err.statusCode).send(err.body);
       return;
     }
@@ -128,6 +141,22 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     }
 
     (request as any).apiKey = validated;
+    apiKeyStore.enterWith(validated);
+  });
+
+  // ── MCP: Streamable HTTP at /mcp ─────────────────────────────────────
+  await app.register(FastifyMcpServer, {
+    createMcpServer: () => {
+      const mcp = new McpServer({ name: 'preplai', version: '0.1.0' });
+      registerMcpTools(mcp, {
+        store,
+        sse,
+        baseUrl: cfg.baseUrl,
+        getApiKey: () => apiKeyStore.getStore() ?? null,
+      });
+      return mcp;
+    },
+    endpoint: '/mcp',
   });
 
   // ── Health check ──────────────────────────────────────────────────
