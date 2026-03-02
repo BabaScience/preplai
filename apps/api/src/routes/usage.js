@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
+import { TIER_LIMITS } from '@pre/shared';
 import { ApiKey, UsageLog } from '../db.js';
 import { authenticate } from '../middleware/auth.js';
 
@@ -77,12 +78,15 @@ router.get('/', async (req, res) => {
         .lean(),
     ]);
 
+    const tier = 'free';
+    const limits = TIER_LIMITS[tier] || TIER_LIMITS.free;
+
     res.json({
       month_scenes: monthData,
       limits: {
-        max_scenes_month: 100,
-        max_sessions: 10,
-        max_scenes_session: 10,
+        max_scenes_month: limits.maxScenesPerMonth === -1 ? 999999 : limits.maxScenesPerMonth,
+        max_sessions: limits.maxSessions === -1 ? 999999 : limits.maxSessions,
+        max_scenes_session: limits.maxScenesPerSession === -1 ? 999999 : limits.maxScenesPerSession,
       },
       active_keys: activeKeys,
       daily: dailyAgg.map((r) => ({ day: r.date, count: r.requests })),

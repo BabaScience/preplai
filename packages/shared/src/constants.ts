@@ -53,6 +53,30 @@ export const TIER_RATE_LIMITS: Record<'developer' | 'startup' | 'scale', number>
   scale: 2_000,
 } as const;
 
+// ── Dashboard/MCP Tier Limits ──────────────────────────────────────────
+// Used by MCP server for enforcement and dashboard for display.
+
+export const TIER_LIMITS: Record<string, { maxSessions: number; maxScenesPerMonth: number; maxScenesPerSession: number; sessionExpiryDays: number }> = {
+  free: {
+    maxSessions: 5,
+    maxScenesPerMonth: 50,
+    maxScenesPerSession: 10,
+    sessionExpiryDays: 7,
+  },
+  pro: {
+    maxSessions: 100,
+    maxScenesPerMonth: 2000,
+    maxScenesPerSession: 100,
+    sessionExpiryDays: 90,
+  },
+  enterprise: {
+    maxSessions: -1,
+    maxScenesPerMonth: -1,
+    maxScenesPerSession: -1,
+    sessionExpiryDays: 365,
+  },
+};
+
 // ── Performance Contracts ─────────────────────────────────────────────
 
 export const PERFORMANCE_CONTRACTS = {

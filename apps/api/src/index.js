@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { connectDb } from './db.js';
@@ -7,7 +8,7 @@ import keysRoutes from './routes/keys.js';
 import usageRoutes from './routes/usage.js';
 import settingsRoutes from './routes/settings.js';
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean)

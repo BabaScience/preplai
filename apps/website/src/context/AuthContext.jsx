@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { apiLogin, apiSignup } from '../lib/api';
 
 const AUTH_STORAGE_KEY = 'preplai_auth';
@@ -66,6 +66,12 @@ export function AuthProvider({ children }) {
     setUserId(null);
     persistAuth(null);
   }, []);
+
+  useEffect(() => {
+    const handler = () => logout();
+    window.addEventListener('auth:unauthorized', handler);
+    return () => window.removeEventListener('auth:unauthorized', handler);
+  }, [logout]);
 
   return (
     <AuthContext.Provider value={{ token, email, userId, login, signup, logout }}>

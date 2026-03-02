@@ -28,6 +28,13 @@ client.interceptors.request.use((config) => {
 client.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 401) {
+      clearApiToken();
+      try {
+        localStorage.removeItem('preplai_auth');
+      } catch {}
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+    }
     const message = error.response?.data?.error || error.message || 'Request failed';
     throw new Error(message);
   }

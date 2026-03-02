@@ -6,6 +6,7 @@
  */
 import { randomUUID, createHash, randomBytes } from 'node:crypto';
 import { ApiKey, McpUsageLog, Session, UsageLog } from '@preplai/db';
+import { TIER_LIMITS as SHARED_TIER_LIMITS } from '@pre/shared';
 
 // ── Tier limits ──────────────────────────────────────────────────────
 
@@ -16,26 +17,7 @@ export interface TierLimits {
   sessionExpiryDays: number;
 }
 
-export const TIER_LIMITS: Record<string, TierLimits> = {
-  free: {
-    maxSessions: 5,
-    maxScenesPerMonth: 50,
-    maxScenesPerSession: 10,
-    sessionExpiryDays: 7,
-  },
-  pro: {
-    maxSessions: 100,
-    maxScenesPerMonth: 2000,
-    maxScenesPerSession: 100,
-    sessionExpiryDays: 90,
-  },
-  enterprise: {
-    maxSessions: -1,
-    maxScenesPerMonth: -1,
-    maxScenesPerSession: -1,
-    sessionExpiryDays: 365,
-  },
-};
+export const TIER_LIMITS: Record<string, TierLimits> = SHARED_TIER_LIMITS as Record<string, TierLimits>;
 
 // ── Key format ───────────────────────────────────────────────────────
 const KEY_PREFIX = 'plai_';

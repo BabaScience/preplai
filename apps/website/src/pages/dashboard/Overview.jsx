@@ -63,7 +63,7 @@ export default function Overview() {
               <div className="kpi-value">{data?.month_requests ?? 0}</div>
             </div>
             <div className="kpi-card">
-              <div className="kpi-label">Total Scenes</div>
+              <div className="kpi-label">Total Requests</div>
               <div className="kpi-value">{data?.total_scenes ?? 0}</div>
             </div>
           </div>
