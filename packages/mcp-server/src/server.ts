@@ -5,6 +5,15 @@
  * Uses MongoDB via @preplai/db for persistence.
  * Exposes MCP tools via Streamable HTTP at /mcp.
  */
+import { config } from 'dotenv';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Load .env from package root when present (dev/local). In production, env vars
+// are typically set by the platform (Docker, K8s, etc.); dotenv no-ops if missing.
+const __dirname = dirname(fileURLToPath(import.meta.url));
+config({ path: join(__dirname, '..', '.env') });
+
 import { AsyncLocalStorage } from 'node:async_hooks';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { connectDb } from '@preplai/db';
