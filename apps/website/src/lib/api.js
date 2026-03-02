@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+// Base URL for API. When unset in dev, Vite proxies /api to the API server.
+const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 
 // Module-level token store (in-memory, no localStorage)
 let _token = null;
