@@ -30,6 +30,8 @@ function createE2EServer(): Promise<ServerContext> {
     mongoUri,
     logLevel: 'silent',
     baseUrl: 'http://localhost:0',
+    rateLimitMax: 10000,
+    rateLimitWindow: '1 minute',
   });
 }
 
@@ -590,6 +592,155 @@ describe('E2E: Session persistence', () => {
     expect(result.data.total_duration_ms).toBe(5000);
 
     await ctx2.app.close();
+  });
+});
+
+// ── E2E: Cross-tenant isolation (session ownership) ───────────────────
+
+describe('E2E: Cross-tenant isolation', () => {
+  let ctx: ServerContext;
+  let apiKeyA: string;
+  let apiKeyB: string;
+  let sessionIdA: string;
+
+  beforeAll(async () => {
+    ctx = await createE2EServer();
+    apiKeyA = await createTestApiKey(ctx);
+    apiKeyB = await createTestApiKey(ctx);
+
+    const createRes = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/create-session',
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKeyA },
+      body: JSON.stringify({ title: 'User A Session' }),
+    });
+    sessionIdA = parseMcpResponse(createRes.body).data.session_id;
+
+    await ctx.app.inject({
+      method: 'POST',
+      url: '/api/add-scene',
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKeyA },
+      body: JSON.stringify({
+        session_id: sessionIdA,
+        visual_script: {
+          sceneId: sessionIdA,
+          totalDuration: 3000,
+          frames: [{ id: 'f-1', startTime: 0, endTime: 3000, entities: [{ id: 'e1', type: 'Server', position: { x: 50, y: 50 } }] }],
+        },
+      }),
+    });
+  });
+
+  afterAll(async () => {
+    await ctx.app.close();
+  });
+
+  it('should return FORBIDDEN when User B tries add_scene on User A session', async () => {
+    const res = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/add-scene',
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKeyB },
+      body: JSON.stringify({
+        session_id: sessionIdA,
+        visual_script: {
+          sceneId: sessionIdA,
+          totalDuration: 2000,
+          frames: [{ id: 'f-2', startTime: 0, endTime: 2000, entities: [] }],
+        },
+      }),
+    });
+    expect(res.statusCode).toBe(403);
+    const result = JSON.parse(res.body);
+    expect(result.success).toBe(false);
+    expect(result.error.code).toBe('FORBIDDEN');
+  });
+
+  it('should return FORBIDDEN when User B tries update_scene on User A session', async () => {
+    const res = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/update-scene',
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKeyB },
+      body: JSON.stringify({
+        session_id: sessionIdA,
+        visual_script: {
+          sceneId: sessionIdA,
+          totalDuration: 1000,
+          frames: [{ id: 'f-1', startTime: 0, endTime: 1000, entities: [] }],
+        },
+      }),
+    });
+    expect(res.statusCode).toBe(403);
+    const result = JSON.parse(res.body);
+    expect(result.success).toBe(false);
+    expect(result.error.code).toBe('FORBIDDEN');
+  });
+
+  it('should return FORBIDDEN when User B tries add_narration on User A session', async () => {
+    const res = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/add-narration',
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKeyB },
+      body: JSON.stringify({
+        session_id: sessionIdA,
+        text: 'Hacked narration',
+        frame_index: 0,
+      }),
+    });
+    expect(res.statusCode).toBe(403);
+    const result = JSON.parse(res.body);
+    expect(result.success).toBe(false);
+    expect(result.error.code).toBe('FORBIDDEN');
+  });
+
+  it('should return FORBIDDEN when User B tries get_session_url on User A session', async () => {
+    const res = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/get-session-url',
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKeyB },
+      body: JSON.stringify({ session_id: sessionIdA, include_stats: true }),
+    });
+    expect(res.statusCode).toBe(403);
+    const result = JSON.parse(res.body);
+    expect(result.success).toBe(false);
+    expect(result.error.code).toBe('FORBIDDEN');
+  });
+
+  it('should return FORBIDDEN when User B tries delete_session on User A session', async () => {
+    const res = await ctx.app.inject({
+      method: 'DELETE',
+      url: `/api/sessions/${sessionIdA}`,
+      headers: { 'X-Preplai-API-Key': apiKeyB },
+    });
+    expect(res.statusCode).toBe(403);
+    const result = JSON.parse(res.body);
+    expect(result.success).toBe(false);
+    expect(result.error.code).toBe('FORBIDDEN');
+  });
+
+  it('should return FORBIDDEN when User B tries remove_scene on User A session', async () => {
+    const res = await ctx.app.inject({
+      method: 'DELETE',
+      url: `/api/sessions/${sessionIdA}/frames`,
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKeyB },
+      body: JSON.stringify({ last_n: 1 }),
+    });
+    expect(res.statusCode).toBe(403);
+    const result = JSON.parse(res.body);
+    expect(result.success).toBe(false);
+    expect(result.error.code).toBe('FORBIDDEN');
+  });
+
+  it('should allow User A to access their own session', async () => {
+    const res = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/get-session-url',
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKeyA },
+      body: JSON.stringify({ session_id: sessionIdA, include_stats: true }),
+    });
+    expect(res.statusCode).toBe(200);
+    const result = parseMcpResponse(res.body);
+    expect(result.success).toBe(true);
+    expect(result.data.player_url).toContain(sessionIdA);
   });
 });
 

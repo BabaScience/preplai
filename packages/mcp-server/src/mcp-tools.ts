@@ -19,7 +19,19 @@ import {
   handleDeleteSession,
   handleRemoveScene,
 } from './tools.js';
-import { withErrorBoundary } from './errors.js';
+import { withErrorBoundary, mcpForbidden } from './errors.js';
+
+/** Verify the API key owns the session. Returns { ok, notFound } for MCP tool handlers. */
+function verifySessionOwnership(
+  store: SessionStore,
+  sessionId: string,
+  apiKeyId: string,
+): { ok: boolean; notFound?: boolean } {
+  const session = store.getSession(sessionId);
+  if (!session) return { ok: false, notFound: true };
+  if (session.api_key_id !== apiKeyId) return { ok: false };
+  return { ok: true };
+}
 
 // ── Zod schemas for tool parameters ──────────────────────────────────
 
@@ -232,6 +244,15 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
         return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header.' } }) }] };
       }
 
+      const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
+      if (!ownership.ok && !ownership.notFound) {
+        return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
+      }
+      if (!ownership.ok && ownership.notFound) {
+        const result = await withErrorBoundary((a: any) => handleAddScene(a, sceneDeps))(args);
+        return { content: result.content };
+      }
+
       const sceneCheck = await checkSceneLimit(apiKey.id, apiKey.tier);
       if (!sceneCheck.allowed) {
         return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'LIMIT_EXCEEDED', message: sceneCheck.reason, suggestion: 'Upgrade your plan or delete scenes.' } }) }] };
@@ -258,6 +279,15 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       const apiKey = getApiKey();
       if (!apiKey) {
         return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header.' } }) }] };
+      }
+
+      const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
+      if (!ownership.ok && !ownership.notFound) {
+        return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
+      }
+      if (!ownership.ok && ownership.notFound) {
+        const result = await withErrorBoundary((a: any) => handleUpdateScene(a, sceneDeps))(args);
+        return { content: result.content };
       }
 
       const sceneCheck = await checkSceneLimit(apiKey.id, apiKey.tier);
@@ -289,6 +319,15 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
         return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header.' } }) }] };
       }
 
+      const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
+      if (!ownership.ok && !ownership.notFound) {
+        return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
+      }
+      if (!ownership.ok && ownership.notFound) {
+        const result = await withErrorBoundary((a: any) => handleAddNarration(a, sceneDeps))(args);
+        return { content: result.content };
+      }
+
       const result = await withErrorBoundary(
         (a: any) => handleAddNarration(a, sceneDeps),
       )(args);
@@ -306,6 +345,14 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       include_stats: z.boolean().optional().describe('Include frame count, duration, etc.'),
     },
     async (args) => {
+      const apiKey = getApiKey();
+      if (apiKey) {
+        const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
+        if (!ownership.ok && !ownership.notFound) {
+          return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
+        }
+      }
+
       const result = await withErrorBoundary(
         (a: any) => handleGetSessionUrl(a, sessionUrlDeps),
       )(args);
@@ -339,6 +386,14 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       session_id: z.string().describe('Session ID to delete'),
     },
     async (args) => {
+      const apiKey = getApiKey();
+      if (apiKey) {
+        const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
+        if (!ownership.ok && !ownership.notFound) {
+          return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
+        }
+      }
+
       const result = await withErrorBoundary(
         (a: any) => handleDeleteSession(a, { store }),
       )(args);
@@ -355,6 +410,14 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       last_n: z.number().optional().describe('Remove the last N frames'),
     },
     async (args) => {
+      const apiKey = getApiKey();
+      if (apiKey) {
+        const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
+        if (!ownership.ok && !ownership.notFound) {
+          return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
+        }
+      }
+
       const result = await withErrorBoundary(
         (a: any) => handleRemoveScene(a, sceneDeps),
       )(args);

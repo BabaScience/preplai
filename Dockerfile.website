@@ -1,0 +1,16 @@
+# Dockerfile.website — Preplai Website (Vite React)
+# Build from repo root: docker build -f Dockerfile.website --build-arg VITE_API_URL=https://api.preplai.com/api .
+FROM node:20-slim AS build
+WORKDIR /app
+COPY package.json pnpm-lock.yaml* package-lock.json* ./
+COPY apps/ apps/
+COPY packages/ packages/
+
+RUN corepack enable pnpm && pnpm install --frozen-lockfile
+ARG VITE_API_URL=https://api.preplai.com/api
+ENV VITE_API_URL=$VITE_API_URL
+RUN pnpm run build --filter=website
+
+FROM nginx:alpine
+COPY --from=build /app/apps/website/dist /usr/share/nginx/html
+COPY deploy/nginx-website.conf /etc/nginx/conf.d/default.conf

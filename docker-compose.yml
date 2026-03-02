@@ -1,0 +1,70 @@
+# docker-compose.yml — preplai full stack (preplai.com)
+# Run: docker compose up -d
+# Requires: .env with MONGODB_URI, JWT_SECRET
+# SSL: certs at /etc/letsencrypt (bind mount or symlink)
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: preplai-api
+    restart: unless-stopped
+    environment:
+      PORT: 5000
+      MONGODB_URI: ${MONGODB_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      ALLOWED_ORIGINS: https://preplai.com,https://www.preplai.com,https://player.preplai.com
+      PLAYER_BASE_URL: https://player.preplai.com
+      NODE_ENV: production
+    networks:
+      - preplai-net
+
+  mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: preplai-mcp
+    restart: unless-stopped
+    environment:
+      PORT: 5005
+      HOST: 0.0.0.0
+      BASE_URL: https://player.preplai.com
+      MONGODB_URI: ${MONGODB_URI}
+      ALLOWED_ORIGINS: https://preplai.com,https://www.preplai.com,https://api.preplai.com,https://player.preplai.com
+      NODE_ENV: production
+    networks:
+      - preplai-net
+
+  website:
+    build:
+      context: .
+      dockerfile: Dockerfile.website
+      args:
+        VITE_API_URL: https://api.preplai.com/api
+    container_name: preplai-website
+    restart: unless-stopped
+    networks:
+      - preplai-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: preplai-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - api
+      - mcp
+      - website
+    networks:
+      - preplai-net
+
+networks:
+  preplai-net:
+    driver: bridge

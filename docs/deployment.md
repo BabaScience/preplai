@@ -2,6 +2,8 @@
 
 preplai can run as a hosted service so presentation URLs are shareable across the internet.
 
+> **DigitalOcean + preplai.com:** See [deployment-digitalocean.md](./deployment-digitalocean.md) for a step-by-step guide to deploy the full stack (website, API, MCP server) to DigitalOcean with the domain preplai.com.
+
 ## Local Development Ports
 
 | Service | Port |
@@ -18,8 +20,10 @@ preplai can run as a hosted service so presentation URLs are shareable across th
 | `HOST` | `0.0.0.0` | Bind address |
 | `BASE_URL` | `http://localhost:5005` | Public URL (used in player URLs returned by MCP tools) |
 | `MONGODB_URI` | `mongodb://localhost:27017/preplai` | MongoDB connection string (shared by apps/api and mcp-server) |
-| `ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:5005` | CORS allowed origins (comma-separate for multiple) |
+| `ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:5005` | CORS allowed origins (comma-separated for multiple) |
 | `LOG_LEVEL` | `info` | Fastify log level (`debug`, `info`, `warn`, `error`) |
+| `RATE_LIMIT_MAX` | `200` | Max requests per IP per time window |
+| `RATE_LIMIT_WINDOW` | `1 minute` | Rate limit time window |
 
 ## Local Development
 
@@ -33,26 +37,10 @@ node packages/mcp-server/dist/server.js
 
 ### Option 1: Docker
 
-```dockerfile
-FROM node:20-slim
-WORKDIR /app
-COPY package.json package-lock.json ./
-COPY packages/ packages/
-RUN npm ci --production
-RUN npm run build --workspace=packages/mcp-server
-EXPOSE 5005
-ENV PORT=5005
-ENV HOST=0.0.0.0
-ENV BASE_URL=https://your-domain.com
-ENV ALLOWED_ORIGINS=https://your-domain.com
-ENV MONGODB_URI=mongodb://mongo:27017/preplai
-CMD ["node", "packages/mcp-server/dist/server.js"]
-```
-
-Build and run:
+A Dockerfile is provided at `packages/mcp-server/Dockerfile`. Build from the monorepo root:
 
 ```bash
-docker build -t preplai .
+docker build -f packages/mcp-server/Dockerfile -t preplai .
 docker run -d \
   -p 5005:5005 \
   -e MONGODB_URI=mongodb://your-mongo-host:27017/preplai \

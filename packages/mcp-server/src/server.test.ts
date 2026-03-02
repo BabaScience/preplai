@@ -27,6 +27,8 @@ function createTestServer(): Promise<ServerContext> {
     mongoUri,
     logLevel: 'silent',
     baseUrl: 'http://localhost:5005',
+    rateLimitMax: 10000,
+    rateLimitWindow: '1 minute',
   });
 }
 
@@ -692,7 +694,11 @@ describe('CORS headers', () => {
   });
 
   it('should handle OPTIONS preflight', async () => {
-    const res = await ctx.app.inject({ method: 'OPTIONS', url: '/api/create-session' });
+    const res = await ctx.app.inject({
+      method: 'OPTIONS',
+      url: '/api/create-session',
+      headers: { Origin: 'http://localhost:5173', 'Access-Control-Request-Method': 'POST' },
+    });
     expect(res.statusCode).toBe(204);
     expect(res.headers['access-control-allow-methods']).toContain('POST');
   });

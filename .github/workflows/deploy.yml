@@ -1,0 +1,61 @@
+# .github/workflows/deploy.yml
+# CD: deploys to Droplet on push to main (or on tag v*)
+# Requires GitHub secrets: VPS_HOST, VPS_USER, VPS_SSH_KEY
+
+name: Deploy
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  APP_DIR: /opt/preplai
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://preplai.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          script: |
+            set -euo pipefail
+            cd ${{ env.APP_DIR }}
+
+            echo "==> Pulling latest from main..."
+            git fetch origin
+            git reset --hard origin/main
+
+            echo "==> Building and starting..."
+            docker compose build --no-cache
+            docker compose up -d
+
+            echo "==> Reloading nginx..."
+            docker exec preplai-nginx nginx -t 2>/dev/null && docker exec preplai-nginx nginx -s reload 2>/dev/null || true
+
+            echo "==> Deploy complete: $(git rev-parse --short HEAD)"
+
+      - name: Health check
+        run: |
+          sleep 10
+          for url in https://api.preplai.com/health https://player.preplai.com/health; do
+            if curl -sf --max-time 15 "$url" >/dev/null; then
+              echo "OK: $url"
+            else
+              echo "WARN: $url not responding"
+              exit 1
+            fi
+          done

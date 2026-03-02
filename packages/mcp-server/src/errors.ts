@@ -111,3 +111,14 @@ export function mcpLimitExceeded(message: string): McpToolContent {
     'Upgrade your plan at https://preplai.com/pricing or delete unused sessions.',
   );
 }
+
+/**
+ * Standard FORBIDDEN error response (session ownership violation).
+ */
+export function mcpForbidden(message?: string): McpToolContent {
+  return mcpErr(
+    'FORBIDDEN',
+    message || 'You do not own this session.',
+    'Only the API key that created the session can modify or access it.',
+  );
+}

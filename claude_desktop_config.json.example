@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "preplai": {
+      "command": "npx",
+      "args": ["-y", "@pyroprompts/mcp-stdio-to-streamable-http-adapter"],
+      "env": {
+        "URI": "http://localhost:5005/mcp",
+        "BEARER_TOKEN": "your-preplai-api-key"
+      }
+    }
+  }
+}

@@ -16,7 +16,9 @@ config({ path: join(__dirname, '..', '.env') });
 
 import { AsyncLocalStorage } from 'node:async_hooks';
 import Fastify, { type FastifyInstance } from 'fastify';
-import { connectDb } from '@preplai/db';
+import FastifyCors from '@fastify/cors';
+import FastifyRateLimit from '@fastify/rate-limit';
+import { connectDb, closeDb } from '@preplai/db';
 import FastifyMcpServer from 'fastify-mcp-server';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SessionStore } from './session-store.js';
@@ -55,6 +57,8 @@ export interface ServerConfig {
   mongoUri: string;
   corsOrigin: string;
   logLevel: string;
+  rateLimitMax?: number;
+  rateLimitWindow?: string;
 }
 
 export function getDefaultConfig(): ServerConfig {
@@ -93,7 +97,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     console.log(`[preplai] Cleaned ${cleaned} expired sessions`);
   }
 
-  setInterval(async () => {
+  const cleanupInterval = setInterval(async () => {
     const c = await store.cleanExpiredSessions();
     if (c > 0) console.log(`[preplai] Periodic cleanup: removed ${c} expired sessions`);
   }, 6 * 60 * 60 * 1000);
@@ -106,15 +110,26 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     logger: { level: cfg.logLevel },
   });
 
-  // ── CORS ──────────────────────────────────────────────────────────
-  app.addHook('onRequest', async (request, reply) => {
-    reply.header('Access-Control-Allow-Origin', cfg.corsOrigin);
-    reply.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Mcp-Session-Id, X-Preplai-API-Key');
+  // ── CORS (supports multiple comma-separated origins) ──────────────
+  const allowedOrigins = cfg.corsOrigin.split(',').map((o) => o.trim()).filter(Boolean);
+  await app.register(FastifyCors, {
+    origin: allowedOrigins.length > 0
+      ? (origin, cb) => {
+          if (!origin || allowedOrigins.includes(origin)) {
+            cb(null, (origin || allowedOrigins[0]) ?? '*');
+          } else {
+            cb(null, false);
+          }
+        }
+      : true,
+    methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Mcp-Session-Id', 'X-Preplai-API-Key'],
+  });
 
-    if (request.method === 'OPTIONS') {
-      reply.status(204).send();
-    }
+  // ── Rate limiting (global: 200 req/min per IP) ────────────────────
+  await app.register(FastifyRateLimit, {
+    max: cfg.rateLimitMax ?? Number(process.env.RATE_LIMIT_MAX ?? 200),
+    timeWindow: cfg.rateLimitWindow ?? process.env.RATE_LIMIT_WINDOW ?? '1 minute',
   });
 
   // ── Auth: API key validation ──────────────────────────────────────
@@ -181,6 +196,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   // ── API Key Management (quick start) ───────────────────────────────
   app.post<{ Body: { email: string; tier?: string } }>(
     '/api/keys',
+    { config: { rateLimit: { max: 5, timeWindow: '1 hour' } } },
     async (request, reply) => {
       const { email, tier } = request.body || {};
       if (!email || typeof email !== 'string' || !email.includes('@')) {
@@ -213,6 +229,11 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   );
 
   // ── SSE endpoint for player ───────────────────────────────────────
+  const resolveCorsOrigin = (requestOrigin: string | undefined): string => {
+    if (!requestOrigin || allowedOrigins.length === 0) return allowedOrigins[0] ?? '*';
+    return allowedOrigins.includes(requestOrigin) ? requestOrigin : allowedOrigins[0] ?? '*';
+  };
+
   app.get<{ Params: { id: string } }>('/session/:id/events', (request, reply) => {
     const { id } = request.params;
     const session = store.getSession(id);
@@ -225,7 +246,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       Connection: 'keep-alive',
-      'Access-Control-Allow-Origin': cfg.corsOrigin,
+      'Access-Control-Allow-Origin': resolveCorsOrigin(request.headers.origin as string),
     });
 
     reply.raw.write(`data: ${JSON.stringify({ type: 'connected', sessionId: id })}\n\n`);
@@ -466,10 +487,13 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     },
   );
 
+  // Store cleanup interval for graceful shutdown
+  (app as any).__cleanupInterval = cleanupInterval;
+
   return { app, store, sse };
 }
 
-// ── Standalone startup ──────────────────────────────────────────────
+// ── Standalone startup & graceful shutdown ───────────────────────────
 
 export async function startServer(config: Partial<ServerConfig> = {}): Promise<ServerContext> {
   const ctx = await buildServer(config);
@@ -479,6 +503,21 @@ export async function startServer(config: Partial<ServerConfig> = {}): Promise<S
   console.log(`[preplai] Server running at ${cfg.baseUrl}`);
   console.log(`[preplai] Player: ${cfg.baseUrl}/player/:sessionId`);
   console.log(`[preplai] Health: ${cfg.baseUrl}/health`);
+
+  let shuttingDown = false;
+  const shutdown = async (signal: string) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`[preplai] ${signal} received, shutting down gracefully...`);
+    const interval = (ctx.app as any).__cleanupInterval;
+    if (interval) clearInterval(interval);
+    await ctx.app.close();
+    await closeDb();
+    process.exit(0);
+  };
+
+  process.on('SIGTERM', () => void shutdown('SIGTERM'));
+  process.on('SIGINT', () => void shutdown('SIGINT'));
 
   return ctx;
 }
