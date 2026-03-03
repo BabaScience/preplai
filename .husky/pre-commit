@@ -1,0 +1,4 @@
+# Same checks as CI: lint, typecheck, test
+pnpm run lint
+pnpm run typecheck
+NODE_ENV=test MONGODB_URI=mongodb://localhost:27017/preplai-test pnpm test

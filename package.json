@@ -14,17 +14,19 @@
     "packages/mcp-server"
   ],
   "scripts": {
+    "prepare": "husky",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "build": "npm run build --workspaces",
     "lint": "eslint packages/*/src/**/*.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "pnpm exec tsc --noEmit -p packages/shared && pnpm exec tsc --noEmit -p packages/illustrations && pnpm exec tsc --noEmit -p packages/db && pnpm exec tsc --noEmit -p packages/compiler && pnpm exec tsc --noEmit -p packages/player && pnpm exec tsc --noEmit -p packages/mcp-server"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",
     "@vitest/coverage-v8": "^2.0.0",
     "eslint": "^9.0.0",
+    "husky": "^9.1.7",
     "jsdom": "^28.1.0",
     "typescript": "^5.4.0",
     "typescript-eslint": "^8.56.1",
