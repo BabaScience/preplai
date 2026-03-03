@@ -51,6 +51,7 @@ jobs:
 
             cd "$APP_DIR"
             echo "==> Pulling latest from main..."
+            git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
             git fetch origin
             git reset --hard origin/main
 
