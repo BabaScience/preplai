@@ -39,7 +39,6 @@ import {
   trackUsage,
   checkSceneLimit,
   checkSessionLimit,
-  createApiKey,
   authError,
   type ValidatedKey,
 } from './auth.js';
@@ -140,7 +139,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   // We store auth when we have it and reuse for subsequent requests with same Mcp-Session-Id.
   const MCP_SESSION_HEADER = 'mcp-session-id';
   const sessionAuth = new Map<string, ValidatedKey>();
-  const SESSION_AUTH_TTL_MS = 60 * 60 * 1000; // 1 hour
+  const SESSION_AUTH_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours (clients like Claude may not re-send Bearer on every request)
   const sessionAuthExpiry = new Map<string, number>();
 
   const PUBLIC_ROUTES = new Set([
@@ -156,7 +155,6 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     if (PUBLIC_ROUTES.has(path)) return;
     if (path.startsWith('/player/')) return;
     if (path.startsWith('/session/') && path.endsWith('/events')) return;
-    if (path === '/api/keys' && request.method === 'POST') return;
 
     // Accept X-Preplai-API-Key or Authorization: Bearer <key|jwt>
     let token = request.headers['x-preplai-api-key'] as string | undefined;
@@ -195,7 +193,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     if (!validated) {
       const err = authError(
         token ? 'INVALID_API_KEY' : 'MISSING_API_KEY',
-        token ? 'Invalid or revoked API key.' : 'API key required. Include X-Preplai-API-Key header or Authorization: Bearer <key>.',
+        token ? 'Invalid or revoked access token.' : 'Access token required. Web clients: use OAuth. Desktop clients: create one at https://preplai.com/dashboard/keys and use Authorization: Bearer <token>.',
       );
       reply
         .status(err.statusCode)
@@ -252,41 +250,6 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       uptime: process.uptime(),
     };
   });
-
-  // ── API Key Management (quick start) ───────────────────────────────
-  app.post<{ Body: { email: string; tier?: string } }>(
-    '/api/keys',
-    { config: { rateLimit: { max: 5, timeWindow: '1 hour' } } },
-    async (request, reply) => {
-      const { email, tier } = request.body || {};
-      if (!email || typeof email !== 'string' || !email.includes('@')) {
-        reply.status(400).send({
-          success: false,
-          error: {
-            code: 'INVALID_EMAIL',
-            message: 'A valid email is required.',
-            suggestion: 'Provide a valid email address.',
-          },
-        });
-        return;
-      }
-
-      const result = await createApiKey(
-        email,
-        tier === 'pro' || tier === 'enterprise' ? tier : 'free',
-      );
-
-      reply.status(201).send({
-        success: true,
-        data: {
-          api_key: result.key,
-          key_prefix: result.key_prefix,
-          tier: result.tier,
-          message: 'Store this API key securely — it cannot be retrieved again.',
-        },
-      });
-    },
-  );
 
   // ── SSE endpoint for player ───────────────────────────────────────
   const resolveCorsOrigin = (requestOrigin: string | undefined): string => {

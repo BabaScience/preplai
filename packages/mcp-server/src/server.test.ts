@@ -8,6 +8,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { closeDb } from '@preplai/db';
 import { buildServer, type ServerContext } from './server.js';
+import { createApiKey } from './auth.js';
 
 let mongod: MongoMemoryServer;
 let mongoUri: string;
@@ -32,18 +33,9 @@ function createTestServer(): Promise<ServerContext> {
   });
 }
 
-async function createTestApiKey(ctx: ServerContext): Promise<string> {
-  const res = await ctx.app.inject({
-    method: 'POST',
-    url: '/api/keys',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'test@example.com' }),
-  });
-  const data = JSON.parse(res.body);
-  if (!data.success || !data.data?.api_key) {
-    throw new Error('Failed to create test API key: ' + res.body);
-  }
-  return data.data.api_key;
+async function createTestAccessToken(): Promise<string> {
+  const result = await createApiKey('test@example.com', 'free');
+  return result.key;
 }
 
 // ── Health Check ─────────────────────────────────────────────────────
@@ -79,7 +71,7 @@ describe('GET /player/:sessionId', () => {
 
   beforeAll(async () => {
     ctx = await createTestServer();
-    apiKey = await createTestApiKey(ctx);
+    apiKey = await createTestAccessToken();
     const createRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',
@@ -380,7 +372,7 @@ describe('POST /api/create-session', () => {
 
   beforeAll(async () => {
     ctx = await createTestServer();
-    apiKey = await createTestApiKey(ctx);
+    apiKey = await createTestAccessToken();
   });
 
   afterAll(async () => {
@@ -425,7 +417,7 @@ describe('POST /api/add-scene', () => {
 
   beforeAll(async () => {
     ctx = await createTestServer();
-    apiKey = await createTestApiKey(ctx);
+    apiKey = await createTestAccessToken();
 
     // Create a session first
     const res = await ctx.app.inject({
@@ -497,7 +489,7 @@ describe('POST /api/update-scene', () => {
 
   beforeAll(async () => {
     ctx = await createTestServer();
-    apiKey = await createTestApiKey(ctx);
+    apiKey = await createTestAccessToken();
 
     const res = await ctx.app.inject({
       method: 'POST',
@@ -555,7 +547,7 @@ describe('POST /api/add-narration', () => {
 
   beforeAll(async () => {
     ctx = await createTestServer();
-    apiKey = await createTestApiKey(ctx);
+    apiKey = await createTestAccessToken();
 
     const res = await ctx.app.inject({
       method: 'POST',
@@ -630,7 +622,7 @@ describe('POST /api/get-session-url', () => {
 
   beforeAll(async () => {
     ctx = await createTestServer();
-    apiKey = await createTestApiKey(ctx);
+    apiKey = await createTestAccessToken();
 
     const res = await ctx.app.inject({
       method: 'POST',
@@ -716,7 +708,7 @@ describe('GET /session/:id/events (SSE)', () => {
 
   beforeAll(async () => {
     ctx = await createTestServer();
-    apiKey = await createTestApiKey(ctx);
+    apiKey = await createTestAccessToken();
     const createRes = await ctx.app.inject({
       method: 'POST',
       url: '/api/create-session',

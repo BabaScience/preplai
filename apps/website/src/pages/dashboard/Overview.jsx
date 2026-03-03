@@ -55,7 +55,7 @@ export default function Overview() {
           </div>
           <div className="kpi-grid">
             <div className="kpi-card">
-              <div className="kpi-label">API Keys</div>
+              <div className="kpi-label">Access Tokens</div>
               <div className="kpi-value">{data?.total_keys ?? 0}</div>
             </div>
             <div className="kpi-card">
@@ -72,7 +72,7 @@ export default function Overview() {
             onClick={() => navigate('/dashboard/keys')}
           >
             <Plus size={16} />
-            Create New API Key
+            Create Access Token
           </button>
         </>
       )}

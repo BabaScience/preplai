@@ -123,7 +123,7 @@ export default function Settings() {
             fontSize: 'var(--text-sm)',
             marginBottom: 'var(--space-6)',
           }}>
-            This will permanently delete your account, all API keys, and all usage data.
+            This will permanently delete your account, all access tokens, and all usage data.
             This action cannot be undone.
           </p>
           <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end' }}>

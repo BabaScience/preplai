@@ -25,7 +25,7 @@ preplai/
 | Component | What it does | Deploy independently? |
 |-----------|-------------|----------------------|
 | `packages/mcp-server` | Fastify HTTP server + Claude Desktop MCP bridge | Yes — `npm run start` or `npm run start:mcp` |
-| `apps/website` | preplai.com landing page + API key dashboard | Yes — static files + Python CGI |
+| `apps/website` | preplai.com landing page + access token dashboard | Yes — static files + Python CGI |
 | `packages/shared` | Shared types and schemas | Library — consumed by other packages |
 | `packages/compiler` | PML → render tree compilation | Library — consumed by mcp-server |
 | `packages/illustrations` | SVG illustration matching | Library — consumed by player |
@@ -89,7 +89,7 @@ See [`architecture/`](./architecture/) for detailed design documents:
       "command": "npx",
       "args": ["-y", "@preplai/mcp-server"],
       "env": {
-        "PREPLAI_API_KEY": "plai_your_key_here",
+        "PREPLAI_API_KEY": "your-access-token",
         "BASE_URL": "https://api.preplai.com"
       }
     }
@@ -97,12 +97,13 @@ See [`architecture/`](./architecture/) for detailed design documents:
 }
 ```
 
-See [Claude Desktop Setup Guide](./docs/claude-desktop-setup.md) for detailed instructions.
+See [Claude Desktop Config Guide](./docs/claude-desktop-config.md) for detailed instructions. Create an access token at https://preplai.com/dashboard/keys.
 
-## API Key Format
+## Access Token Format
 
-- Prefix: `plai_` + 40 random hex characters
-- Header: `X-Preplai-API-Key`
+- Prefix: `plai_` + 40 random hex characters (for desktop clients)
+- Header: `X-Preplai-API-Key` or `Authorization: Bearer <token>`
+- Web clients (Claude Web): use OAuth. Desktop clients: create tokens at https://preplai.com/dashboard/keys
 - Tiers: Free (5 sessions, 50 scenes/mo) → Pro ($19/mo) → Enterprise (custom)
 
 ## Tech Stack

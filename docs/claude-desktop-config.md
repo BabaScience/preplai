@@ -27,11 +27,9 @@ Use the preplai MCP server with Claude Desktop by adding it to your `claude_desk
    # Default: mongodb://localhost:27017/preplai
    ```
 
-3. **Create an API key** (if you don't have one):
+3. **Create an access token** (if you don't have one):
 
-   ```bash
-   curl -X POST http://localhost:5005/api/keys -H "Content-Type: application/json" -d '{"email":"you@example.com"}'
-   ```
+   Sign up at https://preplai.com, then create an access token in the dashboard at https://preplai.com/dashboard/keys.
 
 4. **Add the config** to your Claude Desktop config file.
 
@@ -49,14 +47,14 @@ Uses the main server over HTTP. **No port conflicts** — the server runs once; 
       "args": ["-y", "@pyroprompts/mcp-stdio-to-streamable-http-adapter"],
       "env": {
         "URI": "http://localhost:5005/mcp",
-        "BEARER_TOKEN": "your-preplai-api-key"
+        "BEARER_TOKEN": "your-access-token"
       }
     }
   }
 }
 ```
 
-Replace `your-preplai-api-key` with your API key from `POST /api/keys`.
+Replace `your-access-token` with your access token from the dashboard.
 
 ---
 
@@ -74,14 +72,14 @@ Spawns a subprocess that runs both the HTTP server and MCP over stdio. Can confl
         "PORT": "5005",
         "BASE_URL": "http://localhost:5005",
         "MONGODB_URI": "mongodb://localhost:27017/preplai",
-        "PREPLAI_API_KEY": "your-api-key-here"
+        "PREPLAI_API_KEY": "your-access-token"
       }
     }
   }
 }
 ```
 
-Replace the path in `args` with the **absolute path** to your preplai repo's `stdio-bridge.js`. If you omit `PREPLAI_API_KEY`, a local dev key is generated automatically.
+Replace the path in `args` with the **absolute path** to your preplai repo's `stdio-bridge.js`. `PREPLAI_API_KEY` is required — create an access token at https://preplai.com/dashboard/keys.
 
 ---
 
@@ -97,7 +95,7 @@ For a hosted preplai instance, use Streamable HTTP with the remote URL:
       "args": ["-y", "@pyroprompts/mcp-stdio-to-streamable-http-adapter"],
       "env": {
         "URI": "https://your-preplai-domain.com/mcp",
-        "BEARER_TOKEN": "your-api-key"
+        "BEARER_TOKEN": "your-access-token"
       }
     }
   }

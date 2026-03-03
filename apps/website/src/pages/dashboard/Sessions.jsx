@@ -59,7 +59,7 @@ export default function Sessions() {
         <EmptyState
           icon={Film}
           title="No sessions yet"
-          description="Create presentations using your API keys with Claude or any MCP client."
+          description="Create presentations using your access tokens with Claude or any MCP client."
         />
       ) : (
         <>

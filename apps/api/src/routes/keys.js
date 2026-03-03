@@ -44,7 +44,7 @@ router.post('/', async (req, res) => {
   try {
     const count = await ApiKey.countDocuments({ userId: req.user.userId, revoked: false });
     if (count >= 10) {
-      return res.status(400).json({ error: 'Maximum of 10 API keys allowed' });
+      return res.status(400).json({ error: 'Maximum of 10 access tokens allowed' });
     }
 
     const rawKey = KEY_PREFIX + crypto.randomBytes(20).toString('hex');
@@ -83,13 +83,13 @@ router.delete('/:id', async (req, res) => {
       userId: req.user.userId,
     });
     if (!key) {
-      return res.status(404).json({ error: 'API key not found' });
+      return res.status(404).json({ error: 'Access token not found' });
     }
 
     key.revoked = true;
     await key.save();
 
-    res.json({ message: 'API key deleted' });
+    res.json({ message: 'Access token deleted' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

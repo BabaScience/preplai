@@ -5,19 +5,13 @@ This guide covers how to test the MCP server's Streamable HTTP transport using M
 ## Prerequisites
 
 - Server running: `npm run dev --workspace=@preplai/mcp-server` (or `node packages/mcp-server/dist/server.js`)
-- An API key (create one via `POST /api/keys` if needed)
+- An access token (create one in the dashboard at https://preplai.com/dashboard/keys)
 
 ---
 
-## 1. Get an API Key
+## 1. Get an Access Token
 
-```bash
-curl -X POST http://localhost:5005/api/keys \
-  -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com"}'
-```
-
-Save the `api_key` from the response — you'll need it for authentication.
+Sign up at https://preplai.com, then create an access token in the dashboard at https://preplai.com/dashboard/keys. Save the token — you'll need it for authentication.
 
 ---
 
@@ -35,9 +29,9 @@ Save the `api_key` from the response — you'll need it for authentication.
 3. **Authentication:**
    - Expand the **Authentication** section
    - **Header Name:** `Authorization` (default)
-   - **Bearer Token:** Paste your API key (the raw key, e.g. `plai_abc123...`)
+   - **Bearer Token:** Paste your access token (the raw token, e.g. `plai_abc123...`)
 
-   The server accepts both `X-Preplai-API-Key` and `Authorization: Bearer <key>`.
+   The server accepts both `X-Preplai-API-Key` and `Authorization: Bearer <token>`.
 
 4. **Connect** — Click the Connect button. You should see:
    - Connection status: Connected (green)
@@ -118,7 +112,7 @@ The `server.test.ts` and `e2e.test.ts` files exercise the `/mcp` endpoint with `
 
 | Issue | Solution |
 |-------|----------|
-| **401 Unauthorized** | Ensure API key is valid. Create one via `POST /api/keys` if needed. |
-| **MCP Inspector doesn't connect** | Try `Authorization: Bearer <key>` — set Header Name to `Authorization` and paste the key in the Bearer Token field. |
+| **401 Unauthorized** | Ensure access token is valid. Create one at https://preplai.com/dashboard/keys. |
+| **MCP Inspector doesn't connect** | Try `Authorization: Bearer <token>` — set Header Name to `Authorization` and paste the token in the Bearer Token field. |
 | **Session not found** | Include `Mcp-Session-Id` header on all requests after `initialize`. |
 | **CORS errors** | The server allows `Authorization` and `X-Preplai-API-Key` in CORS headers. |

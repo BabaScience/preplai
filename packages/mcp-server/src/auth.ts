@@ -231,9 +231,9 @@ export function authError(code: string, message: string): {
         code,
         message,
         suggestion: code === 'MISSING_API_KEY'
-          ? 'Include your API key in the X-Preplai-API-Key header. Get one at https://preplai.com.'
+          ? 'Web clients: use OAuth. Desktop clients: create an access token at https://preplai.com/dashboard/keys and use Authorization: Bearer <token>.'
           : code === 'INVALID_API_KEY'
-          ? 'Check that your API key is correct and has not been revoked.'
+          ? 'Check that your access token is correct and has not been revoked.'
           : code === 'RATE_LIMIT_EXCEEDED'
           ? 'You have reached your plan limit. Upgrade at https://preplai.com/pricing.'
           : 'Contact support at support@preplai.com.',

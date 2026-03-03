@@ -8,10 +8,10 @@ The dashboard consists of two apps:
 
 | App | Purpose | Port (dev) |
 |-----|---------|------------|
-| **apps/website** | React SPA — landing page, login, signup, dashboard (Overview, API Keys, Usage, Settings) | 5173 |
+| **apps/website** | React SPA — landing page, login, signup, dashboard (Overview, Access Tokens, Usage, Settings) | 5173 |
 | **apps/api** | Express API — auth, keys, usage, settings routes backed by MongoDB | 5000 |
 
-Both share the same MongoDB database via `@preplai/db`. API keys created in the dashboard work with the MCP server.
+Both share the same MongoDB database via `@preplai/db`. Access tokens created in the dashboard work with the MCP server.
 
 ## Local Development
 
@@ -73,7 +73,7 @@ pnpm run dev --filter @preplai/mcp-server
 - Dashboard: http://localhost:5173
 - API health: http://localhost:5000/health
 
-Sign up at http://localhost:5173/#/signup, then create API keys in the dashboard. Use those keys with the MCP server.
+Sign up at http://localhost:5173/#/signup, then create access tokens in the dashboard. Use those tokens with the MCP server.
 
 ## Production Deployment
 

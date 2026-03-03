@@ -10,6 +10,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { closeDb } from '@preplai/db';
 import { buildServer, type ServerContext } from './server.js';
+import { createApiKey } from './auth.js';
 import http from 'http';
 
 let mongod: MongoMemoryServer;
@@ -35,15 +36,9 @@ function createE2EServer(): Promise<ServerContext> {
   });
 }
 
-async function createTestApiKey(ctx: ServerContext): Promise<string> {
-  const res = await ctx.app.inject({
-    method: 'POST',
-    url: '/api/keys',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'e2e@example.com' }),
-  });
-  const data = JSON.parse(res.body);
-  return data.data.api_key;
+async function createTestAccessToken(): Promise<string> {
+  const result = await createApiKey('e2e@example.com', 'free');
+  return result.key;
 }
 
 /** Parse the nested MCP tool response format */
@@ -111,7 +106,7 @@ describe('E2E: Complete presentation lifecycle', () => {
 
   beforeAll(async () => {
     ctx = await createE2EServer();
-    apiKey = await createTestApiKey(ctx);
+    apiKey = await createTestAccessToken();
     const address = await ctx.app.listen({ port: 0, host: '127.0.0.1' });
     port = Number(address.match(/(\d+)$/)?.[1]);
   });
@@ -219,7 +214,7 @@ describe('E2E: SSE real-time delivery pipeline', () => {
 
   beforeAll(async () => {
     ctx = await createE2EServer();
-    apiKey = await createTestApiKey(ctx);
+    apiKey = await createTestAccessToken();
     const address = await ctx.app.listen({ port: 0, host: '127.0.0.1' });
     port = Number(address.match(/(\d+)$/)?.[1]);
   });
@@ -390,7 +385,7 @@ describe('E2E: Player HTML integration', () => {
 
   beforeAll(async () => {
     ctx = await createE2EServer();
-    apiKey = await createTestApiKey(ctx);
+    apiKey = await createTestAccessToken();
   });
 
   afterAll(async () => {
@@ -430,7 +425,7 @@ describe('E2E: Error propagation', () => {
 
   beforeAll(async () => {
     ctx = await createE2EServer();
-    apiKey = await createTestApiKey(ctx);
+    apiKey = await createTestAccessToken();
   });
 
   afterAll(async () => {
@@ -548,7 +543,7 @@ describe('E2E: Session persistence', () => {
   it('should persist sessions in MongoDB and reload on restart', async () => {
     // Server 1: Create session and add scene
     const ctx1 = await buildServer({ mongoUri, logLevel: 'silent' });
-    const apiKey1 = await createTestApiKey(ctx1);
+    const apiKey1 = await createTestAccessToken();
     const createRes = await ctx1.app.inject({
       method: 'POST',
       url: '/api/create-session',
@@ -605,8 +600,8 @@ describe('E2E: Cross-tenant isolation', () => {
 
   beforeAll(async () => {
     ctx = await createE2EServer();
-    apiKeyA = await createTestApiKey(ctx);
-    apiKeyB = await createTestApiKey(ctx);
+    apiKeyA = await createTestAccessToken();
+    apiKeyB = await createTestAccessToken();
 
     const createRes = await ctx.app.inject({
       method: 'POST',
@@ -753,7 +748,7 @@ describe('E2E: Multi-session isolation', () => {
 
   beforeAll(async () => {
     ctx = await createE2EServer();
-    apiKey = await createTestApiKey(ctx);
+    apiKey = await createTestAccessToken();
     const address = await ctx.app.listen({ port: 0, host: '127.0.0.1' });
     port = Number(address.match(/(\d+)$/)?.[1]);
   });
@@ -836,7 +831,7 @@ describe('E2E: Complex scene with multiple entity types', () => {
 
   beforeAll(async () => {
     ctx = await createE2EServer();
-    apiKey = await createTestApiKey(ctx);
+    apiKey = await createTestAccessToken();
   });
 
   afterAll(async () => {

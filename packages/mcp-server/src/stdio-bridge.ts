@@ -16,15 +16,18 @@
  *         "args": ["/absolute/path/to/packages/mcp-server/dist/stdio-bridge.js"],
  *         "env": {
  *           "PORT": "5005",
- *           "BASE_URL": "http://localhost:5005"
+ *           "BASE_URL": "http://localhost:5005",
+ *           "PREPLAI_API_KEY": "your-access-token"
  *         }
  *       }
  *     }
  *   }
  *
+ * Create an access token at https://preplai.com/dashboard/keys
+ *
  * For Streamable HTTP (remote clients, Cursor, etc.), run the main server instead:
  *   node dist/server.js
- *   MCP endpoint: POST/GET /mcp (requires X-Preplai-API-Key header)
+ *   MCP endpoint: POST/GET /mcp (requires Authorization: Bearer <token>)
  *
  * This bridge does TWO things:
  * 1. Boots the Fastify HTTP server (for the player UI + SSE)
@@ -50,32 +53,26 @@ async function main() {
   console.error(`[preplai] HTTP server running at ${cfg.baseUrl}`);
   console.error(`[preplai] Player: ${cfg.baseUrl}/player/:sessionId`);
 
-  // 2. Auth: use provided API key or generate one for local development
-  let localApiKeyId: string | null = null;
-  let localApiKeyTier = 'free';
+  // 2. Auth: require access token (create one at https://preplai.com/dashboard/keys)
   const envKey = process.env.PREPLAI_API_KEY;
-
-  if (envKey) {
-    const { validateApiKey } = await import('./auth.js');
-    const validated = await validateApiKey(envKey);
-    if (validated) {
-      localApiKeyId = validated.id;
-      localApiKeyTier = validated.tier;
-      console.error(`[preplai] Authenticated as ${validated.owner_email} (${validated.tier})`);
-    } else {
-      console.error('[preplai] WARNING: PREPLAI_API_KEY is invalid. Generating a local dev key.');
-    }
+  if (!envKey) {
+    console.error('[preplai] PREPLAI_API_KEY is required. Create an access token at https://preplai.com/dashboard/keys');
+    process.exit(1);
   }
 
-  if (!localApiKeyId) {
-    const { createApiKey } = await import('./auth.js');
-    const newKey = await createApiKey('local@localhost', 'free');
-    localApiKeyId = newKey.id;
-    console.error(`[preplai] Generated local API key: ${newKey.key}`);
-    console.error('[preplai] Set PREPLAI_API_KEY env var to use your own key.');
+  const { validateApiKey } = await import('./auth.js');
+  const { validateOAuthToken } = await import('./oauth-token.js');
+  const validated = envKey.startsWith('plai_')
+    ? await validateApiKey(envKey)
+    : await validateOAuthToken(envKey);
+
+  if (!validated) {
+    console.error('[preplai] Invalid PREPLAI_API_KEY. Create a new access token at https://preplai.com/dashboard/keys');
+    process.exit(1);
   }
 
-  const apiKey = { id: localApiKeyId!, tier: localApiKeyTier };
+  console.error(`[preplai] Authenticated as ${validated.owner_email} (${validated.tier})`);
+  const apiKey = { id: validated.id, tier: validated.tier };
 
   // 3. Create MCP server with stdio transport
   const mcp = new McpServer({

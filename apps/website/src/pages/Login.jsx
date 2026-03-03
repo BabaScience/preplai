@@ -51,7 +51,7 @@ export default function Login() {
         </div>
         <h1 style={{ textAlign: 'center' }}>Welcome back</h1>
         <p className="auth-sub" style={{ textAlign: 'center' }}>
-          Log in to manage your API keys.
+          Log in to manage your access tokens.
         </p>
         <Alert variant="error">{error}</Alert>
         <form className="auth-form" onSubmit={handleSubmit}>

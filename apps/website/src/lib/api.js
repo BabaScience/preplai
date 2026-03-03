@@ -61,7 +61,7 @@ export async function apiGetOverview() {
   return data;
 }
 
-// API Keys
+// Access Tokens
 export async function apiGetKeys() {
   const { data } = await client.get('keys');
   return data;

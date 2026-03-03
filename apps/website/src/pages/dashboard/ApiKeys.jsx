@@ -87,7 +87,7 @@ export default function ApiKeys() {
   };
 
   return (
-    <DashboardLayout title="API Keys">
+    <DashboardLayout title="Access Tokens">
       {loading ? (
         <p style={{ color: 'var(--color-text-muted)' }}>Loading...</p>
       ) : error ? (
@@ -95,12 +95,12 @@ export default function ApiKeys() {
       ) : keys.length === 0 ? (
         <EmptyState
           icon={Key}
-          title="No API keys yet"
+          title="No access tokens yet"
           description="Create one to get started with preplai."
           action={
             <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
               <Plus size={16} />
-              Create New API Key
+              Create Access Token
             </button>
           }
         />
@@ -119,7 +119,7 @@ export default function ApiKeys() {
             </p>
             <button className="btn btn-primary btn-sm" onClick={() => setShowCreateModal(true)}>
               <Plus size={14} />
-              Create New Key
+              Create Token
             </button>
           </div>
           <div className="card" style={{ overflowX: 'auto' }}>
@@ -177,7 +177,7 @@ export default function ApiKeys() {
       {/* Create Key Modal */}
       {showCreateModal && (
         <Modal open={showCreateModal} onClose={closeCreateModal}>
-          <h2>Create API Key</h2>
+          <h2>Create Access Token</h2>
           <Alert variant="error">{createError}</Alert>
           {createdKey ? (
             <>
@@ -186,7 +186,7 @@ export default function ApiKeys() {
                 color: 'var(--color-text-muted)',
                 marginBottom: 'var(--space-4)',
               }}>
-                Your API key has been created. Copy it now — you won&apos;t be able to see it again.
+                Your access token has been created. Copy it now — you won&apos;t be able to see it again.
               </p>
               <div className="key-reveal">{createdKey}</div>
               <div className="key-warning">
@@ -231,18 +231,18 @@ export default function ApiKeys() {
       {/* Revoke Confirmation Modal */}
       {showRevokeModal !== null && (
         <Modal open={showRevokeModal !== null} onClose={() => setShowRevokeModal(null)}>
-          <h2>Revoke API Key</h2>
+          <h2>Revoke Access Token</h2>
           <p style={{
             color: 'var(--color-text-muted)',
             fontSize: 'var(--text-sm)',
             marginBottom: 'var(--space-6)',
           }}>
-            This action cannot be undone. Any applications using this key will stop working.
+            This action cannot be undone. Any applications using this token will stop working.
           </p>
           <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end' }}>
             <button className="btn btn-ghost" onClick={() => setShowRevokeModal(null)}>Cancel</button>
             <button className="btn btn-danger" onClick={() => handleRevoke(showRevokeModal)}>
-              Revoke Key
+              Revoke Token
             </button>
           </div>
         </Modal>

@@ -15,7 +15,7 @@ export default function LandingLayout({ children }) {
           <li className="nav-link-desktop"><a href="#setup">Setup</a></li>
           <li><ThemeToggle /></li>
           <li><Link to="/login" className="btn btn-ghost btn-sm">Log in</Link></li>
-          <li><Link to="/signup" className="btn btn-primary btn-sm">Get API Key</Link></li>
+          <li><Link to="/signup" className="btn btn-primary btn-sm">Get Access Token</Link></li>
         </ul>
       </nav>
       <main>{children}</main>

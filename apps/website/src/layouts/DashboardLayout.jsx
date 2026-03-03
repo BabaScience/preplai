@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/dashboard/overview' },
-  { id: 'keys', label: 'API Keys', icon: Key, path: '/dashboard/keys' },
+  { id: 'keys', label: 'Access Tokens', icon: Key, path: '/dashboard/keys' },
   { id: 'connectors', label: 'Connectors', icon: Plug, path: '/dashboard/connectors' },
   { id: 'sessions', label: 'Sessions', icon: Film, path: '/dashboard/sessions' },
   { id: 'usage', label: 'Usage', icon: BarChart3, path: '/dashboard/usage' },

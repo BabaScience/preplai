@@ -18,7 +18,7 @@ export default function Landing() {
           voice-synced visual experiences. Not slides. Cinema.
         </p>
         <div className="hero-ctas">
-          <Link to="/signup" className="btn btn-primary btn-lg">Get API Key</Link>
+          <Link to="/signup" className="btn btn-primary btn-lg">Get Access Token</Link>
           <a
             href="https://docs.preplai.com"
             target="_blank"
@@ -61,7 +61,7 @@ export default function Landing() {
           <div className="feature-card fade-in">
             <div className="feature-icon"><Cpu size={20} /></div>
             <h3>Agent-Native MCP API</h3>
-            <p>Built for Claude, ChatGPT, and any MCP client. 8 tools, one API key. Native integration with the tools your agents already use.</p>
+            <p>Built for Claude, ChatGPT, and any MCP client. 8 tools, one access token. Native integration with the tools your agents already use.</p>
           </div>
           <div className="feature-card fade-in">
             <div className="feature-icon"><Zap size={20} /></div>
@@ -85,11 +85,11 @@ export default function Landing() {
       <section className="section-block" style={{ borderTop: '1px solid var(--color-divider)' }}>
         <div className="section-label">How It Works</div>
         <h2>Three steps to cinema</h2>
-        <p className="section-desc">From API key to live presentation in minutes.</p>
+        <p className="section-desc">From access token to live presentation in minutes.</p>
         <div className="steps-grid">
           <div className="step-item fade-in">
-            <h3>Get your API key</h3>
-            <p>Sign up for free and generate your first API key in seconds. No credit card required.</p>
+            <h3>Get your access token</h3>
+            <p>Sign up for free and generate your first access token in seconds. No credit card required.</p>
           </div>
           <div className="step-item fade-in">
             <h3>Add to Claude Desktop</h3>
@@ -177,7 +177,7 @@ export default function Landing() {
 }`}</pre>
           </div>
           <div style={{ marginTop: 'var(--space-6)', display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
-            <Link to="/signup" className="btn btn-primary">Get Your API Key</Link>
+            <Link to="/signup" className="btn btn-primary">Get Your Access Token</Link>
             <a
               href="https://docs.preplai.com"
               target="_blank"

@@ -96,8 +96,8 @@ export function withErrorBoundary<T>(
 export function mcpUnauthorized(message?: string): McpToolContent {
   return mcpErr(
     'UNAUTHORIZED',
-    message || 'Valid API key required.',
-    'Include your API key in the X-Preplai-API-Key header. Get one at https://preplai.com.',
+    message || 'Valid access token required.',
+    'Web clients: use OAuth. Desktop clients: create an access token at https://preplai.com/dashboard/keys.',
   );
 }
 
@@ -119,6 +119,6 @@ export function mcpForbidden(message?: string): McpToolContent {
   return mcpErr(
     'FORBIDDEN',
     message || 'You do not own this session.',
-    'Only the API key that created the session can modify or access it.',
+    'Only the access token that created the session can modify or access it.',
   );
 }
