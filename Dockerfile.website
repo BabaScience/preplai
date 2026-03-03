@@ -2,14 +2,20 @@
 # Build from repo root: docker build -f Dockerfile.website --build-arg VITE_API_URL=https://api.preplai.com/api .
 FROM node:20-slim AS build
 WORKDIR /app
-COPY package.json package-lock.json ./
+
+# Enable pnpm via corepack
+RUN corepack enable && corepack prepare pnpm@10.16.1 --activate
+
+# Copy workspace config and lockfile
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY apps/ apps/
 COPY packages/ packages/
 
-RUN npm ci
+RUN pnpm install --frozen-lockfile
+
 ARG VITE_API_URL=https://api.preplai.com/api
 ENV VITE_API_URL=$VITE_API_URL
-RUN npm run build --workspace=website --if-present
+RUN pnpm --filter website run build
 
 FROM nginx:alpine
 COPY --from=build /app/apps/website/dist /usr/share/nginx/html
