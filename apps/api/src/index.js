@@ -24,6 +24,8 @@ export function createApp() {
   app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
   app.use(cookieParser());
   app.use(express.json());
+  // OAuth 2.0 token endpoint expects application/x-www-form-urlencoded (RFC 6749)
+  app.use(express.urlencoded({ extended: true }));
 
   app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
