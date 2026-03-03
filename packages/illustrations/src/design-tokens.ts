@@ -173,6 +173,37 @@ export const ENTITY_COLORS: Record<string, string> = {
   // ML
   NeuralNetwork: COLORS.violet,
   DecisionBoundary: COLORS.cyan,
+  // Compilers & PL
+  AST: COLORS.violet,
+  CallStack: COLORS.orange,
+  ParseTree: COLORS.violet,
+  SymbolTable: COLORS.teal,
+  // Databases
+  BTree: COLORS.green,
+  QueryPlan: COLORS.cyan,
+  // OS
+  ProcessState: COLORS.teal,
+  GanttChart: COLORS.green,
+  PageTable: COLORS.violet,
+  DeadlockGraph: COLORS.red,
+  // Architecture
+  CacheHierarchy: COLORS.cyan,
+  PipelineStage: COLORS.orange,
+  MemoryLayout: COLORS.violet,
+  // Concurrency
+  Semaphore: COLORS.orange,
+  Mutex: COLORS.red,
+  // Networking extended
+  OSILayer: COLORS.cyan,
+  ProtocolLayer: COLORS.teal,
+  // Theory
+  TuringMachine: COLORS.violet,
+  BigO: COLORS.gold,
+  // Algorithms extended
+  SortAnimation: COLORS.cyan,
+  GraphTraversal: COLORS.green,
+  // ML extended
+  ConfusionMatrix: COLORS.pink,
 };
 
 /** Get default color for an entity type. Falls back to cyan. */

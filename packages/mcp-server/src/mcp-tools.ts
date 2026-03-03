@@ -37,7 +37,7 @@ function verifySessionOwnership(
 
 export const VisualEntitySchema = z.object({
   id: z.string(),
-  type: z.string().describe('Entity type. Common types: Server, Database, User, Cloud, Arrow, DataFlow, Concept, Label, CodeBlock, Array, Pointer, BinaryTree, LinkedList, Group, Table, Metric, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation'),
+  type: z.string().describe('Entity type. Common types: Server, Database, User, Cloud, Arrow, DataFlow, Concept, Label, CodeBlock, Array, Pointer, BinaryTree, BTree, LinkedList, HashTable, Group, Table, Metric, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation. CS types: AST, CallStack, ParseTree, BTree, ProcessState, GanttChart, CacheHierarchy, MemoryLayout, ConfusionMatrix, Semaphore, Mutex, TuringMachine, BigO, SortAnimation, GraphTraversal.'),
   position: z.object({
     x: z.number().describe('X position as percentage 0-100 of the 1920px canvas'),
     y: z.number().describe('Y position as percentage 0-100 of the 1080px canvas'),
@@ -110,8 +110,13 @@ Entity types with DEDICATED renderers (look best):
 Entity types with SHAPED renderers:
   Cache (circle), LoadBalancer (hexagon), Decision (diamond), Metric (circle)
 
+CS-specific entity types with custom renderers:
+  AST (parse tree), CallStack (stack frames), BTree (multi-child tree), ProcessState (state diagram), GanttChart (task bars), CacheHierarchy (L1/L2/L3 stack), MemoryLayout (stack/heap), ConfusionMatrix (TP/FP/TN/FN grid). Use metadata for data: AST needs metadata.ast, CallStack needs metadata.frames, GanttChart needs metadata.tasks, etc.
+
+Graph2D supports metadata.curveType: "roc" (ROC curve), "loss" (training loss), or "scatter" for scatter points.
+
 All other entity types render as rounded rectangles with their label centered inside:
-  Array, Pointer, BinaryTree, LinkedList, Group, Table, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation, Process, Queue, Service, NeuralNetwork, FSM, CPU, Register, MemoryBlock, Packet, ProtocolStack, and more.
+  Array, Pointer, BinaryTree, LinkedList, Group, Table, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation, Process, Queue, Service, NeuralNetwork, FSM, CPU, Register, MemoryBlock, Packet, ProtocolStack, Semaphore, Mutex, TuringMachine, BigO, SortAnimation, GraphTraversal, and more.
 
 Connection types (rendered as bezier curve arrows with glow and animated flow):
   Arrow, DataFlow (fast animated dashes), BidirectArrow, DottedArrow

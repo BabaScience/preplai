@@ -82,7 +82,7 @@ describe('registry', () => {
 
   it('should have all data structure types registered', () => {
     const types = [
-      'Array', 'LinkedList', 'BinaryTree', 'HashTable', 'Dict',
+      'Array', 'LinkedList', 'BinaryTree', 'BTree', 'HashTable', 'Dict',
       'Heap', 'GraphDS', 'Trie', 'List', 'Tuple', 'Set',
     ];
     for (const type of types) {
@@ -95,9 +95,14 @@ describe('registry', () => {
       'ArrayCell', 'Pointer', 'RecursionTree',
       'FSM', 'StateNode', 'Transition',
       'CPU', 'Register', 'MemoryBlock', 'LogicGate', 'Bus',
-      'ProcessBlock', 'MemoryMap', 'Thread',
+      'ProcessBlock', 'ProcessState', 'GanttChart', 'PageTable', 'DeadlockGraph',
+      'MemoryMap', 'Thread',
+      'CacheHierarchy', 'PipelineStage', 'MemoryLayout',
       'Packet', 'ProtocolStack',
-      'NeuralNetwork', 'DecisionBoundary',
+      'NeuralNetwork', 'DecisionBoundary', 'ConfusionMatrix',
+      'AST', 'CallStack', 'ParseTree', 'SymbolTable', 'QueryPlan',
+      'Semaphore', 'Mutex', 'OSILayer', 'ProtocolLayer',
+      'TuringMachine', 'BigO', 'SortAnimation', 'GraphTraversal',
     ];
     for (const type of types) {
       expect(typeof registry[type], `registry['${type}'] should be a function`).toBe('function');
@@ -161,5 +166,15 @@ describe('renderEntity dispatcher', () => {
     renderEntity(entities[1], parentEl);
     const result = renderEntity(entities[2], parentEl, entities);
     expect(result).not.toBeNull();
+  });
+
+  it('should render new CS entity types (AST, CallStack, BTree, etc.)', () => {
+    const types = ['AST', 'CallStack', 'BTree', 'ProcessState', 'GanttChart', 'CacheHierarchy', 'MemoryLayout', 'ConfusionMatrix'] as const;
+    for (const type of types) {
+      const entity = makeEntity({ id: `cs-${type}`, type, position: { x: 50, y: 50 } });
+      const result = renderEntity(entity, parentEl);
+      expect(result, `Failed to render ${type}`).not.toBeNull();
+      expect(parentEl.querySelector(`#cs-${type}`), `DOM missing for ${type}`).toBeTruthy();
+    }
   });
 });

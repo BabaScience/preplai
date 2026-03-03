@@ -1348,9 +1348,48 @@ export const PLAYER_JS = `(function() {
     });
   }
 
+  // Nav bar visibility toggle
+  var showControlsBar = document.getElementById('show-controls-bar');
+  var navToggle = document.getElementById('nav-toggle');
+  var navVisible = true;
+  try {
+    var stored = localStorage.getItem('preplai-nav-visible');
+    if (stored !== null) navVisible = stored === 'true';
+  } catch (e) {}
+  function setNavVisible(visible) {
+    navVisible = visible;
+    if (frameNav) {
+      if (visible) {
+        frameNav.classList.remove('hidden');
+      } else {
+        frameNav.classList.add('hidden');
+      }
+    }
+    if (showControlsBar) {
+      if (visible) {
+        showControlsBar.classList.remove('visible');
+      } else {
+        showControlsBar.classList.add('visible');
+      }
+    }
+    if (navToggle) {
+      navToggle.setAttribute('aria-label', visible ? 'Hide navigation bar' : 'Show navigation bar');
+    }
+    try { localStorage.setItem('preplai-nav-visible', String(visible)); } catch (e) {}
+  }
+  setNavVisible(navVisible);
+  if (navToggle) navToggle.addEventListener('click', function() { setNavVisible(false); });
+  if (showControlsBar) showControlsBar.addEventListener('click', function() { setNavVisible(true); });
+
   document.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goNext(); }
     if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); goPrev(); }
+    if (e.key === 'h' || e.key === 'H') {
+      if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        setNavVisible(!navVisible);
+      }
+    }
   });
 
   // IMPROVEMENT 5: Auto-hide keyboard hint after 4 seconds

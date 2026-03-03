@@ -48,7 +48,25 @@ export type VisualEntityType =
   // Networking (2)
   | 'Packet' | 'ProtocolStack'
   // Machine Learning (2)
-  | 'NeuralNetwork' | 'DecisionBoundary';
+  | 'NeuralNetwork' | 'DecisionBoundary'
+  // Compilers & PL (4)
+  | 'AST' | 'CallStack' | 'ParseTree' | 'SymbolTable'
+  // Databases (2)
+  | 'BTree' | 'QueryPlan'
+  // Operating Systems (4)
+  | 'ProcessState' | 'GanttChart' | 'PageTable' | 'DeadlockGraph'
+  // Architecture (3)
+  | 'CacheHierarchy' | 'PipelineStage' | 'MemoryLayout'
+  // Concurrency (2)
+  | 'Semaphore' | 'Mutex'
+  // Networking extended (2)
+  | 'OSILayer' | 'ProtocolLayer'
+  // Theory (2)
+  | 'TuringMachine' | 'BigO'
+  // Algorithms extended (2)
+  | 'SortAnimation' | 'GraphTraversal'
+  // ML extended (1)
+  | 'ConfusionMatrix';
 
 
 // ── VisualEntity ──────────────────────────────────────────────────────

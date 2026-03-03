@@ -67,6 +67,14 @@ export { renderTuple } from './components/tuple.js';
 export { renderSet } from './components/set.js';
 export { renderDockerImage } from './components/dockerimage.js';
 export { renderDockerRegistry } from './components/dockerregistry.js';
+export { renderAST } from './components/ast.js';
+export { renderCallStack } from './components/callstack.js';
+export { renderBTree } from './components/btree.js';
+export { renderProcessState } from './components/processstate.js';
+export { renderGanttChart } from './components/ganttchart.js';
+export { renderCacheHierarchy } from './components/cachehierarchy.js';
+export { renderMemoryLayout } from './components/memorylayout.js';
+export { renderConfusionMatrix } from './components/confusionmatrix.js';
 
 // ── Generic component factory (for extending)
 export { createGenericRenderer } from './components/generic.js';

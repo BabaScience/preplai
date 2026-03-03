@@ -6,6 +6,7 @@
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import { timelineLayout } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderTimeline(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -19,22 +20,26 @@ export function renderTimeline(entity: VisualEntity, parentEl: SVGElement): SVGG
 
   const lineLen = s * 1.6;
   const d = s / 6;
+  const { lineX1, lineY, lineX2, markers } = timelineLayout(lineLen, d, true);
 
   const line = document.createElementNS(SVG_NS, 'line');
-  line.setAttribute('x1', String(-lineLen / 2));
-  line.setAttribute('y1', '0');
-  line.setAttribute('x2', String(lineLen / 2));
-  line.setAttribute('y2', '0');
+  line.setAttribute('x1', String(lineX1));
+  line.setAttribute('y1', String(lineY));
+  line.setAttribute('x2', String(lineX2));
+  line.setAttribute('y2', String(lineY));
   line.setAttribute('stroke', `url(#${gradId})`);
   line.setAttribute('stroke-width', '2');
   innerG.appendChild(line);
 
-  const diamond = document.createElementNS(SVG_NS, 'polygon');
-  diamond.setAttribute('points', `0,${-d} ${d},0 0,${d} ${-d},0`);
-  diamond.setAttribute('fill', `${color}40`);
-  diamond.setAttribute('stroke', color);
-  diamond.setAttribute('stroke-width', '2');
-  innerG.appendChild(diamond);
+  if (markers && markers.length > 0) {
+    const diamond = document.createElementNS(SVG_NS, 'polygon');
+    const m = markers[0];
+    diamond.setAttribute('points', `${m.x},${-m.d} ${m.x + m.d},0 ${m.x},${m.d} ${m.x - m.d},0`);
+    diamond.setAttribute('fill', `${color}40`);
+    diamond.setAttribute('stroke', color);
+    diamond.setAttribute('stroke-width', '2');
+    innerG.appendChild(diamond);
+  }
 
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');

@@ -20,11 +20,16 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
   const defs = ensureDefs(parentEl);
   const bgGradId = `grad-graph2d-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createDarkGradient(bgGradId, defs, color);
-  const domain = (meta.domain as [number, number]) ?? (meta.xRange as [number, number]) ?? [-5, 5];
-  const range = (meta.range as [number, number]) ?? (meta.yRange as [number, number]) ?? [-5, 5];
+  const curveType = meta.curveType as string | undefined;
+  const isROC = curveType === 'roc';
+  const isLoss = curveType === 'loss';
+  const domain = (meta.domain as [number, number]) ?? (meta.xRange as [number, number]) ??
+    (isROC || isLoss ? (isROC ? [0, 1] : [0, 10]) : [-5, 5]);
+  const range = (meta.range as [number, number]) ?? (meta.yRange as [number, number]) ??
+    (isROC ? [0, 1] : isLoss ? [0, 2] : [-5, 5]);
   const showGrid = meta.showGrid !== false;
-  const xLabel = (meta.xLabel as string) ?? '';
-  const yLabel = (meta.yLabel as string) ?? '';
+  const xLabel = (meta.xLabel as string) ?? (isROC ? 'FPR' : isLoss ? 'Epoch' : '');
+  const yLabel = (meta.yLabel as string) ?? (isROC ? 'TPR' : isLoss ? 'Loss' : '');
   const pad = 30;
 
   const chartW = totalW - pad * 2;
@@ -167,9 +172,46 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
     }
   }
 
-  // ── Scatter points
+  // ── ROC curve: connect points as path (TPR vs FPR)
+  if (isROC) {
+    const rocPoints = (meta.points as Array<{ x: number; y: number }>) ?? [
+      { x: 0, y: 0 }, { x: 0.1, y: 0.3 }, { x: 0.3, y: 0.6 }, { x: 0.6, y: 0.85 }, { x: 1, y: 1 },
+    ];
+    if (rocPoints.length > 0) {
+      const pathD = rocPoints.map((p, i) =>
+        `${i === 0 ? 'M' : 'L'}${mapX(p.x).toFixed(1)},${mapY(p.y).toFixed(1)}`
+      ).join(' ');
+      const path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('d', pathD);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', '2.5');
+      innerG.appendChild(path);
+    }
+  }
+
+  // ── Loss curve: connect points as path (epoch vs loss)
+  if (isLoss && !meta.expression) {
+    const lossPoints = (meta.points as Array<{ x: number; y: number }>) ?? [
+      { x: 0, y: 1.8 }, { x: 2, y: 1.2 }, { x: 4, y: 0.8 }, { x: 6, y: 0.5 }, { x: 8, y: 0.35 }, { x: 10, y: 0.25 },
+    ];
+    if (lossPoints.length > 0) {
+      const pathD = lossPoints.map((p, i) =>
+        `${i === 0 ? 'M' : 'L'}${mapX(p.x).toFixed(1)},${mapY(p.y).toFixed(1)}`
+      ).join(' ');
+      const path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('d', pathD);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', '2.5');
+      innerG.appendChild(path);
+    }
+  }
+
+  // ── Scatter points (skip if roc/loss drew a path)
   const points = (meta.points as Array<{ x: number; y: number }>) ?? [];
-  for (const p of points) {
+  const drawScatter = !isROC && !isLoss;
+  for (const p of drawScatter ? points : []) {
     const dot = document.createElementNS(SVG_NS, 'circle');
     dot.setAttribute('cx', String(mapX(p.x)));
     dot.setAttribute('cy', String(mapY(p.y)));

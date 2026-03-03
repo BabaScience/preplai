@@ -6,6 +6,7 @@
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { gridLayoutFromPairs } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderHashTable(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -25,26 +26,14 @@ export function renderHashTable(entity: VisualEntity, parentEl: SVGElement): SVG
   ];
   const visiblePairs = pairs.slice(0, 6);
 
-  const cellW = 36;
-  const cellH = 22;
-  const cols = 2;
-  const rows = Math.ceil(visiblePairs.length / cols);
-  const totalW = cols * cellW + 8;
-  const totalH = rows * cellH + 8;
-  const startX = -totalW / 2 + cellW / 2 + 4;
-  const startY = -totalH / 2 + cellH / 2 + 4;
+  const cells = gridLayoutFromPairs(visiblePairs, { cols: 2 });
 
-  visiblePairs.forEach(([key, val], i) => {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    const x = startX + col * (cellW + 4);
-    const y = startY + row * (cellH + 4);
-
+  cells.forEach(({ x, y, width, height, content }) => {
     const cell = document.createElementNS(SVG_NS, 'rect');
-    cell.setAttribute('x', String(x - cellW / 2));
-    cell.setAttribute('y', String(y - cellH / 2));
-    cell.setAttribute('width', String(cellW));
-    cell.setAttribute('height', String(cellH));
+    cell.setAttribute('x', String(x - width / 2));
+    cell.setAttribute('y', String(y - height / 2));
+    cell.setAttribute('width', String(width));
+    cell.setAttribute('height', String(height));
     cell.setAttribute('rx', String(SHAPES.borderRadius - 2));
     cell.setAttribute('fill', `url(#${gradId})`);
     cell.setAttribute('stroke', color);
@@ -59,9 +48,13 @@ export function renderHashTable(entity: VisualEntity, parentEl: SVGElement): SVG
     pairText.setAttribute('font-size', '10');
     pairText.setAttribute('font-weight', '600');
     pairText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-    pairText.textContent = `${key}:${val}`;
+    pairText.textContent = content;
     innerG.appendChild(pairText);
   });
+
+  const cellH = 22;
+  const rows = Math.ceil(visiblePairs.length / 2);
+  const totalH = rows * cellH + 8;
 
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');

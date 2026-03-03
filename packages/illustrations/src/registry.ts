@@ -51,6 +51,14 @@ import { renderTuple } from './components/tuple.js';
 import { renderSet } from './components/set.js';
 import { renderDockerImage } from './components/dockerimage.js';
 import { renderDockerRegistry } from './components/dockerregistry.js';
+import { renderAST } from './components/ast.js';
+import { renderCallStack } from './components/callstack.js';
+import { renderBTree } from './components/btree.js';
+import { renderProcessState } from './components/processstate.js';
+import { renderGanttChart } from './components/ganttchart.js';
+import { renderCacheHierarchy } from './components/cachehierarchy.js';
+import { renderMemoryLayout } from './components/memorylayout.js';
+import { renderConfusionMatrix } from './components/confusionmatrix.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -200,6 +208,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Array: renderArray,
   LinkedList: renderLinkedList,
   BinaryTree: renderBinaryTree,
+  BTree: renderBTree,
   HashTable: renderHashTable,
   Dict: renderHashTable,
   Heap: dsBcd,
@@ -228,8 +237,17 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Operating Systems
   ProcessBlock: osBcd,
+  ProcessState: renderProcessState,
+  GanttChart: renderGanttChart,
+  PageTable: osBcd,
+  DeadlockGraph: infraRed,
   MemoryMap: osPrp,
   Thread: osGrn,
+
+  // ── Architecture
+  CacheHierarchy: renderCacheHierarchy,
+  PipelineStage: infra,
+  MemoryLayout: renderMemoryLayout,
 
   // ── Networking
   Packet: netCyan,
@@ -238,6 +256,32 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   // ── Machine Learning
   NeuralNetwork: mlPrp,
   DecisionBoundary: mlCyan,
+  ConfusionMatrix: renderConfusionMatrix,
+
+  // ── Compilers & PL
+  AST: renderAST,
+  CallStack: renderCallStack,
+  ParseTree: renderAST,
+  SymbolTable: infra,
+
+  // ── Databases
+  QueryPlan: infra,
+
+  // ── Concurrency
+  Semaphore: generic('Semaphore'),
+  Mutex: generic('Mutex'),
+
+  // ── Networking extended
+  OSILayer: generic('OSILayer'),
+  ProtocolLayer: generic('ProtocolLayer'),
+
+  // ── Theory
+  TuringMachine: generic('TuringMachine'),
+  BigO: generic('BigO'),
+
+  // ── Algorithms extended
+  SortAnimation: generic('SortAnimation'),
+  GraphTraversal: generic('GraphTraversal'),
 };
 
 /**
