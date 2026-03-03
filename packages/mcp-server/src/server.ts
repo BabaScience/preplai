@@ -136,6 +136,13 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   // ── Auth: API key validation ──────────────────────────────────────
   app.decorateRequest('apiKey', null);
 
+  // MCP session auth cache: some clients (e.g. Claude) send Bearer only on first request.
+  // We store auth when we have it and reuse for subsequent requests with same Mcp-Session-Id.
+  const MCP_SESSION_HEADER = 'mcp-session-id';
+  const sessionAuth = new Map<string, ValidatedKey>();
+  const SESSION_AUTH_TTL_MS = 60 * 60 * 1000; // 1 hour
+  const sessionAuthExpiry = new Map<string, number>();
+
   const PUBLIC_ROUTES = new Set([
     '/health',
     '/player.css',
@@ -157,27 +164,39 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       const auth = request.headers.authorization;
       if (auth?.startsWith('Bearer ')) token = auth.slice(7).trim();
     }
-    if (!token) {
-      const err = authError('MISSING_API_KEY', 'API key required. Include X-Preplai-API-Key header or Authorization: Bearer <key>.');
-      reply
-        .status(err.statusCode)
-        .header(
-          'WWW-Authenticate',
-          `Bearer resource_metadata="${cfg.baseUrl.replace(/\/$/, '')}/.well-known/oauth-protected-resource"`,
-        )
-        .send(err.body);
-      return;
+
+    const sessionId = request.headers[MCP_SESSION_HEADER] as string | undefined;
+
+    let validated: ValidatedKey | null = null;
+
+    if (token) {
+      if (token.startsWith('plai_')) {
+        validated = await validateApiKey(token);
+      } else {
+        validated = await validateOAuthToken(token);
+      }
+      if (validated && sessionId) {
+        sessionAuth.set(sessionId, validated);
+        sessionAuthExpiry.set(sessionId, Date.now() + SESSION_AUTH_TTL_MS);
+      }
     }
 
-    let validated: ValidatedKey | null;
-    if (token.startsWith('plai_')) {
-      validated = await validateApiKey(token);
-    } else {
-      validated = await validateOAuthToken(token);
+    // Fallback: reuse auth from MCP session (clients like Claude may not re-send Bearer on every request)
+    if (!validated && sessionId) {
+      const expiry = sessionAuthExpiry.get(sessionId);
+      if (expiry && expiry > Date.now()) {
+        validated = sessionAuth.get(sessionId) ?? null;
+      } else {
+        sessionAuth.delete(sessionId);
+        sessionAuthExpiry.delete(sessionId);
+      }
     }
 
     if (!validated) {
-      const err = authError('INVALID_API_KEY', 'Invalid or revoked API key.');
+      const err = authError(
+        token ? 'INVALID_API_KEY' : 'MISSING_API_KEY',
+        token ? 'Invalid or revoked API key.' : 'API key required. Include X-Preplai-API-Key header or Authorization: Bearer <key>.',
+      );
       reply
         .status(err.statusCode)
         .header(
