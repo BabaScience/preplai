@@ -1,6 +1,7 @@
 # .github/workflows/deploy.yml
 # CD: deploys to Droplet on push to main (or on tag v*)
 # Requires GitHub secrets: VPS_HOST, VPS_USER, VPS_SSH_KEY
+# If key is passphrase-protected, also add: VPS_SSH_KEY_PASSPHRASE
 
 name: Deploy
 
@@ -30,6 +31,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          passphrase: ${{ secrets.VPS_SSH_KEY_PASSPHRASE }}
           port: 22
           script: |
             set -euo pipefail
