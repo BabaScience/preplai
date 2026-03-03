@@ -191,7 +191,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
 
   mcp.tool(
     'create_session',
-    'Create a new presentation session. Returns a session_id and a player_url. The player URL is automatically opened in the default browser.',
+    'Create a new presentation session. Returns a session_id and a player_url. When running locally (stdio or localhost), the player URL is automatically opened in the default browser. For remote clients, open the player_url in a new tab so the user can watch the presentation while you add scenes.',
     {
       title: z.string().describe('Title of the presentation'),
       aspect_ratio: z.string().optional().describe('Aspect ratio, default "16:9". Options: "16:9", "4:3"'),

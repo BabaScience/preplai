@@ -5,6 +5,7 @@
  * Uses MongoDB via @preplai/db for persistence.
  * Exposes MCP tools via Streamable HTTP at /mcp.
  */
+import { exec } from 'node:child_process';
 import { config } from 'dotenv';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -212,6 +213,19 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   });
 
   // ── MCP: Streamable HTTP at /mcp ─────────────────────────────────────
+  // Auto-open player in browser when server runs locally (localhost). Remote servers cannot open the user's browser.
+  const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(cfg.baseUrl);
+  const openPlayerInBrowser =
+    isLocal || process.env.OPEN_PLAYER_IN_BROWSER === 'true'
+      ? (url: string) => {
+          const cmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
+          exec(cmd + ' ' + JSON.stringify(url), (err) => {
+            if (err) console.error('[preplai] Could not auto-open browser:', err.message);
+          });
+          console.error('[preplai] Auto-opened player:', url);
+        }
+      : undefined;
+
   await app.register(FastifyMcpServer, {
     createMcpServer: () => {
       const mcp = new McpServer({ name: 'preplai', version: '0.1.0' });
@@ -221,6 +235,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
         baseUrl: cfg.baseUrl,
         getApiKey: (extra?: unknown) =>
           (extra as { authInfo?: ValidatedKey })?.authInfo ?? apiKeyStore.getStore() ?? null,
+        openPlayerInBrowser,
       });
       return mcp;
     },
