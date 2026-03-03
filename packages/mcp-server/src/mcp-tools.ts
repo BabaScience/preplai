@@ -175,8 +175,8 @@ export interface McpToolDeps {
   store: SessionStore;
   sse: SseRegistry;
   baseUrl: string;
-  /** Resolves API key for the current request. For stdio: fixed local key. For HTTP: from AsyncLocalStorage. */
-  getApiKey: () => { id: string; tier: string } | null;
+  /** Resolves API key for the current request. For stdio: fixed local key. For HTTP: from extra.authInfo (MCP transport) or AsyncLocalStorage. */
+  getApiKey: (extra?: unknown) => { id: string; tier: string } | null;
   /** Optional: auto-open player URL in browser (stdio bridge only) */
   openPlayerInBrowser?: (url: string) => void;
 }
@@ -196,11 +196,11 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       title: z.string().describe('Title of the presentation'),
       aspect_ratio: z.string().optional().describe('Aspect ratio, default "16:9". Options: "16:9", "4:3"'),
     },
-    async (args) => {
+    async (args, extra) => {
       const { trackUsage, checkSessionLimit } = await import('./auth.js');
-      const apiKey = getApiKey();
+      const apiKey = getApiKey(extra);
       if (!apiKey) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header.' } }) }] };
+        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header or Authorization: Bearer <token>.' } }) }] };
       }
 
       const limitCheck = await checkSessionLimit(apiKey.id, apiKey.tier);
@@ -241,7 +241,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       const { trackUsage, checkSceneLimit } = await import('./auth.js');
       const apiKey = getApiKey();
       if (!apiKey) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header.' } }) }] };
+        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header or Authorization: Bearer <token>.' } }) }] };
       }
 
       const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
@@ -274,11 +274,11 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       session_id: z.string().describe('Session ID'),
       visual_script: VisualScriptSchema.describe('The replacement visual script. Same format as add_scene.'),
     },
-    async (args) => {
+    async (args, extra) => {
       const { trackUsage, checkSceneLimit } = await import('./auth.js');
-      const apiKey = getApiKey();
+      const apiKey = getApiKey(extra);
       if (!apiKey) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header.' } }) }] };
+        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header or Authorization: Bearer <token>.' } }) }] };
       }
 
       const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
@@ -312,11 +312,11 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       text: z.string().describe('Narration text to display'),
       frame_index: z.number().optional().describe('Frame index (0-based, default 0)'),
     },
-    async (args) => {
+    async (args, extra) => {
       const { trackUsage } = await import('./auth.js');
-      const apiKey = getApiKey();
+      const apiKey = getApiKey(extra);
       if (!apiKey) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header.' } }) }] };
+        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header or Authorization: Bearer <token>.' } }) }] };
       }
 
       const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
@@ -344,8 +344,8 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       session_id: z.string().describe('Session ID'),
       include_stats: z.boolean().optional().describe('Include frame count, duration, etc.'),
     },
-    async (args) => {
-      const apiKey = getApiKey();
+    async (args, extra) => {
+      const apiKey = getApiKey(extra);
       if (apiKey) {
         const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
         if (!ownership.ok && !ownership.notFound) {
@@ -366,10 +366,10 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
     {
       limit: z.number().optional().describe('Max sessions to return (default 20, max 100)'),
     },
-    async (args) => {
-      const apiKey = getApiKey();
+    async (args, extra) => {
+      const apiKey = getApiKey(extra);
       if (!apiKey) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header.' } }) }] };
+        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header or Authorization: Bearer <token>.' } }) }] };
       }
 
       const result = await withErrorBoundary(
@@ -385,8 +385,8 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
     {
       session_id: z.string().describe('Session ID to delete'),
     },
-    async (args) => {
-      const apiKey = getApiKey();
+    async (args, extra) => {
+      const apiKey = getApiKey(extra);
       if (apiKey) {
         const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
         if (!ownership.ok && !ownership.notFound) {
@@ -409,8 +409,8 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       frame_indices: z.array(z.number()).optional().describe('Specific frame indices to remove (0-based)'),
       last_n: z.number().optional().describe('Remove the last N frames'),
     },
-    async (args) => {
-      const apiKey = getApiKey();
+    async (args, extra) => {
+      const apiKey = getApiKey(extra);
       if (apiKey) {
         const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
         if (!ownership.ok && !ownership.notFound) {

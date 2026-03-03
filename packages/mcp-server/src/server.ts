@@ -189,6 +189,8 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     }
 
     (request as any).apiKey = validated;
+    // MCP transport reads req.auth and passes it to tools as extra.authInfo
+    (request.raw as any).auth = validated;
     apiKeyStore.enterWith(validated);
   });
 
@@ -200,7 +202,8 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
         store,
         sse,
         baseUrl: cfg.baseUrl,
-        getApiKey: () => apiKeyStore.getStore() ?? null,
+        getApiKey: (extra?: unknown) =>
+          (extra as { authInfo?: ValidatedKey })?.authInfo ?? apiKeyStore.getStore() ?? null,
       });
       return mcp;
     },
