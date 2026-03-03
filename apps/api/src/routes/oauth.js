@@ -11,15 +11,25 @@ const router = Router();
 
 const DEFAULT_SECRET = 'preplai-dev-secret-change-in-prod';
 const JWT_SECRET = process.env.JWT_SECRET || DEFAULT_SECRET;
-const API_BASE =
-  process.env.API_BASE_URL ||
-  (process.env.NODE_ENV === 'production' ? 'https://api.preplai.com' : 'http://localhost:5000');
-const WEBSITE_BASE =
-  process.env.WEBSITE_BASE_URL ||
-  (process.env.NODE_ENV === 'production' ? 'https://preplai.com' : 'http://localhost:5173');
-const MCP_RESOURCE =
-  process.env.MCP_RESOURCE_URL ||
-  (process.env.NODE_ENV === 'production' ? 'https://player.preplai.com' : 'http://localhost:5005');
+
+function getApiBase() {
+  return (
+    process.env.API_BASE_URL ||
+    (process.env.NODE_ENV === 'production' ? 'https://api.preplai.com' : 'http://localhost:5000')
+  );
+}
+function getWebsiteBase() {
+  return (
+    process.env.WEBSITE_BASE_URL ||
+    (process.env.NODE_ENV === 'production' ? 'https://preplai.com' : 'http://localhost:5173')
+  );
+}
+function getMcpResource() {
+  return (
+    process.env.MCP_RESOURCE_URL ||
+    (process.env.NODE_ENV === 'production' ? 'https://player.preplai.com' : 'http://localhost:5005')
+  );
+}
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
@@ -51,6 +61,7 @@ function optionalAuth(req, res, next) {
 // ── Well-known: OAuth Authorization Server Metadata (RFC 8414) ─────────
 
 router.get('/.well-known/oauth-authorization-server', (req, res) => {
+  const API_BASE = getApiBase();
   res.json({
     issuer: API_BASE,
     authorization_endpoint: `${API_BASE}/oauth/authorize`,
@@ -72,6 +83,8 @@ router.get('/oauth/jwks', (req, res) => {
 // ── Authorization endpoint ──────────────────────────────────────────────
 
 router.get('/oauth/authorize', optionalAuth, async (req, res) => {
+  const API_BASE = getApiBase();
+  const WEBSITE_BASE = getWebsiteBase();
   const {
     client_id,
     redirect_uri,
@@ -245,6 +258,8 @@ router.post('/oauth/token', async (req, res) => {
     return res.status(400).json({ error: 'invalid_grant', error_description: 'Invalid code_verifier' });
   }
 
+  const API_BASE = getApiBase();
+  const MCP_RESOURCE = getMcpResource();
   const aud = resource || MCP_RESOURCE;
   const accessToken = jwt.sign(
     {

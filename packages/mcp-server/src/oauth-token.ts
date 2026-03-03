@@ -8,12 +8,15 @@ import jwt from 'jsonwebtoken';
 import { getOrCreateApiKeyForUser } from './auth.js';
 import type { ValidatedKey } from './auth.js';
 
-const JWT_SECRET = process.env.JWT_SECRET ?? 'preplai-dev-secret-change-in-prod';
+function getJwtSecret(): string {
+  return process.env.JWT_SECRET ?? 'preplai-dev-secret-change-in-prod';
+}
 
-const MCP_RESOURCE =
-  process.env.NODE_ENV === 'production'
+function getMcpResource(): string {
+  return process.env.NODE_ENV === 'production'
     ? 'https://player.preplai.com'
     : process.env.MCP_RESOURCE_URL ?? 'http://localhost:5005';
+}
 
 export interface OAuthPayload {
   sub: string;
@@ -29,9 +32,9 @@ export interface OAuthPayload {
  */
 export async function validateOAuthToken(token: string): Promise<ValidatedKey | null> {
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as OAuthPayload;
+    const payload = jwt.verify(token, getJwtSecret()) as OAuthPayload;
     const aud = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
-    const resource = MCP_RESOURCE.replace(/\/$/, '');
+    const resource = getMcpResource().replace(/\/$/, '');
     if (!aud.some((a) => a === resource || a === `${resource}/` || a === `${resource}/mcp`)) {
       return null;
     }

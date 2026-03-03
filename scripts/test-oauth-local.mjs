@@ -177,6 +177,12 @@ const server = createServer(async (req, res) => {
     const toolResult = await testMcp(accessToken);
     console.log('✓ MCP create_session succeeded:', JSON.stringify(toolResult, null, 2));
     console.log('\nOAuth local test passed!');
+
+    if (process.argv.includes('--print-token')) {
+      console.log('\n--- Access token (for MCP Inspector) ---');
+      console.log(accessToken);
+      console.log('----------------------------------------');
+    }
   } catch (err) {
     console.error('Error:', err.message);
     process.exit(1);

@@ -207,6 +207,9 @@ importers:
         specifier: ^3.22.0
         version: 3.25.76
     devDependencies:
+      '@types/jsonwebtoken':
+        specifier: ^9.0.10
+        version: 9.0.10
       mongodb-memory-server:
         specifier: ^11.0.1
         version: 11.0.1
