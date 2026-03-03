@@ -66,12 +66,17 @@ jobs:
 
       - name: Health check
         run: |
-          sleep 10
-          for url in https://api.preplai.com/health https://player.preplai.com/health; do
-            if curl -sf --max-time 15 "$url" >/dev/null; then
-              echo "OK: $url"
-            else
-              echo "WARN: $url not responding"
-              exit 1
+          echo "Waiting for services to be ready..."
+          for i in 1 2 3 4 5 6; do
+            sleep 5
+            api_ok=$(curl -sf --max-time 10 https://api.preplai.com/health >/dev/null && echo yes || echo no)
+            player_ok=$(curl -sf --max-time 10 https://player.preplai.com/health >/dev/null && echo yes || echo no)
+            if [ "$api_ok" = "yes" ] && [ "$player_ok" = "yes" ]; then
+              echo "OK: https://api.preplai.com/health"
+              echo "OK: https://player.preplai.com/health"
+              exit 0
             fi
+            echo "Attempt $i: api=$api_ok player=$player_ok, retrying in 5s..."
           done
+          echo "WARN: Services did not become ready in time"
+          exit 1
