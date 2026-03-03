@@ -11,7 +11,7 @@ import type { VisualEntity } from '@preplai/shared';
 export function renderList(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const s = getSizeParam(entity, 1.5);
+  const _s = getSizeParam(entity, 1.5);
   const color = entity.color ?? getCategoryColor('List');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-list-${color.replace(/[^a-fA-F0-9]/g, '')}`;

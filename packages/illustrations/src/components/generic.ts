@@ -43,7 +43,7 @@ export function createGenericRenderer(
     const showBadge = visualStyle !== 'minimal';
     const strokeWidth =
       visualStyle === 'emphasized' ? SHAPES.strokeWidthHeavy : SHAPES.strokeWidth;
-    const fillAlpha = visualStyle === 'emphasized' ? OPACITY.fillMedium : OPACITY.fillLight;
+    const _fillAlpha = visualStyle === 'emphasized' ? OPACITY.fillMedium : OPACITY.fillLight;
 
     const defs = ensureDefs(parentEl);
 

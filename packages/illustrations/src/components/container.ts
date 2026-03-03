@@ -37,7 +37,7 @@ export function renderContainer(entity: VisualEntity, parentEl: SVGElement): SVG
   const blockW = w * 0.25;
   const blockH = h * 0.2;
   const blockGap = w * 0.08;
-  [-1, 1].forEach((sign, i) => {
+  [-1, 1].forEach((sign) => {
     const bx = sign * (blockW / 2 + blockGap / 2);
     const block = document.createElementNS(SVG_NS, 'rect');
     block.setAttribute('x', String(bx - blockW / 2));

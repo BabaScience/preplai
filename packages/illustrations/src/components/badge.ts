@@ -19,7 +19,7 @@ export function renderBadge(entity: VisualEntity, parentEl: SVGElement): SVGGEle
 
   const label = entity.label ?? entity.type;
   const padX = 14;
-  const padY = 8;
+  const _padY = 8;
   const w = Math.max(label.length * 8 + padX * 2, s);
   const h = 24;
 

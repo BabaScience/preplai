@@ -11,7 +11,7 @@ import type { VisualEntity } from '@preplai/shared';
 export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const s = getSizeParam(entity, 1.5);
+  const _s = getSizeParam(entity, 1.5);
   const color = entity.color ?? getCategoryColor('Queue');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-queue-${color.replace(/[^a-fA-F0-9]/g, '')}`;

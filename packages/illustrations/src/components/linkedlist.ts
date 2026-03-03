@@ -11,7 +11,7 @@ import type { VisualEntity } from '@preplai/shared';
 export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const s = getSizeParam(entity, 1.5);
+  const _s = getSizeParam(entity, 1.5);
   const color = entity.color ?? getCategoryColor('LinkedList');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-ll-${color.replace(/[^a-fA-F0-9]/g, '')}`;
