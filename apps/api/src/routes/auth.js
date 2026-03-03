@@ -43,6 +43,15 @@ router.post('/signup', async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    const isProd = process.env.NODE_ENV === 'production';
+    res.cookie('preplai_session', token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'lax' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+
     res.status(201).json({
       token,
       user: { id: user._id.toString(), email, name: user.name || null }
@@ -77,6 +86,15 @@ router.post('/login', async (req, res) => {
       JWT_SECRET,
       { expiresIn: '7d' }
     );
+
+    const isProd = process.env.NODE_ENV === 'production';
+    res.cookie('preplai_session', token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'lax' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
 
     res.json({
       token,

@@ -106,6 +106,19 @@ For a hosted preplai instance, use Streamable HTTP with the remote URL:
 
 ---
 
+## Claude Web (claude.ai)
+
+To connect Claude Web to preplai:
+
+1. **Create an OAuth client** at [preplai.com/dashboard/connectors](https://preplai.com/dashboard/connectors)
+2. In Claude Web: **Settings → Connectors → Add → Add custom connector**
+3. **URL:** `https://player.preplai.com/mcp`
+4. **Advanced settings:** Paste your **OAuth Client ID** and **OAuth Client Secret**
+5. Click **Add**, then **Connect** to complete the OAuth flow
+6. Enable the connector in chat via the **+** button
+
+---
+
 ## Restart Claude Desktop
 
 After editing the config, restart Claude Desktop for changes to take effect.

@@ -11,6 +11,11 @@ export default function Login() {
   const location = useLocation();
 
   if (token) {
+    const returnTo = new URLSearchParams(location.search).get('return_to');
+    if (returnTo && returnTo.startsWith('http')) {
+      window.location.href = returnTo;
+      return null;
+    }
     const from = location.state?.from?.pathname ?? '/dashboard/overview';
     return <Navigate to={from} replace />;
   }
@@ -25,6 +30,11 @@ export default function Login() {
     setLoading(true);
     try {
       await login(email, password);
+      const returnTo = new URLSearchParams(location.search).get('return_to');
+      if (returnTo && returnTo.startsWith('http')) {
+        window.location.href = returnTo;
+        return;
+      }
       navigate('/dashboard/overview');
     } catch (err) {
       setError(err.message);

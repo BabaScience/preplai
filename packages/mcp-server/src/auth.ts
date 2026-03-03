@@ -5,7 +5,7 @@
  * Keys are hashed with SHA-256 — only the hash is stored.
  */
 import { randomUUID, createHash, randomBytes } from 'node:crypto';
-import { ApiKey, McpUsageLog, Session, UsageLog } from '@preplai/db';
+import { ApiKey, McpUsageLog, Session, UsageLog, User } from '@preplai/db';
 import { TIER_LIMITS as SHARED_TIER_LIMITS } from '@preplai/shared';
 
 // ── Tier limits ──────────────────────────────────────────────────────
@@ -92,6 +92,40 @@ export async function validateApiKey(key: string): Promise<ValidatedKey | null> 
 
   const limits = TIER_LIMITS[doc.tier] || TIER_LIMITS.free;
 
+  return {
+    id: doc._id.toString(),
+    owner_email: doc.ownerEmail,
+    tier: doc.tier,
+    limits,
+  };
+}
+
+/** Get or create an API key for an OAuth user (by userId). */
+export async function getOrCreateApiKeyForUser(userId: string): Promise<ValidatedKey | null> {
+  let apiKey = await ApiKey.findOne({ userId, revoked: false }).sort({ lastUsedAt: -1 });
+  if (apiKey) {
+    apiKey.lastUsedAt = new Date();
+    await apiKey.save();
+    const limits = TIER_LIMITS[apiKey.tier] || TIER_LIMITS.free;
+    return {
+      id: apiKey._id.toString(),
+      owner_email: apiKey.ownerEmail,
+      tier: apiKey.tier,
+      limits,
+    };
+  }
+  const user = (await User.findById(userId).select('email').lean()) as { email?: string } | null;
+  if (!user?.email) return null;
+  const { keyHash, keyPrefix } = generateApiKey(); // key discarded for OAuth-internal use
+  const doc = await ApiKey.create({
+    userId,
+    name: 'OAuth',
+    keyHash,
+    keyPrefix,
+    ownerEmail: user.email,
+    tier: 'free',
+  });
+  const limits = TIER_LIMITS[doc.tier] || TIER_LIMITS.free;
   return {
     id: doc._id.toString(),
     owner_email: doc.ownerEmail,

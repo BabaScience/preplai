@@ -43,6 +43,7 @@ import {
   authError,
   type ValidatedKey,
 } from './auth.js';
+import { validateOAuthToken } from './oauth-token.js';
 import { registerMcpTools } from './mcp-tools.js';
 
 /** AsyncLocalStorage for passing API key to MCP tool handlers (Streamable HTTP) */
@@ -135,7 +136,12 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   // ── Auth: API key validation ──────────────────────────────────────
   app.decorateRequest('apiKey', null);
 
-  const PUBLIC_ROUTES = new Set(['/health', '/player.css', '/player.js']);
+  const PUBLIC_ROUTES = new Set([
+    '/health',
+    '/player.css',
+    '/player.js',
+    '/.well-known/oauth-protected-resource',
+  ]);
 
   app.addHook('onRequest', async (request, reply) => {
     const path = request.url.split('?')[0];
@@ -145,22 +151,40 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     if (path.startsWith('/session/') && path.endsWith('/events')) return;
     if (path === '/api/keys' && request.method === 'POST') return;
 
-    // Accept X-Preplai-API-Key or Authorization: Bearer <key> (for MCP Inspector compatibility)
-    let key = request.headers['x-preplai-api-key'] as string | undefined;
-    if (!key) {
+    // Accept X-Preplai-API-Key or Authorization: Bearer <key|jwt>
+    let token = request.headers['x-preplai-api-key'] as string | undefined;
+    if (!token) {
       const auth = request.headers.authorization;
-      if (auth?.startsWith('Bearer ')) key = auth.slice(7).trim();
+      if (auth?.startsWith('Bearer ')) token = auth.slice(7).trim();
     }
-    if (!key) {
+    if (!token) {
       const err = authError('MISSING_API_KEY', 'API key required. Include X-Preplai-API-Key header or Authorization: Bearer <key>.');
-      reply.status(err.statusCode).send(err.body);
+      reply
+        .status(err.statusCode)
+        .header(
+          'WWW-Authenticate',
+          `Bearer resource_metadata="${cfg.baseUrl.replace(/\/$/, '')}/.well-known/oauth-protected-resource"`,
+        )
+        .send(err.body);
       return;
     }
 
-    const validated = await validateApiKey(key);
+    let validated: ValidatedKey | null;
+    if (token.startsWith('plai_')) {
+      validated = await validateApiKey(token);
+    } else {
+      validated = await validateOAuthToken(token);
+    }
+
     if (!validated) {
       const err = authError('INVALID_API_KEY', 'Invalid or revoked API key.');
-      reply.status(err.statusCode).send(err.body);
+      reply
+        .status(err.statusCode)
+        .header(
+          'WWW-Authenticate',
+          `Bearer resource_metadata="${cfg.baseUrl.replace(/\/$/, '')}/.well-known/oauth-protected-resource"`,
+        )
+        .send(err.body);
       return;
     }
 
@@ -181,6 +205,20 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       return mcp;
     },
     endpoint: '/mcp',
+  });
+
+  // ── Protected Resource Metadata (RFC 9728) for OAuth discovery ───────
+  const apiBase =
+    process.env.NODE_ENV === 'production'
+      ? 'https://api.preplai.com'
+      : process.env.API_BASE_URL ?? 'http://localhost:5000';
+  app.get('/.well-known/oauth-protected-resource', async () => {
+    return {
+      resource: cfg.baseUrl.replace(/\/$/, ''),
+      authorization_servers: [apiBase],
+      scopes_supported: ['mcp:preplai'],
+      resource_name: 'preplai MCP',
+    };
   });
 
   // ── Health check ──────────────────────────────────────────────────

@@ -17,6 +17,7 @@ export function clearApiToken() {
 const client = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 });
 
 client.interceptors.request.use((config) => {
@@ -90,6 +91,17 @@ export async function apiDeleteSession(id) {
 // Usage
 export async function apiGetUsage() {
   const { data } = await client.get('usage');
+  return data;
+}
+
+// OAuth Clients (for Claude Web connector)
+export async function apiGetOAuthClients() {
+  const { data } = await client.get('oauth/clients');
+  return data;
+}
+
+export async function apiCreateOAuthClient(name, redirectUris) {
+  const { data } = await client.post('oauth/clients', { name, redirectUris });
   return data;
 }
 

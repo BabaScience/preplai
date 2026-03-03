@@ -31,6 +31,7 @@ services:
       HOST: 0.0.0.0
       BASE_URL: https://player.preplai.com
       MONGODB_URI: ${MONGODB_URI}
+      JWT_SECRET: ${JWT_SECRET}
       ALLOWED_ORIGINS: https://preplai.com,https://www.preplai.com,https://api.preplai.com,https://player.preplai.com
       NODE_ENV: production
     networks:
