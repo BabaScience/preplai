@@ -19,7 +19,7 @@ import {
   handleDeleteSession,
   handleRemoveScene,
 } from './tools.js';
-import { withErrorBoundary, mcpForbidden } from './errors.js';
+import { withErrorBoundary, mcpForbidden, mcpUnauthorized } from './errors.js';
 
 /** Verify the API key owns the session. Returns { ok, notFound } for MCP tool handlers. */
 function verifySessionOwnership(
@@ -199,9 +199,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
     async (args, extra) => {
       const { trackUsage, checkSessionLimit } = await import('./auth.js');
       const apiKey = getApiKey(extra);
-      if (!apiKey) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header or Authorization: Bearer <token>.' } }) }] };
-      }
+      if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
 
       const limitCheck = await checkSessionLimit(apiKey.id, apiKey.tier);
       if (!limitCheck.allowed) {
@@ -237,12 +235,10 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       session_id: z.string().describe('Session ID from create_session'),
       visual_script: VisualScriptSchema.describe('The visual script defining the scene. Must include sceneId, frames array, and totalDuration.'),
     },
-    async (args) => {
+    async (args, extra) => {
       const { trackUsage, checkSceneLimit } = await import('./auth.js');
-      const apiKey = getApiKey();
-      if (!apiKey) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header or Authorization: Bearer <token>.' } }) }] };
-      }
+      const apiKey = getApiKey(extra);
+      if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
 
       const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
       if (!ownership.ok && !ownership.notFound) {
@@ -277,9 +273,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
     async (args, extra) => {
       const { trackUsage, checkSceneLimit } = await import('./auth.js');
       const apiKey = getApiKey(extra);
-      if (!apiKey) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header or Authorization: Bearer <token>.' } }) }] };
-      }
+      if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
 
       const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
       if (!ownership.ok && !ownership.notFound) {
@@ -315,9 +309,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
     async (args, extra) => {
       const { trackUsage } = await import('./auth.js');
       const apiKey = getApiKey(extra);
-      if (!apiKey) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header or Authorization: Bearer <token>.' } }) }] };
-      }
+      if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
 
       const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
       if (!ownership.ok && !ownership.notFound) {
@@ -368,9 +360,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
     },
     async (args, extra) => {
       const apiKey = getApiKey(extra);
-      if (!apiKey) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'API key required.', suggestion: 'Include X-Preplai-API-Key header or Authorization: Bearer <token>.' } }) }] };
-      }
+      if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
 
       const result = await withErrorBoundary(
         (a: any) => handleListSessions(a, { store, baseUrl, apiKeyId: apiKey.id }),
