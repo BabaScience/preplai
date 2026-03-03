@@ -3,12 +3,12 @@
 FROM node:20-slim
 
 WORKDIR /app
-COPY package.json pnpm-lock.yaml* package-lock.json* ./
+COPY package.json package-lock.json tsconfig.base.json ./
 COPY apps/ apps/
 COPY packages/ packages/
 
-RUN corepack enable pnpm && pnpm install --frozen-lockfile
-RUN pnpm run build --filter=@preplai/db
+RUN npm ci
+RUN npm run build --workspace=@preplai/db --if-present
 
 ENV NODE_ENV=production
 EXPOSE 5000

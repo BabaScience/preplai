@@ -382,10 +382,17 @@ sudo certbot certonly --standalone -d preplai.com -d www.preplai.com -d api.prep
 
 ### Step 5: Deploy
 
-Ensure `.env` contains `MONGODB_URI` and `JWT_SECRET` (e.g. from `openssl rand -hex 32`).
+Ensure `.env` contains `MONGODB_URI` and `JWT_SECRET`:
 
 ```bash
-# Create .env with MONGODB_URI, JWT_SECRET
+# Copy template and fill in values
+cp .env.production.example .env
+# Or: cp deploy/.env.example .env
+
+# Generate JWT_SECRET (required in production)
+openssl rand -hex 32
+
+# Edit .env: paste the JWT_SECRET output, set MONGODB_URI
 docker compose build
 docker compose up -d
 ```
@@ -409,9 +416,9 @@ sudo ./deploy/setup-server.sh
 # 3. SSL (ensure DNS A records point to this server first)
 sudo ./deploy/setup-ssl.sh admin@preplai.com
 
-# 4. Create .env (copy from deploy/.env.example)
-cp deploy/.env.example .env
-# Edit .env: set MONGODB_URI, JWT_SECRET
+# 4. Create .env (copy from template)
+cp .env.production.example .env
+# Edit .env: set MONGODB_URI, JWT_SECRET (openssl rand -hex 32)
 
 # 5. Deploy
 ./deploy/deploy.sh
