@@ -1,5 +1,5 @@
 /**
- * @pre/compiler — Stage 3: Position Resolution & Entity Clamping
+ * @preplai/compiler — Stage 3: Position Resolution & Entity Clamping
  *
  * For each entity (except Arrow/DataFlow types):
  *  1. Guard against NaN positions — reset to (50, 50) and warn
@@ -10,8 +10,8 @@
  * is determined by source/target, not their own position property.
  */
 
-import type { VisualScript, VisualEntity } from '@pre/shared';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@pre/shared';
+import type { VisualScript, VisualEntity } from '@preplai/shared';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@preplai/shared';
 import type { CompilerWarning } from './types.js';
 import { BASE_ENTITY_SIZES, SKIP_CLAMP_TYPES } from './types.js';
 

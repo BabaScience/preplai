@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
-import { TIER_LIMITS } from '@pre/shared';
+import { TIER_LIMITS } from '@preplai/shared';
 import { ApiKey, UsageLog, Session } from '../db.js';
 import { authenticate } from '../middleware/auth.js';
 

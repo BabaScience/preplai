@@ -1,5 +1,5 @@
 /**
- * @pre/mcp-server — Server Entry Point Tests
+ * @preplai/mcp-server — Server Entry Point Tests
  *
  * Tests the Fastify server wiring: routes, SSE, player HTML, health check.
  * Uses Fastify's inject() for HTTP-level testing without opening a port.

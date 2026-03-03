@@ -1,12 +1,12 @@
 /**
- * @pre/illustrations — Concept Component
+ * @preplai/illustrations — Concept Component
  * Concept bubble: gradient circle + double-ring accent + centered label
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createRadialGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 export function renderConcept(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);

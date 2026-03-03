@@ -1,12 +1,12 @@
 /**
- * @pre/illustrations — Timeline Component
+ * @preplai/illustrations — Timeline Component
  * Horizontal line + diamond marker + label
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 export function renderTimeline(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);

@@ -1,5 +1,5 @@
 /**
- * @pre/player — narrator tests (TDD: RED phase)
+ * @preplai/player — narrator tests (TDD: RED phase)
  *
  * Tests for the NarratorController — manages narrator text overlay.
  * Uses jsdom environment.

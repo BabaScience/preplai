@@ -1,8 +1,8 @@
 /**
- * @pre/illustrations — Public API
+ * @preplai/illustrations — Public API
  *
  * Re-exports all utilities, components, and the registry
- * for use by @pre/player and @pre/compiler.
+ * for use by @preplai/player and @preplai/compiler.
  */
 
 // ── Core utilities

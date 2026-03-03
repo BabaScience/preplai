@@ -1,5 +1,5 @@
 /**
- * @pre/mcp-server — Player HTML Template v4
+ * @preplai/mcp-server — Player HTML Template v4
  *
  * Inline HTML template for the player page.
  * {{SESSION_ID}} is replaced at serve time.

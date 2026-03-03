@@ -1,12 +1,12 @@
 /**
- * @pre/illustrations — Tmpfs Component
+ * @preplai/illustrations — Tmpfs Component
  * RAM chip or fleeting cloud + /tmp label (ephemeral, in-memory)
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 export function renderTmpfs(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);

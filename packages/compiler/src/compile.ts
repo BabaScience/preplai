@@ -1,5 +1,5 @@
 /**
- * @pre/compiler — Main Orchestrator
+ * @preplai/compiler — Main Orchestrator
  *
  * Runs the 5-stage compilation pipeline synchronously.
  * Pure function — no I/O, no async, no side effects.

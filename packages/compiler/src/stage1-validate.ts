@@ -1,13 +1,13 @@
 /**
- * @pre/compiler — Stage 1: Ingestion & Schema Validation
+ * @preplai/compiler — Stage 1: Ingestion & Schema Validation
  *
  * Accepts raw unknown JSON, runs it through VisualScriptSchema (Zod),
  * checks for duplicate entity IDs and duplicate frame IDs.
  * Returns the validated VisualScript or an array of CompilerErrors.
  */
 
-import { VisualScriptSchema } from '@pre/shared';
-import type { VisualScript } from '@pre/shared';
+import { VisualScriptSchema } from '@preplai/shared';
+import type { VisualScript } from '@preplai/shared';
 import type { CompilerError } from './types.js';
 
 export type Stage1Result =

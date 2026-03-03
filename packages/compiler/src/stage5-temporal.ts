@@ -1,5 +1,5 @@
 /**
- * @pre/compiler — Stage 5: Temporal Choreography & Frame Timing
+ * @preplai/compiler — Stage 5: Temporal Choreography & Frame Timing
  *
  * 1. Assigns staggered animation.delay to entities without explicit delays
  *    (80ms stagger between non-connector entities, ANIMATION_DELAY_MIN_MS base)
@@ -14,14 +14,14 @@
  *  - Entities with explicit agent-set delay are preserved
  */
 
-import type { VisualScript, VisualEntity } from '@pre/shared';
+import type { VisualScript, VisualEntity } from '@preplai/shared';
 import {
   INTER_ENTITY_STAGGER_MS,
   ANIMATION_DELAY_MIN_MS,
   FRAME_DURATION_MIN_MS,
   ENTITY_MIN_VISIBLE_MS,
-} from '@pre/shared';
-import { isConnectionType } from '@pre/shared';
+} from '@preplai/shared';
+import { isConnectionType } from '@preplai/shared';
 import type { CompilerWarning } from './types.js';
 
 export interface Stage5Result {

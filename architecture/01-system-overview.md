@@ -55,7 +55,7 @@ V1 targets a broad, unconstrained domain. A 88+ entity type programmatic SVG com
                              │         update_scene · add_narration · get_session_url
                              ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      @pre/mcp-server                                │
+│                      @preplai/mcp-server                                │
 │                                                                     │
 │  ┌──────────────┐   ┌──────────────────┐   ┌─────────────────────┐ │
 │  │  MCP Layer   │   │  fastify-mcp-    │   │  Session Store      │ │
@@ -76,7 +76,7 @@ V1 targets a broad, unconstrained domain. A 88+ entity type programmatic SVG com
                              │  Last-Event-ID resumption
                              ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                        @pre/player                                  │
+│                        @preplai/player                                  │
 │                  (iframe, Vanilla JS, no framework)                 │
 │                                                                     │
 │  ┌──────────────┐   ┌──────────────────┐   ┌─────────────────────┐ │
@@ -94,7 +94,7 @@ V1 targets a broad, unconstrained domain. A 88+ entity type programmatic SVG com
                              │  Uses render functions from:
                              ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                     @pre/illustrations                              │
+│                     @preplai/illustrations                              │
 │                                                                     │
 │   88+ Programmatic SVG Components  ·  Component Registry           │
 │   type string → render function (entity, parentEl) → SVGGElement   │
@@ -156,24 +156,24 @@ LAYER 3: RENDERER (Runtime Execution)
 ## 3. Package Dependency Graph
 
 ```
-@pre/illustrations
+@preplai/illustrations
     ║
     ║  zero external @pre deps
     ║  pure JavaScript — component registry + render functions
     ║  no SVG files, no framework, no animation runtime
     ║
     ▼
-@pre/player
+@preplai/player
     ║
-    ║  imports render functions from @pre/illustrations
+    ║  imports render functions from @preplai/illustrations
     ║  depends on GSAP 3.13 (CDN or vendored, now fully free)
     ║  Vanilla JS only — zero framework dependencies
-    ║  connects to @pre/mcp-server via SSE (EventSource)
+    ║  connects to @preplai/mcp-server via SSE (EventSource)
     ║
     ▼
-@pre/mcp-server
+@preplai/mcp-server
     ║
-    ║  serves @pre/player static assets at /public
+    ║  serves @preplai/player static assets at /public
     ║  depends on Fastify 5, better-sqlite3, @modelcontextprotocol/sdk 1.18.0
     ║  fastify-mcp-server plugin for Streamable HTTP transport
     ║  owns all network I/O and persistence
@@ -185,18 +185,18 @@ LAYER 3: RENDERER (Runtime Execution)
 ```typescript
 // Dependency matrix (canonical)
 interface PackageDependencies {
-  "@pre/illustrations": {
+  "@preplai/illustrations": {
     external: [];                    // zero runtime deps
     internal: [];
     exports: "component registry (type → render function)";
   };
-  "@pre/player": {
+  "@preplai/player": {
     external: ["gsap@3.13"];         // free since Webflow acquisition
-    internal: ["@pre/illustrations"];
+    internal: ["@preplai/illustrations"];
     transport: "SSE (EventSource)";
     framework: "none — vanilla JS createElementNS";
   };
-  "@pre/mcp-server": {
+  "@preplai/mcp-server": {
     external: [
       "fastify@^5.0.0",
       "fastify-mcp-server@latest",
@@ -204,7 +204,7 @@ interface PackageDependencies {
       "better-sqlite3",
       "zod@^3.22.0",
     ];
-    internal: ["@pre/player"];        // for static asset paths
+    internal: ["@preplai/player"];        // for static asset paths
     mcpProtocol: "2025-06-18";
     transport: "StreamableHTTP";
   };
@@ -213,11 +213,11 @@ interface PackageDependencies {
 
 ### Why the dependency direction matters
 
-`@pre/illustrations` has no dependencies because it is pure SVG-generating JavaScript. It can be loaded in any browser context, tested in Node.js without a DOM, and swapped out for a different rendering implementation without touching either the player or the server. This is the correct boundary.
+`@preplai/illustrations` has no dependencies because it is pure SVG-generating JavaScript. It can be loaded in any browser context, tested in Node.js without a DOM, and swapped out for a different rendering implementation without touching either the player or the server. This is the correct boundary.
 
-`@pre/player` only depends on `@pre/illustrations` (for render functions) and GSAP (for animation). It has no knowledge of how the MCP server works or what transport protocol it uses. It just responds to SSE events.
+`@preplai/player` only depends on `@preplai/illustrations` (for render functions) and GSAP (for animation). It has no knowledge of how the MCP server works or what transport protocol it uses. It just responds to SSE events.
 
-`@pre/mcp-server` only depends on `@pre/player` for static asset path resolution (serving `player.html`, `player.js`, `player.css`). The server never imports animation or rendering code.
+`@preplai/mcp-server` only depends on `@preplai/player` for static asset path resolution (serving `player.html`, `player.js`, `player.css`). The server never imports animation or rendering code.
 
 ---
 
@@ -307,7 +307,7 @@ The complete lifecycle from agent intent to pixel on screen:
 ### MCP Tool Signatures (V1 — Five Tools)
 
 ```typescript
-// @pre/mcp-server · tools.ts
+// @preplai/mcp-server · tools.ts
 
 // Tool 1: Create a presentation session
 interface CreateSessionInput {
@@ -478,7 +478,7 @@ The engine is modeled on a **cinema projection system**, not a document editor:
 | Projector | Fastify + SSE push |
 | Film reel | `VisualScript` JSON |
 | Frame | `IllustrationFrame` (start/end time, entity list) |
-| Props | SVG elements from `@pre/illustrations` registry |
+| Props | SVG elements from `@preplai/illustrations` registry |
 | Scene direction | `VisualEntity` parameters emitted by agent |
 | Camera choreography | CSS entrance `@keyframes` + GSAP timeline |
 | Director | The AI agent |
@@ -490,7 +490,7 @@ The agent never sees the DOM. The agent never writes animation code. The agent d
 
 ### The Double-`<g>` Pattern (Critical for Correctness)
 
-Every render function in `@pre/illustrations` uses the double-`<g>` pattern. This is a hard requirement, not a style guideline. Violating it produces visual glitches that are difficult to diagnose.
+Every render function in `@preplai/illustrations` uses the double-`<g>` pattern. This is a hard requirement, not a style guideline. Violating it produces visual glitches that are difficult to diagnose.
 
 **Why it is needed:** SVG 1.1 `transform` attributes and CSS `transform` properties apply in different coordinate systems. When both are present on the same element, browsers apply them in an implementation-defined multiplicative order — the results vary across Chrome, Firefox, and Safari. The double-`<g>` pattern assigns each system to its own element, eliminating the conflict.
 
@@ -749,7 +749,7 @@ pre/
 ├── vitest.config.ts       # Monorepo-wide test runner config
 │
 ├── packages/
-│   ├── illustrations/     # @pre/illustrations
+│   ├── illustrations/     # @preplai/illustrations
 │   │   ├── package.json
 │   │   ├── src/
 │   │   │   ├── registry.js          # Component registry (type → function map)
@@ -763,7 +763,7 @@ pre/
 │   │   └── test/
 │   │       └── registry.test.ts
 │   │
-│   ├── player/            # @pre/player
+│   ├── player/            # @preplai/player
 │   │   ├── package.json
 │   │   ├── public/
 │   │   │   ├── player.html          # Entry point served by Fastify
@@ -775,7 +775,7 @@ pre/
 │   │   └── test/
 │   │       └── scene-controller.test.ts
 │   │
-│   └── mcp-server/        # @pre/mcp-server
+│   └── mcp-server/        # @preplai/mcp-server
 │       ├── package.json
 │       ├── src/
 │       │   ├── server.ts            # Fastify app + route registration
@@ -813,19 +813,19 @@ WEEK 1–2: Foundation
   ☐ pnpm monorepo scaffold (packages/illustrations, packages/player, packages/mcp-server)
   ☐ tsconfig.base.json + per-package tsconfig.json
   ☐ vitest.config.ts (workspace mode)
-  ☐ @pre/illustrations: registry.js + 10 core components
-  ☐ @pre/mcp-server: Fastify boot + SQLite schema + 5 MCP tools (stub handlers)
-  ☐ @pre/player: HTML canvas + SSE connect + scene-controller.js skeleton
+  ☐ @preplai/illustrations: registry.js + 10 core components
+  ☐ @preplai/mcp-server: Fastify boot + SQLite schema + 5 MCP tools (stub handlers)
+  ☐ @preplai/player: HTML canvas + SSE connect + scene-controller.js skeleton
 
 WEEK 3–4: Core Pipeline
   ☐ End-to-end test: create_session → add_scene → player renders 5 entity types
-  ☐ @pre/illustrations: 30 components (Server, Database, Arrow, Graph2D, Equation, Matrix, ...)
-  ☐ @pre/player: GSAP slide transitions + CSS entrance animations
+  ☐ @preplai/illustrations: 30 components (Server, Database, Arrow, Graph2D, Equation, Matrix, ...)
+  ☐ @preplai/player: GSAP slide transitions + CSS entrance animations
   ☐ MCP tool: update_scene + add_narration
   ☐ SQLite WAL setup + session hydration on player reload
 
 WEEK 5–6: Complete Component Library
-  ☐ @pre/illustrations: 88+ components
+  ☐ @preplai/illustrations: 88+ components
   ☐ Visual regression tests (screenshot diff of render functions)
   ☐ Performance profiling: frame render < 32ms at 60 entities
   ☐ API key auth middleware

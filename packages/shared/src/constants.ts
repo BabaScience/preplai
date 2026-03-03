@@ -1,5 +1,5 @@
 /**
- * @pre/shared — Constants
+ * @preplai/shared — Constants
  *
  * All magic numbers and configuration values used across the PRE system.
  * These are the canonical values referenced by architecture docs 01-06.

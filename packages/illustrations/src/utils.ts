@@ -1,12 +1,12 @@
 /**
- * @pre/illustrations — SVG Utilities
+ * @preplai/illustrations — SVG Utilities
  *
  * Core utilities for the programmatic SVG component library.
  * Implements the double-<g> pattern (Section 5 of architecture).
  */
 
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@pre/shared';
-import type { VisualEntity } from '@pre/shared';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@preplai/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 // ── SVG namespace (required for createElementNS) ─────────────────────
 

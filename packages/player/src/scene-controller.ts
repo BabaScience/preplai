@@ -1,18 +1,18 @@
 /**
- * @pre/player — SceneController
+ * @preplai/player — SceneController
  *
  * Central coordinator for the player. Holds the current VisualScript,
- * manages frame state, dispatches render calls via @pre/illustrations,
+ * manages frame state, dispatches render calls via @preplai/illustrations,
  * and handles patchEntity / clear operations.
  *
  * Uses jsdom-compatible DOM APIs (createElementNS, getElementById, etc.).
  */
-import type { VisualScript, VisualEntity, IllustrationFrame } from '@pre/shared';
+import type { VisualScript, VisualEntity, IllustrationFrame } from '@preplai/shared';
 import {
   ENTITY_COUNT_WARN_THRESHOLD,
   ENTITY_COUNT_ERROR_THRESHOLD,
-} from '@pre/shared';
-import { renderEntity } from '@pre/illustrations';
+} from '@preplai/shared';
+import { renderEntity } from '@preplai/illustrations';
 import { applyDefaults, assignEntranceDelays } from './apply-defaults.js';
 
 // ── Types ────────────────────────────────────────────────────────────

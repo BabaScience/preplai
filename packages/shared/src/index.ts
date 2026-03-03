@@ -1,5 +1,5 @@
 /**
- * @pre/shared — Package Entry Point
+ * @preplai/shared — Package Entry Point
  *
  * Re-exports all types, constants, schemas, and utilities.
  */

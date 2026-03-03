@@ -1,5 +1,5 @@
 /**
- * @pre/illustrations — Component Registry
+ * @preplai/illustrations — Component Registry
  *
  * Maps VisualEntityType string → render function.
  * Dispatches entities to the appropriate component.
@@ -11,7 +11,7 @@
  *   (entity: VisualEntity, allEntities: VisualEntity[], parentEl: SVGElement) → SVGElement | null
  */
 
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 // ── Fully implemented components
 import { renderServer } from './components/server.js';

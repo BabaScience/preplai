@@ -1,5 +1,5 @@
 /**
- * @pre/illustrations — Generic Component Factory
+ * @preplai/illustrations — Generic Component Factory
  *
  * Creates render functions for entity types not yet fully implemented.
  * Uses gradients for depth, supports visualStyle metadata, and improved typography.
@@ -15,7 +15,7 @@ import {
   ensureDefs,
 } from '../visual-utils.js';
 import { colorWithAlpha, OPACITY, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 type VisualStyle = 'default' | 'minimal' | 'emphasized';
 

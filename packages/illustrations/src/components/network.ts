@@ -1,12 +1,12 @@
 /**
- * @pre/illustrations — Network Component
+ * @preplai/illustrations — Network Component
  * Network mesh: central node + 6 radiating spokes
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createRadialGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 export function renderNetwork(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);

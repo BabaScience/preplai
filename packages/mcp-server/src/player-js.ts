@@ -1,5 +1,5 @@
 /**
- * @pre/mcp-server — Player Bootstrap JS (v4)
+ * @preplai/mcp-server — Player Bootstrap JS (v4)
  *
  * Complete rewrite with all v3 fixes retained PLUS v4 improvements:
  * - BUG FIX 1: Double labels on Generic entities removed (interior label only)

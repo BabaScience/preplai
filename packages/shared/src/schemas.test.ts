@@ -1,5 +1,5 @@
 /**
- * @pre/shared — Zod Schema Validation Tests
+ * @preplai/shared — Zod Schema Validation Tests
  * TDD: Tests written FIRST, implementation follows.
  */
 import { describe, it, expect } from 'vitest';

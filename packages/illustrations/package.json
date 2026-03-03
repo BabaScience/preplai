@@ -1,5 +1,5 @@
 {
-  "name": "@pre/illustrations",
+  "name": "@preplai/illustrations",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,6 +16,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@pre/shared": "*"
+    "@preplai/shared": "workspace:*"
   }
 }

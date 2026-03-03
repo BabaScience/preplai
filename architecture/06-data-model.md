@@ -1,6 +1,6 @@
 # 06 — Data Model
 
-**Package:** `@pre/shared`  
+**Package:** `@preplai/shared`  
 **Status:** V1 — Authoritative  
 **Last Updated:** 2026-02-28  
 **Supersedes:** Previous `06-data-model.md` (old SceneGraph / IllustrationMetadata model)
@@ -1056,7 +1056,7 @@ export function runMigrations(db: Database.Database): void {
 
 ## 12. TypeScript Interface Reference
 
-Complete consolidated interface definitions for `@pre/shared/types.ts`.
+Complete consolidated interface definitions for `@preplai/shared/types.ts`.
 
 ```typescript
 // ── Canvas Constants ──────────────────────────────────────────────────────────
@@ -1635,7 +1635,7 @@ The following is a complete, valid `VisualScript` demonstrating diverse entity t
 ## 16. Package Export Map
 
 ```typescript
-// @pre/shared/src/index.ts — complete re-export surface
+// @preplai/shared/src/index.ts — complete re-export surface
 
 // Core entity types
 export type { VisualEntity, VisualEntityType } from './visual-entity';

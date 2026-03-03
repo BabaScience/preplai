@@ -1,5 +1,5 @@
 /**
- * @pre/shared — Type Guards & Utility Functions Tests
+ * @preplai/shared — Type Guards & Utility Functions Tests
  * TDD: Tests written FIRST, implementation follows.
  */
 import { describe, it, expect } from 'vitest';

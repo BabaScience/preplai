@@ -1,5 +1,5 @@
 /**
- * @pre/illustrations — Core Component Render Function Tests
+ * @preplai/illustrations — Core Component Render Function Tests
  * TDD: Tests written FIRST, implementation follows.
  *
  * Tests the actual SVG DOM output of render functions.
@@ -16,7 +16,7 @@ import { renderCodeBlock } from './components/codeblock.js';
 import { renderArrow, renderDataFlow } from './components/arrow.js';
 import { renderGraph2D } from './components/graph2d.js';
 import { SVG_NS } from './utils.js';
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 function makeEntity(overrides: Partial<VisualEntity> = {}): VisualEntity {
   return {

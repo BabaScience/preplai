@@ -1,5 +1,5 @@
 /**
- * @pre/illustrations — Visual Utilities
+ * @preplai/illustrations — Visual Utilities
  *
  * Helpers for gradients, shadows, and visual polish.
  */

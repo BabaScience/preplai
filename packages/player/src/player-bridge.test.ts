@@ -1,5 +1,5 @@
 /**
- * @pre/player — player-bridge tests (TDD: RED phase)
+ * @preplai/player — player-bridge tests (TDD: RED phase)
  *
  * Tests for SSE event handling, postMessage bridge, and session ID resolution.
  * Uses jsdom environment with mocked EventSource and postMessage.

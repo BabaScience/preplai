@@ -1,5 +1,5 @@
 /**
- * @pre/player — fuzzy-lookup
+ * @preplai/player — fuzzy-lookup
  *
  * Three-tier entity reference resolution for arrow endpoint matching.
  * Ported from the prototype's FrameRenderer.tsx fuzzyLookup().
@@ -10,7 +10,7 @@
  *
  * Pure function — no DOM dependency.
  */
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 /**
  * Resolve an entity reference (ID or label string) from a flat entity array.

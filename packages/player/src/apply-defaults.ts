@@ -1,11 +1,11 @@
 /**
- * @pre/player — apply-defaults
+ * @preplai/player — apply-defaults
  *
  * Pure functions for defaulting entity properties and assigning
  * CSS animation-delay stagger values. No DOM dependency.
  */
-import type { VisualEntity } from '@pre/shared';
-import { ENTITY_DEFAULTS, INTER_ENTITY_STAGGER_MS } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
+import { ENTITY_DEFAULTS, INTER_ENTITY_STAGGER_MS } from '@preplai/shared';
 
 /**
  * Merge a (possibly partial) entity with ENTITY_DEFAULTS.

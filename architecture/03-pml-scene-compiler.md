@@ -1,6 +1,6 @@
 # 03 — Scene Compiler Architecture
 
-**Package:** `@pre/compiler`  
+**Package:** `@preplai/compiler`  
 **Status:** V1 — Canonical  
 **Last Updated:** 2026-02-28  
 **Supersedes:** Old `03-pml-scene-compiler.md` (PML DSL / `<illustration>` tag model — retired)
@@ -30,7 +30,7 @@
 
 ## 1. Overview & Design Philosophy
 
-The Scene Compiler is a pure transformation function that converts **raw scene data from the MCP server** into a fully-resolved `VisualScript` that the `@pre/player` can execute without further processing.
+The Scene Compiler is a pure transformation function that converts **raw scene data from the MCP server** into a fully-resolved `VisualScript` that the `@preplai/player` can execute without further processing.
 
 ### 1.1 The Core Transformation
 
@@ -52,7 +52,7 @@ Scene Compiler  ◄─── This document describes this stage
     │
     │  VisualScript with fully-resolved IllustrationFrame[]
     ▼
-@pre/player (scene-controller.js)
+@preplai/player (scene-controller.js)
 ```
 
 ### 1.2 Why Not a DSL?

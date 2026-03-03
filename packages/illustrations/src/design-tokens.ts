@@ -1,5 +1,5 @@
 /**
- * @pre/illustrations — Design Tokens
+ * @preplai/illustrations — Design Tokens
  *
  * Shared design system aligned with player theme.
  * Use these tokens for consistent colors, typography, and shapes.

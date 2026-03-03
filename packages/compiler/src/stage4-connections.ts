@@ -1,5 +1,5 @@
 /**
- * @pre/compiler — Stage 4: Connection & Hierarchy Resolution
+ * @preplai/compiler — Stage 4: Connection & Hierarchy Resolution
  *
  * For each entity with sourceEntityId / targetEntityId / parentEntityId:
  *  - Resolves via three-tier fuzzy lookup:
@@ -15,8 +15,8 @@
  * so Tier-2 lookups are O(1). Only Tier-3 is O(n) per miss.
  */
 
-import type { VisualScript, VisualEntity } from '@pre/shared';
-import { resolveEntityRef } from '@pre/shared';
+import type { VisualScript, VisualEntity } from '@preplai/shared';
+import { resolveEntityRef } from '@preplai/shared';
 import type { CompilerWarning } from './types.js';
 
 export interface Stage4Result {

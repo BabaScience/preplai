@@ -1,12 +1,12 @@
 /**
- * @pre/illustrations — Database Component
+ * @preplai/illustrations — Database Component
  * Cylinder: top ellipse + gradient body + bottom ellipse + side lines + data stripes (stack visual)
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 export function renderDatabase(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);

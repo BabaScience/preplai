@@ -1,5 +1,5 @@
 /**
- * @pre/shared — Zod Validation Schemas
+ * @preplai/shared — Zod Validation Schemas
  *
  * Single source of validation truth. Imported by MCP server tool handlers
  * and the SSE event pipeline. Guarantees schema parity across the full pipeline.

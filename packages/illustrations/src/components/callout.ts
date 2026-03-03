@@ -1,12 +1,12 @@
 /**
- * @pre/illustrations — Callout Component
+ * @preplai/illustrations — Callout Component
  * Icon + type (tip/warning/note/important) + body text
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 const CALLOUT_CONFIG: Record<string, { icon: string; colorOffset?: number }> = {
   tip: { icon: '💡' },

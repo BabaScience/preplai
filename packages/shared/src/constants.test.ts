@@ -1,5 +1,5 @@
 /**
- * @pre/shared — Constants Tests
+ * @preplai/shared — Constants Tests
  * TDD: Tests written FIRST, implementation follows.
  */
 import { describe, it, expect } from 'vitest';

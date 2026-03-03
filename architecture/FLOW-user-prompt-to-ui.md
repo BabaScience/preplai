@@ -583,7 +583,7 @@ This is the **complete** JSON-RPC payload the agent sends. Everything the user w
 
 ## Stage 4: MCP Server — Validation
 
-**Where:** `@pre/mcp-server` → `add_scene` tool handler
+**Where:** `@preplai/mcp-server` → `add_scene` tool handler
 
 ### Step-by-step processing
 
@@ -669,7 +669,7 @@ es.addEventListener('script_update', (e) => {
 
 ## Stage 6: Scene Controller — Frame Rendering
 
-**Where:** `@pre/player` → `SceneController.loadScript()` → `renderFrame()`
+**Where:** `@preplai/player` → `SceneController.loadScript()` → `renderFrame()`
 
 ```js
 loadScript(script) {

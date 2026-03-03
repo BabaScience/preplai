@@ -1,7 +1,7 @@
 /**
- * @pre/player — Public API
+ * @preplai/player — Public API
  *
- * Re-exports all player modules for use by @pre/mcp-server
+ * Re-exports all player modules for use by @preplai/mcp-server
  * and for standalone player bootstrap.
  */
 

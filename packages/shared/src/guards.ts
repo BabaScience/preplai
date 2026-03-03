@@ -1,5 +1,5 @@
 /**
- * @pre/shared — Type Guards & Utility Functions
+ * @preplai/shared — Type Guards & Utility Functions
  *
  * Runtime type checks, entity defaults application, stagger assignment,
  * entity reference resolution, and VisualScript validation.

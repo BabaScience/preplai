@@ -1,11 +1,11 @@
 /**
- * @pre/illustrations — CodeBlock Component
+ * @preplai/illustrations — CodeBlock Component
  * Code editor visual: dark rect + traffic-light dots + line number column + monospace text
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);

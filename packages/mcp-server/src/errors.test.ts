@@ -1,5 +1,5 @@
 /**
- * @pre/mcp-server — Error Helper Tests (TDD)
+ * @preplai/mcp-server — Error Helper Tests (TDD)
  *
  * Tests for MCP tool result formatting helpers.
  */

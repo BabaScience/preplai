@@ -1,5 +1,5 @@
 /**
- * @pre/compiler — Frame Transition Computation
+ * @preplai/compiler — Frame Transition Computation
  *
  * Computes persist/enter/exit sets between consecutive frames.
  * Called after all 5 stages. Attaches _transition metadata to each frame.
@@ -12,7 +12,7 @@
  * Frame 0 (first frame): enter = all entities, persist = [], exit = []
  */
 
-import type { VisualScript } from '@pre/shared';
+import type { VisualScript } from '@preplai/shared';
 
 export interface FrameTransition {
   persist: string[];

@@ -12,8 +12,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@pre/shared": "*",
-    "@preplai/db": "*",
+    "@preplai/shared": "workspace:*",
+    "@preplai/db": "workspace:*",
     "array-flatten": "^1.1.1",
     "dotenv": "^16.4.5",
     "bcryptjs": "^2.4.3",

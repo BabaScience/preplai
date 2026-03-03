@@ -1,5 +1,5 @@
 /**
- * @pre/player — NarratorController
+ * @preplai/player — NarratorController
  *
  * Manages the narrator text overlay (HTML <p> element).
  * Syncs text to the current frame's narrationSegment.

@@ -1,5 +1,5 @@
 /**
- * @pre/compiler — compile.test.ts
+ * @preplai/compiler — compile.test.ts
  *
  * Comprehensive TDD test suite for the compileVisualScript function.
  * Written FIRST (red phase), implemented second (green phase).
@@ -21,7 +21,7 @@ import {
   ENTITY_DEFAULTS,
   FRAME_DURATION_MIN_MS,
   INTER_ENTITY_STAGGER_MS,
-} from '@pre/shared';
+} from '@preplai/shared';
 
 // ─── Test Helpers ─────────────────────────────────────────────────────────────
 

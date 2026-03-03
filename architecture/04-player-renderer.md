@@ -1,9 +1,9 @@
 # 04 — Player & Renderer Architecture
 
-**Package:** `@pre/player`
+**Package:** `@preplai/player`
 **Status:** V1 — Authoritative (supersedes all previous versions)
 **Last Updated:** 2026-02-28
-**Depends On:** `@pre/server` (SSE endpoint), `@pre/illustrations` (component registry)
+**Depends On:** `@preplai/mcp-server` (SSE endpoint), `@preplai/illustrations` (component registry)
 
 > **What changed from the old doc:**
 > HTTP polling → SSE `EventSource`. React components → vanilla JS `createElementNS`.
@@ -50,7 +50,7 @@
 
 ## 1. Player Overview
 
-`@pre/player` is the browser-side runtime for PRE (Presentation Rendering Engine). It receives `VisualScript` JSON from an AI agent via Server-Sent Events and renders cinema-quality animated scenes inside a fixed 1920×1080 SVG canvas.
+`@preplai/player` is the browser-side runtime for PRE (Presentation Rendering Engine). It receives `VisualScript` JSON from an AI agent via Server-Sent Events and renders cinema-quality animated scenes inside a fixed 1920×1080 SVG canvas.
 
 ### 1.1 Responsibilities
 
@@ -71,18 +71,18 @@ The player is the **sole authoritative renderer**. Every pixel visible on screen
 ### 1.2 Package Context
 
 ```
-@pre/server           →  Fastify + MCP + SSE endpoint
+@preplai/mcp-server           →  Fastify + MCP + SSE endpoint
   │
   │  SSE push: script_update, seek, entity_patch, clear
   ▼
-@pre/player           ←  This document
+@preplai/player           ←  This document
   │
   ├── player.html     (SVG canvas, GSAP CDN script tag)
   ├── player.css      (cinematic theme, keyframes, layout)
   ├── player.js       (EventSource, sceneController init)
   ├── scene-controller.js
-  ├── registry.js     (imports from @pre/illustrations)
-  └── components/     (or imported from @pre/illustrations package)
+  ├── registry.js     (imports from @preplai/illustrations)
+  └── components/     (or imported from @preplai/illustrations package)
 ```
 
 ---
@@ -151,7 +151,7 @@ Every component in the system belongs to exactly one of three layers. Data flows
 │  registry[entity.type]()  — entity → SVG DOM nodes            │
 │  renderArrow()            — resolves ID cross-references       │
 │  renderChildren()         — hierarchical nesting               │
-│  Defined in: registry.js + @pre/illustrations                  │
+│  Defined in: registry.js + @preplai/illustrations                  │
 └──────────────────────────┬──────────────────────────────────────┘
                            │ DOM nodes appended to #entity-layer
                            ▼
@@ -208,7 +208,7 @@ player/
 ├── player.js             ← Entry point: EventSource init; session ID
 ├── scene-controller.js   ← Frame management; GSAP ticker; patch handler
 ├── registry.js           ← Entity type → render function map
-└── components/           ← Per-entity render functions (or @pre/illustrations)
+└── components/           ← Per-entity render functions (or @preplai/illustrations)
     ├── server.js
     ├── database.js
     ├── arrow.js
@@ -2045,7 +2045,7 @@ evtSource.addEventListener('error', (err) => {
 
 ### 19.2 Server-Side SSE Endpoint (Fastify)
 
-For reference: the server side that the player connects to (defined in `@pre/server`).
+For reference: the server side that the player connects to (defined in `@preplai/mcp-server`).
 
 ```js
 /// server/index.js

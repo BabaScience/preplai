@@ -1,5 +1,5 @@
 /**
- * @pre/mcp-server — Player CSS v4
+ * @preplai/mcp-server — Player CSS v4
  *
  * Cinematic dark theme with refined typography, animations, and layout.
  * Served as a string at GET /player.css.

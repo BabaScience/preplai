@@ -1,12 +1,12 @@
 /**
- * @pre/illustrations — Registry Tests
+ * @preplai/illustrations — Registry Tests
  * TDD: Tests written FIRST, implementation follows.
  *
  * @vitest-environment jsdom
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { registry, renderEntity } from './registry.js';
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 function makeEntity(overrides: Partial<VisualEntity> = {}): VisualEntity {
   return {

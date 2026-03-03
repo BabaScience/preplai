@@ -1,12 +1,12 @@
 /**
- * @pre/player — fuzzy-lookup tests (TDD: RED phase)
+ * @preplai/player — fuzzy-lookup tests (TDD: RED phase)
  *
  * Tests for resolveEntityRef() — 3-tier entity reference resolution.
  * Pure logic, no DOM dependency.
  */
 import { describe, it, expect } from 'vitest';
 import { resolveEntityRef } from './fuzzy-lookup.js';
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 // ── Helper ───────────────────────────────────────────────────────────
 function entity(id: string, label?: string): VisualEntity {

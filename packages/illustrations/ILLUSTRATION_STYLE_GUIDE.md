@@ -1,6 +1,6 @@
 # Preplai Illustration Style Guide
 
-This document defines the design system for all programmatic SVG illustrations in `@pre/illustrations`. Follow these guidelines to ensure visual consistency and build a distinctive brand identity.
+This document defines the design system for all programmatic SVG illustrations in `@preplai/illustrations`. Follow these guidelines to ensure visual consistency and build a distinctive brand identity.
 
 ---
 

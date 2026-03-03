@@ -1,5 +1,5 @@
 /**
- * @pre/mcp-server — SSE Emit Tests (TDD)
+ * @preplai/mcp-server — SSE Emit Tests (TDD)
  *
  * Tests for SSE subscriber registry and emit helper.
  * Uses mock reply objects to simulate Fastify SSE responses.

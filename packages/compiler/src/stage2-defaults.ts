@@ -1,5 +1,5 @@
 /**
- * @pre/compiler — Stage 2: Entity Validation & Defaults Application
+ * @preplai/compiler — Stage 2: Entity Validation & Defaults Application
  *
  * For each entity in each frame:
  *  - Warns on unknown entity types
@@ -9,8 +9,8 @@
  * Returns a mutated copy of the script with defaults applied + warnings.
  */
 
-import type { VisualScript, VisualEntity } from '@pre/shared';
-import { ENTITY_DEFAULTS } from '@pre/shared';
+import type { VisualScript, VisualEntity } from '@preplai/shared';
+import { ENTITY_DEFAULTS } from '@preplai/shared';
 import type { CompilerWarning } from './types.js';
 import { KNOWN_ENTITY_TYPES, TYPE_SIZE_DEFAULTS } from './types.js';
 

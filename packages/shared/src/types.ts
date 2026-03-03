@@ -1,5 +1,5 @@
 /**
- * @pre/shared — Core TypeScript Interfaces
+ * @preplai/shared — Core TypeScript Interfaces
  *
  * These types are the single source of truth for all cross-package data contracts.
  * No package may define competing shapes for these types.

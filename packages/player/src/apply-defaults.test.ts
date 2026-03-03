@@ -1,13 +1,13 @@
 /**
- * @pre/player — apply-defaults tests (TDD: RED phase)
+ * @preplai/player — apply-defaults tests (TDD: RED phase)
  *
  * Tests for applyDefaults() and assignEntranceDelays().
  * These are pure functions with no DOM dependency.
  */
 import { describe, it, expect } from 'vitest';
 import { applyDefaults, assignEntranceDelays } from './apply-defaults.js';
-import type { VisualEntity } from '@pre/shared';
-import { ENTITY_DEFAULTS, INTER_ENTITY_STAGGER_MS } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
+import { ENTITY_DEFAULTS, INTER_ENTITY_STAGGER_MS } from '@preplai/shared';
 
 // ── Helper: create a minimal entity ──────────────────────────────────
 function entity(overrides: Partial<VisualEntity> = {}): VisualEntity {

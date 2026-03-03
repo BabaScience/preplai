@@ -1,5 +1,5 @@
 /**
- * @pre/player — scene-controller tests (TDD: RED phase)
+ * @preplai/player — scene-controller tests (TDD: RED phase)
  *
  * Tests for the SceneController class — frame management, entity
  * rendering orchestration, patchEntity, clear. Uses jsdom environment.
@@ -7,8 +7,8 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { VisualScript, VisualEntity, IllustrationFrame } from '@pre/shared';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@pre/shared';
+import type { VisualScript, VisualEntity, IllustrationFrame } from '@preplai/shared';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@preplai/shared';
 import { SceneController } from './scene-controller.js';
 
 // ── Helpers ──────────────────────────────────────────────────────────

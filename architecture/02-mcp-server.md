@@ -1,6 +1,6 @@
 # 02 — MCP Server Architecture
 
-**Package:** `@pre/mcp-server`  
+**Package:** `@preplai/mcp-server`  
 **Version:** V1  
 **Transport:** Streamable HTTP (`fastify-mcp-server`)  
 **Protocol:** MCP `2025-06-18`  
@@ -38,7 +38,7 @@
 
 ### Purpose
 
-`@pre/mcp-server` is the **primary and only external interface** of the Presentation Rendering Engine (PRE) in V1. It exposes PRE's session and visual-script management capabilities as a set of structured tools that AI agents (Claude, GPT-4o, and any MCP-compatible client) can call natively over HTTP.
+`@preplai/mcp-server` is the **primary and only external interface** of the Presentation Rendering Engine (PRE) in V1. It exposes PRE's session and visual-script management capabilities as a set of structured tools that AI agents (Claude, GPT-4o, and any MCP-compatible client) can call natively over HTTP.
 
 All agent interaction flows through this single package. No REST API is exposed directly to external consumers in V1. The server is a thin, opinionated layer that:
 
@@ -60,7 +60,7 @@ All agent interaction flows through this single package. No REST API is exposed 
                                │ GET  /mcp  (SSE stream for MCP)
                                ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                  @pre/mcp-server  (this package)                    │
+│                  @preplai/mcp-server  (this package)                    │
 │                                                                     │
 │  fastify-mcp-server plugin                                          │
 │    └─ McpServer (SDK v1.18.0)                                       │
@@ -1430,7 +1430,7 @@ if (process.argv[1] === new URL(import.meta.url).pathname) {
 
 ```json
 {
-  "name": "@pre/mcp-server",
+  "name": "@preplai/mcp-server",
   "version": "1.0.0",
   "type": "module",
   "main": "src/server.js",

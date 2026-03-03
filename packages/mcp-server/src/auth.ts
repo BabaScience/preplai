@@ -6,7 +6,7 @@
  */
 import { randomUUID, createHash, randomBytes } from 'node:crypto';
 import { ApiKey, McpUsageLog, Session, UsageLog } from '@preplai/db';
-import { TIER_LIMITS as SHARED_TIER_LIMITS } from '@pre/shared';
+import { TIER_LIMITS as SHARED_TIER_LIMITS } from '@preplai/shared';
 
 // ── Tier limits ──────────────────────────────────────────────────────
 

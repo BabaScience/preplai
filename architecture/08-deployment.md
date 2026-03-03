@@ -304,7 +304,7 @@ networks:
 | `mongo-data` | (Docker managed) | MongoDB data; survives container recreation |
 | `ssl-certs` | `/etc/letsencrypt` | Let's Encrypt certs; managed by host Certbot, read-only in Nginx |
 
-Note: The old architecture included an `illustrations` volume for user-uploaded SVG files. **This volume is not present in V1.** The `@pre/illustrations` package is a programmatic component registry — all illustration rendering is pure JavaScript. No SVG files are written to or read from disk at runtime.
+Note: The old architecture included an `illustrations` volume for user-uploaded SVG files. **This volume is not present in V1.** The `@preplai/illustrations` package is a programmatic component registry — all illustration rendering is pure JavaScript. No SVG files are written to or read from disk at runtime.
 
 ---
 
@@ -385,7 +385,7 @@ CMD ["node", "dist/server.js"]
 
 - `better-sqlite3` requires native compilation at install time; Alpine needs `python3 make g++ sqlite-dev` in the build stage only — they are not carried into the production image.
 - The player static files (`player.html`, `player.js`, `player.css`) are compiled into `dist/` during the build stage and served by Fastify's `@fastify/static` plugin at runtime. Nginx does not need a separate static volume for player assets in V1.
-- No illustration files are bundled or served — the `@pre/illustrations` component registry is pure JavaScript imported by the player bundle.
+- No illustration files are bundled or served — the `@preplai/illustrations` component registry is pure JavaScript imported by the player bundle.
 
 ---
 
@@ -1335,7 +1335,7 @@ console.log({
 | Off-site S3 backup | Every 6 hours | 30 days | S3/B2 bucket |
 | DigitalOcean snapshot | Weekly | 4 snapshots | DO managed |
 
-Note: The old architecture included illustration file backups (`aws s3 sync uploads/illustrations`). **This backup is not needed in V1.** There are no user-uploaded illustration files — all rendering is code-driven via the `@pre/illustrations` component registry.
+Note: The old architecture included illustration file backups (`aws s3 sync uploads/illustrations`). **This backup is not needed in V1.** There are no user-uploaded illustration files — all rendering is code-driven via the `@preplai/illustrations` component registry.
 
 ### Full recovery from zero (worst case)
 

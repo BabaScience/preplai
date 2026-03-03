@@ -1,12 +1,12 @@
 /**
- * @pre/illustrations — Graph2D Component
+ * @preplai/illustrations — Graph2D Component
  * 2D function plotter: axes, grid, explicit/parametric curves, scatter points
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createDarkGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);

@@ -13,21 +13,21 @@ import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vites
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { connectDb, closeDb } from '@preplai/db';
 
-// @pre/shared — schemas & types
+// @preplai/shared — schemas & types
 import {
   VisualScriptSchema,
   VisualEntitySchema,
   IllustrationFrameSchema,
-} from '@pre/shared';
+} from '@preplai/shared';
 
-// @pre/compiler — compilation pipeline
-import { compileVisualScript } from '@pre/compiler';
+// @preplai/compiler — compilation pipeline
+import { compileVisualScript } from '@preplai/compiler';
 
-// @pre/illustrations — render dispatch
-import { renderEntity, buildEntityGroup, SVG_NS } from '@pre/illustrations';
+// @preplai/illustrations — render dispatch
+import { renderEntity, buildEntityGroup, SVG_NS } from '@preplai/illustrations';
 
-// @pre/player — scene controller + bridge
-import { SceneController, applyDefaults, assignEntranceDelays, createSSEHandler } from '@pre/player';
+// @preplai/player — scene controller + bridge
+import { SceneController, applyDefaults, assignEntranceDelays, createSSEHandler } from '@preplai/player';
 
 // @preplai/mcp-server — tool handlers + infra
 import {

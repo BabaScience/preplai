@@ -1,5 +1,5 @@
 /**
- * @pre/compiler — Package Entry Point
+ * @preplai/compiler — Package Entry Point
  *
  * Re-exports the public API of the compiler package.
  */

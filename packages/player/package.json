@@ -1,5 +1,5 @@
 {
-  "name": "@pre/player",
+  "name": "@preplai/player",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,7 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@pre/shared": "*",
-    "@pre/illustrations": "*"
+    "@preplai/shared": "workspace:*",
+    "@preplai/illustrations": "workspace:*"
   }
 }

@@ -1,12 +1,12 @@
 /**
- * @pre/illustrations — BinaryTree Component
+ * @preplai/illustrations — BinaryTree Component
  * Tree layout: root + children with connecting lines
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createRadialGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 interface TreeNode {
   value: string | number;

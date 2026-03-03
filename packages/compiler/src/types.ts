@@ -1,12 +1,12 @@
 /**
- * @pre/compiler — Compiler-specific Types
+ * @preplai/compiler — Compiler-specific Types
  *
  * CompileResult, error/warning types, and compiler constants.
  * These types are private to the compiler package; they are not re-exported
- * from @pre/shared because they are build-time concerns, not runtime data model.
+ * from @preplai/shared because they are build-time concerns, not runtime data model.
  */
 
-import type { VisualScript } from '@pre/shared';
+import type { VisualScript } from '@preplai/shared';
 
 // ── Error & Warning Codes ─────────────────────────────────────────────
 

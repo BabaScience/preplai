@@ -1,5 +1,5 @@
 /**
- * @pre/illustrations — Arrow & DataFlow Components
+ * @preplai/illustrations — Arrow & DataFlow Components
  *
  * Special: Arrow/DataFlow do NOT use the double-<g> pattern.
  * Their position is defined by x1/y1/x2/y2 line attributes.
@@ -7,9 +7,9 @@
  */
 
 import { SVG_NS } from '../utils.js';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@pre/shared';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@preplai/shared';
 import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
-import type { VisualEntity } from '@pre/shared';
+import type { VisualEntity } from '@preplai/shared';
 
 /**
  * Resolves an entity reference string (ID or label) to a VisualEntity.

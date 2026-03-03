@@ -1,6 +1,6 @@
 # 05 — Illustration System
 
-**Package:** `@pre/player`  
+**Package:** `@preplai/player`  
 **Status:** V1 — Programmatic SVG Component Library  
 **Last updated:** 2026-02-28  
 **Supersedes:** Old `05-illustration-system.md` (static morph-ready SVG file bank)
@@ -3341,5 +3341,5 @@ The following patterns from the previous `05-illustration-system.md` are **entir
 ---
 
 *Architecture document — Presentation Rendering Engine (PRE) v1  
-`@pre/player` package — Illustration System  
+`@preplai/player` package — Illustration System  
 Supersedes old `05-illustration-system.md` (static SVG file bank)*

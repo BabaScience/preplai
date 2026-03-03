@@ -1,5 +1,5 @@
 /**
- * @pre/mcp-server — SSE Subscriber Registry
+ * @preplai/mcp-server — SSE Subscriber Registry
  *
  * Manages Server-Sent Events subscribers per session.
  * The player connects via EventSource at /session/:id/events.

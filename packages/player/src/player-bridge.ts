@@ -1,11 +1,11 @@
 /**
- * @pre/player — Player Bridge
+ * @preplai/player — Player Bridge
  *
  * Handles SSE event dispatching, postMessage bridge for iframe embed,
  * and session ID resolution. No direct DOM manipulation — delegates to
  * SceneController and NarratorController via callbacks.
  */
-import type { VisualScript } from '@pre/shared';
+import type { VisualScript } from '@preplai/shared';
 
 // ── Session ID Resolution ────────────────────────────────────────────
 
