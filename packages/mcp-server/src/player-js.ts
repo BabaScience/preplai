@@ -1348,46 +1348,39 @@ export const PLAYER_JS = `(function() {
     });
   }
 
-  // Nav bar visibility toggle
-  var showControlsBar = document.getElementById('show-controls-bar');
-  var navToggle = document.getElementById('nav-toggle');
-  var navVisible = true;
+  // Narrator overlay visibility toggle
+  var narratorOverlay = document.getElementById('narrator-overlay');
+  var narratorOverlayToggle = document.getElementById('narrator-overlay-toggle');
+  var narratorOverlayVisible = true;
   try {
-    var stored = localStorage.getItem('preplai-nav-visible');
-    if (stored !== null) navVisible = stored === 'true';
+    var stored = localStorage.getItem('preplai-narrator-overlay-visible');
+    if (stored !== null) narratorOverlayVisible = stored === 'true';
   } catch (e) {}
-  function setNavVisible(visible) {
-    navVisible = visible;
-    if (frameNav) {
+  function setNarratorOverlayVisible(visible) {
+    narratorOverlayVisible = visible;
+    if (narratorOverlay) {
       if (visible) {
-        frameNav.classList.remove('hidden');
+        narratorOverlay.classList.remove('hidden');
       } else {
-        frameNav.classList.add('hidden');
+        narratorOverlay.classList.add('hidden');
       }
     }
-    if (showControlsBar) {
-      if (visible) {
-        showControlsBar.classList.remove('visible');
-      } else {
-        showControlsBar.classList.add('visible');
-      }
+    if (narratorOverlayToggle) {
+      narratorOverlayToggle.classList.toggle('narrator-hidden', !visible);
+      narratorOverlayToggle.setAttribute('aria-label', visible ? 'Hide narrator overlay' : 'Show narrator overlay');
     }
-    if (navToggle) {
-      navToggle.setAttribute('aria-label', visible ? 'Hide navigation bar' : 'Show navigation bar');
-    }
-    try { localStorage.setItem('preplai-nav-visible', String(visible)); } catch (e) {}
+    try { localStorage.setItem('preplai-narrator-overlay-visible', String(visible)); } catch (e) {}
   }
-  setNavVisible(navVisible);
-  if (navToggle) navToggle.addEventListener('click', function() { setNavVisible(false); });
-  if (showControlsBar) showControlsBar.addEventListener('click', function() { setNavVisible(true); });
+  setNarratorOverlayVisible(narratorOverlayVisible);
+  if (narratorOverlayToggle) narratorOverlayToggle.addEventListener('click', function() { setNarratorOverlayVisible(!narratorOverlayVisible); });
 
   document.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goNext(); }
     if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); goPrev(); }
-    if (e.key === 'h' || e.key === 'H') {
+    if (e.key === 'n' || e.key === 'N') {
       if (!e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
-        setNavVisible(!navVisible);
+        setNarratorOverlayVisible(!narratorOverlayVisible);
       }
     }
   });

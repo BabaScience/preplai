@@ -79,6 +79,13 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   display: flex;
   justify-content: center;
   padding: 0 64px;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+#narrator-overlay.hidden {
+  opacity: 0 !important;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 #narrator-text {
@@ -152,7 +159,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   align-items: center;
   gap: 12px;
   opacity: 0.85;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 0.3s ease;
   background: rgba(12, 13, 20, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -166,45 +173,6 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 
 #frame-nav:hover {
   opacity: 1 !important;
-}
-
-#frame-nav.hidden {
-  opacity: 0 !important;
-  pointer-events: none;
-  transform: translateX(-50%) translateY(12px);
-}
-
-/* Show controls bar — appears when frame-nav is hidden */
-#show-controls-bar {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 149;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  background: rgba(12, 13, 20, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: 16px;
-  padding: 6px 14px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-#show-controls-bar.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-#show-controls-bar:hover {
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(12, 13, 20, 0.8);
 }
 
 #frame-counter {
@@ -255,8 +223,24 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 /* ── TTS toggle ──────────────────────────────────────────────────── */
 
 #tts-toggle,
-#nav-toggle {
+#narrator-overlay-toggle {
   margin-left: 4px;
+}
+
+#narrator-overlay-toggle.narrator-hidden .narrator-toggle-on {
+  display: none;
+}
+
+#narrator-overlay-toggle.narrator-hidden .narrator-toggle-off {
+  display: block;
+}
+
+#narrator-overlay-toggle:not(.narrator-hidden) .narrator-toggle-on {
+  display: block;
+}
+
+#narrator-overlay-toggle:not(.narrator-hidden) .narrator-toggle-off {
+  display: none;
 }
 
 #tts-toggle.tts-on .tts-icon-on {
