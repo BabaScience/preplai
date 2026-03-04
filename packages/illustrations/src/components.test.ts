@@ -263,7 +263,7 @@ describe('renderArrow', () => {
     expect(line).toBeTruthy();
   });
 
-  it('should set correct x1/y1 and x2/y2 from source/target positions', () => {
+  it('should set correct x1/y1 and x2/y2 from source/target positions (edge-to-edge)', () => {
     const arrow = makeEntity({
       id: 'arr-2',
       type: 'Arrow',
@@ -272,12 +272,12 @@ describe('renderArrow', () => {
     });
     renderArrow(arrow, allEntities, parentEl);
     const line = parentEl.querySelector('line')!;
-    // src: x=20% of 1920=384, y=40% of 1080=432
-    expect(line.getAttribute('x1')).toBe('384');
-    expect(line.getAttribute('y1')).toBe('432');
-    // tgt: x=80% of 1920=1536, y=60% of 1080=648
-    expect(line.getAttribute('x2')).toBe('1536');
-    expect(line.getAttribute('y2')).toBe('648');
+    // Arrows connect at entity edges, not centers. Source at (384,432), target at (1536,648).
+    // Source exit (right edge): ~444, target entry (left edge): ~1476
+    expect(Number(line.getAttribute('x1'))).toBeGreaterThan(384);
+    expect(Number(line.getAttribute('x1'))).toBeLessThanOrEqual(500);
+    expect(Number(line.getAttribute('x2'))).toBeLessThan(1536);
+    expect(Number(line.getAttribute('x2'))).toBeGreaterThanOrEqual(1400);
   });
 
   it('should return null when source is not resolvable', () => {

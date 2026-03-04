@@ -4,12 +4,111 @@
  * Special: Arrow/DataFlow do NOT use the double-<g> pattern.
  * Their position is defined by x1/y1/x2/y2 line attributes.
  * They require source/target entity resolution.
+ *
+ * Arrows connect at entity edges (not centers) for cleaner flow diagrams.
  */
 
-import { SVG_NS } from '../utils.js';
+import { SVG_NS, getSizeParam } from '../utils.js';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@preplai/shared';
 import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
+
+/** Rect in SVG coordinates */
+interface Rect {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+/**
+ * Get the bounding rect of an entity in SVG coordinates.
+ * Uses DOM getBBox when the element exists; otherwise estimates from position + size.
+ */
+function getEntityRect(entity: VisualEntity, svgRoot: SVGElement | null): Rect {
+  const cx = (entity.position.x / 100) * CANVAS_WIDTH;
+  const cy = (entity.position.y / 100) * CANVAS_HEIGHT;
+
+  const escapedId = typeof CSS !== 'undefined' && CSS.escape
+    ? CSS.escape(entity.id)
+    : entity.id.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+  const el = svgRoot?.querySelector(`#${escapedId}`);
+  if (el && typeof (el as SVGGraphicsElement).getBBox === 'function') {
+    const bbox = (el as SVGGraphicsElement).getBBox();
+    return {
+      left: cx + bbox.x,
+      right: cx + bbox.x + bbox.width,
+      top: cy + bbox.y,
+      bottom: cy + bbox.y + bbox.height,
+    };
+  }
+
+  // Fallback: estimate from size (entities are roughly 2×baseSize wide, 1.5×baseSize tall)
+  const base = getSizeParam(entity);
+  const halfW = base * 1.2;
+  const halfH = base * 0.9;
+  return {
+    left: cx - halfW,
+    right: cx + halfW,
+    top: cy - halfH,
+    bottom: cy + halfH,
+  };
+}
+
+/**
+ * Find where a line segment intersects a rect's boundary.
+ * Returns the point on the line that lies on the rect edge.
+ * - For source: exit point (smallest t > 0)
+ * - For target: entry point (largest t < 1)
+ */
+function lineRectIntersection(
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  rect: Rect,
+  wantExitFromSource: boolean
+): { x: number; y: number } | null {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  if (len < 1e-6) return null;
+
+  const { left, right, top, bottom } = rect;
+  let bestT: number | null = null;
+
+  // Test each edge: top, right, bottom, left
+  const edges: Array<[[number, number], [number, number]]> = [
+    [[left, top], [right, top]],
+    [[right, top], [right, bottom]],
+    [[right, bottom], [left, bottom]],
+    [[left, bottom], [left, top]],
+  ];
+
+  for (const [[ex1, ey1], [ex2, ey2]] of edges) {
+    const ex = ex2 - ex1;
+    const ey = ey2 - ey1;
+    const denom = dx * ey - dy * ex;
+    if (Math.abs(denom) < 1e-9) continue;
+
+    const t = ((ex1 - x1) * ey - (ey1 - y1) * ex) / denom;
+    const u = ((x1 - ex1) * dy - (y1 - ey1) * dx) / -denom;
+
+    if (u >= 0 && u <= 1 && t >= 0 && t <= 1) {
+      if (wantExitFromSource) {
+        if (bestT === null || t < bestT) bestT = t;
+      } else {
+        if (bestT === null || t > bestT) bestT = t;
+      }
+    }
+  }
+
+  if (bestT === null) return null;
+  return {
+    x: x1 + bestT * dx,
+    y: y1 + bestT * dy,
+  };
+}
 
 /**
  * Resolves an entity reference string (ID or label) to a VisualEntity.
@@ -83,16 +182,27 @@ export function renderArrow(
     return null;
   }
 
-  const x1 = (source.position.x / 100) * CANVAS_WIDTH;
-  const y1 = (source.position.y / 100) * CANVAS_HEIGHT;
-  const x2 = (target.position.x / 100) * CANVAS_WIDTH;
-  const y2 = (target.position.y / 100) * CANVAS_HEIGHT;
+  const sx = (source.position.x / 100) * CANVAS_WIDTH;
+  const sy = (source.position.y / 100) * CANVAS_HEIGHT;
+  const tx = (target.position.x / 100) * CANVAS_WIDTH;
+  const ty = (target.position.y / 100) * CANVAS_HEIGHT;
+
+  const svgRoot = parentEl.ownerSVGElement ?? (parentEl as SVGElement);
+  const sourceRect = getEntityRect(source, svgRoot);
+  const targetRect = getEntityRect(target, svgRoot);
+
+  const sourceExit = lineRectIntersection(sx, sy, tx, ty, sourceRect, true);
+  const targetEntry = lineRectIntersection(sx, sy, tx, ty, targetRect, false);
+
+  const x1 = sourceExit?.x ?? sx;
+  const y1 = sourceExit?.y ?? sy;
+  const x2 = targetEntry?.x ?? tx;
+  const y2 = targetEntry?.y ?? ty;
 
   const color = entity.color ?? getCategoryColor('Arrow');
 
   // Unique arrowhead marker
   const markerId = `arrowhead-${entity.id}`;
-  const svgRoot = parentEl.ownerSVGElement ?? parentEl;
   ensureArrowheadMarker(markerId, color, svgRoot);
 
   // Wrapper group
@@ -170,13 +280,24 @@ export function renderDataFlow(
     return null;
   }
 
-  const x1 = (source.position.x / 100) * CANVAS_WIDTH;
-  const y1 = (source.position.y / 100) * CANVAS_HEIGHT;
-  const x2 = (target.position.x / 100) * CANVAS_WIDTH;
-  const y2 = (target.position.y / 100) * CANVAS_HEIGHT;
+  const sx = (source.position.x / 100) * CANVAS_WIDTH;
+  const sy = (source.position.y / 100) * CANVAS_HEIGHT;
+  const tx = (target.position.x / 100) * CANVAS_WIDTH;
+  const ty = (target.position.y / 100) * CANVAS_HEIGHT;
+
+  const svgRoot = parentEl.ownerSVGElement ?? (parentEl as SVGElement);
+  const sourceRect = getEntityRect(source, svgRoot);
+  const targetRect = getEntityRect(target, svgRoot);
+
+  const sourceExit = lineRectIntersection(sx, sy, tx, ty, sourceRect, true);
+  const targetEntry = lineRectIntersection(sx, sy, tx, ty, targetRect, false);
+
+  const x1 = sourceExit?.x ?? sx;
+  const y1 = sourceExit?.y ?? sy;
+  const x2 = targetEntry?.x ?? tx;
+  const y2 = targetEntry?.y ?? ty;
   const color = entity.color ?? getCategoryColor('DataFlow');
 
-  const svgRoot = parentEl.ownerSVGElement ?? parentEl;
   const markerId = `arrowhead-dataflow-${entity.id}`;
   ensureArrowheadMarker(markerId, color, svgRoot);
 
