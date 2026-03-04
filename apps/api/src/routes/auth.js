@@ -106,4 +106,16 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// POST /api/auth/logout — clear session cookie
+router.post('/logout', (req, res) => {
+  const isProd = process.env.NODE_ENV === 'production';
+  res.clearCookie('preplai_session', {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'lax' : 'lax',
+    path: '/',
+  });
+  res.json({ ok: true });
+});
+
 export default router;

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { apiLogin, apiSignup } from '../lib/api';
+import { apiLogin, apiSignup, apiLogout } from '../lib/api';
 
 const AUTH_STORAGE_KEY = 'preplai_auth';
 
@@ -60,11 +60,12 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     setToken(null);
     setEmail(null);
     setUserId(null);
     persistAuth(null);
+    await apiLogout();
   }, []);
 
   useEffect(() => {

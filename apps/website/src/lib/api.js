@@ -55,6 +55,14 @@ export async function apiSignup(email, password) {
   return data;
 }
 
+export async function apiLogout() {
+  try {
+    await client.post('auth/logout');
+  } finally {
+    clearApiToken();
+  }
+}
+
 // Overview
 export async function apiGetOverview() {
   const { data } = await client.get('usage/overview');
