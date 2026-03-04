@@ -5,10 +5,12 @@ import Input from '../../components/Input';
 import Alert from '../../components/Alert';
 import Modal from '../../components/Modal';
 import { useAuth } from '../../context/AuthContext';
+import { useSound } from '../../context/SoundContext';
 import { apiChangePassword, apiDeleteAccount, clearApiToken } from '../../lib/api';
 
 export default function Settings() {
   const { email, logout } = useAuth();
+  const { soundEnabled, toggleSoundEnabled } = useSound();
   const navigate = useNavigate();
 
   const [currentPw, setCurrentPw] = useState('');
@@ -50,6 +52,58 @@ export default function Settings() {
 
   return (
     <DashboardLayout title="Settings">
+      <div className="card" style={{ maxWidth: '560px', marginBottom: 'var(--space-8)' }}>
+        <h3 style={{
+          fontSize: 'var(--text-base)',
+          fontWeight: 600,
+          marginBottom: 'var(--space-6)',
+        }}>
+          Preferences
+        </h3>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 'var(--space-6)',
+          }}
+        >
+          <label style={{ fontSize: 'var(--text-sm)' }}>
+            Sound effects
+          </label>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={soundEnabled}
+            aria-label="Toggle sound effects"
+            onClick={toggleSoundEnabled}
+            style={{
+              width: 44,
+              height: 24,
+              borderRadius: 12,
+              border: '1px solid var(--color-border)',
+              background: soundEnabled ? 'var(--color-primary)' : 'var(--color-surface-2)',
+              cursor: 'pointer',
+              position: 'relative',
+              transition: 'background var(--transition-interactive)',
+            }}
+          >
+            <span
+              style={{
+                position: 'absolute',
+                top: 2,
+                left: soundEnabled ? 22 : 2,
+                width: 18,
+                height: 18,
+                borderRadius: '50%',
+                background: 'var(--color-text-inverse)',
+                transition: 'left var(--transition-interactive)',
+              }}
+            />
+          </button>
+        </div>
+      </div>
+
       <div className="card" style={{ maxWidth: '560px', marginBottom: 'var(--space-8)' }}>
         <h3 style={{
           fontSize: 'var(--text-base)',
