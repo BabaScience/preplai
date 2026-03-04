@@ -22,6 +22,23 @@ async function seed() {
     }
     console.log('Created demo user:', user.email);
 
+    // Admin user for monitoring dashboard
+    let admin = await User.findOne({ email: 'admin@preplai.com' });
+    if (!admin) {
+      const adminHash = await bcrypt.hash('admin123', 10);
+      admin = await User.create({
+        email: 'admin@preplai.com',
+        passwordHash: adminHash,
+        name: 'Admin',
+        role: 'admin',
+      });
+      console.log('Created admin user: admin@preplai.com (password: admin123)');
+    } else if (admin.role !== 'admin') {
+      admin.role = 'admin';
+      await admin.save();
+      console.log('Promoted admin@preplai.com to admin');
+    }
+
     const rawKey = KEY_PREFIX + crypto.randomBytes(20).toString('hex');
     const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
     const keyPrefix = rawKey.substring(0, 12);

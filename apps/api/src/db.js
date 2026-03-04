@@ -4,6 +4,7 @@
 import {
   connectDb,
   closeDb,
+  isDbConnected,
   User,
   ApiKey,
   UsageLog,
@@ -17,6 +18,7 @@ import {
 export {
   connectDb,
   closeDb,
+  isDbConnected,
   User,
   ApiKey,
   UsageLog,

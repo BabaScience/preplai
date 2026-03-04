@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preplai Monitoring</title>
+  <style>
+    :root {
+      --bg: #0f0f12;
+      --surface: #1a1a1f;
+      --border: #2a2a32;
+      --text: #e4e4e7;
+      --muted: #71717a;
+      --ok: #22c55e;
+      --warn: #eab308;
+      --error: #ef4444;
+      --accent: #6366f1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 1.5rem;
+      line-height: 1.5;
+    }
+    h1 { font-size: 1.25rem; margin: 0 0 1rem; color: var(--accent); }
+    .refresh { font-size: 0.75rem; color: var(--muted); margin-bottom: 1rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .card h2 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin: 0 0 0.75rem;
+    }
+    .kpi {
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .kpi.ok { color: var(--ok); }
+    .kpi.warn { color: var(--warn); }
+    .kpi.error { color: var(--error); }
+    .meta { font-size: 0.75rem; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th, td { text-align: left; padding: 0.35rem 0; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 500; }
+    .status-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+    .status-dot.ok { background: var(--ok); }
+    .status-dot.warn { background: var(--warn); }
+    .status-dot.error { background: var(--error); }
+    .error-msg { color: var(--error); font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <h1>Preplai Monitoring</h1>
+  <div id="loading" class="meta">Loading...</div>
+  <div id="login-form" class="card" style="max-width:320px;display:none">
+    <h2>Admin Login</h2>
+    <p class="meta" style="margin-bottom:0.75rem">Admin access required to view the dashboard.</p>
+    <form id="login" onsubmit="return doLogin(event)">
+      <input type="email" name="email" placeholder="Email" required style="width:100%;padding:0.5rem;margin-bottom:0.5rem;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px">
+      <input type="password" name="password" placeholder="Password" required style="width:100%;padding:0.5rem;margin-bottom:0.75rem;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px">
+      <button type="submit" style="padding:0.5rem 1rem;background:var(--accent);color:white;border:none;border-radius:4px;cursor:pointer">Sign in</button>
+      <span id="login-error" class="error-msg" style="margin-left:0.5rem"></span>
+    </form>
+  </div>
+  <div id="dashboard-container" style="display:none">
+    <div class="refresh" id="refresh">Loading...</div>
+    <div class="grid" id="dashboard"></div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    async function load() {
+      try {
+        const res = await fetch(API_BASE + '/api/monitoring/overview', { credentials: 'include' });
+        if (res.status === 401 || res.status === 403) {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('login-form').style.display = 'block';
+          return;
+        }
+        const data = await res.json();
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('dashboard-container').style.display = 'block';
+        render(data);
+      } catch (e) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboard').innerHTML =
+          '<div class="card"><p class="error-msg">Failed to load: ' + e.message + '</p></div>';
+        document.getElementById('dashboard-container').style.display = 'block';
+      }
+      document.getElementById('refresh').textContent =
+        'Last updated: ' + new Date().toLocaleTimeString() + ' — Auto-refresh every 10s';
+    }
+    async function doLogin(e) {
+      e.preventDefault();
+      const form = e.target;
+      const errEl = document.getElementById('login-error');
+      errEl.textContent = '';
+      try {
+        const res = await fetch(API_BASE + '/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: form.email.value, password: form.password.value }),
+          credentials: 'include'
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errEl.textContent = data.error || 'Login failed';
+          return false;
+        }
+        const overviewRes = await fetch(API_BASE + '/api/monitoring/overview', { credentials: 'include' });
+        if (overviewRes.ok) {
+          document.getElementById('login-form').style.display = 'none';
+          document.getElementById('dashboard-container').style.display = 'block';
+          render(await overviewRes.json());
+          setInterval(load, 10000);
+        } else {
+          errEl.textContent = overviewRes.status === 403 ? 'Admin access required. Your account is not an admin.' : 'Could not load dashboard.';
+        }
+      } catch (err) {
+        errEl.textContent = err.message;
+      }
+      return false;
+    }
+    function render(data) {
+      const api = data.api;
+      const mcp = data.mcp;
+      let html = '';
+
+      // API Health
+      const apiStatus = api.health.db === 'connected' ? 'ok' : 'warn';
+      html += `
+        <div class="card">
+          <h2>API Health</h2>
+          <div class="kpi ${apiStatus}"><span class="status-dot ${apiStatus}"></span>${api.health.status}</div>
+          <div class="meta">DB: ${api.health.db}</div>
+          <div class="meta">${api.health.timestamp}</div>
+        </div>
+      `;
+
+      // API Metrics
+      const apiMetrics = api.metrics || {};
+      const totalReq = apiMetrics.http_requests_total || 0;
+      html += `
+        <div class="card">
+          <h2>API Requests</h2>
+          <div class="kpi">${totalReq.toLocaleString()}</div>
+          <div class="meta">Total HTTP requests</div>
+          ${Object.keys(apiMetrics.http_requests_by_path || {}).length ? `
+            <table style="margin-top:0.75rem">
+              <tr><th>Path</th><th>Count</th></tr>
+              ${Object.entries(apiMetrics.http_requests_by_path).slice(0, 5).map(([p, c]) =>
+                `<tr><td>${p}</td><td>${c}</td></tr>`
+              ).join('')}
+            </table>
+          ` : ''}
+        </div>
+      `;
+
+      // MCP Health
+      if (mcp) {
+        const mcpStatus = mcp.status === 'ok' ? 'ok' : (mcp.error ? 'error' : 'warn');
+        html += `
+          <div class="card">
+            <h2>MCP Server Health</h2>
+            <div class="kpi ${mcpStatus}"><span class="status-dot ${mcpStatus}"></span>${mcp.status}</div>
+            ${mcp.db ? `<div class="meta">DB: ${mcp.db}</div>` : ''}
+            ${mcp.sessions !== undefined ? `<div class="meta">Sessions: ${mcp.sessions}</div>` : ''}
+            ${mcp.uptime !== undefined ? `<div class="meta">Uptime: ${Math.floor(mcp.uptime)}s</div>` : ''}
+            ${mcp.error ? `<div class="error-msg" style="margin-top:0.5rem">${mcp.error}</div>` : ''}
+          </div>
+        `;
+
+        if (mcp.metrics) {
+          const mcpTotal = mcp.metrics.http_requests_total || 0;
+          html += `
+            <div class="card">
+              <h2>MCP Requests</h2>
+              <div class="kpi">${mcpTotal.toLocaleString()}</div>
+              <div class="meta">Total HTTP requests</div>
+              ${Object.keys(mcp.metrics.http_requests_by_path || {}).length ? `
+                <table style="margin-top:0.75rem">
+                  <tr><th>Path</th><th>Count</th></tr>
+                  ${Object.entries(mcp.metrics.http_requests_by_path).slice(0, 5).map(([p, c]) =>
+                    `<tr><td>${p}</td><td>${c}</td></tr>`
+                  ).join('')}
+                </table>
+              ` : ''}
+            </div>
+          `;
+        }
+      }
+
+      document.getElementById('dashboard').innerHTML = html;
+    }
+    load().then(() => {
+      const container = document.getElementById('dashboard-container');
+      if (container.style.display !== 'none') setInterval(load, 10000);
+    });
+  </script>
+</body>
+</html>

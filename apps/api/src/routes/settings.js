@@ -30,7 +30,7 @@ router.get('/', async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'Get settings failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -75,7 +75,7 @@ router.patch('/profile', async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'Update profile failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -108,7 +108,7 @@ router.patch('/password', async (req, res) => {
 
     res.json({ message: 'Password updated successfully' });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'Update password failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -124,7 +124,7 @@ router.delete('/account', async (req, res) => {
 
     res.json({ message: 'Account deleted' });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'Delete account failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });

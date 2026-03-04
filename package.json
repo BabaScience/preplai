@@ -15,6 +15,7 @@
   ],
   "scripts": {
     "prepare": "husky",
+    "dev": "concurrently -n api,mcp -c blue,magenta \"pnpm --filter preplai-api run dev\" \"pnpm --filter @preplai/mcp-server run dev\"",
     "test:oauth": "node scripts/test-oauth-local.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -25,6 +26,7 @@
     "typecheck": "pnpm exec tsc --noEmit -p packages/shared && pnpm exec tsc --noEmit -p packages/illustrations && pnpm exec tsc --noEmit -p packages/db && pnpm exec tsc --noEmit -p packages/compiler && pnpm exec tsc --noEmit -p packages/player && pnpm exec tsc --noEmit -p packages/mcp-server"
   },
   "devDependencies": {
+    "concurrently": "^9.0.0",
     "@eslint/js": "^9.39.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@vitest/coverage-v8": "^2.0.0",

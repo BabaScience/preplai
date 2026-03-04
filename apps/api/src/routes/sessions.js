@@ -55,7 +55,7 @@ router.get('/', async (req, res) => {
 
     res.json({ sessions, total: sessions.length });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'List sessions failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -85,7 +85,7 @@ router.delete('/:id', async (req, res) => {
 
     res.json({ message: 'Session deleted' });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'Delete session failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -1,9 +1,19 @@
 import 'dotenv/config';
+import crypto from 'node:crypto';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { connectDb } from './db.js';
+import pinoHttp from 'pino-http';
+import { connectDb, isDbConnected } from './db.js';
+import { logger } from './logger.js';
+import { metricsMiddleware, register } from './metrics.js';
 
+import { getMonitoringOverview } from './monitoring.js';
+import { authenticateAdmin } from './middleware/auth.js';
 import authRoutes from './routes/auth.js';
 import keysRoutes from './routes/keys.js';
 import usageRoutes from './routes/usage.js';
@@ -24,11 +34,43 @@ export function createApp() {
   app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
   app.use(cookieParser());
   app.use(express.json());
+  app.use(pinoHttp({ logger, genReqId: (req) => req.headers['x-request-id'] || crypto.randomUUID() }));
   // OAuth 2.0 token endpoint expects application/x-www-form-urlencoded (RFC 6749)
   app.use(express.urlencoded({ extended: true }));
+  app.use(metricsMiddleware);
+
+  app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', register.contentType);
+    res.send(await register.metrics());
+  });
+
+  app.get('/api/monitoring/overview', authenticateAdmin, async (req, res) => {
+    try {
+      const overview = await getMonitoringOverview();
+      res.json(overview);
+    } catch (err) {
+      req.log?.error({ err }, 'Monitoring overview failed');
+      res.status(500).json({ error: 'Failed to fetch monitoring data' });
+    }
+  });
+
+  app.get('/monitoring', (_req, res) => {
+    res.sendFile(join(__dirname, 'monitoring-dashboard.html'));
+  });
 
   app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    const dbConnected = isDbConnected();
+    const status = dbConnected ? 'ok' : 'degraded';
+    const payload = {
+      status,
+      db: dbConnected ? 'connected' : 'disconnected',
+      timestamp: new Date().toISOString(),
+    };
+    if (!dbConnected) {
+      res.status(503).json(payload);
+    } else {
+      res.json(payload);
+    }
   });
 
   app.use(oauthRoutes);
@@ -40,7 +82,9 @@ export function createApp() {
   app.use('/api/sessions', sessionsRoutes);
 
   app.use((err, req, res, next) => {
-    console.error(err.stack);
+    const log = req.log ? req.log.child({ reqId: req.id }) : logger;
+    log.error({ err, stack: err.stack }, 'Request error');
+    if (req.id) res.setHeader('X-Request-ID', req.id);
     res.status(500).json({ error: 'Internal server error' });
   });
 
@@ -52,11 +96,11 @@ if (process.env.NODE_ENV !== 'test') {
     .then(() => {
       const app = createApp();
       app.listen(PORT, () => {
-        console.log(`Preplai API running on port ${PORT}`);
+        logger.info({ port: PORT }, 'Preplai API running');
       });
     })
     .catch((err) => {
-      console.error('Failed to connect to MongoDB:', err);
+      logger.error({ err }, 'Failed to connect to MongoDB');
       process.exit(1);
     });
 }

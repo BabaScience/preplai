@@ -21,3 +21,8 @@ export async function closeDb(): Promise<void> {
     connected = false;
   }
 }
+
+/** Check if MongoDB is connected (readyState 1 = connected). */
+export function isDbConnected(): boolean {
+  return mongoose.connection.readyState === 1;
+}

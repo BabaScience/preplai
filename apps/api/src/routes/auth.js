@@ -57,7 +57,7 @@ router.post('/signup', async (req, res) => {
       user: { id: user._id.toString(), email, name: user.name || null }
     });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'Signup failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -101,7 +101,7 @@ router.post('/login', async (req, res) => {
       user: { id: user._id.toString(), email: user.email, name: user.name }
     });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'Login failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -6,6 +6,7 @@
  * Exposes MCP tools via Streamable HTTP at /mcp.
  */
 import { exec } from 'node:child_process';
+import crypto from 'node:crypto';
 import { config } from 'dotenv';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,7 +20,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import Fastify, { type FastifyInstance } from 'fastify';
 import FastifyCors from '@fastify/cors';
 import FastifyRateLimit from '@fastify/rate-limit';
-import { connectDb, closeDb } from '@preplai/db';
+import { connectDb, closeDb, isDbConnected } from '@preplai/db';
 import FastifyMcpServer from 'fastify-mcp-server';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SessionStore } from './session-store.js';
@@ -45,6 +46,7 @@ import {
 } from './auth.js';
 import { validateOAuthToken } from './oauth-token.js';
 import { registerMcpTools } from './mcp-tools.js';
+import { registerMetricsHook, register } from './metrics.js';
 
 /** AsyncLocalStorage for passing API key to MCP tool handlers (Streamable HTTP) */
 export const apiKeyStore = new AsyncLocalStorage<ValidatedKey>();
@@ -93,23 +95,28 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   const store = new SessionStore();
   await store.loadFromDb();
 
-  const cleaned = await store.cleanExpiredSessions();
-  if (cleaned > 0) {
-    console.log(`[preplai] Cleaned ${cleaned} expired sessions`);
-  }
-
-  const cleanupInterval = setInterval(async () => {
-    const c = await store.cleanExpiredSessions();
-    if (c > 0) console.log(`[preplai] Periodic cleanup: removed ${c} expired sessions`);
-  }, 6 * 60 * 60 * 1000);
-
   // ── SSE Registry ──────────────────────────────────────────────────
   const sse = new SseRegistry();
 
   // ── Fastify app ───────────────────────────────────────────────────
   const app = Fastify({
     logger: { level: cfg.logLevel },
+    genReqId: (req) =>
+      (req.headers['x-request-id'] as string) || crypto.randomUUID(),
+    requestIdHeader: 'x-request-id',
   });
+
+  const cleaned = await store.cleanExpiredSessions();
+  if (cleaned > 0) {
+    app.log.info({ cleaned }, 'Cleaned expired sessions');
+  }
+
+  const cleanupInterval = setInterval(async () => {
+    const c = await store.cleanExpiredSessions();
+    if (c > 0) app.log.info({ cleaned: c }, 'Periodic cleanup: removed expired sessions');
+  }, 6 * 60 * 60 * 1000);
+
+  registerMetricsHook(app);
 
   // ── CORS (supports multiple comma-separated origins) ──────────────
   const allowedOrigins = cfg.corsOrigin.split(',').map((o) => o.trim()).filter(Boolean);
@@ -145,6 +152,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
 
   const PUBLIC_ROUTES = new Set([
     '/health',
+    '/metrics',
     '/player.css',
     '/player.js',
     '/.well-known/oauth-protected-resource',
@@ -220,9 +228,9 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       ? (url: string) => {
           const cmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
           exec(cmd + ' ' + JSON.stringify(url), (err) => {
-            if (err) console.error('[preplai] Could not auto-open browser:', err.message);
+            if (err) app.log.error({ err }, 'Could not auto-open browser');
           });
-          console.error('[preplai] Auto-opened player:', url);
+          app.log.info({ url }, 'Auto-opened player');
         }
       : undefined;
 
@@ -256,14 +264,27 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     };
   });
 
+  // ── Metrics (Prometheus) ──────────────────────────────────────────
+  app.get('/metrics', async (_request, reply) => {
+    reply.header('Content-Type', register.contentType);
+    return register.metrics();
+  });
+
   // ── Health check ──────────────────────────────────────────────────
-  app.get('/health', async () => {
-    return {
-      status: 'ok',
+  app.get('/health', async (_request, reply) => {
+    const dbConnected = isDbConnected();
+    const status = dbConnected ? 'ok' : 'degraded';
+    const payload = {
+      status,
+      db: dbConnected ? 'connected' : 'disconnected',
       version: '1.0.0',
       sessions: store.size,
       uptime: process.uptime(),
     };
+    if (!dbConnected) {
+      return reply.status(503).send(payload);
+    }
+    return payload;
   });
 
   // ── SSE endpoint for player ───────────────────────────────────────
@@ -538,15 +559,15 @@ export async function startServer(config: Partial<ServerConfig> = {}): Promise<S
   const cfg: ServerConfig = { ...getDefaultConfig(), ...config };
 
   await ctx.app.listen({ port: cfg.port, host: cfg.host });
-  console.log(`[preplai] Server running at ${cfg.baseUrl}`);
-  console.log(`[preplai] Player: ${cfg.baseUrl}/player/:sessionId`);
-  console.log(`[preplai] Health: ${cfg.baseUrl}/health`);
+  ctx.app.log.info({ baseUrl: cfg.baseUrl }, 'Server running');
+  ctx.app.log.info({ playerUrl: `${cfg.baseUrl}/player/:sessionId` }, 'Player');
+  ctx.app.log.info({ healthUrl: `${cfg.baseUrl}/health` }, 'Health');
 
   let shuttingDown = false;
   const shutdown = async (signal: string) => {
     if (shuttingDown) return;
     shuttingDown = true;
-    console.log(`[preplai] ${signal} received, shutting down gracefully...`);
+    ctx.app.log.info({ signal }, 'Shutting down gracefully');
     const interval = (ctx.app as any).__cleanupInterval;
     if (interval) clearInterval(interval);
     await ctx.app.close();
@@ -563,7 +584,8 @@ export async function startServer(config: Partial<ServerConfig> = {}): Promise<S
 const isMainModule = process.argv[1]?.endsWith('server.js') || process.argv[1]?.endsWith('server.ts');
 if (isMainModule) {
   startServer().catch((err) => {
-    console.error('[preplai] Failed to start:', err);
+    // Logger not yet available at startup failure
+    process.stderr.write(`[preplai] Failed to start: ${err}\n`);
     process.exit(1);
   });
 }

@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
       })),
     });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'List keys failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -70,7 +70,7 @@ router.post('/', async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'Create key failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -91,7 +91,7 @@ router.delete('/:id', async (req, res) => {
 
     res.json({ message: 'Access token deleted' });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'Delete key failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });

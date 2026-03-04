@@ -49,7 +49,7 @@ router.get('/overview', async (req, res) => {
       total_scenes: totalRequests,
     });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'Usage overview failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -116,7 +116,7 @@ router.get('/', async (req, res) => {
       })),
     });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'Usage list failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -158,7 +158,7 @@ router.get('/summary', async (req, res) => {
       thisMonth,
     });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'Usage summary failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -186,7 +186,7 @@ router.get('/daily', async (req, res) => {
 
     res.json({ daily });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'Usage daily failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -220,7 +220,7 @@ router.get('/logs', async (req, res) => {
       total,
     });
   } catch (err) {
-    console.error(err);
+    req.log?.error({ err }, 'Usage logs failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });

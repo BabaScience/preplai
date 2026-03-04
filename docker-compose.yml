@@ -16,7 +16,14 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       ALLOWED_ORIGINS: https://preplai.com,https://www.preplai.com,https://player.preplai.com
       PLAYER_BASE_URL: https://player.preplai.com
+      MCP_BASE_URL: http://mcp:5005
       NODE_ENV: production
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     networks:
       - preplai-net
 
@@ -34,6 +41,12 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       ALLOWED_ORIGINS: https://preplai.com,https://www.preplai.com,https://api.preplai.com,https://player.preplai.com
       NODE_ENV: production
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5005/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     networks:
       - preplai-net
 
@@ -60,9 +73,12 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
-      - api
-      - mcp
-      - website
+      api:
+        condition: service_healthy
+      mcp:
+        condition: service_healthy
+      website:
+        condition: service_started
     networks:
       - preplai-net
 
