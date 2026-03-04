@@ -37,7 +37,7 @@ function verifySessionOwnership(
 
 export const VisualEntitySchema = z.object({
   id: z.string(),
-  type: z.string().describe('Entity type. Common types: Server, Database, User, Cloud, Arrow, DataFlow, Concept, Label, CodeBlock, Array, Pointer, BinaryTree, BTree, LinkedList, HashTable, Group, Table, Metric, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation. CS types: AST, CallStack, ParseTree, BTree, ProcessState, GanttChart, CacheHierarchy, MemoryLayout, ConfusionMatrix, Semaphore, Mutex, TuringMachine, BigO, SortAnimation, GraphTraversal.'),
+  type: z.string().describe('Entity type. See add_scene description for topic→type mapping. Dedicated: Server, Database, User, Cloud, BinaryTree, BTree, LinkedList, HashTable, CallStack, AST, ProcessState, GanttChart, MemoryLayout, ConfusionMatrix, CodeBlock, Concept, Label, Graph2D. Connections: Arrow, DataFlow.'),
   position: z.object({
     x: z.number().describe('X position as percentage 0-100 of the 1920px canvas'),
     y: z.number().describe('Y position as percentage 0-100 of the 1080px canvas'),
@@ -104,19 +104,47 @@ DESIGN GUIDELINES:
 - Entities are large and visually rich (drop shadows, gradient fills). Size 1 = ~110px, size 2 = ~220px.
 - Each entity type has a smart default entrance animation. You can override with the animation.entrance property.
 
-Entity types with DEDICATED renderers (look best):
+ENTITY SELECTION (choose types that match the user's topic for best visuals):
+
+Topic → Preferred type:
+- Trees (BST, AVL, heaps) → BinaryTree or BTree (use metadata.tree)
+- Call stacks, recursion → CallStack (metadata.frames)
+- State machines, process lifecycle → ProcessState (metadata.states, metadata.transitions)
+- Scheduler / CPU timelines → GanttChart (metadata.tasks)
+- Memory layout (stack/heap) → MemoryLayout (metadata.stack, metadata.heap)
+- ML metrics (TP/FP/TN/FN) → ConfusionMatrix (metadata.matrix)
+- Key-value storage → HashTable (metadata.pairs) or Dict
+- Architecture diagrams → Server, Database, Cloud, Arrow, LoadBalancer
+
+PREFER dedicated types (rich visuals): Server, Database, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, AST, ProcessState, GanttChart, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, Timeline, StepList, Definition, Callout.
+
+AVOID generic fallbacks when possible: Entity, Group, Tree, Stack, FSM, NeuralNetwork — these render as plain rounded rects.
+
+WHEN IN DOUBT: Key-value → HashTable. Binary tree → BinaryTree. Multi-way tree → BTree. Code snippet → CodeBlock. Abstract idea → Concept. Flow between components → Arrow or DataFlow.
+
+DEDICATED (prefer these — rich custom renderers):
   Server (rack with LEDs), Database (cylinder), User (avatar), Cloud (blob), Concept (auto-sized circle), Label (text with optional pill), CodeBlock (dark terminal with traffic-light dots)
 
-Entity types with SHAPED renderers:
+SHAPED renderers:
   Cache (circle), LoadBalancer (hexagon), Decision (diamond), Metric (circle)
 
-CS-specific entity types with custom renderers:
-  AST (parse tree), CallStack (stack frames), BTree (multi-child tree), ProcessState (state diagram), GanttChart (task bars), CacheHierarchy (L1/L2/L3 stack), MemoryLayout (stack/heap), ConfusionMatrix (TP/FP/TN/FN grid). Use metadata for data: AST needs metadata.ast, CallStack needs metadata.frames, GanttChart needs metadata.tasks, etc.
+CS-specific with custom renderers:
+  AST (parse tree), CallStack (stack frames), BTree (multi-child tree), ProcessState (state diagram), GanttChart (task bars), CacheHierarchy (L1/L2/L3 stack), MemoryLayout (stack/heap), ConfusionMatrix (TP/FP/TN/FN grid)
+
+METADATA (required for correct rendering):
+- CallStack: metadata.frames = [{name, locals?}]
+- BTree/BinaryTree: metadata.tree = {value, left?, right?} or {value, children?}
+- GanttChart: metadata.tasks = [{name, start, end}], metadata.maxTime?
+- ProcessState: metadata.states, metadata.transitions
+- ConfusionMatrix: metadata.matrix (2D array), metadata.rowLabels?, metadata.colLabels?
+- HashTable: metadata.pairs = [[key, value], ...]
+- MemoryLayout: metadata.stack = [...], metadata.heap = [...]
+- AST/ParseTree: metadata.ast = {type, value?, children?}
 
 Graph2D supports metadata.curveType: "roc" (ROC curve), "loss" (training loss), or "scatter" for scatter points.
 
-All other entity types render as rounded rectangles with their label centered inside:
-  Array, Pointer, BinaryTree, LinkedList, Group, Table, Badge, Equation, Graph2D, FlowDiagram, Timeline, StepList, Definition, Callout, Annotation, Process, Queue, Service, NeuralNetwork, FSM, CPU, Register, MemoryBlock, Packet, ProtocolStack, Semaphore, Mutex, TuringMachine, BigO, SortAnimation, GraphTraversal, and more.
+GENERIC (use only if no dedicated type fits — render as rounded rectangles):
+  Entity, Group, Tree, Stack, FSM, NeuralNetwork, Process, Queue, Service, CPU, Register, MemoryBlock, Packet, ProtocolStack, Semaphore, Mutex, TuringMachine, BigO, SortAnimation, GraphTraversal, and more.
 
 Connection types (rendered as bezier curve arrows with glow and animated flow):
   Arrow, DataFlow (fast animated dashes), BidirectArrow, DottedArrow
