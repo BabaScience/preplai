@@ -73,8 +73,8 @@ const IllustrationFrameSchema = z.object({
   endTime: z.number().describe('Frame end time in ms'),
   entities: z.array(VisualEntitySchema).describe('Array of visual entities in this frame'),
   transitions: z.array(EntityTransitionSchema).optional().describe('Animations between entity states'),
-  narrationSegment: z.string().describe('Narration text for this frame (shown as subtitle overlay)'),
-  description: z.string().describe('Brief description of what this frame shows'),
+  narrationSegment: z.string().describe('Subtitle shown to user. 1–2 sentences, conversational. Match the user\'s level (technical vs beginner).'),
+  description: z.string().describe('Internal note for this frame (not shown to user).'),
 });
 
 const VisualScriptSchema = z.object({
@@ -103,6 +103,8 @@ DESIGN GUIDELINES:
 - Use "highlight": true to emphasize the currently discussed entity.
 - Entities are large and visually rich (drop shadows, gradient fills). Size 1 = ~110px, size 2 = ~220px.
 - Each entity type has a smart default entrance animation. You can override with the animation.entrance property.
+
+FRAME PACING: 3–5 seconds per frame for readability. Build complexity gradually — simpler frames first, add entities in later frames. Avoid overcrowding (3–7 entities per frame).
 
 ENTITY SELECTION (choose types that match the user's topic for best visuals):
 
@@ -200,7 +202,7 @@ Example visual_script for a simple scene with a title and two entities:
   ]
 }`;
 
-export const UPDATE_SCENE_DESCRIPTION = `Replace the visual script for a session with a new one. Use this to modify an existing scene. The visual_script format is the same as add_scene — it must include sceneId, frames array, and totalDuration.`;
+export const UPDATE_SCENE_DESCRIPTION = `Replace the visual script for a session with a new one. Use this to modify an existing scene. Same format as add_scene — include sceneId, frames array, totalDuration. Follow the same entity selection, metadata requirements, and design guidelines.`;
 
 // ── Dependencies for tool handlers ────────────────────────────────────
 
@@ -226,7 +228,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
     'create_session',
     'Create a new presentation session. Returns a session_id and a player_url. When running locally (stdio or localhost), the player URL is automatically opened in the default browser. For remote clients, open the player_url in a new tab so the user can watch the presentation while you add scenes.',
     {
-      title: z.string().describe('Title of the presentation'),
+      title: z.string().describe('Clear, descriptive title matching the user\'s topic (e.g. "Binary Search Tree Insertion", "System Architecture Overview")'),
       aspect_ratio: z.string().optional().describe('Aspect ratio, default "16:9". Options: "16:9", "4:3"'),
     },
     async (args, extra) => {
@@ -333,7 +335,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
 
   mcp.tool(
     'add_narration',
-    'Add narration text to a specific frame in a session. The text appears as a subtitle overlay in the player.',
+    'Add narration text to a specific frame in a session. The text appears as a subtitle overlay in the player. Keep narration concise (1–2 sentences per frame). Match tone to the user\'s question (technical vs beginner-friendly).',
     {
       session_id: z.string().describe('Session ID'),
       text: z.string().describe('Narration text to display'),
