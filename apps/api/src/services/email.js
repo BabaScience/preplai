@@ -1,8 +1,15 @@
 import { Resend } from 'resend';
+import { verificationEmailHtml, welcomeEmailHtml } from './email-templates.js';
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
+
+if (!resend && process.env.NODE_ENV !== 'test') {
+  console.warn(
+    '[email] RESEND_API_KEY not set — verification and welcome emails will not be sent. Add it to .env at the repo root.'
+  );
+}
 
 const FROM_EMAIL = process.env.EMAIL_FROM || 'Preplai <onboarding@resend.dev>';
 const APP_URL = process.env.APP_URL || 'https://preplai.com';
@@ -21,13 +28,8 @@ export async function sendVerificationEmail({ to, name, verifyToken }) {
   await resend.emails.send({
     from: FROM_EMAIL,
     to,
-    subject: 'Verify your email - Preplai',
-    html: `
-      <h1>Welcome${name ? `, ${name}` : ''}!</h1>
-      <p>Thanks for signing up for Preplai. Click the link below to verify your email and get started.</p>
-      <p><a href="${verifyUrl}">Verify my email</a></p>
-      <p>This link expires in 24 hours. If you didn't create an account, you can ignore this email.</p>
-    `,
+    subject: 'Verify your email — preplai',
+    html: verificationEmailHtml({ name, verifyUrl, appUrl: APP_URL }),
   });
 }
 
@@ -43,11 +45,7 @@ export async function sendWelcomeEmail({ to, name }) {
   await resend.emails.send({
     from: FROM_EMAIL,
     to,
-    subject: 'Welcome to Preplai!',
-    html: `
-      <h1>Welcome${name ? `, ${name}` : ''}!</h1>
-      <p>Thanks for signing up for Preplai. You're all set to get started.</p>
-      <p><a href="${APP_URL}/dashboard">Go to Dashboard</a></p>
-    `,
+    subject: 'Welcome to preplai — you\'re all set',
+    html: welcomeEmailHtml({ name, appUrl: APP_URL }),
   });
 }

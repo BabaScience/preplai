@@ -1,11 +1,12 @@
-import 'dotenv/config';
+import './load-env.js';
+
 import crypto from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import express from 'express';
-import * as Sentry from '@sentry/node';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+import express from 'express';
+import * as Sentry from '@sentry/node';
 
 if (process.env.SENTRY_DSN) {
   Sentry.init({
