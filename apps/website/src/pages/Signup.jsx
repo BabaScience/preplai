@@ -29,7 +29,11 @@ export default function Signup() {
     setError('');
     setLoading(true);
     try {
-      await signup(email, password);
+      const data = await signup(email, password);
+      if (data.emailVerificationRequired) {
+        navigate(`/verify-email?email=${encodeURIComponent(email)}`);
+        return;
+      }
       const returnTo = new URLSearchParams(location.search).get('return_to');
       if (returnTo && returnTo.startsWith('http')) {
         window.location.href = returnTo;

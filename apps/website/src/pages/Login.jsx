@@ -37,7 +37,13 @@ export default function Login() {
       }
       navigate('/dashboard/overview');
     } catch (err) {
-      setError(err.message);
+      const msg = err.message || '';
+      const isUnverified = msg.toLowerCase().includes('verify');
+      setError(
+        isUnverified
+          ? 'Please verify your email before logging in. Check your inbox or resend the verification email.'
+          : msg
+      );
     } finally {
       setLoading(false);
     }
@@ -54,6 +60,11 @@ export default function Login() {
           Log in to manage your access tokens.
         </p>
         <Alert variant="error">{error}</Alert>
+        {error && error.toLowerCase().includes('verify') && (
+          <p style={{ marginBottom: 'var(--space-4)', fontSize: 'var(--text-sm)' }}>
+            <Link to="/verify-email">Resend verification email</Link>
+          </p>
+        )}
         <form className="auth-form" onSubmit={handleSubmit}>
           <Input
             label="Email"

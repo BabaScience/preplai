@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/index.js';
 import { User, UsageLog } from '../src/db.js';
+import { signupVerifyAndLogin } from './auth-helpers.js';
 
 let app;
 let token;
@@ -12,11 +13,9 @@ beforeEach(async () => {
   await UsageLog.deleteMany({});
   app = createApp();
 
-  const res = await request(app)
-    .post('/api/auth/signup')
-    .send({ email: 'test@example.com', password: 'password123' });
-  token = res.body.token;
-  userId = res.body.user.id;
+  const auth = await signupVerifyAndLogin(app);
+  token = auth.token;
+  userId = auth.userId;
 });
 
 async function insertLogs(n = 5) {

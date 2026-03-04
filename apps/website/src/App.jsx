@@ -4,6 +4,7 @@ import { useSyncApiToken } from './hooks/useApi';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import VerifyEmail from './pages/VerifyEmail';
 import Overview from './pages/dashboard/Overview';
 import ApiKeys from './pages/dashboard/ApiKeys';
 import Connectors from './pages/dashboard/Connectors';
@@ -29,6 +30,7 @@ export default function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/dashboard" element={<Navigate to="/dashboard/overview" replace />} />
       <Route
         path="/dashboard/overview"

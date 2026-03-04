@@ -10,6 +10,7 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createHash, randomBytes } from 'crypto';
+import jwt from 'jsonwebtoken';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { connectDb, closeDb } from '@preplai/db';
 import { buildServer, type ServerContext } from './server.js';
@@ -95,7 +96,7 @@ describe('E2E: OAuth flow and MCP with Bearer token', () => {
     const codeVerifier = randomBytes(32).toString('base64url');
     const codeChallenge = createHash('sha256').update(codeVerifier).digest('base64url');
 
-    // 1. Signup
+    // 1. Signup (email verification required)
     const signupRes = await apiFetch('/api/auth/signup', {
       method: 'POST',
       body: JSON.stringify({
@@ -106,13 +107,37 @@ describe('E2E: OAuth flow and MCP with Bearer token', () => {
     });
     expect(signupRes.status).toBe(201);
     const signupData = await signupRes.json();
-    const jwt = signupData.token;
-    expect(jwt).toBeTruthy();
+    expect(signupData.emailVerificationRequired).toBe(true);
+    const userId = signupData.user.id;
 
-    // 2. Create OAuth client
+    // 2. Verify email and login
+    const verifyToken = jwt.sign(
+      { userId, purpose: 'verify-email' },
+      process.env.JWT_SECRET!,
+      { expiresIn: '24h' }
+    );
+    const verifyRes = await apiFetch('/api/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ token: verifyToken }),
+    });
+    expect(verifyRes.status).toBe(200);
+
+    const loginRes = await apiFetch('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: 'oauth-e2e@example.com',
+        password: 'password123',
+      }),
+    });
+    expect(loginRes.status).toBe(200);
+    const loginData = await loginRes.json();
+    const jwtToken = loginData.token;
+    expect(jwtToken).toBeTruthy();
+
+    // 3. Create OAuth client
     const clientRes = await apiFetch('/api/oauth/clients', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${jwt}` },
+      headers: { Authorization: `Bearer ${jwtToken}` },
       body: JSON.stringify({
         name: 'E2E Test Client',
         redirectUris: [redirectUri],
@@ -139,7 +164,7 @@ describe('E2E: OAuth flow and MCP with Bearer token', () => {
     const authRes = await apiFetch(`/oauth/authorize?${authParams}`, {
       method: 'GET',
       redirect: 'manual',
-      headers: { Authorization: `Bearer ${jwt}` },
+      headers: { Authorization: `Bearer ${jwtToken}` },
     });
     expect(authRes.status).toBe(302);
     const location = authRes.headers.get('Location');

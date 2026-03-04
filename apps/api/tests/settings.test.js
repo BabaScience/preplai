@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/index.js';
 import { User } from '../src/db.js';
+import { signupVerifyAndLogin } from './auth-helpers.js';
 
 let app;
 let token;
@@ -10,10 +11,8 @@ beforeEach(async () => {
   await User.deleteMany({});
   app = createApp();
 
-  const res = await request(app)
-    .post('/api/auth/signup')
-    .send({ email: 'test@example.com', password: 'password123', name: 'Test User' });
-  token = res.body.token;
+  const auth = await signupVerifyAndLogin(app, 'test@example.com', 'password123');
+  token = auth.token;
 });
 
 describe('GET /api/settings', () => {
@@ -46,9 +45,7 @@ describe('PATCH /api/settings/profile', () => {
   });
 
   it('returns 409 if email already used by another user', async () => {
-    await request(app)
-      .post('/api/auth/signup')
-      .send({ email: 'other@example.com', password: 'password123' });
+    await signupVerifyAndLogin(app, 'other@example.com', 'password123');
 
     const res = await request(app)
       .patch('/api/settings/profile')

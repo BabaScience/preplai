@@ -51,7 +51,19 @@ export async function apiLogin(email, password) {
 
 export async function apiSignup(email, password) {
   const { data } = await client.post('auth/signup', { email, password });
-  setApiToken(data.token);
+  if (!data.emailVerificationRequired) {
+    setApiToken(data.token);
+  }
+  return data;
+}
+
+export async function apiVerifyEmail(token) {
+  const { data } = await client.post('auth/verify-email', { token });
+  return data;
+}
+
+export async function apiResendVerification(email) {
+  const { data } = await client.post('auth/resend-verification', { email });
   return data;
 }
 
