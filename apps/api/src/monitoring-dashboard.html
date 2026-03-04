@@ -68,6 +68,8 @@
     .status-dot.warn { background: var(--warn); }
     .status-dot.error { background: var(--error); }
     .error-msg { color: var(--error); font-size: 0.8rem; }
+    .card-full { grid-column: 1 / -1; }
+    .history-table { font-size: 0.75rem; max-height: 200px; overflow-y: auto; }
   </style>
 </head>
 <body>
@@ -86,23 +88,28 @@
   <div id="dashboard-container" style="display:none">
     <div class="refresh" id="refresh">Loading...</div>
     <div class="grid" id="dashboard"></div>
+    <div class="grid" id="history-section" style="margin-top:1rem"></div>
   </div>
 
   <script>
     const API_BASE = window.location.origin;
     async function load() {
       try {
-        const res = await fetch(API_BASE + '/api/monitoring/overview', { credentials: 'include' });
-        if (res.status === 401 || res.status === 403) {
+        const [overviewRes, historyRes] = await Promise.all([
+          fetch(API_BASE + '/api/monitoring/overview', { credentials: 'include' }),
+          fetch(API_BASE + '/api/monitoring/history?days=7', { credentials: 'include' })
+        ]);
+        if (overviewRes.status === 401 || overviewRes.status === 403) {
           document.getElementById('loading').style.display = 'none';
           document.getElementById('login-form').style.display = 'block';
           return;
         }
-        const data = await res.json();
+        const data = await overviewRes.json();
+        const history = historyRes.ok ? await historyRes.json() : null;
         document.getElementById('loading').style.display = 'none';
         document.getElementById('login-form').style.display = 'none';
         document.getElementById('dashboard-container').style.display = 'block';
-        render(data);
+        render(data, history);
       } catch (e) {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('dashboard').innerHTML =
@@ -129,11 +136,14 @@
           errEl.textContent = data.error || 'Login failed';
           return false;
         }
-        const overviewRes = await fetch(API_BASE + '/api/monitoring/overview', { credentials: 'include' });
+        const [overviewRes, historyRes] = await Promise.all([
+          fetch(API_BASE + '/api/monitoring/overview', { credentials: 'include' }),
+          fetch(API_BASE + '/api/monitoring/history?days=7', { credentials: 'include' })
+        ]);
         if (overviewRes.ok) {
           document.getElementById('login-form').style.display = 'none';
           document.getElementById('dashboard-container').style.display = 'block';
-          render(await overviewRes.json());
+          render(await overviewRes.json(), historyRes.ok ? await historyRes.json() : null);
           setInterval(load, 10000);
         } else {
           errEl.textContent = overviewRes.status === 403 ? 'Admin access required. Your account is not an admin.' : 'Could not load dashboard.';
@@ -143,10 +153,46 @@
       }
       return false;
     }
-    function render(data) {
+    function render(data, history) {
       const api = data.api;
       const mcp = data.mcp;
+      const mcpHealth = mcp?.health ?? mcp;
+      const mcpMetrics = mcp?.metrics;
+      const business = data.business;
       let html = '';
+
+      // Business KPIs
+      if (business && !business.error) {
+        html += `
+          <div class="card">
+            <h2>Users</h2>
+            <div class="kpi">${(business.users ?? 0).toLocaleString()}</div>
+            <div class="meta">Total registered users</div>
+          </div>
+          <div class="card">
+            <h2>API Keys</h2>
+            <div class="kpi">${(business.apiKeys ?? 0).toLocaleString()}</div>
+            <div class="meta">Active (non-revoked)</div>
+          </div>
+          <div class="card">
+            <h2>Sessions</h2>
+            <div class="kpi">${(business.sessions ?? 0).toLocaleString()}</div>
+            <div class="meta">MCP presentation sessions</div>
+          </div>
+          <div class="card">
+            <h2>Usage (24h)</h2>
+            <div class="meta">MCP tool calls by action</div>
+            ${Object.keys(business.usageLast24h || {}).length ? `
+              <table style="margin-top:0.5rem">
+                <tr><th>Action</th><th>Count</th></tr>
+                ${Object.entries(business.usageLast24h).map(([a, c]) =>
+                  `<tr><td>${a}</td><td>${c}</td></tr>`
+                ).join('')}
+              </table>
+            ` : '<div class="meta" style="margin-top:0.5rem">No usage in last 24h</div>'}
+          </div>
+        `;
+      }
 
       // API Health
       const apiStatus = api.health.db === 'connected' ? 'ok' : 'warn';
@@ -179,30 +225,30 @@
       `;
 
       // MCP Health
-      if (mcp) {
-        const mcpStatus = mcp.status === 'ok' ? 'ok' : (mcp.error ? 'error' : 'warn');
+      if (mcpHealth) {
+        const mcpStatus = mcpHealth.status === 'ok' ? 'ok' : (mcpHealth.error ? 'error' : 'warn');
         html += `
           <div class="card">
             <h2>MCP Server Health</h2>
-            <div class="kpi ${mcpStatus}"><span class="status-dot ${mcpStatus}"></span>${mcp.status}</div>
-            ${mcp.db ? `<div class="meta">DB: ${mcp.db}</div>` : ''}
-            ${mcp.sessions !== undefined ? `<div class="meta">Sessions: ${mcp.sessions}</div>` : ''}
-            ${mcp.uptime !== undefined ? `<div class="meta">Uptime: ${Math.floor(mcp.uptime)}s</div>` : ''}
-            ${mcp.error ? `<div class="error-msg" style="margin-top:0.5rem">${mcp.error}</div>` : ''}
+            <div class="kpi ${mcpStatus}"><span class="status-dot ${mcpStatus}"></span>${mcpHealth.status}</div>
+            ${mcpHealth.db ? `<div class="meta">DB: ${mcpHealth.db}</div>` : ''}
+            ${mcpHealth.sessions !== undefined ? `<div class="meta">Sessions: ${mcpHealth.sessions}</div>` : ''}
+            ${mcpHealth.uptime !== undefined ? `<div class="meta">Uptime: ${Math.floor(mcpHealth.uptime)}s</div>` : ''}
+            ${mcpHealth.error ? `<div class="error-msg" style="margin-top:0.5rem">${mcpHealth.error}</div>` : ''}
           </div>
         `;
 
-        if (mcp.metrics) {
-          const mcpTotal = mcp.metrics.http_requests_total || 0;
+        if (mcpMetrics) {
+          const mcpTotal = mcpMetrics.http_requests_total || 0;
           html += `
             <div class="card">
               <h2>MCP Requests</h2>
               <div class="kpi">${mcpTotal.toLocaleString()}</div>
               <div class="meta">Total HTTP requests</div>
-              ${Object.keys(mcp.metrics.http_requests_by_path || {}).length ? `
+              ${Object.keys(mcpMetrics.http_requests_by_path || {}).length ? `
                 <table style="margin-top:0.75rem">
                   <tr><th>Path</th><th>Count</th></tr>
-                  ${Object.entries(mcp.metrics.http_requests_by_path).slice(0, 5).map(([p, c]) =>
+                  ${Object.entries(mcpMetrics.http_requests_by_path).slice(0, 5).map(([p, c]) =>
                     `<tr><td>${p}</td><td>${c}</td></tr>`
                   ).join('')}
                 </table>
@@ -213,6 +259,32 @@
       }
 
       document.getElementById('dashboard').innerHTML = html;
+
+      // Historical usage
+      const historyEl = document.getElementById('history-section');
+      if (history && history.daily && history.daily.length > 0) {
+        const cols = ['date'];
+        history.daily.forEach(row => {
+          Object.keys(row).filter(k => k !== 'date').forEach(k => {
+            if (!cols.includes(k)) cols.push(k);
+          });
+        });
+        historyEl.innerHTML = `
+          <div class="card card-full">
+            <h2>Daily Usage (7 days)</h2>
+            <div class="history-table">
+              <table>
+                <tr><th>Date</th>${cols.slice(1).map(c => `<th>${c}</th>`).join('')}</tr>
+                ${history.daily.map(row =>
+                  `<tr><td>${row.date}</td>${cols.slice(1).map(c => `<td>${row[c] ?? '-'}</td>`).join('')}</tr>`
+                ).join('')}
+              </table>
+            </div>
+          </div>
+        `;
+      } else {
+        historyEl.innerHTML = '';
+      }
     }
     load().then(() => {
       const container = document.getElementById('dashboard-container');

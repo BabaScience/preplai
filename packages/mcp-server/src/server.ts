@@ -46,7 +46,22 @@ import {
 } from './auth.js';
 import { validateOAuthToken } from './oauth-token.js';
 import { registerMcpTools } from './mcp-tools.js';
-import { registerMetricsHook, register } from './metrics.js';
+import {
+  registerMetricsHook,
+  register,
+  mcpAuthFailuresTotal,
+  mcpRateLimitHitsTotal,
+  mcpToolCallsTotal,
+  updateMongoConnectionGauge,
+} from './metrics.js';
+import * as Sentry from '@sentry/node';
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+  });
+}
 
 /** AsyncLocalStorage for passing API key to MCP tool handlers (Streamable HTTP) */
 export const apiKeyStore = new AsyncLocalStorage<ValidatedKey>();
@@ -106,6 +121,17 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     requestIdHeader: 'x-request-id',
   });
 
+  if (process.env.SENTRY_DSN) {
+    app.setErrorHandler((err: unknown, _request, reply) => {
+      const e = err as Error & { statusCode?: number };
+      const statusCode = e.statusCode ?? 500;
+      if (statusCode >= 500) Sentry.captureException(err);
+      reply.status(statusCode).send({
+        error: e.message ?? 'Internal server error',
+      });
+    });
+  }
+
   const cleaned = await store.cleanExpiredSessions();
   if (cleaned > 0) {
     app.log.info({ cleaned }, 'Cleaned expired sessions');
@@ -117,6 +143,8 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   }, 6 * 60 * 60 * 1000);
 
   registerMetricsHook(app);
+  setInterval(updateMongoConnectionGauge, 30000);
+  updateMongoConnectionGauge();
 
   // ── CORS (supports multiple comma-separated origins) ──────────────
   const allowedOrigins = cfg.corsOrigin.split(',').map((o) => o.trim()).filter(Boolean);
@@ -200,8 +228,10 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     }
 
     if (!validated) {
+      const reason = token ? 'INVALID_API_KEY' : 'MISSING_API_KEY';
+      mcpAuthFailuresTotal.inc({ reason });
       const err = authError(
-        token ? 'INVALID_API_KEY' : 'MISSING_API_KEY',
+        reason,
         token ? 'Invalid or revoked access token.' : 'Access token required. Web clients: use OAuth. Desktop clients: create one at https://preplai.com/dashboard/keys and use Authorization: Bearer <token>.',
       );
       reply
@@ -364,6 +394,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
 
       const limitCheck = await checkSessionLimit(apiKey.id, apiKey.tier);
       if (!limitCheck.allowed) {
+        mcpRateLimitHitsTotal.inc({ type: 'tier' });
         reply.status(429).send(authError('RATE_LIMIT_EXCEEDED', limitCheck.reason!).body);
         return;
       }
@@ -375,6 +406,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
         const data = JSON.parse(result.content[0].text);
         if (data.success) {
           await trackUsage(apiKey.id, 'create_session', data.data.session_id);
+          mcpToolCallsTotal.inc({ tool: 'create_session' });
         }
       } catch {}
 
@@ -399,6 +431,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
 
       const sceneCheck = await checkSceneLimit(apiKey.id, apiKey.tier);
       if (!sceneCheck.allowed) {
+        mcpRateLimitHitsTotal.inc({ type: 'tier' });
         reply.status(429).send(authError('RATE_LIMIT_EXCEEDED', sceneCheck.reason!).body);
         return;
       }
@@ -407,6 +440,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       const result = await handler(request.body);
 
       await trackUsage(apiKey.id, 'add_scene', request.body.session_id);
+      mcpToolCallsTotal.inc({ tool: 'add_scene' });
       return result;
     },
   );
@@ -430,6 +464,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       const result = await handler(request.body);
 
       await trackUsage(apiKey.id, 'update_scene', request.body.session_id);
+      mcpToolCallsTotal.inc({ tool: 'update_scene' });
       return result;
     },
   );
@@ -453,6 +488,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       const result = await handler(request.body);
 
       await trackUsage(apiKey.id, 'add_narration', request.body.session_id);
+      mcpToolCallsTotal.inc({ tool: 'add_narration' });
       return result;
     },
   );

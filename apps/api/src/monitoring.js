@@ -2,7 +2,7 @@
  * Monitoring dashboard and aggregated metrics API.
  * Provides visual KPIs and statistics from API + MCP server.
  */
-import { isDbConnected } from './db.js';
+import { isDbConnected, User, ApiKey, Session, McpUsageLog, UsageLog } from './db.js';
 import { register } from './metrics.js';
 
 const MCP_BASE_URL = process.env.MCP_BASE_URL || 'http://localhost:5005';
@@ -78,6 +78,35 @@ export async function getMonitoringOverview() {
   const apiMetrics = await register.metrics();
   const apiSummary = parseMetricsSummary(apiMetrics);
 
+  let business = null;
+  if (dbConnected) {
+    try {
+      const now = Date.now();
+      const dayAgo = now - 24 * 60 * 60 * 1000;
+      const [users, apiKeys, sessions, usageLast24h] = await Promise.all([
+        User.countDocuments(),
+        ApiKey.countDocuments({ revoked: false }),
+        Session.countDocuments(),
+        McpUsageLog.aggregate([
+          { $match: { createdAt: { $gte: dayAgo } } },
+          { $group: { _id: '$action', count: { $sum: 1 } } },
+          { $project: { action: '$_id', count: 1, _id: 0 } },
+        ]),
+      ]);
+      const usageByAction = Object.fromEntries(
+        usageLast24h.map((r) => [r.action, r.count])
+      );
+      business = {
+        users,
+        apiKeys,
+        sessions,
+        usageLast24h: usageByAction,
+      };
+    } catch (err) {
+      business = { error: err.message };
+    }
+  }
+
   let mcpHealth = null;
   let mcpSummary = null;
 
@@ -109,6 +138,7 @@ export async function getMonitoringOverview() {
       health: apiHealth,
       metrics: apiSummary,
     },
+    business,
     mcp: mcpHealth
       ? {
           health: mcpHealth,
@@ -117,4 +147,74 @@ export async function getMonitoringOverview() {
       : null,
     timestamp: new Date().toISOString(),
   };
+}
+
+/**
+ * GET /api/monitoring/history?days=7
+ * Aggregates McpUsageLog and UsageLog by day and action.
+ */
+export async function getMonitoringHistory(days = 7) {
+  const dbConnected = isDbConnected();
+  if (!dbConnected) {
+    return { daily: [], error: 'Database not connected' };
+  }
+
+  const daysNum = Math.min(Math.max(parseInt(String(days), 10) || 7, 1), 90);
+  const now = Date.now();
+  const startMs = now - daysNum * 24 * 60 * 60 * 1000;
+
+  const mcpDaily = await McpUsageLog.aggregate([
+    { $match: { createdAt: { $gte: startMs } } },
+    {
+      $group: {
+        _id: {
+          date: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: { $toDate: '$createdAt' },
+            },
+          },
+          action: '$action',
+        },
+        count: { $sum: 1 },
+      },
+    },
+    { $group: { _id: '$_id.date', actions: { $push: { k: '$_id.action', v: '$count' } } } },
+    { $project: { date: '$_id', _id: 0, actions: { $arrayToObject: '$actions' } } },
+    { $sort: { date: 1 } },
+  ]);
+
+  const apiDaily = await UsageLog.aggregate([
+    { $match: { createdAt: { $gte: new Date(startMs) } } },
+    {
+      $group: {
+        _id: {
+          date: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          endpoint: '$endpoint',
+        },
+        count: { $sum: 1 },
+      },
+    },
+    { $group: { _id: '$_id.date', endpoints: { $push: { k: '$_id.endpoint', v: '$count' } } } },
+    { $project: { date: '$_id', _id: 0, endpoints: { $arrayToObject: '$endpoints' } } },
+    { $sort: { date: 1 } },
+  ]);
+
+  const byDate = new Map();
+  for (const row of mcpDaily) {
+    byDate.set(row.date, { ...byDate.get(row.date), ...row.actions });
+  }
+  for (const row of apiDaily) {
+    const existing = byDate.get(row.date) || {};
+    const apiPrefixed = Object.fromEntries(
+      Object.entries(row.endpoints || {}).map(([k, v]) => [`api_${k}`, v])
+    );
+    byDate.set(row.date, { ...existing, ...apiPrefixed });
+  }
+
+  const daily = Array.from(byDate.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([date, actions]) => ({ date, ...actions }));
+
+  return { daily };
 }

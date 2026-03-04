@@ -3,16 +3,25 @@ import crypto from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
+import * as Sentry from '@sentry/node';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+  });
+}
+
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import pinoHttp from 'pino-http';
 import { connectDb, isDbConnected } from './db.js';
 import { logger } from './logger.js';
-import { metricsMiddleware, register } from './metrics.js';
+import { metricsMiddleware, register, updateMongoConnectionGauge } from './metrics.js';
 
-import { getMonitoringOverview } from './monitoring.js';
+import { getMonitoringOverview, getMonitoringHistory } from './monitoring.js';
 import { authenticateAdmin } from './middleware/auth.js';
 import authRoutes from './routes/auth.js';
 import keysRoutes from './routes/keys.js';
@@ -30,6 +39,11 @@ const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
 
 export function createApp() {
   const app = express();
+
+  if (process.env.SENTRY_DSN) {
+    app.use(Sentry.Handlers.requestHandler());
+    app.use(Sentry.Handlers.tracingHandler());
+  }
 
   app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
   app.use(cookieParser());
@@ -51,6 +65,17 @@ export function createApp() {
     } catch (err) {
       req.log?.error({ err }, 'Monitoring overview failed');
       res.status(500).json({ error: 'Failed to fetch monitoring data' });
+    }
+  });
+
+  app.get('/api/monitoring/history', authenticateAdmin, async (req, res) => {
+    try {
+      const days = req.query.days || 7;
+      const history = await getMonitoringHistory(days);
+      res.json(history);
+    } catch (err) {
+      req.log?.error({ err }, 'Monitoring history failed');
+      res.status(500).json({ error: 'Failed to fetch monitoring history' });
     }
   });
 
@@ -81,6 +106,10 @@ export function createApp() {
   app.use('/api/settings', settingsRoutes);
   app.use('/api/sessions', sessionsRoutes);
 
+  if (process.env.SENTRY_DSN) {
+    app.use(Sentry.Handlers.errorHandler());
+  }
+
   app.use((err, req, res, next) => {
     const log = req.log ? req.log.child({ reqId: req.id }) : logger;
     log.error({ err, stack: err.stack }, 'Request error');
@@ -94,6 +123,8 @@ export function createApp() {
 if (process.env.NODE_ENV !== 'test') {
   connectDb()
     .then(() => {
+      updateMongoConnectionGauge();
+      setInterval(updateMongoConnectionGauge, 30000);
       const app = createApp();
       app.listen(PORT, () => {
         logger.info({ port: PORT }, 'Preplai API running');

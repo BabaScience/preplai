@@ -1,10 +1,32 @@
 /**
  * Prometheus metrics for @preplai/mcp-server.
  */
-import { Registry, Counter, Histogram } from 'prom-client';
+import mongoose from 'mongoose';
+import { Registry, Counter, Histogram, Gauge } from 'prom-client';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 
 export const register = new Registry();
+
+export const mcpToolCallsTotal = new Counter({
+  name: 'mcp_tool_calls_total',
+  help: 'Total MCP tool invocations',
+  labelNames: ['tool'],
+  registers: [register],
+});
+
+export const mcpAuthFailuresTotal = new Counter({
+  name: 'mcp_auth_failures_total',
+  help: 'Total MCP auth failures',
+  labelNames: ['reason'],
+  registers: [register],
+});
+
+export const mcpRateLimitHitsTotal = new Counter({
+  name: 'mcp_rate_limit_hits_total',
+  help: 'Total rate limit hits (global or tier)',
+  labelNames: ['type'],
+  registers: [register],
+});
 
 export const httpRequestsTotal = new Counter({
   name: 'http_requests_total',
@@ -17,6 +39,12 @@ export const httpRequestDuration = new Histogram({
   name: 'http_request_duration_seconds',
   help: 'HTTP request duration in seconds',
   labelNames: ['method', 'path'],
+  registers: [register],
+});
+
+export const mongodbConnectionReadyState = new Gauge({
+  name: 'mongodb_connection_ready_state',
+  help: 'MongoDB connection state (0=disconnected, 1=connected, 2=connecting, 3=disconnecting)',
   registers: [register],
 });
 
@@ -35,6 +63,13 @@ function sanitizePath(path: string): string {
       return seg;
     })
     .join('/') || '/';
+}
+
+/**
+ * Update MongoDB connection gauge. Call periodically or before metrics scrape.
+ */
+export function updateMongoConnectionGauge(): void {
+  mongodbConnectionReadyState.set(mongoose.connection?.readyState ?? 0);
 }
 
 /**

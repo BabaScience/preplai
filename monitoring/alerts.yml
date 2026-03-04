@@ -1,0 +1,48 @@
+# Prometheus alert rules for Preplai
+# Requires http_requests_total, http_request_duration_seconds, mongodb_connection_ready_state
+
+groups:
+  - name: preplai
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+          /
+          sum(rate(http_requests_total[5m])) by (job)
+          > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "5xx error rate > 5% for 5 minutes"
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job)
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency on {{ $labels.job }}"
+          description: "P95 latency > 2s for 5 minutes"
+
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Target has been unreachable for 1 minute"
+
+      - alert: DatabaseDown
+        expr: mongodb_connection_ready_state != 1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MongoDB disconnected on {{ $labels.job }}"
+          description: "mongodb_connection_ready_state != 1 (connected) for 2 minutes"

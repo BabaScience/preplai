@@ -1,9 +1,23 @@
 /**
  * Prometheus metrics for preplai-api.
  */
-import { Registry, Counter, Histogram } from 'prom-client';
+import mongoose from 'mongoose';
+import { Registry, Counter, Histogram, Gauge } from 'prom-client';
 
 export const register = new Registry();
+
+export const apiAuthFailuresTotal = new Counter({
+  name: 'api_auth_failures_total',
+  help: 'Total API auth failures',
+  labelNames: ['reason'],
+  registers: [register],
+});
+
+export const mongodbConnectionReadyState = new Gauge({
+  name: 'mongodb_connection_ready_state',
+  help: 'MongoDB connection state (0=disconnected, 1=connected, 2=connecting, 3=disconnecting)',
+  registers: [register],
+});
 
 export const httpRequestsTotal = new Counter({
   name: 'http_requests_total',
@@ -52,4 +66,11 @@ export function metricsMiddleware(req, res, next) {
   });
 
   next();
+}
+
+/**
+ * Update MongoDB connection gauge. Call periodically.
+ */
+export function updateMongoConnectionGauge() {
+  mongodbConnectionReadyState.set(mongoose.connection?.readyState ?? 0);
 }

@@ -1,0 +1,30 @@
+# Prometheus scrape config for Preplai API and MCP server
+# Local dev: API on :5000, MCP on :5005
+# Docker: use api:5000 and mcp:5005 (add Prometheus to docker-compose)
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+        # Uncomment and set for Alertmanager:
+        # - targets: ['localhost:9093']
+
+rule_files:
+  - alerts.yml
+
+scrape_configs:
+  - job_name: 'preplai-api'
+    static_configs:
+      - targets: ['localhost:5000']
+        # Docker: use 'api:5000' when Prometheus runs in same compose network
+    metrics_path: /metrics
+
+  - job_name: 'preplai-mcp'
+    static_configs:
+      - targets: ['localhost:5005']
+        # Docker: use 'mcp:5005' when Prometheus runs in same compose network
+    metrics_path: /metrics

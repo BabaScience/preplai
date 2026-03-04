@@ -66,7 +66,41 @@ describe('Monitoring', () => {
     expect(res.body.api.health).toHaveProperty('db');
     expect(res.body.api).toHaveProperty('metrics');
     expect(res.body.api.metrics).toHaveProperty('http_requests_total');
+    expect(res.body).toHaveProperty('business');
+    expect(res.body.business).toHaveProperty('users');
+    expect(res.body.business).toHaveProperty('apiKeys');
+    expect(res.body.business).toHaveProperty('sessions');
+    expect(res.body.business).toHaveProperty('usageLast24h');
     expect(res.body).toHaveProperty('timestamp');
+  });
+
+  it('GET /api/monitoring/history returns 401 without auth', async () => {
+    await request(app)
+      .get('/api/monitoring/history')
+      .expect(401);
+  });
+
+  it('GET /api/monitoring/history returns daily aggregates for admin', async () => {
+    const passwordHash = await bcrypt.hash('password123', 10);
+    const user = await User.create({
+      email: 'admin@example.com',
+      passwordHash,
+      name: 'Admin',
+      role: 'admin',
+    });
+    const token = jwt.sign(
+      { userId: user._id.toString(), email: user.email },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    const res = await request(app)
+      .get('/api/monitoring/history?days=7')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    expect(res.body).toHaveProperty('daily');
+    expect(Array.isArray(res.body.daily)).toBe(true);
   });
 
   it('GET /monitoring serves dashboard HTML', async () => {
