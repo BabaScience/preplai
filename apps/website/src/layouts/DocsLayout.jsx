@@ -1,18 +1,19 @@
 import { Link, useLocation } from 'react-router-dom';
+import { Zap, MessageSquare, Bot, Wrench, FileCode } from 'lucide-react';
 import Logo from '../components/Logo';
 import ThemeToggle from '../components/ThemeToggle';
 
 const DOC_SECTIONS = [
-  { slug: 'quick-start', label: 'Quick Start' },
-  { slug: 'claude-desktop', label: 'Claude Desktop & Web' },
-  { slug: 'chatgpt', label: 'ChatGPT Desktop & Web' },
-  { slug: 'mcp-tools', label: 'MCP Tools Reference' },
-  { slug: 'visualscript', label: 'VisualScript Schema' },
+  { slug: 'quick-start', label: 'Quick Start', icon: Zap },
+  { slug: 'claude-desktop', label: 'Claude Desktop & Web', icon: MessageSquare },
+  { slug: 'chatgpt', label: 'ChatGPT Desktop & Web', icon: Bot },
+  { slug: 'mcp-tools', label: 'MCP Tools Reference', icon: Wrench },
+  { slug: 'visualscript', label: 'VisualScript Schema', icon: FileCode },
 ];
 
 export default function DocsLayout({ children }) {
   const location = useLocation();
-  const currentSlug = location.pathname.replace('/docs/', '') || 'quick-start';
+  const currentSlug = location.pathname.replace('/docs/', '').replace(/\/$/, '') || 'quick-start';
 
   return (
     <div className="dashboard-layout docs-mode">
@@ -32,13 +33,15 @@ export default function DocsLayout({ children }) {
       </nav>
       <div className="docs-container">
         <aside className="docs-sidebar">
+          <span className="docs-sidebar-label">Documentation</span>
           <nav className="docs-nav" aria-label="Documentation">
-            {DOC_SECTIONS.map(({ slug, label }) => (
+            {DOC_SECTIONS.map(({ slug, label, icon: Icon }) => (
               <Link
                 key={slug}
                 to={`/docs/${slug}`}
                 className={`docs-nav-link ${currentSlug === slug ? 'active' : ''}`}
               >
+                <Icon size={16} strokeWidth={2} className="docs-nav-icon" aria-hidden />
                 {label}
               </Link>
             ))}
