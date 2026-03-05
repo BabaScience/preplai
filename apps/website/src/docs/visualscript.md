@@ -1,6 +1,6 @@
 # VisualScript Schema
 
-**Summary:** VisualScript is the JSON schema passed to `add_scene` and `update_scene`. It defines how a scene is rendered on a 1920×1080 canvas. Positions use percentages (0–100). Entity types (Server, Database, BinaryTree, etc.) map to rich SVG visuals. An 80px horizontal and 60px vertical margin/safe zone is applied automatically.
+**Summary:** VisualScript is the JSON schema that any AI agent passes to `add_scene` and `update_scene`. It defines how a scene is rendered on a 1920×1080 canvas. Positions use percentages (0–100). Entity types (Server, Database, BinaryTree, etc.) map to rich SVG visuals. An 80px horizontal and 60px vertical margin/safe zone is applied automatically.
 
 **Definitions:**
 - **VisualScript:** JSON object with `sceneId`, `frames` array, and `totalDuration`. Required by `add_scene` and `update_scene`.

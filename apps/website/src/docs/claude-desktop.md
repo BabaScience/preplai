@@ -1,6 +1,6 @@
 # Claude Desktop Setup
 
-**Summary:** This document explains how to connect preplai to Claude Desktop (desktop app) and Claude Web (claude.ai). preplai exposes an MCP (Model Context Protocol) server that Claude uses to create presentations. For ChatGPT integration, see [ChatGPT Desktop & Web](/docs/chatgpt).
+**Summary:** This document explains how to connect preplai to Claude Desktop (desktop app) and Claude Web (claude.ai). preplai works with any AI agent — Claude is one popular integration. For ChatGPT, see [ChatGPT Desktop & Web](/docs/chatgpt). For other MCP clients, see the [MCP Tools Reference](/docs/mcp-tools).
 
 **Key terms:** MCP, claude_desktop_config.json, hosted mode, OAuth, BEARER_TOKEN
 

@@ -10,8 +10,8 @@ const BASE_URL = typeof window !== 'undefined'
 export const DOC_META = {
   'quick-start': {
     title: 'Quick Start — preplai Documentation',
-    description: 'Get started with preplai in 3 steps: get an access token, connect Claude or ChatGPT (Desktop or Web), and create your first AI-generated cinema-quality presentation.',
-    keywords: ['preplai', 'quick start', 'MCP', 'Claude Desktop', 'ChatGPT', 'AI presentations', 'access token', 'setup'],
+    description: 'Get started with preplai in 3 steps: get an access token, connect Claude, ChatGPT, or any MCP client, and create your first cinema-quality presentation.',
+    keywords: ['preplai', 'quick start', 'MCP', 'AI agents', 'Claude', 'ChatGPT', 'AI presentations', 'access token', 'setup'],
     schemaType: 'TechArticle',
   },
   'claude-desktop': {
@@ -28,7 +28,7 @@ export const DOC_META = {
   },
   'mcp-tools': {
     title: 'MCP Tools Reference — preplai API',
-    description: 'Complete reference for preplai MCP tools: create_session, add_scene, update_scene, add_narration, get_session_url, list_sessions, delete_session, remove_scene.',
+    description: 'Complete reference for preplai MCP tools. Any AI agent can call create_session, add_scene, update_scene, add_narration, get_session_url, list_sessions, delete_session, remove_scene.',
     keywords: ['preplai', 'MCP tools', 'create_session', 'add_scene', 'API', 'Model Context Protocol', 'AI agents'],
     schemaType: 'APIReference',
   },
@@ -66,7 +66,7 @@ export function getDocsIndexSchema() {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
     name: 'preplai Documentation',
-    description: 'Documentation for preplai — the presentation engine that AI agents use to create cinema-quality visual experiences via MCP.',
+    description: 'Documentation for preplai — the presentation API for any AI agent. Claude, ChatGPT, or any MCP client. Cinema-quality visual experiences.',
     url: `${BASE_URL}#/docs`,
     mainEntity: {
       '@type': 'ItemList',

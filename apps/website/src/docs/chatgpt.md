@@ -1,12 +1,12 @@
 # ChatGPT Integration
 
-**Summary:** This document explains how to connect preplai to ChatGPT Web (chat.openai.com) and ChatGPT Desktop. preplai exposes an MCP (Model Context Protocol) server that ChatGPT uses to create cinema-quality presentations. Connectors created on ChatGPT Web sync to ChatGPT Desktop and mobile apps.
+**Summary:** This document explains how to connect preplai to ChatGPT Web (chat.openai.com) and ChatGPT Desktop. preplai works with any AI agent — ChatGPT is one popular integration. Once connected, ChatGPT can create cinema-quality presentations using preplai's MCP tools. Connectors created on ChatGPT Web sync to ChatGPT Desktop and mobile apps.
 
 **Key terms:** ChatGPT, MCP, ChatGPT Apps, Connectors, chat.openai.com, developer mode
 
 ## Overview
 
-preplai works with ChatGPT through the **ChatGPT Apps** (formerly Connectors) platform. You create a connector that points to preplai's MCP endpoint. Once connected, ChatGPT can use preplai's tools (`create_session`, `add_scene`, etc.) to build presentations.
+preplai works with **any MCP-compatible AI agent**. ChatGPT uses the **ChatGPT Apps** (formerly Connectors) platform. You create a connector that points to preplai's MCP endpoint. Once connected, ChatGPT can use preplai's tools (`create_session`, `add_scene`, etc.) to build presentations.
 
 **ChatGPT Web and Desktop:** Connectors created on ChatGPT Web are automatically available on ChatGPT Desktop and mobile apps. You only need to set up the connector once.
 

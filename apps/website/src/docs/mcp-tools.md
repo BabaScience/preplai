@@ -1,6 +1,6 @@
 # MCP Tools Reference
 
-**Summary:** preplai exposes 8 MCP (Model Context Protocol) tools that AI agents call to create and manage cinema-quality presentations. Typical flow: `create_session` → `add_scene` (repeat) → `get_session_url` → share the player URL. All tools require authentication via `X-Preplai-API-Key` or `Authorization: Bearer <token>`.
+**Summary:** preplai exposes 8 MCP (Model Context Protocol) tools that **any AI agent** can call to create and manage cinema-quality presentations. Claude, ChatGPT, or any MCP client — one API, eight tools. Typical flow: `create_session` → `add_scene` (repeat) → `get_session_url` → share the player URL. All tools require authentication via `X-Preplai-API-Key` or `Authorization: Bearer <token>`.
 
 **Definitions:**
 - **Session:** A presentation container. Created by `create_session`. Has a unique `session_id` and `player_url`.

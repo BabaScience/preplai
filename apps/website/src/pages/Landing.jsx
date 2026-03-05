@@ -16,8 +16,8 @@ export default function Landing() {
               <span className="gold">Built for AI agents.</span>
             </h1>
             <p className="hero-sub hero-fade-in hero-fade-in-delay-2">
-              preplai is the presentation engine that AI agents use to create live, animated,
-              voice-synced visual experiences. Not slides. Cinema.
+              The presentation API for AI agents. Claude, ChatGPT, or any MCP client — one access token,
+              eight tools. Live, animated, voice-synced. Not slides. Cinema.
             </p>
             <div className="hero-ctas hero-fade-in hero-fade-in-delay-3">
               <Link to="/signup" className="btn btn-primary btn-lg">Get Access Token</Link>
@@ -31,7 +31,7 @@ export default function Landing() {
             <span className="terminal-dot" />
             <span className="terminal-dot" />
             <span className="terminal-dot" />
-            <span className="terminal-title">Claude / ChatGPT</span>
+            <span className="terminal-title">Any AI agent</span>
           </div>
           <div className="terminal-body">
             <span className="prompt">&gt;</span>{' '}
@@ -54,13 +54,13 @@ export default function Landing() {
       {/* Features */}
       <section id="features" className="section-block">
         <div className="section-label">Features</div>
-        <h2>Built for AI agents</h2>
-        <p className="section-desc">MCP tools for Claude and ChatGPT. One access token. Cinema-quality output.</p>
+        <h2>Built for any AI agent</h2>
+        <p className="section-desc">One MCP API. Claude, ChatGPT, or any agent — create cinema-quality presentations in seconds.</p>
         <div className="features-grid">
           <div className="feature-card fade-in">
             <div className="feature-icon"><Cpu size={20} /></div>
             <h3>MCP API</h3>
-            <p>8 tools for Claude Desktop, Claude Web, ChatGPT Desktop, and ChatGPT Web. create_session, add_scene, get_session_url — that's it.</p>
+            <p>8 tools any AI agent can call. create_session, add_scene, get_session_url. Works with Claude, ChatGPT, and any MCP-compatible client.</p>
           </div>
           <div className="feature-card fade-in">
             <div className="feature-icon"><Film size={20} /></div>
@@ -78,8 +78,8 @@ export default function Landing() {
       {/* Setup */}
       <section id="setup" className="section-block" style={{ borderTop: '1px solid var(--color-divider)' }}>
         <div className="section-label">Setup</div>
-        <h2>Add to Claude or ChatGPT</h2>
-        <p className="section-desc">Claude Desktop: copy this into claude_desktop_config.json. Claude Web &amp; ChatGPT: see <Link to="/docs">Docs</Link> for OAuth setup.</p>
+        <h2>Connect your AI agent</h2>
+        <p className="section-desc">Claude Desktop: copy the config below. Claude Web, ChatGPT, or other MCP clients: see <Link to="/docs">Docs</Link> for setup.</p>
         <div className="setup-block">
           <div className="code-block">
             <pre>{`{
@@ -115,7 +115,7 @@ export default function Landing() {
           </div>
         </div>
         <div className="footer-bottom">
-          Built by BabaScience &middot; &copy; {new Date().getFullYear()} preplai. All rights reserved.
+          &copy; {new Date().getFullYear()} preplai. All rights reserved.
         </div>
       </footer>
     </LandingLayout>
