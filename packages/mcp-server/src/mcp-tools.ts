@@ -135,6 +135,7 @@ CS-specific with custom renderers:
   AST (parse tree), CallStack (stack frames), BTree (multi-child tree), ProcessState (state diagram), GanttChart (task bars), CacheHierarchy (L1/L2/L3 stack), MemoryLayout (stack/heap), ConfusionMatrix (TP/FP/TN/FN grid)
 
 METADATA (required for correct rendering):
+- Arrow/DataFlow: metadata.curved = true (optional) — when true, render curved; default is straight
 - CallStack: metadata.frames = [{name, locals?}]
 - BTree/BinaryTree: metadata.tree = {value, left?, right?} or {value, children?}
 - GanttChart: metadata.tasks = [{name, start, end}], metadata.maxTime?
@@ -149,9 +150,10 @@ Graph2D supports metadata.curveType: "roc" (ROC curve), "loss" (training loss), 
 GENERIC (use only if no dedicated type fits — render as rounded rectangles):
   Entity, Group, Tree, Stack, FSM, NeuralNetwork, Process, Queue, Service, CPU, Register, MemoryBlock, Packet, ProtocolStack, Semaphore, Mutex, TuringMachine, BigO, SortAnimation, GraphTraversal, and more.
 
-Connection types (rendered as bezier curve arrows with glow and animated flow):
-  Arrow, DataFlow (fast animated dashes), BidirectArrow, DottedArrow
-  Arrow labels render above the curve with a dark pill background for readability.
+Connection types (rendered as arrows with glow and animated flow):
+  Arrow, DataFlow (fast animated dashes), BidirectArrow, DottedArrow, Transition, Bus
+
+CURVED vs STRAIGHT: All connection types render STRAIGHT by default. Use metadata.curved = true to render curved.
 
 Entrance animations available: fadeInUp (default for Server/Database), fadeIn (default for Label), scaleIn (default for User), drawIn (default for Concept), floatIn (default for Cloud), slideInLeft (default for CodeBlock), dropIn.
 

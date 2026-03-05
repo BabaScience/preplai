@@ -334,6 +334,12 @@ export const PLAYER_JS = `(function() {
     return MARGIN_Y + ((entity.position.y / 100) * (CH - 2 * MARGIN_Y));
   }
 
+  // Approximate radius from center to edge (for arrow shortening)
+  function entityRadius(entity) {
+    var s = sizeToPixels(entity.size || 1);
+    return s * 0.5;
+  }
+
   // ═══════════════════════════════════════════════════════════════════
   // Utility: type-specific default entrance animation
   // ═══════════════════════════════════════════════════════════════════
@@ -1195,6 +1201,26 @@ export const PLAYER_JS = `(function() {
     var y2 = entityCY(target);
     var color = entity.color || 'rgba(255,255,255,0.5)';
 
+    // Shorten arrow to edge of elements (minus radius of each)
+    var dx = x2 - x1;
+    var dy = y2 - y1;
+    var dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist > 0) {
+      var r1 = entityRadius(source);
+      var r2 = entityRadius(target);
+      if (dist > r1 + r2) {
+        var ux = dx / dist;
+        var uy = dy / dist;
+        x1 = x1 + ux * r1;
+        y1 = y1 + uy * r1;
+        x2 = x2 - ux * r2;
+        y2 = y2 - uy * r2;
+        dx = x2 - x1;
+        dy = y2 - y1;
+        dist = Math.sqrt(dx*dx + dy*dy);
+      }
+    }
+
     var markerId = 'ah-' + entity.id.replace(/[^a-zA-Z0-9]/g, '');
     ensureMarker(markerId, color);
 
@@ -1204,21 +1230,28 @@ export const PLAYER_JS = `(function() {
 
     var isMinimal = renderStyle === 'minimal';
 
-    // Compute bezier control points (gentle arc)
-    var mx = (x1 + x2) / 2;
-    var my = (y1 + y2) / 2;
-    var dx = x2 - x1;
-    var dy = y2 - y1;
-    var dist = Math.sqrt(dx*dx + dy*dy);
-    var curvature = Math.min(dist * 0.12, 50);
-    var nx = (dist > 0) ? (-dy / dist * curvature) : 0;
-    var ny = (dist > 0) ? ( dx / dist * curvature) : 0;
-    var cx1 = mx + nx;
-    var cy1 = my + ny;
+    // All arrows straight (metadata.curved = true overrides to curved if needed)
+    var useCurved = (entity.metadata && entity.metadata.curved === true);
+
+    var pathD, cx1, cy1;
+    if (useCurved) {
+      var mx = (x1 + x2) / 2;
+      var my = (y1 + y2) / 2;
+      var curvature = Math.min(dist * 0.12, 50);
+      var nx = (dist > 0) ? (-dy / dist * curvature) : 0;
+      var ny = (dist > 0) ? ( dx / dist * curvature) : 0;
+      cx1 = mx + nx;
+      cy1 = my + ny;
+      pathD = 'M ' + x1 + ' ' + y1 + ' Q ' + cx1 + ' ' + cy1 + ' ' + x2 + ' ' + y2;
+    } else {
+      cx1 = (x1 + x2) / 2;
+      cy1 = (y1 + y2) / 2;
+      pathD = 'M ' + x1 + ' ' + y1 + ' L ' + x2 + ' ' + y2;
+    }
 
     if (!isMinimal) {
       var glow = document.createElementNS(SVG_NS, 'path');
-      glow.setAttribute('d', 'M ' + x1 + ' ' + y1 + ' Q ' + cx1 + ' ' + cy1 + ' ' + x2 + ' ' + y2);
+      glow.setAttribute('d', pathD);
       glow.setAttribute('stroke', color);
       glow.setAttribute('stroke-width', '6');
       glow.setAttribute('fill', 'none');
@@ -1229,7 +1262,7 @@ export const PLAYER_JS = `(function() {
 
     // Main line
     var line = document.createElementNS(SVG_NS, 'path');
-    line.setAttribute('d', 'M ' + x1 + ' ' + y1 + ' Q ' + cx1 + ' ' + cy1 + ' ' + x2 + ' ' + y2);
+    line.setAttribute('d', pathD);
     line.setAttribute('stroke', color);
     line.setAttribute('stroke-width', isMinimal ? '1.5' : '2');
     line.setAttribute('fill', 'none');
