@@ -11,6 +11,7 @@ import type { SessionStore } from './session-store.js';
 import type { SseRegistry } from './sse.js';
 import {
   handleCreateSession,
+  handleGetPreferences,
   handleAddScene,
   handleUpdateScene,
   handleAddNarration,
@@ -94,10 +95,8 @@ IMPORTANT: The visual_script must follow the exact schema below. Positions use p
 
 DESIGN GUIDELINES:
 - Labels can be up to ~80 chars. Longer labels auto-wrap to multiple lines. Use narrationSegment for full paragraphs.
-- Use a COHESIVE color palette: pick 2-3 colors max per scene. Recommended combos:
-  - Cyan (#4FC3F7) + Violet (#b388ff) + Warm (#FFD54F) — great for CS/tech
-  - Blue (#64B5F6) + Green (#81C784) + White (#FFFFFF) — clean and professional
-  - Teal (#4DD0E1) + Pink (#F48FB1) + Amber (#FFB74D) — vibrant and modern
+- COLORS — MUST use user's palette when available: create_session and get_session_url return preferences.colors. Use these EXACTLY for entity.color — do NOT invent custom palettes (e.g. teal for data, pink for model). Map: Server/Service → colors.server, Database/HashTable → colors.database, Cloud → colors.cloud, User → colors.user, Concept → colors.concept, Label → colors.label, CodeBlock → colors.codeblock, others → colors.generic. If preferences are missing, call get_preferences first.
+- If no preferences after get_preferences: use a COHESIVE palette, 2-3 colors max. Fallbacks: Cyan (#4FC3F7) + Violet (#b388ff) + Warm (#FFD54F), or Blue (#64B5F6) + Green (#81C784) + White (#FFFFFF).
 - Title labels: type "Label", color "#FFFFFF", size 2 or higher. They render with large bold text (42-48px).
 - Subtitle labels: type "Label", size ~1.5, renders at 28-32px.
 - Space entities evenly. Minimum 15% gap between entity positions.
@@ -224,16 +223,21 @@ export interface McpToolDeps {
 export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
   const { store, sse, baseUrl, getApiKey, openPlayerInBrowser } = deps;
   const sceneDeps = { store, sse };
-  const sessionUrlDeps = { store, baseUrl };
   const createDeps = { store, baseUrl };
 
   mcp.tool(
     'create_session',
-    'Create a new presentation session. Returns a session_id and a player_url. When running locally (stdio or localhost), the player URL is automatically opened in the default browser. For remote clients, open the player_url in a new tab so the user can watch the presentation while you add scenes.',
+    `Create a new presentation session. Returns a session_id and a player_url.
+
+REQUIRED: Call get_preferences FIRST before create_session. Use the returned theme and palette to decide how to create the session. Pass style to override theme (e.g. "minimal" for algorithm viz) if desired; otherwise the user's preference is used.
+
+THEMES: "cinema" (rich gradients) or "minimal" (flat, algorithm-viz). PALETTES: "default", "ocean", "sunset", "forest", "mono". The user's dashboard preference is used unless you pass style. The response also includes preferences.colors — use these for entity.color in add_scene. Player URL: open in browser for user to watch.
+
+CALLBACK: When running locally, the player URL is auto-opened. For remote clients, share the player_url.`,
     {
       title: z.string().describe('Clear, descriptive title matching the user\'s topic (e.g. "Binary Search Tree Insertion", "System Architecture Overview")'),
       aspect_ratio: z.string().optional().describe('Aspect ratio, default "16:9". Options: "16:9", "4:3"'),
-      style: z.enum(['cinema', 'minimal']).optional().describe('Presentation style: "cinema" (default, rich gradients) or "minimal" (flat, algorithm-viz style). When "minimal", player_url includes ?style=minimal.'),
+      style: z.enum(['cinema', 'minimal']).optional().describe('Override theme: "cinema" (rich gradients) or "minimal" (flat). Omit to use the user\'s dashboard preference.'),
     },
     async (args, extra) => {
       const { trackUsage, checkSessionLimit } = await import('./auth.js');
@@ -263,6 +267,21 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
         } catch {}
       }
 
+      return { content: result.content };
+    },
+  );
+
+  mcp.tool(
+    'get_preferences',
+    `REQUIRED FIRST STEP when creating a new presentation. Call this BEFORE create_session. Returns the user's theme, palette, and entity colors. Use the returned data to: (1) decide style for create_session (pass style to override theme if desired), (2) set entity.color in add_scene using colors.server, colors.database, colors.cloud, colors.user, colors.concept, colors.label, colors.codeblock, colors.generic. On failure: UNAUTHORIZED → check API key; INTERNAL_ERROR → retry once, then use default colors.`,
+    {},
+    async (_args, extra) => {
+      const apiKey = getApiKey(extra);
+      if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
+
+      const result = await withErrorBoundary(
+        () => handleGetPreferences({}, { apiKeyId: apiKey.id }),
+      )({});
       return { content: result.content };
     },
   );
@@ -370,7 +389,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
 
   mcp.tool(
     'get_session_url',
-    'Get the player URL for a session. Open this URL in a browser to view the presentation. Set include_stats to true to also get frame count and duration.',
+    'Get the player URL for a session. Always returns preferences (theme, palette, colors) — use preferences.colors for entity.color in add_scene. Set include_stats to true for frame count and duration. Open the player_url in a browser to view the presentation.',
     {
       session_id: z.string().describe('Session ID'),
       include_stats: z.boolean().optional().describe('Include frame count, duration, etc.'),
@@ -385,7 +404,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       }
 
       const result = await withErrorBoundary(
-        (a: any) => handleGetSessionUrl(a, sessionUrlDeps),
+        (a: any) => handleGetSessionUrl(a, { store, baseUrl, apiKeyId: apiKey?.id }),
       )(args);
       return { content: result.content };
     },

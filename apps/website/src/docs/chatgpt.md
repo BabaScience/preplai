@@ -33,7 +33,7 @@ preplai works with **any MCP-compatible AI agent**. ChatGPT uses the **ChatGPT A
 1. In **Settings → Apps & Connectors**, click **Create**
 2. Provide the connector metadata:
    - **Connector name:** `preplai` (or "preplai Presentations")
-   - **Description:** `Create cinema-quality visual presentations. Use preplai to build animated, voice-synced presentations with scenes, entities, and shareable player URLs.`
+   - **Description:** `Create cinema-quality visual presentations. Use preplai to build animated, voice-synced presentations with scenes, entities, and shareable player URLs. Supports themes (cinema/minimal) and color palettes (default, ocean, sunset, forest, mono). Your dashboard preferences apply automatically.`
    - **Connector URL:** `https://player.preplai.com/mcp`
 3. In **Advanced settings**, paste your **OAuth Client ID** and **OAuth Client Secret** from [preplai.com/dashboard/connectors](https://preplai.com/dashboard/connectors)
 4. Click **Create** — if the connection succeeds, you'll see the list of preplai tools

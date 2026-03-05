@@ -73,11 +73,12 @@ describe('MCP Tool Handlers', () => {
       const data = parse(result);
       expect(data.success).toBe(true);
       expect(data.data.session_id).toMatch(/^[0-9a-f]{8}-/);
-      expect(data.data.player_url).toBe(`${baseUrl}/player/${data.data.session_id}`);
-      expect(data.data.embed_url).toBe(`${baseUrl}/player/${data.data.session_id}?embed=1`);
+      expect(data.data.player_url).toBe(`${baseUrl}/player/${data.data.session_id}?style=cinema&palette=default`);
+      expect(data.data.embed_url).toBe(`${baseUrl}/player/${data.data.session_id}?embed=1&style=cinema&palette=default`);
       expect(data.data.title).toBe('Binary Search Intro');
       expect(data.data.aspect_ratio).toBe('16:9');
       expect(data.data.created_at).toBeTruthy();
+      expect(data.data.preferences).toEqual({ theme: 'cinema', palette: 'default', colors: expect.any(Object) });
     });
 
     it('defaults aspect_ratio to 16:9', async () => {
@@ -89,15 +90,15 @@ describe('MCP Tool Handlers', () => {
       expect(data.data.aspect_ratio).toBe('16:9');
     });
 
-    it('appends ?style=minimal to URLs when style is minimal', async () => {
+    it('appends ?style=minimal&palette=default to URLs when style is minimal', async () => {
       const result = await handleCreateSession(
         { title: 'Minimal Style', style: 'minimal' },
         { store, baseUrl }
       );
       const data = parse(result);
       expect(data.success).toBe(true);
-      expect(data.data.player_url).toBe(`${baseUrl}/player/${data.data.session_id}?style=minimal`);
-      expect(data.data.embed_url).toBe(`${baseUrl}/player/${data.data.session_id}?embed=1&style=minimal`);
+      expect(data.data.player_url).toBe(`${baseUrl}/player/${data.data.session_id}?style=minimal&palette=default`);
+      expect(data.data.embed_url).toBe(`${baseUrl}/player/${data.data.session_id}?embed=1&style=minimal&palette=default`);
     });
 
     it('persists session in store', async () => {

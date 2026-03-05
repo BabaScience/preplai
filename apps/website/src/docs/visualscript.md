@@ -32,8 +32,10 @@
 |-------|------|-------------|
 | `sceneId` | string | Unique scene ID |
 | `totalDuration` | number | Total duration in ms |
-| `style` | string | `"cinema"` (default) or `"minimal"` |
+| `style` | string | `"cinema"` (default) or `"minimal"` — theme for this scene |
 | `frames` | array | At least one frame |
+
+**Note:** Theme and palette are set at the session level via `create_session` and the user's dashboard preferences. The `player_url` includes `?style=` and `?palette=` (e.g. `?style=cinema&palette=ocean`). See [MCP Tools — Themes and Palettes](/docs/mcp-tools#themes-and-palettes).
 
 ## Frame
 

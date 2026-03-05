@@ -6,6 +6,7 @@
  */
 import type { SessionStore } from './session-store.js';
 import type { SseRegistry } from './sse.js';
+import { getUserPlayerPrefs, buildPlayerUrlSuffix, getPreferencesWithColors } from './auth.js';
 import { mcpOk, mcpNotFound, mcpErr, mcpValidationError, type McpToolContent } from './errors.js';
 
 // ── Dependency injection interfaces ───────────────────────────────────
@@ -23,6 +24,7 @@ interface SceneDeps {
 interface SessionUrlDeps {
   store: SessionStore;
   baseUrl: string;
+  apiKeyId?: string;
 }
 
 // ── Validation helpers ────────────────────────────────────────────────
@@ -62,6 +64,24 @@ function validateVisualScript(visual_script: any): string | null {
   return null; // valid
 }
 
+function logCreateSession(obj: {
+  sessionId: string;
+  prefs: { theme: string; palette: string };
+  theme: string;
+  palette: string;
+  styleOverride: boolean;
+  suffix: string;
+}): void {
+  if (process.env.NODE_ENV === 'production') return;
+  const line = JSON.stringify({
+    level: 'info',
+    msg: 'create_session player prefs',
+    ...obj,
+    time: Date.now(),
+  });
+  process.stderr.write(line + '\n');
+}
+
 // ── Tool 1: create_session ────────────────────────────────────────────
 
 export async function handleCreateSession(
@@ -73,20 +93,54 @@ export async function handleCreateSession(
 
   const session = await store.createSession(title, aspect_ratio, _apiKeyId ?? null);
 
-  const styleSuffix = style === 'minimal' ? '?style=minimal' : '';
-  const embedSuffix = style === 'minimal' ? '?embed=1&style=minimal' : '?embed=1';
+  // Use user's saved preferences; agent's style param overrides theme when provided
+  const prefs = await getUserPlayerPrefs(_apiKeyId);
+  const theme = style ?? prefs.theme;
+  const palette = prefs.palette;
+  const suffix = buildPlayerUrlSuffix(theme, palette);
+  const embedSuffix = suffix ? `?embed=1&${suffix.slice(1)}` : '?embed=1';
+
+  logCreateSession({ sessionId: session.id, prefs, theme, palette, styleOverride: style != null, suffix });
+
+  const preferences = getPreferencesWithColors(prefs, style ?? undefined);
 
   return mcpOk({
     session_id: session.id,
-    player_url: `${baseUrl}/player/${session.id}${styleSuffix}`,
+    player_url: `${baseUrl}/player/${session.id}${suffix}`,
     embed_url: `${baseUrl}/player/${session.id}${embedSuffix}`,
     title: session.title,
     aspect_ratio: session.aspect_ratio,
     created_at: new Date(session.created_at).toISOString(),
+    preferences: {
+      theme: preferences.theme,
+      palette: preferences.palette,
+      colors: preferences.colors,
+    },
   });
 }
 
-// ── Tool 2: add_scene ─────────────────────────────────────────────────
+// ── Tool 2: get_preferences ────────────────────────────────────────────
+
+interface GetPreferencesDeps {
+  apiKeyId?: string;
+}
+
+export async function handleGetPreferences(
+  args: { _apiKeyId?: string },
+  deps: GetPreferencesDeps,
+): Promise<McpToolContent> {
+  const { _apiKeyId } = args;
+  const apiKeyId = _apiKeyId ?? deps.apiKeyId;
+  const prefs = await getUserPlayerPrefs(apiKeyId);
+  const withColors = getPreferencesWithColors(prefs);
+  return mcpOk({
+    theme: withColors.theme,
+    palette: withColors.palette,
+    colors: withColors.colors,
+  });
+}
+
+// ── Tool 3: add_scene ─────────────────────────────────────────────────
 
 export async function handleAddScene(
   args: { session_id: string; visual_script: any },
@@ -222,15 +276,26 @@ export async function handleGetSessionUrl(
   deps: SessionUrlDeps,
 ): Promise<McpToolContent> {
   const { session_id, include_stats = false } = args;
-  const { store, baseUrl } = deps;
+  const { store, baseUrl, apiKeyId } = deps;
 
   const session = store.getSession(session_id);
   if (!session) return mcpNotFound(session_id);
 
+  const prefs = await getUserPlayerPrefs(apiKeyId);
+  const suffix = buildPlayerUrlSuffix(prefs.theme, prefs.palette);
+  const embedSuffix = suffix ? `?embed=1&${suffix.slice(1)}` : '?embed=1';
+
+  const preferences = getPreferencesWithColors(prefs);
+
   const data: Record<string, unknown> = {
     session_id,
-    player_url: `${baseUrl}/player/${session_id}`,
-    embed_url: `${baseUrl}/player/${session_id}?embed=1`,
+    player_url: `${baseUrl}/player/${session_id}${suffix}`,
+    embed_url: `${baseUrl}/player/${session_id}${embedSuffix}`,
+    preferences: {
+      theme: preferences.theme,
+      palette: preferences.palette,
+      colors: preferences.colors,
+    },
   };
 
   if (include_stats) {
@@ -256,11 +321,14 @@ export async function handleListSessions(
   const sessions = (apiKeyId ? store.listSessionsByKey(apiKeyId) : store.listSessions())
     .slice(0, Math.min(limit, 100));
 
+  const prefs = await getUserPlayerPrefs(apiKeyId);
+  const suffix = buildPlayerUrlSuffix(prefs.theme, prefs.palette);
+
   return mcpOk({
     sessions: sessions.map(s => ({
       session_id: s.id,
       title: s.title,
-      player_url: `${baseUrl}/player/${s.id}`,
+      player_url: `${baseUrl}/player/${s.id}${suffix}`,
       frame_count: s.script?.frames?.length ?? 0,
       created_at: new Date(s.created_at).toISOString(),
     })),

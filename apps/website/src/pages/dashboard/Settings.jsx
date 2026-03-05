@@ -1,11 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import Input from '../../components/Input';
 import Alert from '../../components/Alert';
 import Modal from '../../components/Modal';
 import { useAuth } from '../../context/AuthContext';
-import { apiChangePassword, apiDeleteAccount, clearApiToken } from '../../lib/api';
+import {
+  apiChangePassword,
+  apiDeleteAccount,
+  clearApiToken,
+  apiGetSettings,
+  apiUpdatePlayerPrefs,
+} from '../../lib/api';
+
+const THEMES = [
+  { id: 'cinema', label: 'Cinematic', desc: 'Rich gradients, ambient effects' },
+  { id: 'minimal', label: 'Minimal', desc: 'Flat, algorithm-viz style' },
+];
+
+const PALETTES = [
+  { id: 'default', label: 'Default', colors: ['#4ECDC4', '#9B59B6', '#C9A84C'] },
+  { id: 'ocean', label: 'Ocean', colors: ['#3498DB', '#2ECC71', '#1ABC9C'] },
+  { id: 'sunset', label: 'Sunset', colors: ['#F39C12', '#E74C3C', '#F1C40F'] },
+  { id: 'forest', label: 'Forest', colors: ['#2ECC71', '#1ABC9C', '#16a085'] },
+  { id: 'mono', label: 'Mono', colors: ['#64748b', '#475569', '#94a3b8'] },
+];
 
 export default function Settings() {
   const { email, logout } = useAuth();
@@ -16,8 +35,24 @@ export default function Settings() {
   const [pwLoading, setPwLoading] = useState(false);
   const [pwAlert, setPwAlert] = useState({ type: '', msg: '' });
 
+  const [playerTheme, setPlayerTheme] = useState('cinema');
+  const [playerPalette, setPlayerPalette] = useState('default');
+  const [playerPrefsLoading, setPlayerPrefsLoading] = useState(false);
+  const [playerPrefsAlert, setPlayerPrefsAlert] = useState({ type: '', msg: '' });
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  useEffect(() => {
+    apiGetSettings()
+      .then((data) => {
+        if (data.user) {
+          setPlayerTheme(data.user.player_theme ?? 'cinema');
+          setPlayerPalette(data.user.player_palette ?? 'default');
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
@@ -32,6 +67,19 @@ export default function Settings() {
       setPwAlert({ type: 'error', msg: err.message });
     } finally {
       setPwLoading(false);
+    }
+  };
+
+  const handlePlayerPrefsSave = async () => {
+    setPlayerPrefsAlert({ type: '', msg: '' });
+    setPlayerPrefsLoading(true);
+    try {
+      await apiUpdatePlayerPrefs(playerTheme, playerPalette);
+      setPlayerPrefsAlert({ type: 'success', msg: 'Player preferences saved.' });
+    } catch (err) {
+      setPlayerPrefsAlert({ type: 'error', msg: err.message });
+    } finally {
+      setPlayerPrefsLoading(false);
     }
   };
 
@@ -105,6 +153,117 @@ export default function Settings() {
             {pwLoading ? 'Updating...' : 'Update Password'}
           </button>
         </form>
+      </div>
+
+      <div className="card" style={{ maxWidth: '560px', marginBottom: 'var(--space-8)' }}>
+        <h3 style={{
+          fontSize: 'var(--text-base)',
+          fontWeight: 600,
+          marginBottom: 'var(--space-6)',
+        }}>
+          Player preferences
+        </h3>
+        <p style={{
+          color: 'var(--color-text-muted)',
+          fontSize: 'var(--text-sm)',
+          marginBottom: 'var(--space-6)',
+        }}>
+          Choose how your presentations look when you open them from the Sessions page.
+        </p>
+
+        <div style={{ marginBottom: 'var(--space-6)' }}>
+          <label style={{
+            display: 'block',
+            fontSize: 'var(--text-sm)',
+            fontWeight: 500,
+            marginBottom: 'var(--space-3)',
+          }}>
+            Theme
+          </label>
+          <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+            {THEMES.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setPlayerTheme(t.id)}
+                style={{
+                  padding: 'var(--space-3) var(--space-4)',
+                  borderRadius: 'var(--radius-md)',
+                  border: `2px solid ${playerTheme === t.id ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                  background: playerTheme === t.id ? 'var(--color-bg-elevated)' : 'transparent',
+                  color: 'var(--color-text)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  minWidth: 140,
+                }}
+              >
+                <span style={{ fontWeight: 600, display: 'block' }}>{t.label}</span>
+                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{t.desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 'var(--space-6)' }}>
+          <label style={{
+            display: 'block',
+            fontSize: 'var(--text-sm)',
+            fontWeight: 500,
+            marginBottom: 'var(--space-3)',
+          }}>
+            Color palette
+          </label>
+          <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+            {PALETTES.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setPlayerPalette(p.id)}
+                style={{
+                  padding: 'var(--space-2) var(--space-4)',
+                  borderRadius: 'var(--radius-md)',
+                  border: `2px solid ${playerPalette === p.id ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                  background: playerPalette === p.id ? 'var(--color-bg-elevated)' : 'transparent',
+                  color: 'var(--color-text)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-2)',
+                }}
+              >
+                <span style={{ display: 'flex', gap: 2 }}>
+                  {p.colors.map((c) => (
+                    <span
+                      key={c}
+                      style={{
+                        width: 12,
+                        height: 12,
+                        borderRadius: 2,
+                        background: c,
+                      }}
+                    />
+                  ))}
+                </span>
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {playerPrefsAlert.msg && (
+          <Alert variant={playerPrefsAlert.type} style={{ marginBottom: 'var(--space-4)' }}>
+            {playerPrefsAlert.msg}
+          </Alert>
+        )}
+
+        <button
+          type="button"
+          className="btn btn-primary btn-sm"
+          onClick={handlePlayerPrefsSave}
+          disabled={playerPrefsLoading}
+        >
+          {playerPrefsLoading ? 'Saving...' : 'Save preferences'}
+        </button>
       </div>
 
       <div className="danger-zone" style={{ maxWidth: '560px' }}>

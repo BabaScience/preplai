@@ -65,6 +65,37 @@ describe('PATCH /api/settings/profile', () => {
   });
 });
 
+describe('PATCH /api/settings/player', () => {
+  it('updates player theme and palette', async () => {
+    const res = await request(app)
+      .patch('/api/settings/player')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ playerTheme: 'minimal', playerPalette: 'ocean' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.player_theme).toBe('minimal');
+    expect(res.body.player_palette).toBe('ocean');
+  });
+
+  it('returns 400 for invalid theme', async () => {
+    const res = await request(app)
+      .patch('/api/settings/player')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ playerTheme: 'invalid' });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for invalid palette', async () => {
+    const res = await request(app)
+      .patch('/api/settings/player')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ playerPalette: 'invalid' });
+
+    expect(res.status).toBe(400);
+  });
+});
+
 describe('PATCH /api/settings/password', () => {
   it('updates password with correct current password', async () => {
     const res = await request(app)

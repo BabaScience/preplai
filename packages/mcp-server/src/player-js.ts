@@ -56,12 +56,42 @@ export const PLAYER_JS = `(function() {
     text:    '#94a3b8'
   };
 
+  // Color palettes for entity defaults (?palette=)
+  var PALETTES = {
+    default: { server:'#4ECDC4', database:'#9B59B6', cloud:'#90CAF9', user:'#4DD0E1', concept:'#00e5ff', label:'#FFFFFF', codeblock:'#4ECDC4', generic:'#4FC3F7', particles:['#4ECDC4','#9B59B6','#F1C40F','#3498DB','#E67E22'] },
+    ocean:   { server:'#3498DB', database:'#2ECC71', cloud:'#9B59B6', user:'#1ABC9C', concept:'#00bcd4', label:'#e2e8f0', codeblock:'#3498DB', generic:'#4ECDC4', particles:['#3498DB','#2ECC71','#1ABC9C','#00bcd4','#9B59B6'] },
+    sunset:  { server:'#F39C12', database:'#E74C3C', cloud:'#9B59B6', user:'#F1C40F', concept:'#ff6b6b', label:'#fef3c7', codeblock:'#F39C12', generic:'#E67E22', particles:['#F39C12','#E74C3C','#F1C40F','#ff6b6b','#9B59B6'] },
+    forest:  { server:'#2ECC71', database:'#1ABC9C', cloud:'#3498DB', user:'#16a085', concept:'#00e676', label:'#d1fae5', codeblock:'#2ECC71', generic:'#22c55e', particles:['#2ECC71','#1ABC9C','#16a085','#00e676','#3498DB'] },
+    mono:    { server:'#64748b', database:'#475569', cloud:'#334155', user:'#94a3b8', concept:'#cbd5e1', label:'#f8fafc', codeblock:'#64748b', generic:'#94a3b8', particles:['#64748b','#475569','#94a3b8','#cbd5e1','#334155'] }
+  };
+
   // Style: cinema (default) or minimal. Set from URL ?style= or script.style
   var urlStyle = (function() {
     var m = window.location.search.match(/[?&]style=([^&]+)/);
     return m && m[1] === 'minimal' ? 'minimal' : null;
   })();
   var renderStyle = urlStyle || 'cinema';
+
+  // Palette: default, ocean, sunset, forest, mono. Set from URL ?palette=
+  var urlPalette = (function() {
+    var m = window.location.search.match(/[?&]palette=([^&]+)/);
+    var p = m && m[1];
+    return PALETTES[p] ? p : 'default';
+  })();
+  var palette = PALETTES[urlPalette] || PALETTES.default;
+
+  function getEntityColor(entity, typeKey) {
+    if (entity && entity.color) return entity.color;
+    var t = typeKey || (entity && entity.type);
+    if (t === 'Server' || t === 'Service' || t === 'APIGateway' || t === 'Lambda') return palette.server;
+    if (t === 'Database' || t === 'HashTable') return palette.database;
+    if (t === 'Cloud') return palette.cloud;
+    if (t === 'User') return palette.user;
+    if (t === 'Concept') return palette.concept;
+    if (t === 'Label' || t === 'Annotation' || t === 'Definition' || t === 'Callout' || t === 'Quote' || t === 'Badge') return palette.label;
+    if (t === 'CodeBlock') return palette.codeblock;
+    return palette.generic;
+  }
 
   // ═══════════════════════════════════════════════════════════════════
   // Session & DOM
@@ -104,11 +134,11 @@ export const PLAYER_JS = `(function() {
   }
   initDotGrid();
 
-  // IMPROVEMENT 6: Ambient floating particles
+  // IMPROVEMENT 6: Ambient floating particles (use palette)
   function initAmbientParticles() {
     var ambientLayer = document.getElementById('ambient-layer');
     if (!ambientLayer) return;
-    var particleColors = ['#4ECDC4', '#9B59B6', '#F1C40F', '#3498DB', '#E67E22'];
+    var particleColors = palette.particles || ['#4ECDC4', '#9B59B6', '#F1C40F', '#3498DB', '#E67E22'];
     for (var pi = 0; pi < 12; pi++) {
       var pc = document.createElementNS(SVG_NS, 'circle');
       var px = 100 + Math.random() * (CW - 200);
@@ -272,7 +302,7 @@ export const PLAYER_JS = `(function() {
 
   // Utility: hex color → rgba with alpha
   function colorAlpha(color, alpha) {
-    if (!color) color = '#4FC3F7';
+    if (!color) color = palette.generic;
     if (color.charAt(0) === '#' && color.length === 7) {
       var a = Math.round(alpha * 255).toString(16);
       if (a.length === 1) a = '0' + a;
@@ -468,7 +498,7 @@ export const PLAYER_JS = `(function() {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
-    var color = entity.color || '#4FC3F7';
+    var color = getEntityColor(entity);
     var w = s * 1.3;
     var h = s * 0.9;
     var fill = getFill(color, canvas);
@@ -551,7 +581,7 @@ export const PLAYER_JS = `(function() {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
-    var color = entity.color || '#b388ff';
+    var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
 
     if (renderStyle === 'minimal') {
@@ -646,7 +676,7 @@ export const PLAYER_JS = `(function() {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
-    var color = entity.color || '#90CAF9';
+    var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
 
     if (renderStyle === 'minimal') {
@@ -692,7 +722,7 @@ export const PLAYER_JS = `(function() {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
-    var color = entity.color || '#4DD0E1';
+    var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
     var r = s * 0.2;
 
@@ -745,7 +775,7 @@ export const PLAYER_JS = `(function() {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
-    var color = entity.color || '#00e5ff';
+    var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
 
     if (renderStyle === 'minimal') {
@@ -846,7 +876,7 @@ export const PLAYER_JS = `(function() {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
-    var color = entity.color || '#FFFFFF';
+    var color = getEntityColor(entity);
 
     var fontSize, fontWeight;
     if (entity.size >= 2) {
@@ -916,7 +946,7 @@ export const PLAYER_JS = `(function() {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
-    var color = entity.color || '#4FC3F7';
+    var color = getEntityColor(entity);
     var code = entity.textContent || entity.label || 'code';
     var lines = code.split('\\n').slice(0, 8);
     var lineH = 16;
@@ -996,7 +1026,7 @@ export const PLAYER_JS = `(function() {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
-    var color = entity.color || '#4FC3F7';
+    var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
     shape = shape || 'rect';
 

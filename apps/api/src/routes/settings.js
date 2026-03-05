@@ -16,7 +16,7 @@ function toObjectId(id) {
 router.get('/', async (req, res) => {
   try {
     const user = await User.findById(toObjectId(req.user.userId))
-      .select('_id email name createdAt')
+      .select('_id email name createdAt playerTheme playerPalette')
       .lean();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -27,6 +27,8 @@ router.get('/', async (req, res) => {
         email: user.email,
         name: user.name,
         created_at: user.createdAt,
+        player_theme: user.playerTheme ?? 'cinema',
+        player_palette: user.playerPalette ?? 'default',
       },
     });
   } catch (err) {
@@ -76,6 +78,51 @@ router.patch('/profile', async (req, res) => {
     });
   } catch (err) {
     req.log?.error({ err }, 'Update profile failed');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PATCH /api/settings/player
+router.patch('/player', async (req, res) => {
+  const { playerTheme, playerPalette } = req.body;
+
+  const validThemes = ['cinema', 'minimal'];
+  const validPalettes = ['default', 'ocean', 'sunset', 'forest', 'mono'];
+
+  if (playerTheme != null && !validThemes.includes(playerTheme)) {
+    return res.status(400).json({ error: 'Invalid player_theme' });
+  }
+  if (playerPalette != null && !validPalettes.includes(playerPalette)) {
+    return res.status(400).json({ error: 'Invalid player_palette' });
+  }
+
+  const updates = {};
+  if (playerTheme !== undefined) updates.playerTheme = playerTheme;
+  if (playerPalette !== undefined) updates.playerPalette = playerPalette;
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ error: 'No fields to update' });
+  }
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      toObjectId(req.user.userId),
+      { $set: updates },
+      { new: true }
+    )
+      .select('_id email playerTheme playerPalette')
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      player_theme: user.playerTheme ?? 'cinema',
+      player_palette: user.playerPalette ?? 'default',
+    });
+  } catch (err) {
+    req.log?.error({ err }, 'Update player preferences failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });

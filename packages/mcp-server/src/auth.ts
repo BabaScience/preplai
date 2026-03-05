@@ -6,7 +6,7 @@
  */
 import { randomUUID, createHash, randomBytes } from 'node:crypto';
 import { ApiKey, McpUsageLog, Session, UsageLog, User } from '@preplai/db';
-import { TIER_LIMITS as SHARED_TIER_LIMITS } from '@preplai/shared';
+import { TIER_LIMITS as SHARED_TIER_LIMITS, PALETTES as SHARED_PALETTES } from '@preplai/shared';
 
 // ── Tier limits ──────────────────────────────────────────────────────
 
@@ -132,6 +132,77 @@ export async function getOrCreateApiKeyForUser(userId: string): Promise<Validate
     tier: doc.tier,
     limits,
   };
+}
+
+// ── User player preferences (theme + palette) ──────────────────────────
+
+export interface UserPlayerPrefs {
+  theme: 'cinema' | 'minimal';
+  palette: string;
+}
+
+/** Get user's saved player theme and palette from API key. Returns defaults if key has no userId. */
+export async function getUserPlayerPrefs(apiKeyId: string | undefined): Promise<UserPlayerPrefs> {
+  const defaults = { theme: 'cinema' as const, palette: 'default' };
+
+  if (!apiKeyId) {
+    logPlayerPrefs('debug', { reason: 'no_api_key_id', prefs: defaults }, 'Using defaults: no API key');
+    return defaults;
+  }
+
+  const key = await ApiKey.findById(apiKeyId).select('userId').lean() as { userId?: unknown } | null;
+  const userId = key?.userId;
+  if (!userId) {
+    logPlayerPrefs('debug', { apiKeyIdPrefix: apiKeyId.slice(0, 8), reason: 'key_has_no_user_id', prefs: defaults }, 'Using defaults: API key not linked to user');
+    return defaults;
+  }
+
+  const user = await User.findById(userId).select('playerTheme playerPalette').lean() as {
+    playerTheme?: string;
+    playerPalette?: string;
+  } | null;
+  if (!user) {
+    logPlayerPrefs('debug', { userId: String(userId), reason: 'user_not_found', prefs: defaults }, 'Using defaults: user not found');
+    return defaults;
+  }
+
+  const validThemes = ['cinema', 'minimal'];
+  const validPalettes = ['default', 'ocean', 'sunset', 'forest', 'mono'];
+  const prefs: UserPlayerPrefs = {
+    theme: validThemes.includes(user.playerTheme ?? '') ? (user.playerTheme as 'cinema' | 'minimal') : 'cinema',
+    palette: validPalettes.includes(user.playerPalette ?? '') ? (user.playerPalette as string) : 'default',
+  };
+  logPlayerPrefs('debug', { userId: String(userId), reason: 'from_dashboard', prefs }, 'Player prefs from dashboard');
+  return prefs;
+}
+
+function logPlayerPrefs(level: string, obj: object, msg: string): void {
+  if (process.env.NODE_ENV === 'production') return;
+  const line = JSON.stringify({ level, msg, ...obj, time: Date.now() });
+  process.stderr.write(line + '\n');
+}
+
+/** Get user preferences with palette colors for PML generation. */
+export function getPreferencesWithColors(
+  prefs: UserPlayerPrefs,
+  styleOverride?: string | null,
+): { theme: string; palette: string; colors: Record<string, string> } {
+  const p = SHARED_PALETTES[prefs.palette as keyof typeof SHARED_PALETTES] ?? SHARED_PALETTES.default;
+  const theme = styleOverride ?? prefs.theme;
+  const { particles: _p, ...entityColors } = p;
+  return {
+    theme,
+    palette: prefs.palette,
+    colors: entityColors as Record<string, string>,
+  };
+}
+
+/** Build URL query string for player (style + palette). Always include both for explicit application. */
+export function buildPlayerUrlSuffix(theme: string, palette: string): string {
+  const params = new URLSearchParams();
+  params.set('style', theme);
+  params.set('palette', palette);
+  return `?${params.toString()}`;
 }
 
 // ── Usage tracking ───────────────────────────────────────────────────

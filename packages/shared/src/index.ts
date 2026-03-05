@@ -44,6 +44,15 @@ export type {
   CreateApiKeyInput,
 } from './schemas.js';
 
+// Player palettes
+export {
+  PLAYER_THEMES,
+  PLAYER_PALETTES,
+  PALETTES,
+  getEntityColor,
+} from './palettes.js';
+export type { PlayerTheme, PlayerPalette, EntityPalette } from './palettes.js';
+
 // Constants
 export {
   CANVAS_WIDTH,

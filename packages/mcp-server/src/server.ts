@@ -42,6 +42,8 @@ import {
   checkSceneLimit,
   checkSessionLimit,
   authError,
+  getUserPlayerPrefs,
+  buildPlayerUrlSuffix,
   type ValidatedKey,
 } from './auth.js';
 import { validateOAuthToken } from './oauth-token.js';
@@ -267,9 +269,11 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
         }
       : undefined;
 
+  const MCP_INSTRUCTIONS = `When creating a new presentation, you MUST call get_preferences FIRST before create_session. This returns the user's theme, palette, and entity colors. Use that data when creating the session (pass style to override theme if needed) and when building add_scene visual_script (use preferences.colors for entity.color). Workflow: get_preferences → create_session → add_scene (repeat) → get_session_url.`;
+
   await app.register(FastifyMcpServer, {
     createMcpServer: () => {
-      const mcp = new McpServer({ name: 'preplai', version: '0.1.0' });
+      const mcp = new McpServer({ name: 'preplai', version: '0.1.0' }, { instructions: MCP_INSTRUCTIONS });
       registerMcpTools(mcp, {
         store,
         sse,
@@ -387,7 +391,6 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
 
   // ── MCP-style API routes ──────────────────────────────────────────
   const sceneDeps = { store, sse };
-  const sessionUrlDeps = { store, baseUrl: cfg.baseUrl };
   const createDeps = { store, baseUrl: cfg.baseUrl };
 
   function verifySessionOwnership(sessionId: string, apiKeyId: string): { ok: boolean; notFound?: boolean } {
@@ -513,6 +516,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
         reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
         return;
       }
+      const sessionUrlDeps = { store, baseUrl: cfg.baseUrl, apiKeyId: apiKey.id };
       if (!ownership.ok && ownership.notFound) {
         const handler = withErrorBoundary((args: any) => handleGetSessionUrl(args, sessionUrlDeps));
         return handler(request.body);
@@ -531,6 +535,9 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
 
       const sessions = store.listSessionsByKey(apiKey.id).slice(0, Math.min(limit, 100));
 
+      const prefs = await getUserPlayerPrefs(apiKey.id);
+      const suffix = buildPlayerUrlSuffix(prefs.theme, prefs.palette);
+
       return {
         content: [{
           type: 'text',
@@ -540,7 +547,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
               sessions: sessions.map((s) => ({
                 session_id: s.id,
                 title: s.title,
-                player_url: `${cfg.baseUrl}/player/${s.id}`,
+                player_url: `${cfg.baseUrl}/player/${s.id}${suffix}`,
                 frame_count: s.script?.frames?.length ?? 0,
                 created_at: new Date(s.created_at).toISOString(),
               })),

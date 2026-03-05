@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
-import { ApiKey, Session, VisualScript, Narration } from '../db.js';
+import { User, ApiKey, Session, VisualScript, Narration } from '../db.js';
 import { authenticate } from '../middleware/auth.js';
 
 const router = Router();
@@ -19,12 +19,23 @@ router.get('/', async (req, res) => {
     const userId = toObjectId(req.user.userId);
     const limit = Math.min(parseInt(req.query.limit) || 20, 100);
 
-    const keys = await ApiKey.find({ userId, revoked: false }).select('_id').lean();
+    const [user, keys] = await Promise.all([
+      User.findById(userId).select('playerTheme playerPalette').lean(),
+      ApiKey.find({ userId, revoked: false }).select('_id').lean(),
+    ]);
+
     const keyIds = keys.map((k) => k._id.toString());
 
     if (keyIds.length === 0) {
       return res.json({ sessions: [], total: 0 });
     }
+
+    const theme = user?.playerTheme ?? 'cinema';
+    const palette = user?.playerPalette ?? 'default';
+    const params = new URLSearchParams();
+    params.set('style', theme);
+    params.set('palette', palette);
+    const suffix = `?${params.toString()}`;
 
     const sessionDocs = await Session.find({ apiKeyId: { $in: keyIds } })
       .sort({ createdAt: -1 })
@@ -48,7 +59,7 @@ router.get('/', async (req, res) => {
     const sessions = sessionDocs.map((s) => ({
       id: s.id,
       title: s.title,
-      player_url: `${PLAYER_BASE_URL}/player/${s.id}`,
+      player_url: `${PLAYER_BASE_URL}/player/${s.id}${suffix}`,
       frame_count: scriptBySession.get(s.id) ?? 0,
       created_at: new Date(s.createdAt).toISOString(),
     }));

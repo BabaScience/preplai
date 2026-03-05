@@ -126,6 +126,19 @@ export async function apiCreateOAuthClient(name, redirectUris) {
 }
 
 // Settings
+export async function apiGetSettings() {
+  const { data } = await client.get('settings');
+  return data;
+}
+
+export async function apiUpdatePlayerPrefs(playerTheme, playerPalette) {
+  const { data } = await client.patch('settings/player', {
+    playerTheme,
+    playerPalette,
+  });
+  return data;
+}
+
 export async function apiChangePassword(currentPassword, newPassword) {
   const { data } = await client.patch('settings/password', {
     currentPassword,
