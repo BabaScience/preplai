@@ -19,14 +19,9 @@ export default function Landing() {
         </p>
         <div className="hero-ctas">
           <Link to="/signup" className="btn btn-primary btn-lg">Get Access Token</Link>
-          <a
-            href="https://docs.preplai.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-ghost btn-lg"
-          >
+          <Link to="/docs" className="btn btn-ghost btn-lg">
             View Docs
-          </a>
+          </Link>
         </div>
         <div className="hero-terminal fade-in">
           <div className="terminal-bar">
@@ -167,10 +162,10 @@ export default function Landing() {
   `}<span className="ck">&quot;mcpServers&quot;</span>{`: {
     `}<span className="ck">&quot;preplai&quot;</span>{`: {
       `}<span className="ck">&quot;command&quot;</span>{`: `}<span className="cs">&quot;npx&quot;</span>{`,
-      `}<span className="ck">&quot;args&quot;</span>{`: [`}<span className="cs">&quot;-y&quot;</span>{`, `}<span className="cs">&quot;@preplai/mcp-server&quot;</span>{`],
+      `}<span className="ck">&quot;args&quot;</span>{`: [`}<span className="cs">&quot;-y&quot;</span>{`, `}<span className="cs">&quot;@pyroprompts/mcp-stdio-to-streamable-http-adapter&quot;</span>{`],
       `}<span className="ck">&quot;env&quot;</span>{`: {
-        `}<span className="ck">&quot;PREPLAI_API_KEY&quot;</span>{`: `}<span className="cs">&quot;plai_your_key_here&quot;</span>{`,
-        `}<span className="ck">&quot;BASE_URL&quot;</span>{`: `}<span className="cs">&quot;https://api.preplai.com&quot;</span>{`
+        `}<span className="ck">&quot;URI&quot;</span>{`: `}<span className="cs">&quot;https://player.preplai.com/mcp&quot;</span>{`,
+        `}<span className="ck">&quot;BEARER_TOKEN&quot;</span>{`: `}<span className="cs">&quot;your-access-token&quot;</span>{`
       }
     }
   }
@@ -178,14 +173,9 @@ export default function Landing() {
           </div>
           <div style={{ marginTop: 'var(--space-6)', display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
             <Link to="/signup" className="btn btn-primary">Get Your Access Token</Link>
-            <a
-              href="https://docs.preplai.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-ghost"
-            >
+            <Link to="/docs" className="btn btn-ghost">
               Full Documentation
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -198,8 +188,7 @@ export default function Landing() {
             <p>Cinema-quality presentations.<br />Built by AI agents.</p>
           </div>
           <div className="footer-links">
-            <a href="https://docs.preplai.com" target="_blank" rel="noopener noreferrer">Docs</a>
-            <a href="https://github.com/preplai" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <Link to="/docs">Docs</Link>
             <a href="#pricing">Pricing</a>
             <Link to="/dashboard/overview">Dashboard</Link>
           </div>
