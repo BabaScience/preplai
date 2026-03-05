@@ -1326,16 +1326,16 @@ export const PLAYER_JS = `(function() {
       lpill.setAttribute('width', String(pillW));
       lpill.setAttribute('height', String(pillH));
       lpill.setAttribute('rx', String(pillH / 2));
-      lpill.setAttribute('fill', isMinimal ? '#1e293b' : 'rgba(0,0,0,0.55)');
-      lpill.setAttribute('stroke', isMinimal ? '#334155' : 'none');
-      if (isMinimal) lpill.setAttribute('stroke-width', '1');
+      lpill.setAttribute('fill', '#1e293b');
+      lpill.setAttribute('stroke', '#334155');
+      lpill.setAttribute('stroke-width', '1');
       ag.appendChild(lpill);
 
       var lt = document.createElementNS(SVG_NS, 'text');
       lt.setAttribute('x', String(lx));
       lt.setAttribute('y', String(ly));
       lt.setAttribute('text-anchor', 'middle');
-      lt.setAttribute('fill', isMinimal ? '#ffffff' : color);
+      lt.setAttribute('fill', '#ffffff');
       lt.setAttribute('font-size', String(labelFontSize));
       lt.setAttribute('font-weight', '500');
       lt.setAttribute('font-family', FONT_UI);
