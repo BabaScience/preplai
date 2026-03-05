@@ -65,6 +65,7 @@
 - **BinaryTree**, **BTree** — Tree structures
 - **CallStack** — Stack frames
 - **HashTable** — Key-value pairs
+- **Array** — Indexed cells with customizable values; use `metadata.values` and `metadata.disabledIndexes` to show/dim cells
 - **GanttChart** — Task bars
 - **ProcessState** — State diagram
 - **MemoryLayout** — Stack/heap
@@ -87,6 +88,7 @@
 | Memory layout | MemoryLayout |
 | ML metrics | ConfusionMatrix |
 | Key-value storage | HashTable |
+| Arrays, lists, indexed data | Array |
 | Architecture diagrams | Server, Database, Cloud, Arrow |
 
 ## Entity Schema
@@ -110,6 +112,8 @@
 ```
 
 For **Arrow**/**DataFlow**: add `sourceEntityId`, `targetEntityId`. Use `metadata.curved: true` for curved arrows.
+
+For **Array**: use `metadata.values` (e.g. `["a", "b", "c", "d", "e"]`) to set cell contents; `metadata.disabledIndexes` (e.g. `[1, 3]`) to dim specific 0-based indexes. Or `metadata.cells = [{value: "a", enabled: true}, ...]` for per-cell control. Max 8 cells.
 
 ## Design Guidelines
 

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { useSyncApiToken } from './hooks/useApi';
@@ -13,6 +14,8 @@ import Connectors from './pages/dashboard/Connectors';
 import Sessions from './pages/dashboard/Sessions';
 import Usage from './pages/dashboard/Usage';
 import Settings from './pages/dashboard/Settings';
+
+const IllustrationDebugPage = lazy(() => import('./pages/dev/IllustrationDebugPage'));
 
 function ProtectedRoute({ children }) {
   const { token } = useAuth();
@@ -84,6 +87,16 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      {import.meta.env.DEV && (
+        <Route
+          path="/dev/illustrations"
+          element={
+            <Suspense fallback={<div className="p-8">Loading...</div>}>
+              <IllustrationDebugPage />
+            </Suspense>
+          }
+        />
+      )}
       {/* Catch-all: redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

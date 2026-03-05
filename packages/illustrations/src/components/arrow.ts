@@ -298,9 +298,6 @@ export function renderDataFlow(
   const y2 = targetEntry?.y ?? ty;
   const color = entity.color ?? getCategoryColor('DataFlow');
 
-  const markerId = `arrowhead-dataflow-${entity.id}`;
-  ensureArrowheadMarker(markerId, color, svgRoot);
-
   const g = document.createElementNS(SVG_NS, 'g');
   g.setAttribute('id', entity.id);
   g.setAttribute('data-type', 'DataFlow');
@@ -315,7 +312,6 @@ export function renderDataFlow(
   line.setAttribute('stroke-dasharray', '8,4');
   line.setAttribute('stroke-dashoffset', '0');
   line.setAttribute('opacity', '0.7');
-  line.setAttribute('marker-end', `url(#${markerId})`);
 
   // SMIL dash animation
   const anim = document.createElementNS(SVG_NS, 'animate');

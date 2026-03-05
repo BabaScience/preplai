@@ -116,6 +116,7 @@ Topic → Preferred type:
 - Memory layout (stack/heap) → MemoryLayout (metadata.stack, metadata.heap)
 - ML metrics (TP/FP/TN/FN) → ConfusionMatrix (metadata.matrix)
 - Key-value storage → HashTable (metadata.pairs) or Dict
+- Arrays, lists, indexed data → Array (metadata.values, metadata.disabledIndexes)
 - Architecture diagrams → Server, Database, Cloud, Arrow, LoadBalancer
 
 PREFER dedicated types (rich visuals): Server, Database, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, AST, ProcessState, GanttChart, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, Timeline, StepList, Definition, Callout.
@@ -141,6 +142,7 @@ METADATA (required for correct rendering):
 - ProcessState: metadata.states, metadata.transitions
 - ConfusionMatrix: metadata.matrix (2D array), metadata.rowLabels?, metadata.colLabels?
 - HashTable: metadata.pairs = [[key, value], ...]
+- Array: metadata.values = [string|number, ...] (agent can display any values), metadata.disabledIndexes = [0-based indexes to dim], or metadata.cells = [{value, enabled?}] for per-cell control. Max 8 cells.
 - MemoryLayout: metadata.stack = [...], metadata.heap = [...]
 - AST/ParseTree: metadata.ast = {type, value?, children?}
 

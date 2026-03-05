@@ -2,6 +2,34 @@
 
 This document describes the expected `metadata` shapes for entity types that accept structured data.
 
+## Array
+
+```json
+{
+  "values": ["a", "b", "c", "d", "e"],
+  "disabledIndexes": [1, 3]
+}
+```
+
+Or with per-cell control:
+
+```json
+{
+  "cells": [
+    { "value": "a", "enabled": true },
+    { "value": "b", "enabled": false },
+    { "value": "c", "enabled": true },
+    { "value": "d", "enabled": false },
+    { "value": "e", "enabled": true }
+  ]
+}
+```
+
+- `values`: Array of strings or numbers — agent can display any values
+- `cells`: Alternative — array of `{ value, enabled? }` for per-cell control
+- `disabledIndexes`: 0-based indexes to show as disabled (dimmed, dashed border). Ignored when using `cells`
+- Max 8 cells displayed
+
 ## AST / ParseTree
 
 ```json

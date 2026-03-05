@@ -10,6 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@preplai/illustrations": "workspace:*",
+    "@preplai/player": "workspace:*",
+    "@preplai/shared": "workspace:*",
     "axios": "^1.13.6",
     "highlight.js": "^11.11.1",
     "lucide-react": "^0.575.0",

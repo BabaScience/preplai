@@ -102,6 +102,15 @@ importers:
 
   apps/website:
     dependencies:
+      '@preplai/illustrations':
+        specifier: workspace:*
+        version: link:../../packages/illustrations
+      '@preplai/player':
+        specifier: workspace:*
+        version: link:../../packages/player
+      '@preplai/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       axios:
         specifier: ^1.13.6
         version: 1.13.6
