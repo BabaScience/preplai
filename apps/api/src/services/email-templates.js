@@ -78,7 +78,7 @@ function baseLayout({ preheader, content, appUrl }) {
           <tr>
             <td align="center" style="padding: 24px 16px;">
               <p style="margin: 0; font-size: 13px; color: ${COLORS.textMuted};">
-                Cinema-quality presentations. Built by AI agents.
+                Cinema-quality presentations. Built for AI agents.
               </p>
               <p style="margin: 8px 0 0; font-size: 12px; color: ${COLORS.textMuted};">
                 <a href="${appUrl}" style="color: ${COLORS.primary}; text-decoration: none;">preplai.com</a>

@@ -11,7 +11,6 @@ export default function LandingLayout({ children }) {
         </Link>
         <ul className="nav-links" role="list">
           <li className="nav-link-desktop"><a href="#features">Features</a></li>
-          <li className="nav-link-desktop"><a href="#pricing">Pricing</a></li>
           <li className="nav-link-desktop"><a href="#setup">Setup</a></li>
           <li className="nav-link-desktop"><Link to="/docs">Docs</Link></li>
           <li><ThemeToggle /></li>

@@ -56,7 +56,7 @@ function DocMeta({ slug }) {
     scriptEl.textContent = JSON.stringify(schema);
 
     return () => {
-      document.title = 'preplai — Cinema-quality presentations. Built by AI agents.';
+      document.title = 'preplai — Cinema-quality presentations. Built for AI agents.';
       if (scriptEl) scriptEl.remove();
     };
   }, [slug, meta]);

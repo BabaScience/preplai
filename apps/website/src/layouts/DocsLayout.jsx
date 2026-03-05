@@ -22,7 +22,7 @@ export default function DocsLayout({ children }) {
         </Link>
         <ul className="nav-links" role="list">
           <li className="nav-link-desktop"><Link to={{ pathname: '/', hash: 'features' }}>Features</Link></li>
-          <li className="nav-link-desktop"><Link to={{ pathname: '/', hash: 'pricing' }}>Pricing</Link></li>
+          <li className="nav-link-desktop"><Link to={{ pathname: '/', hash: 'setup' }}>Setup</Link></li>
           <li className="nav-link-desktop"><Link to="/docs">Docs</Link></li>
           <li><ThemeToggle /></li>
           <li><Link to="/login" className="btn btn-ghost btn-sm">Log in</Link></li>
