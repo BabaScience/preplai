@@ -4,11 +4,11 @@
  *
  * Metadata:
  *   values: (string|number)[] — cell values (agent can display anything)
- *   cells: { value: string|number, enabled?: boolean }[] — rich format with per-cell enabled state
+ *   cells: { value: string|number, enabled?: boolean, selected?: boolean }[] — rich format
  *   disabledIndexes: number[] — 0-based indexes to show as disabled (dimmed)
+ *   selectedIndexes: number[] — 0-based indexes to highlight (e.g. current comparison in binary search)
  *
  * If both values and cells are provided, cells takes precedence.
- * disabledIndexes applies when using values; with cells, use per-cell enabled.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
@@ -16,30 +16,32 @@ import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
-type CellSpec = { value: string | number; enabled?: boolean };
+type CellSpec = { value: string | number; enabled?: boolean; selected?: boolean };
 
 function parseCells(meta: Record<string, unknown>): CellSpec[] {
-  const rawCells = meta.cells as CellSpec[] | undefined;
+  const rawCells = meta.cells as Array<{ value: string | number; enabled?: boolean; selected?: boolean }> | undefined;
   if (Array.isArray(rawCells)) {
     return rawCells.slice(0, 8).map((c) =>
       typeof c === 'object' && c !== null && 'value' in c
-        ? { value: c.value, enabled: c.enabled !== false }
-        : { value: String(c), enabled: true },
+        ? { value: c.value, enabled: c.enabled !== false, selected: c.selected === true }
+        : { value: String(c), enabled: true, selected: false },
     );
   }
 
   const values = (meta.values as (string | number)[]) ?? (meta.cells as (string | number)[]) ?? [1, 2, 3, 4, 5];
   const disabledSet = new Set((meta.disabledIndexes as number[]) ?? []);
+  const selectedSet = new Set((meta.selectedIndexes as number[]) ?? []);
   return values.slice(0, 8).map((val, i) => ({
     value: val,
     enabled: !disabledSet.has(i),
+    selected: selectedSet.has(i),
   }));
 }
 
 export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const _s = getSizeParam(entity, 1.5);
+  const s = getSizeParam(entity, 1.5);
   const color = entity.color ?? getCategoryColor('Array');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-array-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -48,8 +50,9 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   const meta = entity.metadata ?? {};
   const cells = parseCells(meta);
 
-  const cellW = 28;
-  const cellH = 24;
+  const scale = s / 50;
+  const cellW = 28 * scale;
+  const cellH = 24 * scale;
   const totalW = cells.length * cellW;
   const startX = -totalW / 2 + cellW / 2;
 
@@ -71,21 +74,24 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     }
   }
 
-  cells.forEach(({ value, enabled }, i) => {
+  cells.forEach(({ value, enabled, selected }, i) => {
     const x = startX + i * cellW;
 
+    const pad = 2 * scale;
     const cell = document.createElementNS(SVG_NS, 'rect');
-    cell.setAttribute('x', String(x - cellW / 2 + 2));
+    cell.setAttribute('x', String(x - cellW / 2 + pad));
     cell.setAttribute('y', String(-cellH / 2));
-    cell.setAttribute('width', String(cellW - 4));
+    cell.setAttribute('width', String(cellW - pad * 2));
     cell.setAttribute('height', String(cellH));
-    cell.setAttribute('rx', '2');
+    cell.setAttribute('rx', String(Math.max(1, 2 * scale)));
     cell.setAttribute('fill', `url(#${gradId})`);
     cell.setAttribute('stroke', color);
-    cell.setAttribute('stroke-width', '1.5');
+    cell.setAttribute('stroke-width', String(Math.max(1, (selected ? 3 : 1.5) * scale)));
     if (!enabled) {
       cell.setAttribute('filter', `url(#${dimFilterId})`);
       cell.setAttribute('stroke-dasharray', '3,3');
+    } else if (selected) {
+      cell.setAttribute('filter', `drop-shadow(0 0 ${4 * scale}px ${color})`);
     }
     innerG.appendChild(cell);
 
@@ -94,7 +100,7 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     indexText.setAttribute('y', String(-cellH / 2 - 6));
     indexText.setAttribute('text-anchor', 'middle');
     indexText.setAttribute('fill', `${color}99`);
-    indexText.setAttribute('font-size', '9');
+    indexText.setAttribute('font-size', String(Math.round(9 * scale)));
     indexText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     if (!enabled) {
       indexText.setAttribute('filter', `url(#${dimFilterId})`);
@@ -107,7 +113,7 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     valueText.setAttribute('y', String(4));
     valueText.setAttribute('text-anchor', 'middle');
     valueText.setAttribute('fill', color);
-    valueText.setAttribute('font-size', '11');
+    valueText.setAttribute('font-size', String(Math.round(11 * scale)));
     valueText.setAttribute('font-weight', '600');
     valueText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     if (!enabled) {
@@ -120,10 +126,10 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(cellH / 2 + 18));
+    text.setAttribute('y', String(cellH / 2 + 18 * scale));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-size', String(Math.round(TYPOGRAPHY.fontSizeLabel * scale)));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;

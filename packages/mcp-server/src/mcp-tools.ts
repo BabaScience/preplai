@@ -142,7 +142,7 @@ METADATA (required for correct rendering):
 - ProcessState: metadata.states, metadata.transitions
 - ConfusionMatrix: metadata.matrix (2D array), metadata.rowLabels?, metadata.colLabels?
 - HashTable: metadata.pairs = [[key, value], ...]
-- Array: metadata.values = [string|number, ...] (agent can display any values), metadata.disabledIndexes = [0-based indexes to dim], or metadata.cells = [{value, enabled?}] for per-cell control. Max 8 cells.
+- Array: metadata.values = [string|number, ...] (agent can display any values), metadata.disabledIndexes = [0-based indexes to dim], metadata.selectedIndexes = [0-based indexes to highlight], or metadata.cells = [{value, enabled?, selected?}]. Max 8 cells.
 - MemoryLayout: metadata.stack = [...], metadata.heap = [...]
 - AST/ParseTree: metadata.ast = {type, value?, children?}
 

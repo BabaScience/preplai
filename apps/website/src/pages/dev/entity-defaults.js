@@ -90,6 +90,7 @@ export const METADATA_DEFAULTS = {
   Array: {
     values: ['a', 'b', 'c', 'd', 'e'],
     disabledIndexes: [1, 3],
+    selectedIndexes: [0, 2],
   },
   AST: {
     ast: {

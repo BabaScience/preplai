@@ -7,7 +7,8 @@ This document describes the expected `metadata` shapes for entity types that acc
 ```json
 {
   "values": ["a", "b", "c", "d", "e"],
-  "disabledIndexes": [1, 3]
+  "disabledIndexes": [1, 3],
+  "selectedIndexes": [0, 2]
 }
 ```
 
@@ -26,8 +27,9 @@ Or with per-cell control:
 ```
 
 - `values`: Array of strings or numbers — agent can display any values
-- `cells`: Alternative — array of `{ value, enabled? }` for per-cell control
+- `cells`: Alternative — array of `{ value, enabled?, selected? }` for per-cell control
 - `disabledIndexes`: 0-based indexes to show as disabled (dimmed, dashed border). Ignored when using `cells`
+- `selectedIndexes`: 0-based indexes to highlight (thicker stroke, glow). Used for e.g. current comparison in binary search
 - Max 8 cells displayed
 
 ## AST / ParseTree

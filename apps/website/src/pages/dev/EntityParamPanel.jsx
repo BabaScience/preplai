@@ -184,6 +184,25 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
               placeholder="1, 3"
             />
           </div>
+          <div className="form-group">
+            <label className="form-label">Selected indexes (comma-separated, 0-based)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.selectedIndexes ?? []).join(', ')}
+              onChange={(e) => {
+                const selectedIndexes = e.target.value
+                  .split(',')
+                  .map((s) => parseInt(s.trim(), 10))
+                  .filter((n) => !Number.isNaN(n));
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  selectedIndexes,
+                });
+              }}
+              placeholder="0, 2"
+            />
+          </div>
         </>
       )}
 
