@@ -89,6 +89,17 @@ describe('MCP Tool Handlers', () => {
       expect(data.data.aspect_ratio).toBe('16:9');
     });
 
+    it('appends ?style=minimal to URLs when style is minimal', async () => {
+      const result = await handleCreateSession(
+        { title: 'Minimal Style', style: 'minimal' },
+        { store, baseUrl }
+      );
+      const data = parse(result);
+      expect(data.success).toBe(true);
+      expect(data.data.player_url).toBe(`${baseUrl}/player/${data.data.session_id}?style=minimal`);
+      expect(data.data.embed_url).toBe(`${baseUrl}/player/${data.data.session_id}?embed=1&style=minimal`);
+    });
+
     it('persists session in store', async () => {
       const result = await handleCreateSession(
         { title: 'Persist Check' },

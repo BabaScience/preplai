@@ -46,6 +46,23 @@ export const PLAYER_JS = `(function() {
     accent:        '#C9A84C'
   };
 
+  // Minimal theme palette (algorithm-viz style)
+  var MINIMAL = {
+    primary: '#6366f1',
+    success: '#22c55e',
+    error:   '#ef4444',
+    warn:    '#f59e0b',
+    muted:   '#1e293b',
+    text:    '#94a3b8'
+  };
+
+  // Style: cinema (default) or minimal. Set from URL ?style= or script.style
+  var urlStyle = (function() {
+    var m = window.location.search.match(/[?&]style=([^&]+)/);
+    return m && m[1] === 'minimal' ? 'minimal' : null;
+  })();
+  var renderStyle = urlStyle || 'cinema';
+
   // ═══════════════════════════════════════════════════════════════════
   // Session & DOM
   // ═══════════════════════════════════════════════════════════════════
@@ -301,6 +318,12 @@ export const PLAYER_JS = `(function() {
     return 'url(#' + id + ')';
   }
 
+  // Minimal theme: flat fill instead of gradient
+  function getFill(color, parentSvg) {
+    if (renderStyle === 'minimal') return colorAlpha(color, 0.9);
+    return createGradient(color, parentSvg);
+  }
+
   // ═══════════════════════════════════════════════════════════════════
   // Utility: compute entity canvas position with margin
   // ═══════════════════════════════════════════════════════════════════
@@ -408,7 +431,7 @@ export const PLAYER_JS = `(function() {
   function addLabel(innerG, entity, yOffset, opts) {
     if (!entity.label) return;
     opts = opts || {};
-    var color = opts.color || entity.color || '#c8c8e0';
+    var color = opts.color || entity.color || (renderStyle === 'minimal' ? '#e2e8f0' : '#c8c8e0');
     var s = sizeToPixels(entity.size);
     var fontSize = opts.fontSize || Math.max(12, Math.min(s * 0.18, 22));
     var fontWeight = opts.fontWeight || '600';
@@ -442,9 +465,23 @@ export const PLAYER_JS = `(function() {
     var color = entity.color || '#4FC3F7';
     var w = s * 1.3;
     var h = s * 0.9;
-    var fill = createGradient(color, canvas);
+    var fill = getFill(color, canvas);
 
-    // Body
+    if (renderStyle === 'minimal') {
+      var body = document.createElementNS(SVG_NS, 'rect');
+      body.setAttribute('x', String(-w/2));
+      body.setAttribute('y', String(-h/2));
+      body.setAttribute('width', String(w));
+      body.setAttribute('height', String(h));
+      body.setAttribute('rx', '4');
+      body.setAttribute('fill', fill);
+      innerG.appendChild(body);
+      addLabel(innerG, entity, h/2 + 22);
+      parentEl.appendChild(g.outerG);
+      return g.outerG;
+    }
+
+    // Body (cinema)
     var body = document.createElementNS(SVG_NS, 'rect');
     body.setAttribute('x', String(-w/2));
     body.setAttribute('y', String(-h/2));
@@ -509,12 +546,29 @@ export const PLAYER_JS = `(function() {
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
     var color = entity.color || '#b388ff';
+    var fill = getFill(color, canvas);
+
+    if (renderStyle === 'minimal') {
+      var w = s * 1.2;
+      var h = s * 0.9;
+      var body = document.createElementNS(SVG_NS, 'rect');
+      body.setAttribute('x', String(-w/2));
+      body.setAttribute('y', String(-h/2));
+      body.setAttribute('width', String(w));
+      body.setAttribute('height', String(h));
+      body.setAttribute('rx', '4');
+      body.setAttribute('fill', fill);
+      innerG.appendChild(body);
+      addLabel(innerG, entity, h/2 + 22);
+      parentEl.appendChild(g.outerG);
+      return g.outerG;
+    }
+
     var rx = s * 0.5;
     var ry = s * 0.15;
     var bodyH = s * 0.55;
     var topY = -s * 0.35;
     var botY = topY + bodyH;
-    var fill = createGradient(color, canvas);
 
     // Body fill (rect behind ellipses)
     var bodyFill = document.createElementNS(SVG_NS, 'rect');
@@ -587,7 +641,23 @@ export const PLAYER_JS = `(function() {
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
     var color = entity.color || '#90CAF9';
-    var fill = createGradient(color, canvas);
+    var fill = getFill(color, canvas);
+
+    if (renderStyle === 'minimal') {
+      var w = s * 1.3;
+      var h = s * 0.9;
+      var rect = document.createElementNS(SVG_NS, 'rect');
+      rect.setAttribute('x', String(-w/2));
+      rect.setAttribute('y', String(-h/2));
+      rect.setAttribute('width', String(w));
+      rect.setAttribute('height', String(h));
+      rect.setAttribute('rx', '4');
+      rect.setAttribute('fill', fill);
+      innerG.appendChild(rect);
+      addLabel(innerG, entity, h/2 + 22);
+      parentEl.appendChild(g.outerG);
+      return g.outerG;
+    }
 
     var path = document.createElementNS(SVG_NS, 'path');
     var sc = s / 50;
@@ -617,8 +687,20 @@ export const PLAYER_JS = `(function() {
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
     var color = entity.color || '#4DD0E1';
-    var fill = createGradient(color, canvas);
+    var fill = getFill(color, canvas);
     var r = s * 0.2;
+
+    if (renderStyle === 'minimal') {
+      var circ = document.createElementNS(SVG_NS, 'circle');
+      circ.setAttribute('cx', '0');
+      circ.setAttribute('cy', '0');
+      circ.setAttribute('r', String(s * 0.45));
+      circ.setAttribute('fill', fill);
+      innerG.appendChild(circ);
+      addLabel(innerG, entity, s * 0.45 + 22);
+      parentEl.appendChild(g.outerG);
+      return g.outerG;
+    }
 
     // Head
     var head = document.createElementNS(SVG_NS, 'circle');
@@ -658,7 +740,31 @@ export const PLAYER_JS = `(function() {
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
     var color = entity.color || '#00e5ff';
-    var fill = createGradient(color, canvas);
+    var fill = getFill(color, canvas);
+
+    if (renderStyle === 'minimal') {
+      var r = s * 0.5;
+      var circ = document.createElementNS(SVG_NS, 'circle');
+      circ.setAttribute('cx', '0');
+      circ.setAttribute('cy', '0');
+      circ.setAttribute('r', String(r));
+      circ.setAttribute('fill', fill);
+      innerG.appendChild(circ);
+      if (entity.label) {
+        var text = document.createElementNS(SVG_NS, 'text');
+        text.setAttribute('x', '0');
+        text.setAttribute('y', '5');
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('fill', '#ffffff');
+        text.setAttribute('font-size', String(Math.min(14, s * 0.18)));
+        text.setAttribute('font-weight', '600');
+        text.setAttribute('font-family', FONT_UI);
+        text.textContent = truncLabel(entity.label, 16);
+        innerG.appendChild(text);
+      }
+      parentEl.appendChild(g.outerG);
+      return g.outerG;
+    }
 
     // Compute radius from label length to avoid overflow
     var labelText = entity.label || '';
@@ -811,6 +917,31 @@ export const PLAYER_JS = `(function() {
     var w = Math.min(Math.max(s * 2.5, 160), 500);
     var h = lines.length * lineH + 28;
 
+    if (renderStyle === 'minimal') {
+      var bg = document.createElementNS(SVG_NS, 'rect');
+      bg.setAttribute('x', String(-w/2));
+      bg.setAttribute('y', String(-h/2));
+      bg.setAttribute('width', String(w));
+      bg.setAttribute('height', String(h));
+      bg.setAttribute('rx', '4');
+      bg.setAttribute('fill', '#1e293b');
+      bg.setAttribute('stroke', '#334155');
+      bg.setAttribute('stroke-width', '1');
+      innerG.appendChild(bg);
+      for (var cli = 0; cli < lines.length; cli++) {
+        var tl = document.createElementNS(SVG_NS, 'text');
+        tl.setAttribute('x', String(-w/2 + 12));
+        tl.setAttribute('y', String(-h/2 + 24 + cli * lineH));
+        tl.setAttribute('fill', color);
+        tl.setAttribute('font-size', '13');
+        tl.setAttribute('font-family', FONT_MONO);
+        tl.textContent = truncLabel(lines[cli], 48);
+        innerG.appendChild(tl);
+      }
+      parentEl.appendChild(g.outerG);
+      return g.outerG;
+    }
+
     var bg = document.createElementNS(SVG_NS, 'rect');
     bg.setAttribute('x', String(-w/2));
     bg.setAttribute('y', String(-h/2));
@@ -860,8 +991,44 @@ export const PLAYER_JS = `(function() {
     var innerG = g.innerG;
     var s = sizeToPixels(entity.size);
     var color = entity.color || '#4FC3F7';
-    var fill = createGradient(color, canvas);
+    var fill = getFill(color, canvas);
     shape = shape || 'rect';
+
+    if (renderStyle === 'minimal') {
+      var w = s * 1.3;
+      var h = s * 0.85;
+      if (shape === 'circle') {
+        var circ = document.createElementNS(SVG_NS, 'circle');
+        circ.setAttribute('cx', '0');
+        circ.setAttribute('cy', '0');
+        circ.setAttribute('r', String(s * 0.45));
+        circ.setAttribute('fill', fill);
+        innerG.appendChild(circ);
+      } else {
+        var rect = document.createElementNS(SVG_NS, 'rect');
+        rect.setAttribute('x', String(-w/2));
+        rect.setAttribute('y', String(-h/2));
+        rect.setAttribute('width', String(w));
+        rect.setAttribute('height', String(h));
+        rect.setAttribute('rx', '4');
+        rect.setAttribute('fill', fill);
+        innerG.appendChild(rect);
+      }
+      if (entity.label) {
+        var lab = document.createElementNS(SVG_NS, 'text');
+        lab.setAttribute('x', '0');
+        lab.setAttribute('y', String(s * 0.06));
+        lab.setAttribute('text-anchor', 'middle');
+        lab.setAttribute('fill', '#ffffff');
+        lab.setAttribute('font-size', String(Math.max(12, Math.min(s * 0.16, 18))));
+        lab.setAttribute('font-weight', '600');
+        lab.setAttribute('font-family', FONT_UI);
+        lab.textContent = truncLabel(entity.label, 22);
+        innerG.appendChild(lab);
+      }
+      parentEl.appendChild(g.outerG);
+      return g.outerG;
+    }
 
     if (shape === 'circle') {
       var circ = document.createElementNS(SVG_NS, 'circle');
@@ -1035,6 +1202,8 @@ export const PLAYER_JS = `(function() {
     ag.setAttribute('id', entity.id);
     ag.setAttribute('data-type', entity.type);
 
+    var isMinimal = renderStyle === 'minimal';
+
     // Compute bezier control points (gentle arc)
     var mx = (x1 + x2) / 2;
     var my = (y1 + y2) / 2;
@@ -1047,26 +1216,32 @@ export const PLAYER_JS = `(function() {
     var cx1 = mx + nx;
     var cy1 = my + ny;
 
-    // Glow line (thicker, blurred)
-    var glow = document.createElementNS(SVG_NS, 'path');
-    glow.setAttribute('d', 'M ' + x1 + ' ' + y1 + ' Q ' + cx1 + ' ' + cy1 + ' ' + x2 + ' ' + y2);
-    glow.setAttribute('stroke', color);
-    glow.setAttribute('stroke-width', '6');
-    glow.setAttribute('fill', 'none');
-    glow.setAttribute('opacity', '0.12');
-    glow.setAttribute('stroke-linecap', 'round');
-    ag.appendChild(glow);
+    if (!isMinimal) {
+      var glow = document.createElementNS(SVG_NS, 'path');
+      glow.setAttribute('d', 'M ' + x1 + ' ' + y1 + ' Q ' + cx1 + ' ' + cy1 + ' ' + x2 + ' ' + y2);
+      glow.setAttribute('stroke', color);
+      glow.setAttribute('stroke-width', '6');
+      glow.setAttribute('fill', 'none');
+      glow.setAttribute('opacity', '0.12');
+      glow.setAttribute('stroke-linecap', 'round');
+      ag.appendChild(glow);
+    }
 
     // Main line
     var line = document.createElementNS(SVG_NS, 'path');
     line.setAttribute('d', 'M ' + x1 + ' ' + y1 + ' Q ' + cx1 + ' ' + cy1 + ' ' + x2 + ' ' + y2);
     line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', '2');
+    line.setAttribute('stroke-width', isMinimal ? '1.5' : '2');
     line.setAttribute('fill', 'none');
-    line.setAttribute('opacity', '0.7');
+    line.setAttribute('opacity', isMinimal ? '0.85' : '0.7');
     line.setAttribute('stroke-linecap', 'round');
     line.setAttribute('marker-end', 'url(#' + markerId + ')');
 
+    if (isMinimal && entity.type === 'DataFlow') {
+      line.setAttribute('stroke-dasharray', '8,5');
+    }
+
+    if (!isMinimal) {
     // Subtle slow flow animation on all arrows
     line.setAttribute('stroke-dasharray', '8,0');
     var flowAnim = document.createElementNS(SVG_NS, 'animate');
@@ -1090,6 +1265,7 @@ export const PLAYER_JS = `(function() {
       anim.setAttribute('dur', '0.8s');
       anim.setAttribute('repeatCount', 'indefinite');
       line.appendChild(anim);
+    }
     }
 
     ag.appendChild(line);
@@ -1117,15 +1293,16 @@ export const PLAYER_JS = `(function() {
       lpill.setAttribute('width', String(pillW));
       lpill.setAttribute('height', String(pillH));
       lpill.setAttribute('rx', String(pillH / 2));
-      lpill.setAttribute('fill', 'rgba(0,0,0,0.55)');
-      lpill.setAttribute('stroke', 'none');
+      lpill.setAttribute('fill', isMinimal ? '#1e293b' : 'rgba(0,0,0,0.55)');
+      lpill.setAttribute('stroke', isMinimal ? '#334155' : 'none');
+      if (isMinimal) lpill.setAttribute('stroke-width', '1');
       ag.appendChild(lpill);
 
       var lt = document.createElementNS(SVG_NS, 'text');
       lt.setAttribute('x', String(lx));
       lt.setAttribute('y', String(ly));
       lt.setAttribute('text-anchor', 'middle');
-      lt.setAttribute('fill', color);
+      lt.setAttribute('fill', isMinimal ? '#ffffff' : color);
       lt.setAttribute('font-size', String(labelFontSize));
       lt.setAttribute('font-weight', '500');
       lt.setAttribute('font-family', FONT_UI);
@@ -1282,6 +1459,23 @@ export const PLAYER_JS = `(function() {
     var total = currentScript.frames ? currentScript.frames.length : 1;
     frameCounter.textContent = (currentFrame + 1) + ' / ' + total;
     if (frameNav) frameNav.classList.add('visible');
+
+    // Progress bar
+    var progressBar = document.getElementById('progress-fill');
+    if (progressBar) {
+      var pct = total > 1 ? (currentFrame / (total - 1)) * 100 : 100;
+      progressBar.style.width = pct + '%';
+    }
+
+    // Step message (Step X/Y: narration)
+    var stepCounter = document.getElementById('step-counter');
+    var stepText = document.getElementById('step-text');
+    if (stepCounter && stepText) {
+      stepCounter.textContent = 'Step ' + (currentFrame + 1) + '/' + total + ': ';
+      var frame = currentScript.frames[currentFrame];
+      var nar = frame && frame.narrationSegment ? (typeof frame.narrationSegment === 'string' ? frame.narrationSegment : (frame.narrationSegment.text || '')) : '';
+      stepText.textContent = nar || '';
+    }
 
     // Update prev/next button aria-disabled
     if (prevBtn) {
@@ -1479,6 +1673,8 @@ export const PLAYER_JS = `(function() {
         hideEmptyState();
         var prevFrameCount = currentScript ? currentScript.frames.length : 0;
         currentScript = event.script;
+        renderStyle = (currentScript && currentScript.style === 'minimal') || urlStyle ? 'minimal' : 'cinema';
+        if (document.body) document.body.setAttribute('data-theme', renderStyle);
         // If frames were appended, navigate to the first new frame
         // If this is the initial load or a full replace, go to frame 0
         if (prevFrameCount > 0 && currentScript.frames.length > prevFrameCount) {

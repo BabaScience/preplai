@@ -176,6 +176,25 @@ describe('GET /player/:sessionId', () => {
     expect(res.body).toContain('id="frame-nav"');
     expect(res.body).toContain('id="frame-counter"');
   });
+
+  it('should inject data-theme=minimal when ?style=minimal in query', async () => {
+    const res = await ctx.app.inject({
+      method: 'GET',
+      url: `/player/${sessionId}?style=minimal`,
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toContain('data-theme="minimal"');
+  });
+
+  it('should inject data-theme=cinema when no style param', async () => {
+    const res = await ctx.app.inject({
+      method: 'GET',
+      url: `/player/${sessionId}`,
+    });
+
+    expect(res.body).toContain('data-theme="cinema"');
+  });
 });
 
 // ── Player CSS Route ─────────────────────────────────────────────────

@@ -3,6 +3,7 @@
  *
  * Inline HTML template for the player page.
  * {{SESSION_ID}} is replaced at serve time.
+ * {{STYLE}} is replaced with 'cinema' or 'minimal' from URL ?style= param.
  *
  * Design philosophy:
  * - Cinema-quality dark canvas with radial vignette
@@ -32,7 +33,7 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
 
   <link rel="stylesheet" href="/player.css">
 </head>
-<body data-session-id="{{SESSION_ID}}">
+<body data-session-id="{{SESSION_ID}}" data-theme="{{STYLE}}">
 
   <!-- Connection status indicator -->
   <div id="connection-status"></div>
@@ -40,6 +41,16 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
   <!-- Narrator text overlay (HTML, not SVG — better font rendering) -->
   <div id="narrator-overlay">
     <p id="narrator-text" aria-live="polite"></p>
+  </div>
+
+  <!-- Progress bar (algorithm-viz style) -->
+  <div id="progress-bar" class="progress-bar">
+    <div id="progress-fill" class="progress-fill"></div>
+  </div>
+
+  <!-- Step message (Step X/Y: message) -->
+  <div id="step-message" class="step-message">
+    <span id="step-counter">Step 1/1: </span><span id="step-text"></span>
   </div>
 
   <!-- Frame navigation (keyboard + click) -->

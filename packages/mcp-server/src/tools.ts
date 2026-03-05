@@ -65,18 +65,21 @@ function validateVisualScript(visual_script: any): string | null {
 // ── Tool 1: create_session ────────────────────────────────────────────
 
 export async function handleCreateSession(
-  args: { title: string; aspect_ratio?: string; _apiKeyId?: string },
+  args: { title: string; aspect_ratio?: string; style?: 'cinema' | 'minimal'; _apiKeyId?: string },
   deps: CreateSessionDeps,
 ): Promise<McpToolContent> {
-  const { title, aspect_ratio = '16:9', _apiKeyId } = args;
+  const { title, aspect_ratio = '16:9', style, _apiKeyId } = args;
   const { store, baseUrl } = deps;
 
   const session = await store.createSession(title, aspect_ratio, _apiKeyId ?? null);
 
+  const styleSuffix = style === 'minimal' ? '?style=minimal' : '';
+  const embedSuffix = style === 'minimal' ? '?embed=1&style=minimal' : '?embed=1';
+
   return mcpOk({
     session_id: session.id,
-    player_url: `${baseUrl}/player/${session.id}`,
-    embed_url: `${baseUrl}/player/${session.id}?embed=1`,
+    player_url: `${baseUrl}/player/${session.id}${styleSuffix}`,
+    embed_url: `${baseUrl}/player/${session.id}${embedSuffix}`,
     title: session.title,
     aspect_ratio: session.aspect_ratio,
     created_at: new Date(session.created_at).toISOString(),
@@ -118,6 +121,7 @@ export async function handleAddScene(
       ...session.script,
       frames: [...existingFrames, ...offsetFrames],
       totalDuration: existingDuration + visual_script.totalDuration,
+      style: visual_script.style ?? session.script?.style,
     };
   } else {
     // First scene — no merge needed

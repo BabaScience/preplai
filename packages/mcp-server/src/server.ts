@@ -194,10 +194,13 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     if (path.startsWith('/session/') && path.endsWith('/events')) return;
 
     // Accept X-Preplai-API-Key or Authorization: Bearer <key|jwt>
+    // Note: @pyroprompts/mcp-stdio-to-streamable-http-adapter sends "Bearer: <token>" (colon) instead of "Bearer <token>" (space).
+    // We accept both for compatibility.
     let token = request.headers['x-preplai-api-key'] as string | undefined;
     if (!token) {
       const auth = request.headers.authorization;
       if (auth?.startsWith('Bearer ')) token = auth.slice(7).trim();
+      else if (auth?.startsWith('Bearer:')) token = auth.slice(7).trim();
     }
 
     const sessionId = request.headers[MCP_SESSION_HEADER] as string | undefined;
@@ -353,16 +356,23 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   });
 
   // ── Player HTML route ─────────────────────────────────────────────
-  app.get<{ Params: { sessionId: string } }>('/player/:sessionId', async (request, reply) => {
-    const { sessionId } = request.params;
-    const session = store.getSession(sessionId);
-    if (!session) {
-      reply.status(404).send({ error: 'Session not found or expired.' });
-      return;
-    }
-    const html = PLAYER_HTML_TEMPLATE.replace(/\{\{SESSION_ID\}\}/g, sessionId);
-    reply.type('text/html').send(html);
-  });
+  app.get<{ Params: { sessionId: string }; Querystring: { style?: string } }>(
+    '/player/:sessionId',
+    async (request, reply) => {
+      const { sessionId } = request.params;
+      const session = store.getSession(sessionId);
+      if (!session) {
+        reply.status(404).send({ error: 'Session not found or expired.' });
+        return;
+      }
+      const style = request.query.style === 'minimal' ? 'minimal' : 'cinema';
+      const html = PLAYER_HTML_TEMPLATE.replace(/\{\{SESSION_ID\}\}/g, sessionId).replace(
+        /\{\{STYLE\}\}/g,
+        style,
+      );
+      reply.type('text/html').send(html);
+    },
+  );
 
   // ── Player static assets ──────────────────────────────────────────
   app.get('/player.css', async (request, reply) => {
@@ -387,7 +397,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     return { ok: true };
   }
 
-  app.post<{ Body: { title: string; aspect_ratio?: string } }>(
+  app.post<{ Body: { title: string; aspect_ratio?: string; style?: 'cinema' | 'minimal' } }>(
     '/api/create-session',
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;

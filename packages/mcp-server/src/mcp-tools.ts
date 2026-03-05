@@ -81,6 +81,7 @@ const VisualScriptSchema = z.object({
   sceneId: z.string().describe('Unique scene ID, e.g. "scene-1"'),
   frames: z.array(IllustrationFrameSchema).min(1).describe('Array of frames (at least one)'),
   totalDuration: z.number().describe('Total duration in ms (should be >= last frame endTime)'),
+  style: z.enum(['cinema', 'minimal']).optional().describe('Presentation style: "cinema" (default, rich gradients) or "minimal" (flat, algorithm-viz style)'),
 });
 
 // ── Rich tool descriptions ────────────────────────────────────────────
@@ -230,6 +231,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
     {
       title: z.string().describe('Clear, descriptive title matching the user\'s topic (e.g. "Binary Search Tree Insertion", "System Architecture Overview")'),
       aspect_ratio: z.string().optional().describe('Aspect ratio, default "16:9". Options: "16:9", "4:3"'),
+      style: z.enum(['cinema', 'minimal']).optional().describe('Presentation style: "cinema" (default, rich gradients) or "minimal" (flat, algorithm-viz style). When "minimal", player_url includes ?style=minimal.'),
     },
     async (args, extra) => {
       const { trackUsage, checkSessionLimit } = await import('./auth.js');

@@ -129,6 +129,7 @@ export interface VisualScript {
   frames: IllustrationFrame[];
   totalDuration: number;
   entities?: Record<string, VisualEntity>;
+  style?: 'cinema' | 'minimal';
 }
 
 
