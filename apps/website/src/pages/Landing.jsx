@@ -111,6 +111,7 @@ export default function Landing() {
           </div>
           <div className="footer-links">
             <Link to="/docs">Docs</Link>
+            <Link to="/blog">Blog</Link>
             <Link to="/dashboard/overview">Dashboard</Link>
           </div>
         </div>

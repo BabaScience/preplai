@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext';
 import { useSyncApiToken } from './hooks/useApi';
 import Landing from './pages/Landing';
 import Docs from './pages/Docs';
+import Blog from './pages/Blog';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import VerifyEmail from './pages/VerifyEmail';
@@ -33,6 +34,7 @@ export default function App() {
       <Route path="/signup" element={<Signup />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/docs/*" element={<Docs />} />
+      <Route path="/blog/*" element={<Blog />} />
       <Route path="/dashboard" element={<Navigate to="/dashboard/overview" replace />} />
       <Route
         path="/dashboard/overview"
