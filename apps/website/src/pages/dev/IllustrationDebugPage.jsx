@@ -31,6 +31,13 @@ export default function IllustrationDebugPage() {
   const [entity, setEntity] = useState(null);
   const [renderError, setRenderError] = useState(null);
   const [copyFeedback, setCopyFeedback] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const filteredTypes = search.trim()
+    ? ENTITY_TYPES.filter((type) =>
+        type.toLowerCase().includes(search.trim().toLowerCase()),
+      )
+    : ENTITY_TYPES;
 
   const handleSelectType = useCallback((type) => {
     setSelectedType(type);
@@ -70,6 +77,22 @@ export default function IllustrationDebugPage() {
         >
           Illustration Debug
         </h2>
+        <input
+          type="search"
+          placeholder="Search illustrations..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            width: '100%',
+            margin: '0 var(--space-3) var(--space-3)',
+            padding: 'var(--space-2) var(--space-3)',
+            fontSize: 'var(--text-sm)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--color-surface-1)',
+            color: 'var(--color-text)',
+          }}
+        />
         <p
           style={{
             fontSize: 'var(--text-xs)',
@@ -78,10 +101,10 @@ export default function IllustrationDebugPage() {
             marginBottom: 'var(--space-3)',
           }}
         >
-          {ENTITY_TYPES.length} entity types. Click to preview.
+          {filteredTypes.length} of {ENTITY_TYPES.length} types. Click to preview.
         </p>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {ENTITY_TYPES.map((type) => (
+          {filteredTypes.map((type) => (
             <li key={type}>
               <button
                 type="button"

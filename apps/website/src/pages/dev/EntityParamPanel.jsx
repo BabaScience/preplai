@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { ENTITY_DEFAULTS } from '@preplai/shared';
 
+/** Types that inherit from text-card (same metadata: label, width, maxLines) */
+const CARD_TYPES = ['Analogy', 'Annotation', 'Label', 'Comparison', 'Proof', 'Quote', 'Stack'];
+
 export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
   const [showJson, setShowJson] = useState(false);
   const [jsonInput, setJsonInput] = useState('');
@@ -136,6 +139,60 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
           Highlight
         </label>
       </div>
+
+      {CARD_TYPES.includes(entity.type) && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Card metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Label</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.label ?? entity.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  label: e.target.value,
+                })
+              }
+              placeholder="Binary search is like a phone book"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Width (scale units)</label>
+            <input
+              type="number"
+              className="form-input"
+              min={30}
+              max={120}
+              value={entity.metadata?.width ?? 56}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  width: Number(e.target.value) || 56,
+                })
+              }
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Max lines</label>
+            <input
+              type="number"
+              className="form-input"
+              min={1}
+              max={6}
+              value={entity.metadata?.maxLines ?? 3}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  maxLines: Math.max(1, Math.min(6, Number(e.target.value) || 3)),
+                })
+              }
+            />
+          </div>
+        </>
+      )}
 
       {entity.type === 'Array' && (
         <>

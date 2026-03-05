@@ -117,9 +117,10 @@ Topic → Preferred type:
 - ML metrics (TP/FP/TN/FN) → ConfusionMatrix (metadata.matrix)
 - Key-value storage → HashTable (metadata.pairs) or Dict
 - Arrays, lists, indexed data → Array (metadata.values, metadata.disabledIndexes)
+- Analogies, "X is like Y" → Analogy (metadata.label, metadata.description)
 - Architecture diagrams → Server, Database, Cloud, Arrow, LoadBalancer
 
-PREFER dedicated types (rich visuals): Server, Database, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, AST, ProcessState, GanttChart, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, Timeline, StepList, Definition, Callout.
+PREFER dedicated types (rich visuals): Server, Database, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, AST, ProcessState, GanttChart, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, Timeline, StepList, Definition, Callout, Analogy.
 
 AVOID generic fallbacks when possible: Entity, Group, Tree, Stack, FSM, NeuralNetwork — these render as plain rounded rects.
 
@@ -143,6 +144,7 @@ METADATA (required for correct rendering):
 - ConfusionMatrix: metadata.matrix (2D array), metadata.rowLabels?, metadata.colLabels?
 - HashTable: metadata.pairs = [[key, value], ...]
 - Array: metadata.values = [string|number, ...] (agent can display any values), metadata.disabledIndexes = [0-based indexes to dim], metadata.selectedIndexes = [0-based indexes to highlight], or metadata.cells = [{value, enabled?, selected?}]. Max 8 cells.
+- Analogy: metadata.label (or entity.label), metadata.width?, metadata.maxLines?. Text wraps by line; overflow gets "...".
 - MemoryLayout: metadata.stack = [...], metadata.heap = [...]
 - AST/ParseTree: metadata.ast = {type, value?, children?}
 

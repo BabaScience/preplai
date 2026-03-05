@@ -36,6 +36,15 @@ import { renderTimeline } from './components/timeline.js';
 import { renderStepList } from './components/steplist.js';
 import { renderDefinition } from './components/definition.js';
 import { renderCallout } from './components/callout.js';
+import { renderAnalogy } from './components/analogy.js';
+import {
+  renderAnnotation,
+  renderLabel,
+  renderComparison,
+  renderProof,
+  renderQuote,
+  renderStack,
+} from './components/card-types.js';
 import { renderArray } from './components/array.js';
 import { renderLinkedList } from './components/linkedlist.js';
 import { renderBinaryTree } from './components/binarytree.js';
@@ -74,10 +83,8 @@ const infraOrg = generic('Queue');  // fallback only; renderQueue used
 const infraRed = generic('Firewall');
 const infraBlu = generic('Subnet');
 const univCyan = generic('Entity');
-const univOrg = generic('Label');
 const univGrn = generic('Tree');
 const univBcd = generic('Group');
-const univPrp = generic('Stack');
 const univRed = generic('Badge');
 const mathSci = generic('Equation');
 const mathPrp = generic('Matrix');
@@ -87,8 +94,6 @@ const physPnk = generic('Vector');
 const physPrp = generic('Field');
 const genGrn = generic('Histogram');
 const genBcd = generic('FlowDiagram');
-const genOrg = generic('Annotation');
-const pedPrp = generic('Proof');
 const dsGrn = generic('LinkedList');
 const dsOrg = generic('HashTable');  // fallback only; renderHashTable used
 const dsBcd = generic('Heap');
@@ -160,15 +165,15 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Concept: renderConcept,
   Entity: univCyan,
   Group: renderGroup,
-  Label: univOrg,
-  Comparison: univOrg,
+  Label: renderLabel,
+  Comparison: renderComparison,
   Timeline: renderTimeline,
   Metric: renderMetric,
   Cycle: circleCycle,
-  Stack: univPrp,
+  Stack: renderStack,
   Tree: univGrn,
   Badge: renderBadge,
-  Quote: univPrp,
+  Quote: renderQuote,
 
   // ── Math & Science (Graph2D fully implemented)
   Equation: mathSci,
@@ -192,7 +197,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   PieChart: infra,
   FlowDiagram: genBcd,
   VennDiagram: infra,
-  Annotation: genOrg,
+  Annotation: renderAnnotation,
   BarChart: infra,
   ScatterPlot: infra,
 
@@ -201,8 +206,8 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   CodeBlock: renderCodeBlock,
   Definition: renderDefinition,
   Callout: renderCallout,
-  Proof: pedPrp,
-  Analogy: infra,
+  Proof: renderProof,
+  Analogy: renderAnalogy,
 
   // ── Data Structures
   Array: renderArray,

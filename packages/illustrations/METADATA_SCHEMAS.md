@@ -2,6 +2,23 @@
 
 This document describes the expected `metadata` shapes for entity types that accept structured data.
 
+## Text Card (Analogy, Annotation, Label, Comparison, Proof, Quote, Stack)
+
+All these types inherit from the same text-card base. Same metadata for all:
+
+```json
+{
+  "label": "Binary search is like a phone book. Divide and conquer on sorted array.",
+  "width": 56,
+  "maxLines": 3
+}
+```
+
+- `label`: Text content (or use entity.label). Wraps to new lines by word; no shrinking
+- `width`: Panel width in scale units (default 56). Drives font size and chars per line.
+- `maxLines`: Max lines before truncation with "..." (default 3)
+- Longer text → smaller font so all text stays visible. Font size is chosen as the largest (8–24px) that fits the full text within maxLines.
+
 ## Array
 
 ```json

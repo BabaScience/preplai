@@ -65,7 +65,8 @@
 - **BinaryTree**, **BTree** — Tree structures
 - **CallStack** — Stack frames
 - **HashTable** — Key-value pairs
-- **Array** — Indexed cells with customizable values; use `metadata.values` and `metadata.disabledIndexes` to show/dim cells
+- **Array** — Indexed cells with customizable values; use `metadata.values`, `metadata.disabledIndexes`, `metadata.selectedIndexes` to show/dim/highlight cells
+- **Analogy** — Single card; `metadata.label` wraps by line; `metadata.width`, `metadata.maxLines`; overflow "..."
 - **GanttChart** — Task bars
 - **ProcessState** — State diagram
 - **MemoryLayout** — Stack/heap
@@ -89,6 +90,7 @@
 | ML metrics | ConfusionMatrix |
 | Key-value storage | HashTable |
 | Arrays, lists, indexed data | Array |
+| Analogies, "X is like Y" | Analogy |
 | Architecture diagrams | Server, Database, Cloud, Arrow |
 
 ## Entity Schema
@@ -114,6 +116,8 @@
 For **Arrow**/**DataFlow**: add `sourceEntityId`, `targetEntityId`. Use `metadata.curved: true` for curved arrows.
 
 For **Array**: use `metadata.values` (e.g. `["a", "b", "c", "d", "e"]`) to set cell contents; `metadata.disabledIndexes` (e.g. `[1, 3]`) to dim specific 0-based indexes; `metadata.selectedIndexes` (e.g. `[0, 2]`) to highlight cells (e.g. current comparison in binary search). Or `metadata.cells = [{value, enabled?, selected?}]`. Max 8 cells.
+
+For **Analogy**: use `metadata.label` (or entity.label). Text wraps to new lines; set `metadata.width` and `metadata.maxLines` to control layout. Overflow truncates with "...".
 
 ## Design Guidelines
 

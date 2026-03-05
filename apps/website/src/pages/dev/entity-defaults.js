@@ -87,6 +87,18 @@ export const METADATA_DEFAULTS = {
     rowLabels: ['Actual -', 'Actual +'],
     colLabels: ['Pred -', 'Pred +'],
   },
+  // Card types (inherit from text-card)
+  Analogy: {
+    label: 'Binary search is like a phone book. Divide and conquer on sorted array.',
+    width: 56,
+    maxLines: 3,
+  },
+  Annotation: { label: 'Add your annotation here.', width: 56, maxLines: 3 },
+  Label: { label: 'Label text', width: 56, maxLines: 3 },
+  Comparison: { label: 'Compare items here.', width: 56, maxLines: 3 },
+  Proof: { label: 'Proof step or statement.', width: 56, maxLines: 3 },
+  Quote: { label: 'Quote or citation.', width: 56, maxLines: 3 },
+  Stack: { label: 'Stack item or frame.', width: 56, maxLines: 3 },
   Array: {
     values: ['a', 'b', 'c', 'd', 'e'],
     disabledIndexes: [1, 3],
