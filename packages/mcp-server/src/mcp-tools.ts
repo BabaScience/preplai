@@ -38,7 +38,7 @@ function verifySessionOwnership(
 
 export const VisualEntitySchema = z.object({
   id: z.string(),
-  type: z.string().describe('Entity type. See add_scene description for topic→type mapping. Dedicated: Server, Database, User, Cloud, BinaryTree, BTree, LinkedList, HashTable, CallStack, AST, ProcessState, GanttChart, MemoryLayout, ConfusionMatrix, CodeBlock, Concept, Label, Graph2D. Connections: Arrow, DataFlow.'),
+  type: z.string().describe('Entity type. See add_scene description for topic→type mapping. Dedicated: Server, Database, User, Cloud, BinaryTree, BTree, LinkedList, HashTable, CallStack, AST, ProcessState, GanttChart, BarChart, MemoryLayout, ConfusionMatrix, CodeBlock, Concept, Label, Graph2D. Connections: Arrow, DataFlow.'),
   position: z.object({
     x: z.number().describe('X position as percentage 0-100 of the 1920px canvas'),
     y: z.number().describe('Y position as percentage 0-100 of the 1080px canvas'),
@@ -119,8 +119,9 @@ Topic → Preferred type:
 - Arrays, lists, indexed data → Array (metadata.values, metadata.disabledIndexes)
 - Analogies, "X is like Y" → Analogy (metadata.label, metadata.description)
 - Architecture diagrams → Server, Database, Cloud, Arrow, LoadBalancer
+- Categorical comparisons (sales by month, counts by type, rankings) → BarChart (metadata.bars)
 
-PREFER dedicated types (rich visuals): Server, Database, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, AST, ProcessState, GanttChart, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, Timeline, StepList, Definition, Callout, Analogy.
+PREFER dedicated types (rich visuals): Server, Database, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, AST, ProcessState, GanttChart, BarChart, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, Timeline, StepList, Definition, Callout, Analogy.
 
 AVOID generic fallbacks when possible: Entity, Group, Tree, Stack, FSM, NeuralNetwork — these render as plain rounded rects.
 
@@ -133,12 +134,13 @@ SHAPED renderers:
   Cache (circle), LoadBalancer (hexagon), Decision (diamond), Metric (circle)
 
 CS-specific with custom renderers:
-  AST (parse tree), CallStack (stack frames), BTree (multi-child tree), ProcessState (state diagram), GanttChart (task bars), CacheHierarchy (L1/L2/L3 stack), MemoryLayout (stack/heap), ConfusionMatrix (TP/FP/TN/FN grid)
+  AST (parse tree), CallStack (stack frames), BTree (multi-child tree), ProcessState (state diagram), GanttChart (task bars), BarChart (axes + bars with value labels), CacheHierarchy (L1/L2/L3 stack), MemoryLayout (stack/heap), ConfusionMatrix (TP/FP/TN/FN grid)
 
 METADATA (required for correct rendering):
 - Arrow/DataFlow: metadata.curved = true (optional) — when true, render curved; default is straight
 - CallStack: metadata.frames = [{name, locals?}]
-- BTree/BinaryTree: metadata.tree = {value, left?, right?} or {value, children?}
+- BinaryTree: metadata.tree = {value, left?, right?} OR metadata.nodes = [level-order values]. metadata.disabledIndexes = [0-based indexes to dim], metadata.selectedIndexes = [0-based indexes to highlight]. Use for BST, heap, binary search.
+- BTree: metadata.tree = {value, children?}, metadata.branchingFactor?. Use for multi-way trees (B-tree, B+ tree). Node labels can be key ranges like "[10,20]".
 - GanttChart: metadata.tasks = [{name, start, end}], metadata.maxTime?
 - ProcessState: metadata.states, metadata.transitions
 - ConfusionMatrix: metadata.matrix (2D array), metadata.rowLabels?, metadata.colLabels?
@@ -147,6 +149,7 @@ METADATA (required for correct rendering):
 - Analogy: metadata.label (or entity.label), metadata.width?, metadata.maxLines?. Text wraps by line; overflow gets "...".
 - MemoryLayout: metadata.stack = [...], metadata.heap = [...]
 - AST/ParseTree: metadata.ast = {type, value?, children?}
+- BarChart: metadata.bars = [{label, value, color?}, ...] (required), metadata.xLabel?, metadata.yLabel?, metadata.horizontal? (true = horizontal bars). Use for categorical comparisons. Max 12 bars.
 
 Graph2D supports metadata.curveType: "roc" (ROC curve), "loss" (training loss), or "scatter" for scatter points.
 

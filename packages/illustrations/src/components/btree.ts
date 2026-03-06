@@ -1,8 +1,11 @@
 /**
  * @preplai/illustrations — BTree Component
- * B-tree / B+ tree with configurable branching factor
  *
- * Metadata: { tree: { value, children }, branchingFactor?: 3 }
+ * B-tree, B+ tree, multi-way trees. Use when nodes have 3+ children (not BinaryTree).
+ *
+ * Metadata (agent: see METADATA_SCHEMAS.md):
+ *   tree: { value, children? } — value = node label (e.g. "[10,20]" key range)
+ *   branchingFactor?: number — default 3
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
@@ -42,9 +45,13 @@ export function renderBTree(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     ],
   };
 
-  const dx = s * 0.4;
-  const dy = s * 0.3;
-  const { nodes, edges } = treeLayout(tree, 0, -s / 3, dx, dy);
+  const scale = s / 50;
+  const nodeR = 14 * scale;
+  // Large dx/dy to spread nodes and create long edges (B-tree needs room for many children)
+  const dx = s * 2.5;
+  const dy = s * 1.2;
+
+  const { nodes, edges } = treeLayout(tree, 0, -s / 3, dx, dy, { nodeRadius: nodeR });
 
   edges.forEach(({ x1, y1, x2, y2 }) => {
     const line = document.createElementNS(SVG_NS, 'line');
@@ -62,18 +69,19 @@ export function renderBTree(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     const circle = document.createElementNS(SVG_NS, 'circle');
     circle.setAttribute('cx', String(x));
     circle.setAttribute('cy', String(y));
-    circle.setAttribute('r', '14');
+    circle.setAttribute('r', String(nodeR));
     circle.setAttribute('fill', `url(#${gradId})`);
     circle.setAttribute('stroke', color);
-    circle.setAttribute('stroke-width', '2');
+    circle.setAttribute('stroke-width', String(Math.max(1, 1.2 * scale)));
     innerG.appendChild(circle);
 
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', String(x));
-    text.setAttribute('y', String(y + 4));
+    text.setAttribute('y', String(y));
     text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', color);
-    text.setAttribute('font-size', '9');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('fill', '#ffffff');
+    text.setAttribute('font-size', String(Math.round(11 * scale)));
     text.setAttribute('font-weight', '600');
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     text.textContent = String(value).slice(0, 12);

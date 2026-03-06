@@ -8,12 +8,16 @@ export {
   layoutBinaryTree,
   layoutMultiChildTree,
   treeLayout,
+  treeFromFlatNodes,
   type BinaryTreeNode,
   type MultiChildTreeNode,
   type TreeNode,
   type TreeLayoutNode,
   type TreeLayoutEdge,
   type TreeLayoutResult,
+  type NodeHighlight,
+  type FlatNodeSpec,
+  type TreeLayoutOptions,
 } from './tree-layout.js';
 
 export {

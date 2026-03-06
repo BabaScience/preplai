@@ -9,19 +9,15 @@ function isConnectionType(type) {
   return CONNECTION_TYPES.has(type);
 }
 
-/** Placeholder entities for connection types (Arrow, DataFlow, etc.) */
-const PLACEHOLDER_SRC = {
-  id: 'debug-src',
-  type: 'Concept',
-  position: { x: 20, y: 50 },
-  label: 'A',
-};
-const PLACEHOLDER_TGT = {
-  id: 'debug-tgt',
-  type: 'Concept',
-  position: { x: 80, y: 50 },
-  label: 'B',
-};
+/** Create placeholder entities for connection types (Arrow, DataFlow, etc.) */
+function createPlaceholders(connectionEntity) {
+  const srcId = connectionEntity.sourceEntityId ?? 'debug-src';
+  const tgtId = connectionEntity.targetEntityId ?? 'debug-tgt';
+  return [
+    { id: srcId, type: 'Concept', position: { x: 20, y: 50 }, label: 'A' },
+    { id: tgtId, type: 'Concept', position: { x: 80, y: 50 }, label: 'B' },
+  ];
+}
 
 export default function IllustrationPreview({ entity, renderError }) {
   const svgRef = useRef(null);
@@ -40,14 +36,16 @@ export default function IllustrationPreview({ entity, renderError }) {
 
     const needsConnection = isConnectionType(entity.type);
     const connectionEntity = needsConnection
-      ? { ...entity, sourceEntityId: 'debug-src', targetEntityId: 'debug-tgt' }
+      ? { ...entity, sourceEntityId: entity.sourceEntityId ?? 'debug-src', targetEntityId: entity.targetEntityId ?? 'debug-tgt' }
       : entity;
+
+    const [placeholderSrc, placeholderTgt] = needsConnection ? createPlaceholders(connectionEntity) : [null, null];
 
     const entities = needsConnection
       ? [
-          applyDefaults({ ...PLACEHOLDER_SRC, position: { x: 20, y: 50 } }),
-          applyDefaults({ ...PLACEHOLDER_TGT, position: { x: 80, y: 50 } }),
-          connectionEntity,
+          applyDefaults(placeholderSrc),
+          applyDefaults(placeholderTgt),
+          applyDefaults(connectionEntity),
         ]
       : [entity];
 

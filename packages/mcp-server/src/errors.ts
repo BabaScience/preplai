@@ -66,7 +66,7 @@ export function mcpValidationError(
   return mcpErr(
     'VALIDATION_ERROR',
     `Input validation failed: ${detail}`,
-    'Fix the listed field errors and retry. For entity types with structured data (BinaryTree, CallStack, GanttChart, etc.), ensure metadata matches the add_scene METADATA section.',
+    'Fix the listed field errors and retry. For entity types with structured data (BinaryTree, CallStack, GanttChart, BarChart, etc.), ensure metadata matches the add_scene METADATA section and VisualScript schema.',
   );
 }
 

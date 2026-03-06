@@ -72,6 +72,7 @@
 - **MemoryLayout** — Stack/heap
 - **ConfusionMatrix** — TP/FP/TN/FN grid
 - **Graph2D** — 2D plots (ROC, loss, scatter)
+- **BarChart** — Bar chart; use `metadata.bars` (array of `{label, value, color?}`), `metadata.xLabel`, `metadata.yLabel`, `metadata.horizontal` (boolean). Use for categorical comparisons (sales by month, counts by type). Max 12 bars.
 
 ### Connection Types
 
@@ -92,6 +93,7 @@
 | Arrays, lists, indexed data | Array |
 | Analogies, "X is like Y" | Analogy |
 | Architecture diagrams | Server, Database, Cloud, Arrow |
+| Categorical comparisons (sales, counts, rankings) | BarChart |
 
 ## Entity Schema
 
@@ -115,9 +117,15 @@
 
 For **Arrow**/**DataFlow**: add `sourceEntityId`, `targetEntityId`. Use `metadata.curved: true` for curved arrows.
 
+For **BinaryTree**: use `metadata.tree` (nested `{value, left?, right?}`) OR `metadata.nodes` (level-order array, e.g. `[5, 3, 8, 1, 4, 6, 9]`). Use `metadata.disabledIndexes` and `metadata.selectedIndexes` (0-based, level-order) to dim/highlight nodes — e.g. binary search: highlight current comparison, dim eliminated half. Per-node: `enabled`, `selected`, `highlight` (`'compare'|'insert'|'visited'|'active'`). Full schema: `packages/illustrations/METADATA_SCHEMAS.md`.
+
+For **BTree**: use `metadata.tree` = `{value, children?}` for multi-way trees. Node labels can be key ranges (e.g. `"[10,20]"`). `metadata.branchingFactor` optional. Use BTree (not BinaryTree) when nodes have 3+ children.
+
 For **Array**: use `metadata.values` (e.g. `["a", "b", "c", "d", "e"]`) to set cell contents; `metadata.disabledIndexes` (e.g. `[1, 3]`) to dim specific 0-based indexes; `metadata.selectedIndexes` (e.g. `[0, 2]`) to highlight cells (e.g. current comparison in binary search). Or `metadata.cells = [{value, enabled?, selected?}]`. Max 8 cells.
 
 For **Analogy**: use `metadata.label` (or entity.label). Text wraps to new lines; set `metadata.width` and `metadata.maxLines` to control layout. Overflow truncates with "...".
+
+For **BarChart**: use `metadata.bars` — array of `{label: string, value: number, color?: string}` (e.g. `[{label: "Jan", value: 10}, {label: "Feb", value: 25}]`). Optional: `metadata.xLabel`, `metadata.yLabel`, `metadata.horizontal` (true = horizontal bars). Max 12 bars.
 
 ## Design Guidelines
 

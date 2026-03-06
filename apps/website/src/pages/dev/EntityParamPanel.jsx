@@ -1,12 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ENTITY_DEFAULTS } from '@preplai/shared';
 
 /** Types that inherit from text-card (same metadata: label, width, maxLines) */
 const CARD_TYPES = ['Analogy', 'Annotation', 'Label', 'Comparison', 'Proof', 'Quote', 'Stack'];
 
+/** Connection types (Arrow, DataFlow, etc.) — need source/target + special params */
+const CONNECTION_TYPES = ['Arrow', 'DataFlow', 'Transition', 'Bus'];
+
 export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
   const [showJson, setShowJson] = useState(false);
   const [jsonInput, setJsonInput] = useState('');
+  const [btreeTreeJson, setBtreeTreeJson] = useState('');
 
   const update = (path, value) => {
     const next = JSON.parse(JSON.stringify(entity));
@@ -40,6 +44,13 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
     const json = JSON.stringify(entity, null, 2);
     navigator.clipboard.writeText(json).then(() => onCopy?.());
   };
+
+  // Sync BTree tree JSON when entity changes (e.g. from Apply, or type switch)
+  useEffect(() => {
+    if (entity?.type === 'BTree') {
+      setBtreeTreeJson(JSON.stringify(entity.metadata?.tree ?? {}, null, 2));
+    }
+  }, [entity?.type, entity?.metadata?.tree]);
 
   if (!entity) {
     return (
@@ -140,6 +151,59 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </label>
       </div>
 
+      {CONNECTION_TYPES.includes(entity.type) && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Connection metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Source entity ID</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.sourceEntityId ?? ''}
+              onChange={(e) => update('sourceEntityId', e.target.value)}
+              placeholder="debug-src (A in preview)"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Target entity ID</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.targetEntityId ?? ''}
+              onChange={(e) => update('targetEntityId', e.target.value)}
+              placeholder="debug-tgt (B in preview)"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Label (on arrow)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.label ?? ''}
+              onChange={(e) => update('label', e.target.value)}
+              placeholder="Optional label"
+            />
+          </div>
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <input
+              type="checkbox"
+              id="curved"
+              checked={entity.metadata?.curved === true}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  curved: e.target.checked,
+                })
+              }
+            />
+            <label htmlFor="curved" className="form-label" style={{ marginBottom: 0 }}>
+              Curved
+            </label>
+          </div>
+        </>
+      )}
+
       {CARD_TYPES.includes(entity.type) && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
@@ -190,6 +254,249 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
                 })
               }
             />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'BTree' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
+            BTree metadata
+          </h4>
+          <div className="form-group">
+            <label className="form-label">Branching factor</label>
+            <input
+              type="number"
+              className="form-input"
+              min={2}
+              max={10}
+              value={entity.metadata?.branchingFactor ?? 3}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  branchingFactor: Math.max(2, Math.min(10, Number(e.target.value) || 3)),
+                })
+              }
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Tree (JSON)</label>
+            <textarea
+              className="form-input"
+              rows={8}
+              value={btreeTreeJson}
+              onChange={(e) => {
+                const raw = e.target.value;
+                setBtreeTreeJson(raw);
+                try {
+                  const tree = JSON.parse(raw || '{}');
+                  if (tree && typeof tree === 'object') {
+                    update('metadata', {
+                      ...(entity.metadata || {}),
+                      tree,
+                    });
+                  }
+                } catch (_) {
+                  // Invalid JSON while typing — keep local state, don't update entity
+                }
+              }}
+              onBlur={() => {
+                try {
+                  const tree = JSON.parse(btreeTreeJson || '{}');
+                  if (tree && typeof tree === 'object') {
+                    update('metadata', {
+                      ...(entity.metadata || {}),
+                      tree,
+                    });
+                  }
+                } catch (_) {
+                  // Restore valid JSON on blur if invalid
+                  setBtreeTreeJson(JSON.stringify(entity.metadata?.tree ?? {}, null, 2));
+                }
+              }}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+              placeholder='{"value": "[10,20]", "children": [...]}'
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Nested structure: value + children array. Syncs to preview on valid JSON.
+            </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'BinaryTree' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
+            {entity.type} metadata
+          </h4>
+          <div className="form-group">
+            <label className="form-label">Nodes (level-order, comma-separated)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(() => {
+                const nodes = entity.metadata?.nodes;
+                const tree = entity.metadata?.tree;
+                if (Array.isArray(nodes)) {
+                  return nodes
+                    .map((n) => (typeof n === 'object' && n?.value != null ? n.value : n))
+                    .filter((v) => v != null)
+                    .join(', ');
+                }
+                if (tree) {
+                  const vals = [];
+                  function collect(t) {
+                    if (!t) return;
+                    vals.push(t.value);
+                    collect(t.left);
+                    collect(t.right);
+                  }
+                  collect(tree);
+                  return vals.join(', ');
+                }
+                return '';
+              })()}
+              onChange={(e) => {
+                const values = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
+                const nextMeta = {
+                  ...(entity.metadata || {}),
+                  nodes: values.length ? values : undefined,
+                  tree: undefined,
+                };
+                update('metadata', nextMeta);
+              }}
+              placeholder="5, 3, 8, 1, 4, 6, 9"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Level-order: root, left, right, left-left, left-right, right-left, right-right…
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Disabled indexes (0-based, level-order)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.disabledIndexes ?? []).join(', ')}
+              onChange={(e) => {
+                const disabledIndexes = e.target.value
+                  .split(',')
+                  .map((s) => parseInt(s.trim(), 10))
+                  .filter((n) => !Number.isNaN(n));
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  disabledIndexes,
+                });
+              }}
+              placeholder="1, 3"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Selected indexes (0-based, level-order)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.selectedIndexes ?? []).join(', ')}
+              onChange={(e) => {
+                const selectedIndexes = e.target.value
+                  .split(',')
+                  .map((s) => parseInt(s.trim(), 10))
+                  .filter((n) => !Number.isNaN(n));
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  selectedIndexes,
+                });
+              }}
+              placeholder="0, 2"
+            />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'BarChart' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>BarChart metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Bars (label:value, comma-separated)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(() => {
+                const bars = entity.metadata?.bars;
+                if (!Array.isArray(bars)) return '';
+                return bars
+                  .map((b) => (typeof b === 'object' && b != null ? `${b.label ?? ''}:${b.value ?? 0}` : String(b)))
+                  .join(', ');
+              })()}
+              onChange={(e) => {
+                const parts = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
+                const bars = parts.map((p) => {
+                  const colon = p.indexOf(':');
+                  if (colon >= 0) {
+                    const label = p.slice(0, colon).trim();
+                    const value = Number(p.slice(colon + 1).trim()) || 0;
+                    return { label: label || '?', value };
+                  }
+                  return { label: p, value: 0 };
+                });
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  bars: bars.length ? bars : undefined,
+                });
+              }}
+              placeholder="Jan:10, Feb:25, Mar:15, Apr:30"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Format: label:value for each bar
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">X-axis label</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.xLabel ?? 'x'}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  xLabel: e.target.value,
+                })
+              }
+              placeholder="x"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Y-axis label</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.yLabel ?? 'y'}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  yLabel: e.target.value,
+                })
+              }
+              placeholder="y"
+            />
+          </div>
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <input
+              type="checkbox"
+              id="bar-horizontal"
+              checked={entity.metadata?.horizontal === true}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  horizontal: e.target.checked,
+                })
+              }
+            />
+            <label htmlFor="bar-horizontal" className="form-label" style={{ marginBottom: 0 }}>
+              Horizontal bars
+            </label>
           </div>
         </>
       )}

@@ -6,11 +6,9 @@
 
 export const METADATA_DEFAULTS = {
   BinaryTree: {
-    tree: {
-      value: 5,
-      left: { value: 3, left: { value: 1 }, right: { value: 4 } },
-      right: { value: 8, left: { value: 6 }, right: { value: 9 } },
-    },
+    nodes: [5, 3, 8, 1, 4, 6, 9],
+    disabledIndexes: [1, 3],
+    selectedIndexes: [0, 2],
   },
   BTree: {
     tree: {
@@ -88,6 +86,12 @@ export const METADATA_DEFAULTS = {
     colLabels: ['Pred -', 'Pred +'],
   },
   // Card types (inherit from text-card)
+  Arrow: {
+    curved: false,
+  },
+  DataFlow: {
+    curved: false,
+  },
   Analogy: {
     label: 'Binary search is like a phone book. Divide and conquer on sorted array.',
     width: 56,
@@ -103,6 +107,18 @@ export const METADATA_DEFAULTS = {
     values: ['a', 'b', 'c', 'd', 'e'],
     disabledIndexes: [1, 3],
     selectedIndexes: [0, 2],
+  },
+  BarChart: {
+    bars: [
+      { label: 'Jan', value: 10 },
+      { label: 'Feb', value: 25 },
+      { label: 'Mar', value: 15 },
+      { label: 'Apr', value: 30 },
+      { label: 'May', value: 22 },
+    ],
+    xLabel: 'Month',
+    yLabel: 'Value',
+    horizontal: false,
   },
   AST: {
     ast: {
@@ -124,6 +140,8 @@ export const METADATA_DEFAULTS = {
 
 /** Entity-level defaults (not metadata) for types that need textContent etc. */
 export const ENTITY_FIELD_DEFAULTS = {
+  BinaryTree: { size: 2.5 },
+  BTree: { size: 2.5 },
   CodeBlock: {
     textContent: 'function fib(n) {\n  if (n <= 1) return n;\n  return fib(n-1) + fib(n-2);\n}',
     codeLanguage: 'javascript',

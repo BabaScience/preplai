@@ -200,6 +200,20 @@ export function renderArrow(
   const y2 = targetEntry?.y ?? ty;
 
   const color = entity.color ?? getCategoryColor('Arrow');
+  const useCurved = entity.metadata?.curved === true;
+
+  let ctrlX = 0;
+  let ctrlY = 0;
+  if (useCurved) {
+    const midX = (x1 + x2) / 2;
+    const midY = (y1 + y2) / 2;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const curvature = Math.min(len * 0.3, 80);
+    ctrlX = midX + (-dy / len) * curvature;
+    ctrlY = midY + (dx / len) * curvature;
+  }
 
   // Unique arrowhead marker
   const markerId = `arrowhead-${entity.id}`;
@@ -211,22 +225,32 @@ export function renderArrow(
   g.setAttribute('data-type', 'Arrow');
   g.style.willChange = 'opacity';
 
-  // Line
-  const line = document.createElementNS(SVG_NS, 'line');
-  line.setAttribute('x1', String(x1));
-  line.setAttribute('y1', String(y1));
-  line.setAttribute('x2', String(x2));
-  line.setAttribute('y2', String(y2));
-  line.setAttribute('stroke', color);
-  line.setAttribute('stroke-width', '2.5');
-  line.setAttribute('opacity', '0.85');
-  line.setAttribute('marker-end', `url(#${markerId})`);
-  g.appendChild(line);
+  if (useCurved) {
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', `M ${x1} ${y1} Q ${ctrlX} ${ctrlY} ${x2} ${y2}`);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', color);
+    path.setAttribute('stroke-width', '2.5');
+    path.setAttribute('opacity', '0.85');
+    path.setAttribute('marker-end', `url(#${markerId})`);
+    g.appendChild(path);
+  } else {
+    const line = document.createElementNS(SVG_NS, 'line');
+    line.setAttribute('x1', String(x1));
+    line.setAttribute('y1', String(y1));
+    line.setAttribute('x2', String(x2));
+    line.setAttribute('y2', String(y2));
+    line.setAttribute('stroke', color);
+    line.setAttribute('stroke-width', '2.5');
+    line.setAttribute('opacity', '0.85');
+    line.setAttribute('marker-end', `url(#${markerId})`);
+    g.appendChild(line);
+  }
 
   // Optional midpoint label with background pill for readability
   if (entity.label) {
-    const midX = (x1 + x2) / 2;
-    const midY = (y1 + y2) / 2;
+    const midX = useCurved ? 0.25 * x1 + 0.5 * ctrlX + 0.25 * x2 : (x1 + x2) / 2;
+    const midY = useCurved ? 0.25 * y1 + 0.5 * ctrlY + 0.25 * y2 : (y1 + y2) / 2;
     const labelLen = entity.label.length * 6;
     const pillW = Math.max(labelLen + 16, 40);
     const pillH = 20;
@@ -235,7 +259,7 @@ export function renderArrow(
     pill.setAttribute('y', String(midY - pillH - 14));
     pill.setAttribute('width', String(pillW));
     pill.setAttribute('height', String(pillH));
-    pill.setAttribute('rx', '10');
+    pill.setAttribute('rx', '4');
     pill.setAttribute('fill', 'rgba(12, 13, 20, 0.9)');
     pill.setAttribute('stroke', `${color}60`);
     pill.setAttribute('stroke-width', '1');
@@ -252,11 +276,10 @@ export function renderArrow(
     g.appendChild(text);
   }
 
-  // Entrance animation (fade in only)
-  if (entity.animation?.delay != null) {
+  // Entrance animation (only when delay > 0; avoid opacity:0 when fadeIn keyframes missing)
+  if (entity.animation?.delay != null && entity.animation.delay > 0) {
     g.style.animation = 'fadeIn 0.3s ease both';
     g.style.animationDelay = `${entity.animation.delay}ms`;
-    g.style.opacity = '0';
   }
 
   parentEl.appendChild(g);
@@ -297,31 +320,57 @@ export function renderDataFlow(
   const x2 = targetEntry?.x ?? tx;
   const y2 = targetEntry?.y ?? ty;
   const color = entity.color ?? getCategoryColor('DataFlow');
+  const useCurved = entity.metadata?.curved === true;
 
   const g = document.createElementNS(SVG_NS, 'g');
   g.setAttribute('id', entity.id);
   g.setAttribute('data-type', 'DataFlow');
 
-  const line = document.createElementNS(SVG_NS, 'line');
-  line.setAttribute('x1', String(x1));
-  line.setAttribute('y1', String(y1));
-  line.setAttribute('x2', String(x2));
-  line.setAttribute('y2', String(y2));
-  line.setAttribute('stroke', color);
-  line.setAttribute('stroke-width', '4');
-  line.setAttribute('stroke-dasharray', '8,4');
-  line.setAttribute('stroke-dashoffset', '0');
-  line.setAttribute('opacity', '0.7');
-
-  // SMIL dash animation
-  const anim = document.createElementNS(SVG_NS, 'animate');
-  anim.setAttribute('attributeName', 'stroke-dashoffset');
-  anim.setAttribute('from', '12');
-  anim.setAttribute('to', '0');
-  anim.setAttribute('dur', '0.8s');
-  anim.setAttribute('repeatCount', 'indefinite');
-  line.appendChild(anim);
-  g.appendChild(line);
+  if (useCurved) {
+    const midX = (x1 + x2) / 2;
+    const midY = (y1 + y2) / 2;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const curvature = Math.min(len * 0.3, 80);
+    const ctrlX = midX + (-dy / len) * curvature;
+    const ctrlY = midY + (dx / len) * curvature;
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', `M ${x1} ${y1} Q ${ctrlX} ${ctrlY} ${x2} ${y2}`);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', color);
+    path.setAttribute('stroke-width', '4');
+    path.setAttribute('stroke-dasharray', '8,4');
+    path.setAttribute('stroke-dashoffset', '0');
+    path.setAttribute('opacity', '0.7');
+    const anim = document.createElementNS(SVG_NS, 'animate');
+    anim.setAttribute('attributeName', 'stroke-dashoffset');
+    anim.setAttribute('from', '12');
+    anim.setAttribute('to', '0');
+    anim.setAttribute('dur', '0.8s');
+    anim.setAttribute('repeatCount', 'indefinite');
+    path.appendChild(anim);
+    g.appendChild(path);
+  } else {
+    const line = document.createElementNS(SVG_NS, 'line');
+    line.setAttribute('x1', String(x1));
+    line.setAttribute('y1', String(y1));
+    line.setAttribute('x2', String(x2));
+    line.setAttribute('y2', String(y2));
+    line.setAttribute('stroke', color);
+    line.setAttribute('stroke-width', '4');
+    line.setAttribute('stroke-dasharray', '8,4');
+    line.setAttribute('stroke-dashoffset', '0');
+    line.setAttribute('opacity', '0.7');
+    const anim = document.createElementNS(SVG_NS, 'animate');
+    anim.setAttribute('attributeName', 'stroke-dashoffset');
+    anim.setAttribute('from', '12');
+    anim.setAttribute('to', '0');
+    anim.setAttribute('dur', '0.8s');
+    anim.setAttribute('repeatCount', 'indefinite');
+    line.appendChild(anim);
+    g.appendChild(line);
+  }
 
   parentEl.appendChild(g);
   return g;

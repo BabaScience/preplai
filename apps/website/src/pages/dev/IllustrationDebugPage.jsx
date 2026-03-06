@@ -7,6 +7,8 @@ import EntityParamPanel from './EntityParamPanel';
 
 const ENTITY_TYPES = Object.keys(registry).sort();
 
+const CONNECTION_TYPES = new Set(['Arrow', 'DataFlow', 'Transition', 'Bus']);
+
 function buildDefaultEntity(type, overrides = {}) {
   const base = {
     ...ENTITY_DEFAULTS,
@@ -18,6 +20,11 @@ function buildDefaultEntity(type, overrides = {}) {
     ...ENTITY_FIELD_DEFAULTS[type],
     ...overrides,
   };
+
+  if (CONNECTION_TYPES.has(type)) {
+    base.sourceEntityId = base.sourceEntityId ?? 'debug-src';
+    base.targetEntityId = base.targetEntityId ?? 'debug-tgt';
+  }
 
   if (METADATA_DEFAULTS[type]) {
     base.metadata = JSON.parse(JSON.stringify(METADATA_DEFAULTS[type]));

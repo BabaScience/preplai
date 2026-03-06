@@ -68,6 +68,7 @@ import { renderGanttChart } from './components/ganttchart.js';
 import { renderCacheHierarchy } from './components/cachehierarchy.js';
 import { renderMemoryLayout } from './components/memorylayout.js';
 import { renderConfusionMatrix } from './components/confusionmatrix.js';
+import { renderBarChart } from './components/barchart.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -198,7 +199,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   FlowDiagram: genBcd,
   VennDiagram: infra,
   Annotation: renderAnnotation,
-  BarChart: infra,
+  BarChart: renderBarChart,
   ScatterPlot: infra,
 
   // ── Pedagogical (CodeBlock fully implemented)

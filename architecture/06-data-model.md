@@ -636,7 +636,7 @@ The `metadata` field on `VisualEntity` carries type-specific parameters that exc
 | `Field` | — | `fieldType: 'electric'\|'magnetic'\|'gravitational'`, `charges: {x: number, y: number, charge: number}[]` |
 | `Table` | `headers: string[]`, `rows: string[][]` | `highlightRows: number[]`, `columnWidths: number[]` |
 | `Histogram` | `bins: {label: string, value: number}[]` | `xLabel: string`, `yLabel: string`, `color: string` |
-| `BarChart` | `bars: {label: string, value: number}[]` | `xLabel: string`, `yLabel: string`, `horizontal: boolean` |
+| `BarChart` | `bars: {label: string, value: number, color?: string}[]` | `xLabel: string`, `yLabel: string`, `horizontal: boolean` |
 | `ScatterPlot` | `points: {x: number, y: number, label?: string}[]` | `xLabel: string`, `yLabel: string`, `xRange: [number,number]`, `yRange: [number,number]` |
 | `PieChart` | `slices: {label: string, value: number, color?: string}[]` | `donut: boolean`, `showPercentages: boolean` |
 | `VennDiagram` | `sets: {label: string, color?: string}[]`, `overlaps: {sets: number[], label: string}[]` | — |
