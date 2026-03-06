@@ -61,7 +61,7 @@ export const IllustrationFrameSchema = z.object({
   transitions: z.array(EntityTransitionSchema).optional(),
 
   narrationSegment: z.string().max(5000),
-  description: z.string().max(500),
+  description: z.string().max(500).optional(),
 }).refine(
   (f) => f.endTime > f.startTime,
   { message: 'Frame endTime must be greater than startTime.' },

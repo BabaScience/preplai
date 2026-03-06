@@ -82,6 +82,96 @@ function twoFrameScript() {
   };
 }
 
+// ─── Stage 0: Expand Compact Input ────────────────────────────────────────────
+
+describe('Stage 0 — Expand Compact Input', () => {
+  const uuid = '550e8400-e29b-41d4-a716-446655440000';
+
+  it('expands short keys: f→frames, p→position, n→narrationSegment', () => {
+    const raw = {
+      sid: uuid,
+      td: 5000,
+      f: [{
+        id: 'frame-1',
+        startTime: 0,
+        endTime: 5000,
+        e: [{ id: 'e1', type: 'Server', p: [50, 50] }],
+        n: 'Hello',
+      }],
+    };
+    const result = compileVisualScript(raw);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.script.frames).toHaveLength(1);
+    expect(result.script.frames[0].entities[0].position).toEqual({ x: 50, y: 50 });
+    expect(result.script.frames[0].narrationSegment).toBe('Hello');
+  });
+
+  it('expands position shorthand [x,y] to {x,y}', () => {
+    const raw = minimalScript({
+      frames: [{
+        id: 'f1', startTime: 0, endTime: 4000,
+        entities: [{ id: 'e1', type: 'Server', position: [30, 60] }],
+        narrationSegment: '', description: '',
+      }],
+    });
+    const result = compileVisualScript(raw);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.script.frames[0].entities[0].position).toEqual({ x: 30, y: 60 });
+  });
+
+  it('expands entity type alias BT → BinaryTree', () => {
+    const raw = minimalScript({
+      frames: [{
+        id: 'f1', startTime: 0, endTime: 4000,
+        entities: [{ id: 'e1', type: 'BT', position: { x: 50, y: 50 }, metadata: { nodes: [5, 3, 8] } }],
+        narrationSegment: '', description: '',
+      }],
+    });
+    const result = compileVisualScript(raw);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.script.frames[0].entities[0].type).toBe('BinaryTree');
+  });
+
+  it('applies frame defaults: id, startTime, endTime when omitted', () => {
+    const raw = {
+      sceneId: uuid,
+      totalDuration: 5000,
+      frames: [{
+        entities: [{ id: 'e1', type: 'Server', position: { x: 50, y: 50 } }],
+        narrationSegment: 'Hello',
+      }],
+    };
+    const result = compileVisualScript(raw);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    const frame = result.script.frames[0];
+    expect(frame.id).toBe('frame-0');
+    expect(frame.startTime).toBe(0);
+    expect(frame.endTime).toBe(5000);
+  });
+
+  it('assigns entity id when omitted for non-connected entity', () => {
+    const raw = minimalScript({
+      frames: [{
+        id: 'f1', startTime: 0, endTime: 4000,
+        entities: [
+          { type: 'Server', position: { x: 30, y: 50 } },
+          { type: 'Database', position: { x: 70, y: 50 } },
+        ],
+        narrationSegment: '', description: '',
+      }],
+    });
+    const result = compileVisualScript(raw);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.script.frames[0].entities[0].id).toBe('Server-0');
+    expect(result.script.frames[0].entities[1].id).toBe('Database-0');
+  });
+});
+
 // ─── Stage 1: Schema Validation ───────────────────────────────────────────────
 
 describe('Stage 1 — Schema Validation', () => {
@@ -124,11 +214,13 @@ describe('Stage 1 — Schema Validation', () => {
     expect(result.success).toBe(false);
   });
 
-  it('returns success=false when entity is missing id', () => {
+  it('assigns auto id when entity is missing id (Stage 0)', () => {
     const raw = minimalScript();
-    (raw.frames[0].entities[0] as Record<string, unknown>).id = undefined;
+    delete (raw.frames[0].entities[0] as Record<string, unknown>).id;
     const result = compileVisualScript(raw);
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.script.frames[0].entities[0].id).toBe('Server-0');
   });
 
   it('returns success=false when entity is missing type', () => {
@@ -254,11 +346,11 @@ describe('Stage 2 — Entity Defaults Application', () => {
     expect(entity.size).toBe(ENTITY_DEFAULTS.size);
   });
 
-  it('applies default color when not specified', () => {
+  it('leaves color undefined when not specified (player uses theme palette)', () => {
     const result = compileVisualScript(minimalScript());
     if (!result.success) throw new Error('Expected success');
     const entity = result.script.frames[0].entities[0];
-    expect(entity.color).toBe(ENTITY_DEFAULTS.color);
+    expect(entity.color).toBeUndefined();
   });
 
   it('applies default highlight=false when not specified', () => {

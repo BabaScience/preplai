@@ -16,6 +16,7 @@ export const CANVAS_BG_COLOR = '#0f0f1a' as const;
 // ── Timing Constants ──────────────────────────────────────────────────
 
 export const FRAME_DURATION_MIN_MS = 2_500 as const;
+export const DEFAULT_FRAME_DURATION_MS = 5_000 as const;
 export const INTER_ENTITY_STAGGER_MS = 80 as const;
 export const ANIMATION_DELAY_MIN_MS = 150 as const;
 export const ENTITY_MIN_VISIBLE_MS = 1_200 as const;

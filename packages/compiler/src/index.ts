@@ -20,3 +20,5 @@ export {
   TYPE_SIZE_DEFAULTS,
   SKIP_CLAMP_TYPES,
 } from './types.js';
+
+export { ENTITY_TYPE_ALIASES } from './stage0-expand.js';

@@ -1,10 +1,11 @@
 /**
  * @preplai/compiler — Main Orchestrator
  *
- * Runs the 5-stage compilation pipeline synchronously.
+ * Runs the 6-stage compilation pipeline synchronously.
  * Pure function — no I/O, no async, no side effects.
  *
  * Pipeline:
+ *   Stage 0: Expand compact input (short keys, aliases, defaults)
  *   Stage 1: Schema validation + duplicate checks   → CompilerError[] on failure
  *   Stage 2: Entity defaults application             → CompilerWarning[]
  *   Stage 3: Position clamping                       → CompilerWarning[]
@@ -14,6 +15,7 @@
  */
 
 import type { CompileResult } from './types.js';
+import { stage0Expand } from './stage0-expand.js';
 import { stage1Validate } from './stage1-validate.js';
 import { stage2ApplyDefaults } from './stage2-defaults.js';
 import { stage3ClampPositions } from './stage3-positions.js';
@@ -25,8 +27,14 @@ import type { CompilerWarning } from './types.js';
 export function compileVisualScript(raw: unknown): CompileResult {
   const allWarnings: CompilerWarning[] = [];
 
+  // ── Stage 0: Expand compact input ─────────────────────────────────
+  const s0 = stage0Expand(raw);
+  if (!s0.ok) {
+    return { success: false, errors: s0.errors };
+  }
+
   // ── Stage 1: Schema Validation ───────────────────────────────────
-  const s1 = stage1Validate(raw);
+  const s1 = stage1Validate(s0.expanded);
   if (!s1.ok) {
     return { success: false, errors: s1.errors };
   }

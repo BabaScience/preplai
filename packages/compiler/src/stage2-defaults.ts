@@ -66,7 +66,7 @@ function applyEntityDefaults(
   return {
     ...entity,
     size: entity.size ?? sizeDefault,
-    color: entity.color ?? ENTITY_DEFAULTS.color,
+    color: entity.color,
     highlight: entity.highlight ?? ENTITY_DEFAULTS.highlight,
     animation,
   };

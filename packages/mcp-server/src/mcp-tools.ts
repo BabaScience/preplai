@@ -75,7 +75,7 @@ const IllustrationFrameSchema = z.object({
   entities: z.array(VisualEntitySchema).describe('Array of visual entities in this frame'),
   transitions: z.array(EntityTransitionSchema).optional().describe('Animations between entity states'),
   narrationSegment: z.string().describe('Subtitle shown to user. 1–2 sentences, conversational. Match the user\'s level (technical vs beginner).'),
-  description: z.string().describe('Internal note for this frame (not shown to user).'),
+  description: z.string().optional().describe('Internal note for this frame (not shown to user).'),
 });
 
 const VisualScriptSchema = z.object({
@@ -93,9 +93,15 @@ APPEND BEHAVIOR: Calling add_scene multiple times APPENDS new frames to the exis
 
 IMPORTANT: The visual_script must follow the exact schema below. Positions use percentages (0-100). An 80px horizontal and 60px vertical margin/safe zone is applied automatically.
 
+TOKEN OPTIMIZATION (use to reduce output tokens):
+- Short keys: f→frames, td→totalDuration, e→entities, n→narrationSegment, p→position, m→metadata, l→label, src→sourceEntityId, tgt→targetEntityId, sz→size, etc. Full list in @preplai/illustrations COMPACT_REFERENCE.md.
+- Position shorthand: [50, 50] instead of {x: 50, y: 50}.
+- Entity type aliases: BT→BinaryTree, CST→CallStack, CB→CodeBlock, G2→Graph2D, COORD→CoordinateSystem, BC→BarChart, etc.
+- Omit entity.color — player uses theme palette. Omit frame id/startTime/endTime/description for defaults. Omit entity id for non-connected entities (auto-assigned).
+
 DESIGN GUIDELINES:
 - Labels can be up to ~80 chars. Longer labels auto-wrap to multiple lines. Use narrationSegment for full paragraphs.
-- COLORS — MUST use user's palette when available: create_session and get_session_url return preferences.colors. Use these EXACTLY for entity.color — do NOT invent custom palettes (e.g. teal for data, pink for model). Map: Server/Service → colors.server, Database/HashTable → colors.database, Cloud → colors.cloud, User → colors.user, Concept → colors.concept, Label → colors.label, CodeBlock → colors.codeblock, others → colors.generic. If preferences are missing, call get_preferences first.
+- COLORS — Omit entity.color to use theme palette (recommended). Or use preferences.colors from create_session/get_session_url: Server/Service → colors.server, Database/HashTable → colors.database, Cloud → colors.cloud, User → colors.user, Concept → colors.concept, Label → colors.label, CodeBlock → colors.codeblock, others → colors.generic. Do NOT invent custom palettes.
 - If no preferences after get_preferences: use a COHESIVE palette, 2-3 colors max. Fallbacks: Cyan (#4FC3F7) + Violet (#b388ff) + Warm (#FFD54F), or Blue (#64B5F6) + Green (#81C784) + White (#FFFFFF).
 - Title labels: type "Label", color "#FFFFFF", size 2 or higher. They render with large bold text (42-48px).
 - Subtitle labels: type "Label", size ~1.5, renders at 28-32px.
