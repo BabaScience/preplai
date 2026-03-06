@@ -6,7 +6,7 @@
  */
 import { randomUUID, createHash, randomBytes } from 'node:crypto';
 import { ApiKey, McpUsageLog, Session, UsageLog, User } from '@preplai/db';
-import { TIER_LIMITS as SHARED_TIER_LIMITS, PALETTES as SHARED_PALETTES } from '@preplai/shared';
+import { TIER_LIMITS as SHARED_TIER_LIMITS } from '@preplai/shared';
 
 // ── Tier limits ──────────────────────────────────────────────────────
 
@@ -180,21 +180,6 @@ function logPlayerPrefs(level: string, obj: object, msg: string): void {
   if (process.env.NODE_ENV === 'production') return;
   const line = JSON.stringify({ level, msg, ...obj, time: Date.now() });
   process.stderr.write(line + '\n');
-}
-
-/** Get user preferences with palette colors for PML generation. */
-export function getPreferencesWithColors(
-  prefs: UserPlayerPrefs,
-  styleOverride?: string | null,
-): { theme: string; palette: string; colors: Record<string, string> } {
-  const p = SHARED_PALETTES[prefs.palette as keyof typeof SHARED_PALETTES] ?? SHARED_PALETTES.default;
-  const theme = styleOverride ?? prefs.theme;
-  const { particles: _p, ...entityColors } = p;
-  return {
-    theme,
-    palette: prefs.palette,
-    colors: entityColors as Record<string, string>,
-  };
 }
 
 /** Build URL query string for player (style + palette). Always include both for explicit application. */

@@ -398,6 +398,21 @@ export const PLAYER_JS = `(function() {
         return 'fadeIn';
       case 'CodeBlock':
         return 'slideInLeft';
+      case 'Array':
+      case 'Stack':
+      case 'StepList':
+      case 'BarChart':
+      case 'Cycle':
+      case 'ConfusionMatrix':
+      case 'BigO':
+      case 'BinaryTree':
+      case 'BTree':
+      case 'Circuit':
+      case 'CoordinateSystem':
+      case 'Graph2D':
+      case 'DNSResolver':
+      case 'Cache':
+        return 'fadeInUp';
       default:
         return 'fadeInUp';
     }
@@ -872,7 +887,8 @@ export const PLAYER_JS = `(function() {
 
   // ── Label: clean text with pill background ───────────────────────
   function renderLabel(entity, parentEl, delay) {
-    if (!entity.label || !entity.label.trim()) return null;
+    var content = entity.label || entity.textContent || '';
+    if (!content || !String(content).trim()) return null;
 
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
@@ -892,7 +908,7 @@ export const PLAYER_JS = `(function() {
     }
 
     var maxCharsPerLine = 28;
-    var label = entity.label || '';
+    var label = entity.label || entity.textContent || '';
     var lines = wrapText(label, maxCharsPerLine);
 
     var lineHeight = fontSize * 1.35;
@@ -1016,6 +1032,1088 @@ export const PLAYER_JS = `(function() {
     }
 
     addLabel(innerG, entity, h/2 + 20, { maxChars: 40 });
+    parentEl.appendChild(g.outerG);
+    return g.outerG;
+  }
+
+  // ── Array: row of cells with indices and values ───────────────────
+  function parseArrayCells(meta) {
+    if (!meta) return [{ value: '1', enabled: true, selected: false }, { value: '2', enabled: true, selected: false }, { value: '3', enabled: true, selected: false }];
+    var rawCells = meta.cells;
+    if (Array.isArray(rawCells)) {
+      return rawCells.slice(0, 8).map(function(c) {
+        if (typeof c === 'object' && c !== null && 'value' in c) {
+          return { value: String(c.value), enabled: c.enabled !== false, selected: c.selected === true };
+        }
+        return { value: String(c), enabled: true, selected: false };
+      });
+    }
+    var values = meta.values || meta.cells || [1, 2, 3, 4, 5];
+    values = Array.isArray(values) ? values.slice(0, 8) : [1, 2, 3, 4, 5];
+    var disabledSet = {};
+    var selectedSet = {};
+    var di = meta.disabledIndexes || [];
+    var si = meta.selectedIndexes || [];
+    for (var i = 0; i < di.length; i++) disabledSet[di[i]] = true;
+    for (var j = 0; j < si.length; j++) selectedSet[si[j]] = true;
+    return values.map(function(val, idx) {
+      return { value: String(val), enabled: !disabledSet[idx], selected: !!selectedSet[idx] };
+    });
+  }
+
+  function renderArray(entity, parentEl, delay) {
+    var g = createEntityGroup(entity, delay);
+    var innerG = g.innerG;
+    var s = sizeToPixels(entity.size || 1.5);
+    var color = getEntityColor(entity);
+    var fill = getFill(color, canvas);
+    var meta = entity.metadata || {};
+    var cells = parseArrayCells(meta);
+    var scale = s / 110;
+    var cellW = 28 * scale;
+    var cellH = 24 * scale;
+    var totalW = cells.length * cellW;
+    var startX = -totalW / 2 + cellW / 2;
+
+    for (var i = 0; i < cells.length; i++) {
+      var cell = cells[i];
+      var x = startX + i * cellW;
+      var pad = 2 * scale;
+      var rect = document.createElementNS(SVG_NS, 'rect');
+      rect.setAttribute('x', String(x - cellW / 2 + pad));
+      rect.setAttribute('y', String(-cellH / 2));
+      rect.setAttribute('width', String(cellW - pad * 2));
+      rect.setAttribute('height', String(cellH));
+      rect.setAttribute('rx', String(Math.max(1, 2 * scale)));
+      rect.setAttribute('fill', fill);
+      rect.setAttribute('stroke', color);
+      rect.setAttribute('stroke-width', String(cell.selected ? 3 * scale : 1.5 * scale));
+      if (!cell.enabled) {
+        rect.setAttribute('opacity', '0.4');
+        rect.setAttribute('stroke-dasharray', '3,3');
+      }
+      innerG.appendChild(rect);
+
+      var idxText = document.createElementNS(SVG_NS, 'text');
+      idxText.setAttribute('x', String(x));
+      idxText.setAttribute('y', String(-cellH / 2 - 6));
+      idxText.setAttribute('text-anchor', 'middle');
+      idxText.setAttribute('fill', colorAlpha(color, 0.6));
+      idxText.setAttribute('font-size', String(Math.round(9 * scale)));
+      idxText.setAttribute('font-family', FONT_MONO);
+      idxText.textContent = String(i);
+      innerG.appendChild(idxText);
+
+      var valText = document.createElementNS(SVG_NS, 'text');
+      valText.setAttribute('x', String(x));
+      valText.setAttribute('y', '4');
+      valText.setAttribute('text-anchor', 'middle');
+      valText.setAttribute('fill', color);
+      valText.setAttribute('font-size', String(Math.round(11 * scale)));
+      valText.setAttribute('font-weight', '600');
+      valText.setAttribute('font-family', FONT_MONO);
+      valText.textContent = String(cell.value);
+      innerG.appendChild(valText);
+    }
+
+    addLabel(innerG, entity, cellH / 2 + 18 * scale);
+    parentEl.appendChild(g.outerG);
+    return g.outerG;
+  }
+
+  // ── Stack: vertical layers (OSI, tech stack) ─────────────────────
+  function renderStack(entity, parentEl, delay) {
+    var g = createEntityGroup(entity, delay);
+    var innerG = g.innerG;
+    var s = sizeToPixels(entity.size || 1.5);
+    var color = getEntityColor(entity);
+    var fill = getFill(color, canvas);
+    var meta = entity.metadata || {};
+    var layersData = meta.layers;
+    var layers = Array.isArray(layersData) ? layersData.slice(0, 6) : [
+      { label: 'Application' }, { label: 'Transport' }, { label: 'Network' },
+      { label: 'Link' }, { label: 'Physical' }
+    ];
+    var blockW = s * 1.8;
+    var blockH = 28;
+    var gap = 6;
+    var totalH = layers.length * blockH + (layers.length - 1) * gap;
+    var startY = -totalH / 2 + blockH / 2;
+
+    for (var i = 0; i < layers.length; i++) {
+      var layer = layers[i];
+      var lbl = (typeof layer === 'object' && layer && layer.label) ? layer.label : String(layer);
+      var y = startY + i * (blockH + gap);
+      var rect = document.createElementNS(SVG_NS, 'rect');
+      rect.setAttribute('x', String(-blockW / 2));
+      rect.setAttribute('y', String(y - blockH / 2));
+      rect.setAttribute('width', String(blockW));
+      rect.setAttribute('height', String(blockH));
+      rect.setAttribute('rx', '4');
+      rect.setAttribute('fill', fill);
+      rect.setAttribute('stroke', color);
+      rect.setAttribute('stroke-width', '1.5');
+      innerG.appendChild(rect);
+      var text = document.createElementNS(SVG_NS, 'text');
+      text.setAttribute('x', '0');
+      text.setAttribute('y', String(y + 4));
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('fill', color);
+      text.setAttribute('font-size', '11');
+      text.setAttribute('font-weight', '600');
+      text.setAttribute('font-family', FONT_UI);
+      text.textContent = truncLabel(lbl, 24);
+      innerG.appendChild(text);
+    }
+    addLabel(innerG, entity, totalH / 2 + 20);
+    parentEl.appendChild(g.outerG);
+    return g.outerG;
+  }
+
+  // ── StepList: numbered steps with connector ─────────────────────
+  function renderStepList(entity, parentEl, delay) {
+    var g = createEntityGroup(entity, delay);
+    var innerG = g.innerG;
+    var s = sizeToPixels(entity.size || 1.5);
+    var color = getEntityColor(entity);
+    var fill = getFill(color, canvas);
+    var meta = entity.metadata || {};
+    var steps = meta.steps;
+    if (!Array.isArray(steps)) steps = entity.textContent ? entity.textContent.split(/\\\\n|\\r?\\n/) : ['Step 1', 'Step 2', 'Step 3'];
+    steps = steps.slice(0, 5);
+    var currentStep = typeof meta.currentStep === 'number' ? meta.currentStep : -1;
+    var checkmarks = meta.checkmarks === true;
+    var stepH = 28;
+    var numR = 10;
+    var startY = -((steps.length - 1) * stepH) / 2;
+
+    for (var i = 0; i < steps.length; i++) {
+      var y = startY + i * stepH;
+      var isCompleted = checkmarks && currentStep >= 0 && i < currentStep;
+      var isCurrent = currentStep >= 0 && i === currentStep;
+
+      if (i > 0) {
+        var prevY = startY + (i - 1) * stepH;
+        var conn = document.createElementNS(SVG_NS, 'line');
+        conn.setAttribute('x1', String(-s * 0.6));
+        conn.setAttribute('y1', String(prevY + numR));
+        conn.setAttribute('x2', String(-s * 0.6));
+        conn.setAttribute('y2', String(y - numR));
+        conn.setAttribute('stroke', color);
+        conn.setAttribute('stroke-width', '1.5');
+        conn.setAttribute('opacity', '0.5');
+        innerG.appendChild(conn);
+      }
+
+      var circ = document.createElementNS(SVG_NS, 'circle');
+      circ.setAttribute('cx', String(-s * 0.6));
+      circ.setAttribute('cy', String(y));
+      circ.setAttribute('r', String(numR));
+      circ.setAttribute('fill', isCompleted ? color : fill);
+      circ.setAttribute('stroke', color);
+      circ.setAttribute('stroke-width', isCurrent ? '3' : '2');
+      circ.setAttribute('opacity', isCompleted ? '0.6' : '1');
+      innerG.appendChild(circ);
+
+      if (isCompleted) {
+        var cx = -s * 0.6;
+        var check = document.createElementNS(SVG_NS, 'path');
+        check.setAttribute('d', 'M ' + (cx - 5) + ' ' + (y + 4) + ' L ' + (cx - 2) + ' ' + y + ' L ' + (cx + 6) + ' ' + (y - 4));
+        check.setAttribute('fill', 'none');
+        check.setAttribute('stroke', 'white');
+        check.setAttribute('stroke-width', '2');
+        check.setAttribute('stroke-linecap', 'round');
+        check.setAttribute('stroke-linejoin', 'round');
+        innerG.appendChild(check);
+      } else {
+        var num = document.createElementNS(SVG_NS, 'text');
+        num.setAttribute('x', String(-s * 0.6));
+        num.setAttribute('y', String(y + 4));
+        num.setAttribute('text-anchor', 'middle');
+        num.setAttribute('fill', isCurrent ? color : 'white');
+        num.setAttribute('font-size', '11');
+        num.setAttribute('font-weight', '600');
+        num.setAttribute('font-family', FONT_UI);
+        num.textContent = String(i + 1);
+        innerG.appendChild(num);
+      }
+
+      var stepText = document.createElementNS(SVG_NS, 'text');
+      stepText.setAttribute('x', String(-s * 0.6 + numR + 14));
+      stepText.setAttribute('y', String(y + 4));
+      stepText.setAttribute('fill', color);
+      stepText.setAttribute('font-size', '13');
+      stepText.setAttribute('font-family', FONT_UI);
+      stepText.textContent = truncLabel(String(steps[i]), 32);
+      innerG.appendChild(stepText);
+    }
+    if (entity.label) {
+      var title = document.createElementNS(SVG_NS, 'text');
+      title.setAttribute('x', '0');
+      title.setAttribute('y', String(startY - 20));
+      title.setAttribute('text-anchor', 'middle');
+      title.setAttribute('fill', color);
+      title.setAttribute('font-size', '14');
+      title.setAttribute('font-weight', '600');
+      title.setAttribute('font-family', FONT_UI);
+      title.textContent = truncLabel(entity.label, 40);
+      innerG.appendChild(title);
+    }
+    parentEl.appendChild(g.outerG);
+    return g.outerG;
+  }
+
+  // ── BarChart: vertical bars ──────────────────────────────────────
+  function parseBars(meta, defaultColor) {
+    var raw = meta.bars;
+    if (!Array.isArray(raw) || raw.length === 0) {
+      return [{ label: 'Jan', value: 10 }, { label: 'Feb', value: 25 }, { label: 'Mar', value: 15 }, { label: 'Apr', value: 30 }, { label: 'May', value: 22 }];
+    }
+    return raw.slice(0, 12).map(function(b) {
+      return { label: String(b && b.label != null ? b.label : '?'), value: Number(b && b.value != null ? b.value : 0) || 0, color: (b && b.color) || defaultColor };
+    });
+  }
+
+  function renderBarChart(entity, parentEl, delay) {
+    var g = createEntityGroup(entity, delay);
+    var innerG = g.innerG;
+    var s = sizeToPixels(entity.size || 1.5);
+    var color = getEntityColor(entity);
+    var fill = getFill(color, canvas);
+    var meta = entity.metadata || {};
+    var bars = parseBars(meta, color);
+    var horizontal = meta.horizontal === true;
+    var maxVal = 1;
+    for (var bi = 0; bi < bars.length; bi++) if (bars[bi].value > maxVal) maxVal = bars[bi].value;
+    var padLeft = 36;
+    var padRight = 16;
+    var padTop = 12;
+    var padBottom = 28;
+    var chartW = s * 3.2 - padLeft - padRight;
+    var chartH = s * 2.2 - padTop - padBottom;
+    var n = bars.length;
+    var barGap = 6;
+
+    if (horizontal) {
+      var labelW = 40;
+      var barAreaW = chartW - labelW - 24;
+      var barH = Math.max(12, (chartH - (n - 1) * barGap) / n);
+      for (var i = 0; i < bars.length; i++) {
+        var bar = bars[i];
+        var y = -chartH / 2 + padTop + i * (barH + barGap) + barH / 2;
+        var width = (bar.value / maxVal) * barAreaW;
+        var x = -chartW / 2 + padLeft + labelW;
+        var rect = document.createElementNS(SVG_NS, 'rect');
+        rect.setAttribute('x', String(x));
+        rect.setAttribute('y', String(y - barH / 2));
+        rect.setAttribute('width', String(Math.max(width, 2)));
+        rect.setAttribute('height', String(barH));
+        rect.setAttribute('rx', '2');
+        rect.setAttribute('fill', fill);
+        rect.setAttribute('stroke', bar.color || color);
+        rect.setAttribute('stroke-width', '1');
+        innerG.appendChild(rect);
+        var lbl = document.createElementNS(SVG_NS, 'text');
+        lbl.setAttribute('x', String(x - 4));
+        lbl.setAttribute('y', String(y + 4));
+        lbl.setAttribute('text-anchor', 'end');
+        lbl.setAttribute('fill', colorAlpha(color, 0.9));
+        lbl.setAttribute('font-size', '10');
+        lbl.textContent = truncLabel(bar.label, 12);
+        innerG.appendChild(lbl);
+      }
+    } else {
+      var barW = Math.max(8, (chartW - (n - 1) * barGap) / n);
+      var barAreaH = chartH - 16;
+      for (var i = 0; i < bars.length; i++) {
+        var bar = bars[i];
+        var x = -chartW / 2 + padLeft + i * (barW + barGap) + barW / 2;
+        var height = (bar.value / maxVal) * barAreaH;
+        var yBase = chartH / 2 - padBottom;
+        var rect = document.createElementNS(SVG_NS, 'rect');
+        rect.setAttribute('x', String(x - barW / 2));
+        rect.setAttribute('y', String(yBase - height));
+        rect.setAttribute('width', String(barW));
+        rect.setAttribute('height', String(Math.max(height, 2)));
+        rect.setAttribute('rx', '2');
+        rect.setAttribute('fill', fill);
+        rect.setAttribute('stroke', bar.color || color);
+        rect.setAttribute('stroke-width', '1');
+        innerG.appendChild(rect);
+        var lbl = document.createElementNS(SVG_NS, 'text');
+        lbl.setAttribute('x', String(x));
+        lbl.setAttribute('y', String(yBase + 14));
+        lbl.setAttribute('text-anchor', 'middle');
+        lbl.setAttribute('fill', colorAlpha(color, 0.9));
+        lbl.setAttribute('font-size', '10');
+        lbl.textContent = truncLabel(bar.label, 10);
+        innerG.appendChild(lbl);
+      }
+    }
+    addLabel(innerG, entity, chartH / 2 - 4);
+    parentEl.appendChild(g.outerG);
+    return g.outerG;
+  }
+
+  // ── Cycle: dashed circle with label inside ────────────────────────
+  function renderCycle(entity, parentEl, delay) {
+    var g = createEntityGroup(entity, delay);
+    var innerG = g.innerG;
+    var s = sizeToPixels(entity.size || 1);
+    var r = s / 2;
+    var color = getEntityColor(entity);
+    var fill = getFill(color, canvas);
+    var circ = document.createElementNS(SVG_NS, 'circle');
+    circ.setAttribute('cx', '0');
+    circ.setAttribute('cy', '0');
+    circ.setAttribute('r', String(r));
+    circ.setAttribute('fill', fill);
+    circ.setAttribute('stroke', color);
+    circ.setAttribute('stroke-width', '2');
+    circ.setAttribute('stroke-dasharray', '6,6');
+    innerG.appendChild(circ);
+    if (entity.label) {
+      var text = document.createElementNS(SVG_NS, 'text');
+      text.setAttribute('x', '0');
+      text.setAttribute('y', '0');
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('dominant-baseline', 'central');
+      text.setAttribute('fill', color);
+      text.setAttribute('font-size', String(Math.min(14, Math.max(10, s / 4))));
+      text.setAttribute('font-weight', '600');
+      text.setAttribute('font-family', FONT_UI);
+      text.textContent = truncLabel(entity.label, 16);
+      innerG.appendChild(text);
+    }
+    parentEl.appendChild(g.outerG);
+    return g.outerG;
+  }
+
+  // ── ConfusionMatrix: 2x2 or NxN grid ─────────────────────────────
+  function renderConfusionMatrix(entity, parentEl, delay) {
+    var g = createEntityGroup(entity, delay);
+    var innerG = g.innerG;
+    var s = sizeToPixels(entity.size || 1.5);
+    var scale = s / 110;
+    var color = getEntityColor(entity);
+    var fill = getFill(color, canvas);
+    var meta = entity.metadata || {};
+    var matrixData = meta.matrix;
+    var matrix = Array.isArray(matrixData) && matrixData.length > 0 ? matrixData : [[45, 5], [8, 42]];
+    var rowLabels = meta.rowLabels || ['Actual -', 'Actual +'];
+    var colLabels = meta.colLabels || ['Pred -', 'Pred +'];
+    var rows = matrix.length;
+    var cols = matrix[0] ? matrix[0].length : 2;
+    var cellW = Math.round(40 * scale);
+    var cellH = Math.round(28 * scale);
+    var gap = 6;
+    var hasHeaders = (rowLabels && rowLabels.length) || (colLabels && colLabels.length);
+    var layoutCols = hasHeaders ? cols + 1 : cols;
+    var layoutRows = hasHeaders ? rows + 1 : rows;
+    var totalW = layoutCols * cellW + (layoutCols - 1) * gap;
+    var totalH = layoutRows * cellH + (layoutRows - 1) * gap;
+    var startX = -totalW / 2 + cellW / 2 + gap / 2;
+    var startY = -totalH / 2 + cellH / 2 + gap / 2;
+    var cmColors = { tp: '#22c55e', tn: '#14b8a6', fp: '#f97316', fn: '#ef4444' };
+
+    for (var r = 0; r < layoutRows; r++) {
+      for (var c = 0; c < layoutCols; c++) {
+        var x = startX + c * (cellW + gap);
+        var y = startY + r * (cellH + gap);
+        var content = '';
+        var cellColor = color;
+        if (hasHeaders && (r === 0 || c === 0)) {
+          content = r === 0 ? (colLabels[c - 1] || '') : (rowLabels[r - 1] || '');
+        } else {
+          var mr = hasHeaders ? r - 1 : r;
+          var mc = hasHeaders ? c - 1 : c;
+          if (matrix[mr] && matrix[mr][mc] != null) content = String(matrix[mr][mc]);
+          if (rows === 2 && cols === 2 && hasHeaders) {
+            if (r === 1 && c === 1) cellColor = cmColors.tn;
+            else if (r === 1 && c === 2) cellColor = cmColors.fp;
+            else if (r === 2 && c === 1) cellColor = cmColors.fn;
+            else if (r === 2 && c === 2) cellColor = cmColors.tp;
+          }
+        }
+        var rect = document.createElementNS(SVG_NS, 'rect');
+        rect.setAttribute('x', String(x - cellW / 2));
+        rect.setAttribute('y', String(y - cellH / 2));
+        rect.setAttribute('width', String(cellW - gap));
+        rect.setAttribute('height', String(cellH - gap));
+        rect.setAttribute('rx', '2');
+        rect.setAttribute('fill', cellColor === color ? fill : colorAlpha(cellColor, 0.3));
+        rect.setAttribute('stroke', cellColor);
+        rect.setAttribute('stroke-width', '1');
+        innerG.appendChild(rect);
+        var text = document.createElementNS(SVG_NS, 'text');
+        text.setAttribute('x', String(x));
+        text.setAttribute('y', String(y + 4));
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('fill', cellColor);
+        text.setAttribute('font-size', String(Math.round(10 * scale)));
+        text.setAttribute('font-weight', '600');
+        text.textContent = truncLabel(content, 8);
+        innerG.appendChild(text);
+      }
+    }
+    addLabel(innerG, entity, totalH / 2 + 16);
+    parentEl.appendChild(g.outerG);
+    return g.outerG;
+  }
+
+  // ── BigO: complexity curves ───────────────────────────────────────
+  function evalBigOCurve(name, n) {
+    if (n <= 0) return 0;
+    if (name === 'O(1)') return 1;
+    if (name === 'O(log n)') return Math.log2(n + 1);
+    if (name === 'O(n)') return n;
+    if (name === 'O(n log n)') return n * Math.log2(n + 1);
+    if (name === 'O(n²)') return n * n;
+    if (name === 'O(2^n)') return Math.pow(2, Math.min(n, 8));
+    return 0;
+  }
+
+  function renderBigO(entity, parentEl, delay) {
+    var g = createEntityGroup(entity, delay);
+    var innerG = g.innerG;
+    var s = sizeToPixels(entity.size || 2);
+    var totalW = s * 4;
+    var totalH = s * 3;
+    var color = getEntityColor(entity);
+    var meta = entity.metadata || {};
+    var curves = meta.curves || ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)'];
+    var domain = meta.domain || [0, 10];
+    var domainMin = domain[0] != null ? domain[0] : 0;
+    var domainMax = domain[1] != null ? domain[1] : 10;
+    var pad = 30;
+    var chartW = totalW - pad * 2;
+    var chartH = totalH - pad * 2;
+    var chartLeft = -totalW / 2 + pad;
+    var chartTop = -totalH / 2 + pad;
+
+    var maxY = 1;
+    var steps = 40;
+    for (var ci = 0; ci < curves.length; ci++) {
+      for (var si = 0; si <= steps; si++) {
+        var n = domainMin + (domainMax - domainMin) * si / steps;
+        var y = evalBigOCurve(curves[ci], n);
+        if (isFinite(y) && y > maxY) maxY = y;
+      }
+    }
+    maxY = maxY * 1.05;
+
+    var bg = document.createElementNS(SVG_NS, 'rect');
+    bg.setAttribute('x', String(-totalW / 2));
+    bg.setAttribute('y', String(-totalH / 2));
+    bg.setAttribute('width', String(totalW));
+    bg.setAttribute('height', String(totalH));
+    bg.setAttribute('rx', '8');
+    bg.setAttribute('fill', colorAlpha(color, 0.15));
+    bg.setAttribute('stroke', color);
+    bg.setAttribute('stroke-width', '1');
+    innerG.appendChild(bg);
+
+    var curveColors = { 'O(1)': '#4ade80', 'O(log n)': '#22d3ee', 'O(n)': '#60a5fa', 'O(n log n)': '#a78bfa', 'O(n²)': '#f472b6', 'O(2^n)': '#f87171' };
+    for (var ci = 0; ci < curves.length; ci++) {
+      var curveName = curves[ci];
+      var curveColor = curveColors[curveName] || color;
+      var parts = [];
+      for (var si = 0; si <= steps; si++) {
+        var n = domainMin + (domainMax - domainMin) * si / steps;
+        var y = evalBigOCurve(curveName, n);
+        if (!isFinite(y)) continue;
+        var mx = chartLeft + ((n - domainMin) / (domainMax - domainMin || 1)) * chartW;
+        var my = chartTop + chartH - ((y - 0) / (maxY - 0)) * chartH;
+        parts.push((parts.length === 0 ? 'M' : 'L') + mx.toFixed(1) + ',' + my.toFixed(1));
+      }
+      if (parts.length > 0) {
+        var path = document.createElementNS(SVG_NS, 'path');
+        path.setAttribute('d', parts.join(' '));
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', curveColor);
+        path.setAttribute('stroke-width', '2.5');
+        innerG.appendChild(path);
+      }
+    }
+
+    var legendY = -totalH / 2 + 14;
+    var legendSpacing = totalW / (curves.length + 1);
+    for (var li = 0; li < curves.length; li++) {
+      var lx = -totalW / 2 + legendSpacing * (li + 1);
+      var lineColor = curveColors[curves[li]] || color;
+      var legLine = document.createElementNS(SVG_NS, 'line');
+      legLine.setAttribute('x1', String(lx - 12));
+      legLine.setAttribute('y1', String(legendY));
+      legLine.setAttribute('x2', String(lx - 4));
+      legLine.setAttribute('y2', String(legendY));
+      legLine.setAttribute('stroke', lineColor);
+      legLine.setAttribute('stroke-width', '2.5');
+      innerG.appendChild(legLine);
+      var legText = document.createElementNS(SVG_NS, 'text');
+      legText.setAttribute('x', String(lx));
+      legText.setAttribute('y', String(legendY + 4));
+      legText.setAttribute('text-anchor', 'start');
+      legText.setAttribute('fill', lineColor);
+      legText.setAttribute('font-size', '10');
+      legText.textContent = curves[li];
+      innerG.appendChild(legText);
+    }
+    addLabel(innerG, entity, totalH / 2 + 12);
+    parentEl.appendChild(g.outerG);
+    return g.outerG;
+  }
+
+  // ── BinaryTree: simplified tree with nodes ───────────────────────
+  function parseBinaryTreeNodes(meta) {
+    var nodesArr = meta.nodes;
+    if (Array.isArray(nodesArr) && nodesArr.length > 0) {
+      return nodesArr.slice(0, 15).map(function(raw) {
+        if (raw == null) return null;
+        if (typeof raw === 'object' && raw !== null && 'value' in raw) return { value: String(raw.value), enabled: raw.enabled !== false, selected: raw.selected === true };
+        return { value: String(raw), enabled: true, selected: false };
+      });
+    }
+    var tree = meta.tree;
+    if (tree && typeof tree === 'object') {
+      var flat = [];
+      function collect(node, idx) {
+        if (!node || flat.length >= 15) return;
+        flat[idx] = { value: String(node.value != null ? node.value : '?'), enabled: true, selected: false };
+        if (node.left) collect(node.left, 2 * idx + 1);
+        if (node.right) collect(node.right, 2 * idx + 2);
+      }
+      collect(tree, 0);
+      return flat.filter(Boolean);
+    }
+    return [{ value: '5' }, { value: '3' }, { value: '8' }, { value: '1' }, { value: '4' }, { value: '6' }, { value: '9' }];
+  }
+
+  function renderBinaryTree(entity, parentEl, delay) {
+    var g = createEntityGroup(entity, delay);
+    var innerG = g.innerG;
+    var s = sizeToPixels(entity.size || 1.5);
+    var color = getEntityColor(entity);
+    var fill = getFill(color, canvas);
+    var meta = entity.metadata || {};
+    var nodes = parseBinaryTreeNodes(meta);
+    var disabledSet = {};
+    var selectedSet = {};
+    var di = meta.disabledIndexes || [];
+    var si = meta.selectedIndexes || [];
+    for (var i = 0; i < di.length; i++) disabledSet[di[i]] = true;
+    for (var j = 0; j < si.length; j++) selectedSet[si[j]] = true;
+
+    var nodeR = 9 * (s / 110);
+    var dx = s * 0.85;
+    var dy = s * 0.55;
+    var positions = [];
+    for (var idx = 0; idx < nodes.length; idx++) {
+      if (!nodes[idx]) continue;
+      var level = Math.floor(Math.log2(idx + 1));
+      var posInLevel = idx - (1 << level) + 1;
+      var totalInLevel = 1 << level;
+      var x = (posInLevel - (totalInLevel - 1) / 2) * dx;
+      var y = level * dy;
+      positions[idx] = { x: x, y: y, value: nodes[idx].value, enabled: !disabledSet[idx], selected: !!selectedSet[idx] };
+    }
+
+    for (var idx = 0; idx < positions.length; idx++) {
+      var pos = positions[idx];
+      if (!pos) continue;
+      var parentIdx = Math.floor((idx - 1) / 2);
+      if (parentIdx >= 0 && positions[parentIdx]) {
+        var line = document.createElementNS(SVG_NS, 'line');
+        line.setAttribute('x1', String(positions[parentIdx].x));
+        line.setAttribute('y1', String(positions[parentIdx].y));
+        line.setAttribute('x2', String(pos.x));
+        line.setAttribute('y2', String(pos.y));
+        line.setAttribute('stroke', color);
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('opacity', '0.7');
+        innerG.appendChild(line);
+      }
+    }
+    for (var idx = 0; idx < positions.length; idx++) {
+      var pos = positions[idx];
+      if (!pos) continue;
+      var circ = document.createElementNS(SVG_NS, 'circle');
+      circ.setAttribute('cx', String(pos.x));
+      circ.setAttribute('cy', String(pos.y));
+      circ.setAttribute('r', String(nodeR));
+      circ.setAttribute('fill', fill);
+      circ.setAttribute('stroke', color);
+      circ.setAttribute('stroke-width', pos.selected ? '3' : '1.5');
+      if (!pos.enabled) circ.setAttribute('opacity', '0.4');
+      innerG.appendChild(circ);
+      var text = document.createElementNS(SVG_NS, 'text');
+      text.setAttribute('x', String(pos.x));
+      text.setAttribute('y', String(pos.y + 4));
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('fill', color);
+      text.setAttribute('font-size', String(Math.round(10 * (s / 110))));
+      text.setAttribute('font-weight', '600');
+      text.textContent = truncLabel(String(pos.value), 4);
+      innerG.appendChild(text);
+    }
+    addLabel(innerG, entity, (Math.ceil(Math.log2(positions.length + 1)) - 1) * dy + 24);
+    parentEl.appendChild(g.outerG);
+    return g.outerG;
+  }
+
+  // ── Circuit: simplified circuit diagram ───────────────────────────
+  function renderCircuit(entity, parentEl, delay) {
+    var g = createEntityGroup(entity, delay);
+    var innerG = g.innerG;
+    var s = sizeToPixels(entity.size || 1.5);
+    var color = getEntityColor(entity);
+    var fill = getFill(color, canvas);
+    var meta = entity.metadata || {};
+    var components = meta.components || [{ type: 'battery' }, { type: 'resistor' }, { type: 'bulb' }];
+    components = components.slice(0, 5);
+    var spacing = 50;
+    var totalW = (components.length - 1) * spacing;
+    var startX = -totalW / 2;
+
+    for (var i = 0; i < components.length; i++) {
+      var x = startX + i * spacing;
+      var comp = components[i];
+      var typ = (comp && comp.type) ? String(comp.type).toLowerCase() : 'box';
+      var lbl = (comp && comp.label) ? comp.label : typ;
+
+      if (typ === 'battery' || typ === 'voltage' || typ === 'v' || typ === 'cell') {
+        var l1 = document.createElementNS(SVG_NS, 'line');
+        l1.setAttribute('x1', String(x - 6));
+        l1.setAttribute('y1', '0');
+        l1.setAttribute('x2', String(x + 6));
+        l1.setAttribute('y2', '0');
+        l1.setAttribute('stroke', color);
+        l1.setAttribute('stroke-width', '2');
+        innerG.appendChild(l1);
+        var l2 = document.createElementNS(SVG_NS, 'line');
+        l2.setAttribute('x1', String(x - 6));
+        l2.setAttribute('y1', '16');
+        l2.setAttribute('x2', String(x + 6));
+        l2.setAttribute('y2', '16');
+        l2.setAttribute('stroke', color);
+        l2.setAttribute('stroke-width', '2');
+        innerG.appendChild(l2);
+        var v = document.createElementNS(SVG_NS, 'line');
+        v.setAttribute('x1', String(x));
+        v.setAttribute('y1', '0');
+        v.setAttribute('x2', String(x));
+        v.setAttribute('y2', '16');
+        v.setAttribute('stroke', color);
+        v.setAttribute('stroke-width', '1.5');
+        innerG.appendChild(v);
+      } else if (typ === 'resistor' || typ === 'r') {
+        var path = document.createElementNS(SVG_NS, 'path');
+        path.setAttribute('d', 'M ' + (x - 15) + ' 8 L ' + (x - 5) + ' 0 L ' + x + ' 16 L ' + (x + 5) + ' 0 L ' + (x + 15) + ' 8');
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', color);
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-linecap', 'round');
+        path.setAttribute('stroke-linejoin', 'round');
+        innerG.appendChild(path);
+      } else if (typ === 'bulb' || typ === 'lamp' || typ === 'light') {
+        var circ = document.createElementNS(SVG_NS, 'circle');
+        circ.setAttribute('cx', String(x));
+        circ.setAttribute('cy', '8');
+        circ.setAttribute('r', '10');
+        circ.setAttribute('fill', fill);
+        circ.setAttribute('stroke', color);
+        circ.setAttribute('stroke-width', '2');
+        innerG.appendChild(circ);
+      } else {
+        var rect = document.createElementNS(SVG_NS, 'rect');
+        rect.setAttribute('x', String(x - 12));
+        rect.setAttribute('y', '-4');
+        rect.setAttribute('width', '24');
+        rect.setAttribute('height', '24');
+        rect.setAttribute('rx', '2');
+        rect.setAttribute('fill', fill);
+        rect.setAttribute('stroke', color);
+        rect.setAttribute('stroke-width', '1.5');
+        innerG.appendChild(rect);
+      }
+
+      if (i < components.length - 1) {
+        var wire = document.createElementNS(SVG_NS, 'line');
+        wire.setAttribute('x1', String(x + 15));
+        wire.setAttribute('y1', '8');
+        wire.setAttribute('x2', String(startX + (i + 1) * spacing - 15));
+        wire.setAttribute('y2', '8');
+        wire.setAttribute('stroke', color);
+        wire.setAttribute('stroke-width', '1.5');
+        wire.setAttribute('opacity', '0.7');
+        innerG.appendChild(wire);
+      }
+    }
+    addLabel(innerG, entity, 36);
+    parentEl.appendChild(g.outerG);
+    return g.outerG;
+  }
+
+  // ── CoordinateSystem: axes with grid ─────────────────────────────
+  function renderCoordinateSystem(entity, parentEl, delay) {
+    var g = createEntityGroup(entity, delay);
+    var innerG = g.innerG;
+    var s = sizeToPixels(entity.size || 2);
+    var totalW = s * 4;
+    var totalH = s * 3;
+    var color = getEntityColor(entity);
+    var meta = entity.metadata || {};
+    var xRange = meta.xRange || [-5, 5];
+    var yRange = meta.yRange || [-5, 5];
+    var xMin = xRange[0] != null ? xRange[0] : -5;
+    var xMax = xRange[1] != null ? xRange[1] : 5;
+    var yMin = yRange[0] != null ? yRange[0] : -5;
+    var yMax = yRange[1] != null ? yRange[1] : 5;
+    var pad = 30;
+    var chartW = totalW - pad * 2;
+    var chartH = totalH - pad * 2;
+    var chartLeft = -totalW / 2 + pad;
+    var chartTop = -totalH / 2 + pad;
+
+    function mapX(v) { return chartLeft + ((v - xMin) / (xMax - xMin || 1)) * chartW; }
+    function mapY(v) { return chartTop + chartH - ((v - yMin) / (yMax - yMin || 1)) * chartH; }
+
+    var bg = document.createElementNS(SVG_NS, 'rect');
+    bg.setAttribute('x', String(-totalW / 2));
+    bg.setAttribute('y', String(-totalH / 2));
+    bg.setAttribute('width', String(totalW));
+    bg.setAttribute('height', String(totalH));
+    bg.setAttribute('rx', '8');
+    bg.setAttribute('fill', colorAlpha(color, 0.08));
+    bg.setAttribute('stroke', color);
+    bg.setAttribute('stroke-width', '1');
+    innerG.appendChild(bg);
+
+    var gridSpacing = meta.gridSpacing != null ? meta.gridSpacing : 1;
+    var showGrid = meta.showGrid !== false;
+    if (showGrid && gridSpacing > 0) {
+      for (var v = Math.ceil(xMin / gridSpacing) * gridSpacing; v <= xMax; v += gridSpacing) {
+        var gx = mapX(v);
+        var gl = document.createElementNS(SVG_NS, 'line');
+        gl.setAttribute('x1', String(gx));
+        gl.setAttribute('y1', String(chartTop));
+        gl.setAttribute('x2', String(gx));
+        gl.setAttribute('y2', String(chartTop + chartH));
+        gl.setAttribute('stroke', colorAlpha(color, 0.15));
+        gl.setAttribute('stroke-width', '1');
+        innerG.appendChild(gl);
+      }
+      for (var v = Math.ceil(yMin / gridSpacing) * gridSpacing; v <= yMax; v += gridSpacing) {
+        var gy = mapY(v);
+        var gl = document.createElementNS(SVG_NS, 'line');
+        gl.setAttribute('x1', String(chartLeft));
+        gl.setAttribute('y1', String(gy));
+        gl.setAttribute('x2', String(chartLeft + chartW));
+        gl.setAttribute('y2', String(gy));
+        gl.setAttribute('stroke', colorAlpha(color, 0.15));
+        gl.setAttribute('stroke-width', '1');
+        innerG.appendChild(gl);
+      }
+    }
+
+    var xAxis = document.createElementNS(SVG_NS, 'line');
+    xAxis.setAttribute('x1', String(chartLeft));
+    xAxis.setAttribute('y1', String(mapY(0)));
+    xAxis.setAttribute('x2', String(chartLeft + chartW));
+    xAxis.setAttribute('y2', String(mapY(0)));
+    xAxis.setAttribute('stroke', colorAlpha(color, 0.5));
+    xAxis.setAttribute('stroke-width', '1.5');
+    innerG.appendChild(xAxis);
+    var yAxis = document.createElementNS(SVG_NS, 'line');
+    yAxis.setAttribute('x1', String(mapX(0)));
+    yAxis.setAttribute('y1', String(chartTop));
+    yAxis.setAttribute('x2', String(mapX(0)));
+    yAxis.setAttribute('y2', String(chartTop + chartH));
+    yAxis.setAttribute('stroke', colorAlpha(color, 0.5));
+    yAxis.setAttribute('stroke-width', '1.5');
+    innerG.appendChild(yAxis);
+
+    var points = meta.points || [];
+    for (var pi = 0; pi < points.length && pi < 8; pi++) {
+      var pt = points[pi];
+      var px = mapX(pt.x != null ? pt.x : 0);
+      var py = mapY(pt.y != null ? pt.y : 0);
+      var ptColor = (pt && pt.color) || color;
+      var dot = document.createElementNS(SVG_NS, 'circle');
+      dot.setAttribute('cx', String(px));
+      dot.setAttribute('cy', String(py));
+      dot.setAttribute('r', '4');
+      dot.setAttribute('fill', ptColor);
+      dot.setAttribute('stroke', color);
+      dot.setAttribute('stroke-width', '1');
+      innerG.appendChild(dot);
+    }
+    addLabel(innerG, entity, totalH / 2 + 12);
+    parentEl.appendChild(g.outerG);
+    return g.outerG;
+  }
+
+  // ── Graph2D: function plot / ROC / loss / scatter ─────────────────
+  function renderGraph2D(entity, parentEl, delay) {
+    var g = createEntityGroup(entity, delay);
+    var innerG = g.innerG;
+    var s = sizeToPixels(entity.size || 2);
+    var totalW = s * 4;
+    var totalH = s * 3;
+    var color = getEntityColor(entity);
+    var meta = entity.metadata || {};
+    var curveType = meta.curveType;
+    var isROC = curveType === 'roc';
+    var isLoss = curveType === 'loss';
+    var domain = meta.domain || meta.xRange || (isROC || isLoss ? (isROC ? [0, 1] : [0, 10]) : [-5, 5]);
+    var range = meta.range || meta.yRange || (isROC ? [0, 1] : isLoss ? [0, 2] : [-5, 5]);
+    var domainMin = domain[0] != null ? domain[0] : -5;
+    var domainMax = domain[1] != null ? domain[1] : 5;
+    var rangeMin = range[0] != null ? range[0] : -5;
+    var rangeMax = range[1] != null ? range[1] : 5;
+    var pad = 30;
+    var chartW = totalW - pad * 2;
+    var chartH = totalH - pad * 2;
+    var chartLeft = -totalW / 2 + pad;
+    var chartTop = -totalH / 2 + pad;
+
+    function mapX(v) { return chartLeft + ((v - domainMin) / (domainMax - domainMin || 1)) * chartW; }
+    function mapY(v) { return chartTop + chartH - ((v - rangeMin) / (rangeMax - rangeMin || 1)) * chartH; }
+
+    var bg = document.createElementNS(SVG_NS, 'rect');
+    bg.setAttribute('x', String(-totalW / 2));
+    bg.setAttribute('y', String(-totalH / 2));
+    bg.setAttribute('width', String(totalW));
+    bg.setAttribute('height', String(totalH));
+    bg.setAttribute('rx', '8');
+    bg.setAttribute('fill', colorAlpha(color, 0.08));
+    bg.setAttribute('stroke', color);
+    bg.setAttribute('stroke-width', '1');
+    innerG.appendChild(bg);
+
+    var showGrid = meta.showGrid !== false;
+    if (showGrid) {
+      for (var v = Math.ceil(domainMin); v <= Math.floor(domainMax); v++) {
+        var gx = mapX(v);
+        var gl = document.createElementNS(SVG_NS, 'line');
+        gl.setAttribute('x1', String(gx));
+        gl.setAttribute('y1', String(chartTop));
+        gl.setAttribute('x2', String(gx));
+        gl.setAttribute('y2', String(chartTop + chartH));
+        gl.setAttribute('stroke', colorAlpha(color, 0.15));
+        gl.setAttribute('stroke-width', '1');
+        innerG.appendChild(gl);
+      }
+      for (var v = Math.ceil(rangeMin); v <= Math.floor(rangeMax); v++) {
+        var gy = mapY(v);
+        var gl = document.createElementNS(SVG_NS, 'line');
+        gl.setAttribute('x1', String(chartLeft));
+        gl.setAttribute('y1', String(gy));
+        gl.setAttribute('x2', String(chartLeft + chartW));
+        gl.setAttribute('y2', String(gy));
+        gl.setAttribute('stroke', colorAlpha(color, 0.15));
+        gl.setAttribute('stroke-width', '1');
+        innerG.appendChild(gl);
+      }
+    }
+
+    var xAxis = document.createElementNS(SVG_NS, 'line');
+    xAxis.setAttribute('x1', String(chartLeft));
+    xAxis.setAttribute('y1', String(mapY(0)));
+    xAxis.setAttribute('x2', String(chartLeft + chartW));
+    xAxis.setAttribute('y2', String(mapY(0)));
+    xAxis.setAttribute('stroke', colorAlpha(color, 0.5));
+    xAxis.setAttribute('stroke-width', '1.5');
+    innerG.appendChild(xAxis);
+    var yAxis = document.createElementNS(SVG_NS, 'line');
+    yAxis.setAttribute('x1', String(mapX(0)));
+    yAxis.setAttribute('y1', String(chartTop));
+    yAxis.setAttribute('x2', String(mapX(0)));
+    yAxis.setAttribute('y2', String(chartTop + chartH));
+    yAxis.setAttribute('stroke', colorAlpha(color, 0.5));
+    yAxis.setAttribute('stroke-width', '1.5');
+    innerG.appendChild(yAxis);
+
+    var points = meta.points || [];
+    if (isROC && points.length === 0) points = [{ x: 0, y: 0 }, { x: 0.1, y: 0.3 }, { x: 0.3, y: 0.6 }, { x: 0.6, y: 0.85 }, { x: 1, y: 1 }];
+    if (isLoss && !meta.expression && points.length === 0) points = [{ x: 0, y: 1.8 }, { x: 2, y: 1.2 }, { x: 4, y: 0.8 }, { x: 6, y: 0.5 }, { x: 8, y: 0.35 }, { x: 10, y: 0.25 }];
+
+    if ((isROC || isLoss) && points.length > 0) {
+      var pathD = points.map(function(p, i) {
+        return (i === 0 ? 'M' : 'L') + mapX(p.x).toFixed(1) + ',' + mapY(p.y).toFixed(1);
+      }).join(' ');
+      var path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('d', pathD);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', '2.5');
+      innerG.appendChild(path);
+    } else if (points.length > 0) {
+      for (var pi = 0; pi < points.length && pi < 20; pi++) {
+        var pt = points[pi];
+        var px = mapX(pt.x != null ? pt.x : 0);
+        var py = mapY(pt.y != null ? pt.y : 0);
+        var dot = document.createElementNS(SVG_NS, 'circle');
+        dot.setAttribute('cx', String(px));
+        dot.setAttribute('cy', String(py));
+        dot.setAttribute('r', '4');
+        dot.setAttribute('fill', color);
+        dot.setAttribute('stroke', colorAlpha(color, 0.5));
+        dot.setAttribute('stroke-width', '1.5');
+        innerG.appendChild(dot);
+      }
+    }
+    addLabel(innerG, entity, totalH / 2 + 12);
+    parentEl.appendChild(g.outerG);
+    return g.outerG;
+  }
+
+  // ── DNSResolver: server rack with globe icon ────────────────────
+  function renderDNSResolver(entity, parentEl, delay) {
+    var g = createEntityGroup(entity, delay);
+    var innerG = g.innerG;
+    var s = sizeToPixels(entity.size || 1);
+    var color = getEntityColor(entity);
+    var fill = getFill(color, canvas);
+    var w = s * 1.4;
+    var h = s * 0.8;
+
+    var body = document.createElementNS(SVG_NS, 'rect');
+    body.setAttribute('x', String(-w / 2));
+    body.setAttribute('y', String(-h / 2));
+    body.setAttribute('width', String(w));
+    body.setAttribute('height', String(h));
+    body.setAttribute('rx', '4');
+    body.setAttribute('fill', fill);
+    body.setAttribute('stroke', color);
+    body.setAttribute('stroke-width', '1.5');
+    innerG.appendChild(body);
+
+    var lineOffsets = [-s / 6, 0, s / 6];
+    for (var li = 0; li < lineOffsets.length; li++) {
+      var line = document.createElementNS(SVG_NS, 'line');
+      line.setAttribute('x1', String(-w / 2));
+      line.setAttribute('x2', String(w / 2));
+      line.setAttribute('y1', String(lineOffsets[li]));
+      line.setAttribute('y2', String(lineOffsets[li]));
+      line.setAttribute('stroke', color);
+      line.setAttribute('stroke-width', '1.5');
+      line.setAttribute('opacity', '0.6');
+      innerG.appendChild(line);
+    }
+
+    var dotConfig = [{ cx: -w / 3, cy: -s / 3 }, { cx: -w / 6, cy: -s / 3 }, { cx: w / 6, cy: -s / 3 }];
+    for (var di = 0; di < dotConfig.length; di++) {
+      var dot = document.createElementNS(SVG_NS, 'circle');
+      dot.setAttribute('cx', String(dotConfig[di].cx));
+      dot.setAttribute('cy', String(dotConfig[di].cy));
+      dot.setAttribute('r', '3');
+      dot.setAttribute('fill', di < 2 ? color : '#28c840');
+      dot.setAttribute('opacity', '0.9');
+      innerG.appendChild(dot);
+    }
+
+    var globeR = s * 0.18;
+    var globe = document.createElementNS(SVG_NS, 'circle');
+    globe.setAttribute('cx', String(-w / 6));
+    globe.setAttribute('cy', String(s * 0.08));
+    globe.setAttribute('r', String(globeR));
+    globe.setAttribute('fill', 'none');
+    globe.setAttribute('stroke', color);
+    globe.setAttribute('stroke-width', '1.5');
+    globe.setAttribute('opacity', '0.9');
+    innerG.appendChild(globe);
+
+    var arrow = document.createElementNS(SVG_NS, 'path');
+    arrow.setAttribute('d', 'M ' + (w / 6 - 8) + ' ' + (s * 0.08) + ' L ' + (w / 6 + 8) + ' ' + (s * 0.08) + ' M ' + (w / 6 + 4) + ' ' + (s * 0.08 - 4) + ' L ' + (w / 6 + 8) + ' ' + (s * 0.08) + ' L ' + (w / 6 + 4) + ' ' + (s * 0.08 + 4));
+    arrow.setAttribute('fill', 'none');
+    arrow.setAttribute('stroke', color);
+    arrow.setAttribute('stroke-width', '1.5');
+    arrow.setAttribute('stroke-linecap', 'round');
+    arrow.setAttribute('stroke-linejoin', 'round');
+    innerG.appendChild(arrow);
+
+    addLabel(innerG, entity, h / 2 + 22);
+    parentEl.appendChild(g.outerG);
+    return g.outerG;
+  }
+
+  // ── Cache: cylinder with lightning bolt ──────────────────────────
+  function renderCache(entity, parentEl, delay) {
+    var g = createEntityGroup(entity, delay);
+    var innerG = g.innerG;
+    var s = sizeToPixels(entity.size || 1);
+    var color = getEntityColor(entity);
+    var fill = getFill(color, canvas);
+    var rx = s / 2;
+    var ry = s / 6;
+    var bodyH = s * 0.55;
+    var topY = -s / 3;
+    var botY = topY + bodyH;
+
+    var topEllipse = document.createElementNS(SVG_NS, 'ellipse');
+    topEllipse.setAttribute('cx', '0');
+    topEllipse.setAttribute('cy', String(topY));
+    topEllipse.setAttribute('rx', String(rx));
+    topEllipse.setAttribute('ry', String(ry));
+    topEllipse.setAttribute('fill', colorAlpha(color, 0.15));
+    topEllipse.setAttribute('stroke', color);
+    topEllipse.setAttribute('stroke-width', '1.5');
+    innerG.appendChild(topEllipse);
+
+    var bodyFill = document.createElementNS(SVG_NS, 'rect');
+    bodyFill.setAttribute('x', String(-rx));
+    bodyFill.setAttribute('y', String(topY));
+    bodyFill.setAttribute('width', String(rx * 2));
+    bodyFill.setAttribute('height', String(bodyH));
+    bodyFill.setAttribute('fill', fill);
+    bodyFill.setAttribute('stroke', 'none');
+    innerG.appendChild(bodyFill);
+
+    var botEllipse = document.createElementNS(SVG_NS, 'ellipse');
+    botEllipse.setAttribute('cx', '0');
+    botEllipse.setAttribute('cy', String(botY));
+    botEllipse.setAttribute('rx', String(rx));
+    botEllipse.setAttribute('ry', String(ry));
+    botEllipse.setAttribute('fill', colorAlpha(color, 0.08));
+    botEllipse.setAttribute('stroke', color);
+    botEllipse.setAttribute('stroke-width', '1.5');
+    innerG.appendChild(botEllipse);
+
+    for (var side = -1; side <= 1; side += 2) {
+      var vl = document.createElementNS(SVG_NS, 'line');
+      vl.setAttribute('x1', String(side * rx));
+      vl.setAttribute('y1', String(topY));
+      vl.setAttribute('x2', String(side * rx));
+      vl.setAttribute('y2', String(botY));
+      vl.setAttribute('stroke', color);
+      vl.setAttribute('stroke-width', '1.5');
+      innerG.appendChild(vl);
+    }
+
+    var stripeOffsets = [0.2, 0.45, 0.7];
+    for (var si = 0; si < stripeOffsets.length; si++) {
+      var sy = topY + bodyH * stripeOffsets[si];
+      var sw = rx * 0.85;
+      var stripe = document.createElementNS(SVG_NS, 'line');
+      stripe.setAttribute('x1', String(-sw));
+      stripe.setAttribute('y1', String(sy));
+      stripe.setAttribute('x2', String(sw));
+      stripe.setAttribute('y2', String(sy));
+      stripe.setAttribute('stroke', color);
+      stripe.setAttribute('stroke-width', '1.5');
+      stripe.setAttribute('opacity', '0.5');
+      innerG.appendChild(stripe);
+    }
+
+    var boltScale = rx * 0.35;
+    var boltPath = 'M 0 ' + (-boltScale) + ' L ' + (boltScale * 0.5) + ' 0 L ' + (-boltScale * 0.3) + ' ' + (boltScale * 0.3) + ' L ' + (boltScale * 0.2) + ' ' + boltScale + ' L ' + (-boltScale * 0.5) + ' ' + (boltScale * 0.2) + ' L 0 0 Z';
+    var bolt = document.createElementNS(SVG_NS, 'path');
+    bolt.setAttribute('d', boltPath);
+    bolt.setAttribute('fill', color);
+    bolt.setAttribute('opacity', '0.9');
+    innerG.appendChild(bolt);
+
+    addLabel(innerG, entity, botY + ry + 20);
     parentEl.appendChild(g.outerG);
     return g.outerG;
   }
@@ -1160,15 +2258,15 @@ export const PLAYER_JS = `(function() {
   // Type → Renderer dispatch table
   // ═══════════════════════════════════════════════════════════════════
   var SHAPE_MAP = {
-    Cache: 'circle', LoadBalancer: 'hexagon', Decision: 'diamond',
-    Metric: 'circle', Concept: 'concept', Cycle: 'circle',
+    LoadBalancer: 'hexagon', Decision: 'diamond',
+    Metric: 'circle', Concept: 'concept',
     Particle: 'circle', StateNode: 'circle', Cluster: 'circle'
   };
 
   function dispatchEntity(entity, parentEl, delay) {
     var t = entity.type || 'Entity';
 
-    if (t === 'Server' || t === 'Service' || t === 'APIGateway' || t === 'Lambda')
+    if (t === 'Server' || t === 'Service' || t === 'API' || t === 'APIGateway' || t === 'Lambda')
       return renderServer(entity, parentEl, delay);
     if (t === 'Database' || t === 'HashTable')
       return renderDatabase(entity, parentEl, delay);
@@ -1178,10 +2276,36 @@ export const PLAYER_JS = `(function() {
       return renderUser(entity, parentEl, delay);
     if (t === 'Concept')
       return renderConcept(entity, parentEl, delay);
-    if (t === 'Label' || t === 'Annotation' || t === 'Definition' || t === 'Callout' || t === 'Quote' || t === 'Badge')
+    if (t === 'Label' || t === 'Annotation' || t === 'Definition' || t === 'Callout' || t === 'Quote' || t === 'Badge' || t === 'Analogy' || t === 'Comparison' || t === 'Proof')
       return renderLabel(entity, parentEl, delay);
     if (t === 'CodeBlock')
       return renderCodeBlock(entity, parentEl, delay);
+    if (t === 'Array')
+      return renderArray(entity, parentEl, delay);
+    if (t === 'Stack')
+      return renderStack(entity, parentEl, delay);
+    if (t === 'StepList')
+      return renderStepList(entity, parentEl, delay);
+    if (t === 'BarChart')
+      return renderBarChart(entity, parentEl, delay);
+    if (t === 'Cycle')
+      return renderCycle(entity, parentEl, delay);
+    if (t === 'ConfusionMatrix')
+      return renderConfusionMatrix(entity, parentEl, delay);
+    if (t === 'BigO')
+      return renderBigO(entity, parentEl, delay);
+    if (t === 'BinaryTree' || t === 'BTree')
+      return renderBinaryTree(entity, parentEl, delay);
+    if (t === 'Circuit')
+      return renderCircuit(entity, parentEl, delay);
+    if (t === 'CoordinateSystem')
+      return renderCoordinateSystem(entity, parentEl, delay);
+    if (t === 'Graph2D')
+      return renderGraph2D(entity, parentEl, delay);
+    if (t === 'DNSResolver')
+      return renderDNSResolver(entity, parentEl, delay);
+    if (t === 'Cache')
+      return renderCache(entity, parentEl, delay);
 
     // Shape-mapped generics
     var shape = SHAPE_MAP[t] || 'rect';
@@ -1719,10 +2843,34 @@ export const PLAYER_JS = `(function() {
   // Show empty state on load
   showEmptyState();
 
+  // SSE URL: use data-events-base when player is in iframe (different origin)
+  var eventsBase = document.body.getAttribute('data-events-base') || '';
+  var eventsUrl = eventsBase
+    ? ((eventsBase.charAt(eventsBase.length - 1) === '/' ? eventsBase.slice(0, -1) : eventsBase) + '/session/' + sessionId + '/events')
+    : ('/session/' + sessionId + '/events');
+
   // ═══════════════════════════════════════════════════════════════════
   // SSE Connection
   // ═══════════════════════════════════════════════════════════════════
-  var evtSource = new EventSource('/session/' + sessionId + '/events');
+  var evtSource = new EventSource(eventsUrl);
+
+  var fallbackScheduled = true;
+  function applyScript(script) {
+    if (!script || !script.frames || script.frames.length === 0) return;
+    if (fallbackScheduled) { clearTimeout(fallbackTimeout); fallbackScheduled = false; }
+    hideEmptyState();
+    var prevFrameCount = currentScript ? currentScript.frames.length : 0;
+    currentScript = script;
+    renderStyle = (currentScript && currentScript.style === 'minimal') || urlStyle ? 'minimal' : 'cinema';
+    if (document.body) document.body.setAttribute('data-theme', renderStyle);
+    if (prevFrameCount > 0 && currentScript.frames.length > prevFrameCount) {
+      currentFrame = prevFrameCount;
+    } else {
+      currentFrame = 0;
+    }
+    renderFrame(currentScript.frames[currentFrame]);
+    updateFrameCounter();
+  }
 
   evtSource.addEventListener('message', function(e) {
     try {
@@ -1734,20 +2882,7 @@ export const PLAYER_JS = `(function() {
       }
 
       if (event.type === 'script_update') {
-        hideEmptyState();
-        var prevFrameCount = currentScript ? currentScript.frames.length : 0;
-        currentScript = event.script;
-        renderStyle = (currentScript && currentScript.style === 'minimal') || urlStyle ? 'minimal' : 'cinema';
-        if (document.body) document.body.setAttribute('data-theme', renderStyle);
-        // If frames were appended, navigate to the first new frame
-        // If this is the initial load or a full replace, go to frame 0
-        if (prevFrameCount > 0 && currentScript.frames.length > prevFrameCount) {
-          currentFrame = prevFrameCount;
-        } else {
-          currentFrame = 0;
-        }
-        renderFrame(currentScript.frames[currentFrame]);
-        updateFrameCounter();
+        applyScript(event.script);
         return;
       }
 
@@ -1763,6 +2898,24 @@ export const PLAYER_JS = `(function() {
   evtSource.addEventListener('error', function() {
     console.warn('[PRE] SSE connection interrupted \u2014 auto-reconnecting.');
   });
+
+  // Fallback: if no script received within 2.5s, fetch directly (handles SSE failure, iframe CORS, etc.)
+  var fallbackTimeout = setTimeout(function() {
+    fallbackScheduled = false;
+    if (currentScript && currentScript.frames && currentScript.frames.length > 0) return;
+    var scriptUrl = eventsBase
+      ? ((eventsBase.charAt(eventsBase.length - 1) === '/' ? eventsBase.slice(0, -1) : eventsBase) + '/session/' + sessionId + '/script')
+      : ('/session/' + sessionId + '/script');
+    fetch(scriptUrl)
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(data) {
+        if (data && data.script && data.script.frames && data.script.frames.length > 0) {
+          console.log('[PRE] Script loaded via fallback fetch');
+          applyScript(data.script);
+        }
+      })
+      .catch(function() {});
+  }, 2500);
 
   // ═══════════════════════════════════════════════════════════════════
   // postMessage bridge (for iframe embed control)

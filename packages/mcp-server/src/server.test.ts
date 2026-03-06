@@ -896,3 +896,75 @@ describe('GET /session/:id/events (SSE)', () => {
     expect(events).toContain('"f-replay-1"');
   });
 });
+
+describe('GET /session/:id/script', () => {
+  let ctx: ServerContext;
+  let apiKey: string;
+  let sessionId: string;
+
+  beforeAll(async () => {
+    ctx = await createTestServer();
+    apiKey = await createTestAccessToken();
+    const createRes = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/create-session',
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
+      body: JSON.stringify({ title: 'Script Fallback' }),
+    });
+    sessionId = JSON.parse(JSON.parse(createRes.body).content[0].text).data.session_id;
+  });
+
+  afterAll(async () => {
+    await ctx.app.close();
+  });
+
+  it('should return 404 for non-existent session', async () => {
+    const res = await ctx.app.inject({
+      method: 'GET',
+      url: '/session/00000000-0000-0000-0000-000000000000/script',
+    });
+    expect(res.statusCode).toBe(404);
+  });
+
+  it('should return null script when session has no scenes', async () => {
+    const res = await ctx.app.inject({
+      method: 'GET',
+      url: `/session/${sessionId}/script`,
+    });
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.script).toBeNull();
+    expect(body.frame_count).toBe(0);
+  });
+
+  it('should return script when session has scenes', async () => {
+    await ctx.app.inject({
+      method: 'POST',
+      url: '/api/add-scene',
+      headers: { 'Content-Type': 'application/json', 'X-Preplai-API-Key': apiKey },
+      body: JSON.stringify({
+        session_id: sessionId,
+        visual_script: {
+          sceneId: sessionId,
+          totalDuration: 3000,
+          frames: [{
+            id: 'f-1',
+            startTime: 0,
+            endTime: 3000,
+            entities: [{ id: 'e1', type: 'Label', position: { x: 50, y: 50 }, label: 'Hello' }],
+          }],
+        },
+      }),
+    });
+
+    const res = await ctx.app.inject({
+      method: 'GET',
+      url: `/session/${sessionId}/script`,
+    });
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.script).toBeDefined();
+    expect(body.script.frames).toHaveLength(1);
+    expect(body.frame_count).toBe(1);
+  });
+});

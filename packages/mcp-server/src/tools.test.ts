@@ -9,12 +9,14 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import { connectDb, closeDb } from '@preplai/db';
 import { SessionStore } from './session-store.js';
 import { SseRegistry } from './sse.js';
+import { stage0Expand } from '@preplai/compiler';
 import {
   handleCreateSession,
   handleAddScene,
   handleUpdateScene,
   handleAddNarration,
   handleGetSessionUrl,
+  handleGetPreferences,
 } from './tools.js';
 
 let mongod: MongoMemoryServer;
@@ -63,6 +65,17 @@ describe('MCP Tool Handlers', () => {
     sse = new SseRegistry();
   });
 
+  // ── get_preferences ────────────────────────────────────────────
+  describe('handleGetPreferences', () => {
+    it('returns theme and palette only (no entity colors)', async () => {
+      const result = await handleGetPreferences({}, { apiKeyId: undefined });
+      const data = parse(result);
+      expect(data.success).toBe(true);
+      expect(data.data).toEqual({ theme: 'cinema', palette: 'default' });
+      expect(data.data.colors).toBeUndefined();
+    });
+  });
+
   // ── create_session ──────────────────────────────────────────────
   describe('handleCreateSession', () => {
     it('returns success with session_id and player_url', async () => {
@@ -78,7 +91,7 @@ describe('MCP Tool Handlers', () => {
       expect(data.data.title).toBe('Binary Search Intro');
       expect(data.data.aspect_ratio).toBe('16:9');
       expect(data.data.created_at).toBeTruthy();
-      expect(data.data.preferences).toEqual({ theme: 'cinema', palette: 'default', colors: expect.any(Object) });
+      expect(data.data.preferences).toEqual({ theme: 'cinema', palette: 'default' });
     });
 
     it('defaults aspect_ratio to 16:9', async () => {
@@ -143,9 +156,11 @@ describe('MCP Tool Handlers', () => {
         { session_id: sessionId, visual_script: script },
         { store, sse }
       );
+      const expanded = stage0Expand(script);
+      expect(expanded.ok).toBe(true);
       expect(emitSpy).toHaveBeenCalledWith(sessionId, {
         type: 'script_update',
-        script,
+        script: (expanded as { ok: true; expanded: unknown }).expanded,
       });
     });
 
@@ -203,15 +218,14 @@ describe('MCP Tool Handlers', () => {
       expect(data.error.message).toContain('sceneId');
     });
 
-    it('returns VALIDATION_ERROR when frame missing entities array', async () => {
+    it('accepts frame without entities (stage0 defaults to [])', async () => {
       const result = await handleAddScene(
         { session_id: sessionId, visual_script: { sceneId: 'scene-1', frames: [{ id: 'f1', startTime: 0, endTime: 5000 }], totalDuration: 5000 } },
         { store, sse }
       );
       const data = parse(result);
-      expect(data.success).toBe(false);
-      expect(data.error.code).toBe('VALIDATION_ERROR');
-      expect(data.error.message).toContain('entities');
+      expect(data.success).toBe(true);
+      expect(data.data.frame_count).toBe(1);
     });
   });
 
@@ -369,9 +383,11 @@ describe('MCP Tool Handlers', () => {
         { session_id: sessionId, visual_script: newScript },
         { store, sse }
       );
+      const expanded = stage0Expand(newScript);
+      expect(expanded.ok).toBe(true);
       expect(emitSpy).toHaveBeenCalledWith(sessionId, {
         type: 'script_update',
-        script: newScript,
+        script: (expanded as { ok: true; expanded: unknown }).expanded,
       });
     });
 

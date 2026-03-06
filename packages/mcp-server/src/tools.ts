@@ -4,9 +4,10 @@
  * Pure handler functions for all 5 MCP tools.
  * Dependencies (store, sse, baseUrl) are injected, enabling unit testing.
  */
+import { stage0Expand } from '@preplai/compiler';
 import type { SessionStore } from './session-store.js';
 import type { SseRegistry } from './sse.js';
-import { getUserPlayerPrefs, buildPlayerUrlSuffix, getPreferencesWithColors } from './auth.js';
+import { getUserPlayerPrefs, buildPlayerUrlSuffix } from './auth.js';
 import { mcpOk, mcpNotFound, mcpErr, mcpValidationError, type McpToolContent } from './errors.js';
 
 // ── Dependency injection interfaces ───────────────────────────────────
@@ -102,7 +103,8 @@ export async function handleCreateSession(
 
   logCreateSession({ sessionId: session.id, prefs, theme, palette, styleOverride: style != null, suffix });
 
-  const preferences = getPreferencesWithColors(prefs, style ?? undefined);
+  const themeResolved = style ?? prefs.theme;
+  const paletteResolved = prefs.palette;
 
   return mcpOk({
     session_id: session.id,
@@ -112,9 +114,8 @@ export async function handleCreateSession(
     aspect_ratio: session.aspect_ratio,
     created_at: new Date(session.created_at).toISOString(),
     preferences: {
-      theme: preferences.theme,
-      palette: preferences.palette,
-      colors: preferences.colors,
+      theme: themeResolved,
+      palette: paletteResolved,
     },
   });
 }
@@ -132,11 +133,9 @@ export async function handleGetPreferences(
   const { _apiKeyId } = args;
   const apiKeyId = _apiKeyId ?? deps.apiKeyId;
   const prefs = await getUserPlayerPrefs(apiKeyId);
-  const withColors = getPreferencesWithColors(prefs);
   return mcpOk({
-    theme: withColors.theme,
-    palette: withColors.palette,
-    colors: withColors.colors,
+    theme: prefs.theme,
+    palette: prefs.palette,
   });
 }
 
@@ -152,8 +151,16 @@ export async function handleAddScene(
   const session = store.getSession(session_id);
   if (!session) return mcpNotFound(session_id);
 
+  // Expand compact format (short keys, aliases) before validation
+  const expandResult = stage0Expand(visual_script);
+  if (!expandResult.ok) {
+    const firstError = expandResult.errors[0];
+    return mcpValidationError(firstError?.message ?? 'Invalid visual_script structure.');
+  }
+  const expandedScript = expandResult.expanded as any;
+
   // Validate visual_script structure
-  const validationError = validateVisualScript(visual_script);
+  const validationError = validateVisualScript(expandedScript);
   if (validationError) {
     return mcpValidationError(validationError);
   }
@@ -165,7 +172,7 @@ export async function handleAddScene(
     const existingDuration = session.script.totalDuration || 0;
 
     // Offset the new frames' startTime/endTime so they continue after the existing ones
-    const offsetFrames = visual_script.frames.map((f: any) => ({
+    const offsetFrames = expandedScript.frames.map((f: any) => ({
       ...f,
       startTime: f.startTime + existingDuration,
       endTime: f.endTime + existingDuration,
@@ -174,12 +181,12 @@ export async function handleAddScene(
     mergedScript = {
       ...session.script,
       frames: [...existingFrames, ...offsetFrames],
-      totalDuration: existingDuration + visual_script.totalDuration,
-      style: visual_script.style ?? session.script?.style,
+      totalDuration: existingDuration + expandedScript.totalDuration,
+      style: expandedScript.style ?? session.script?.style,
     };
   } else {
     // First scene — no merge needed
-    mergedScript = visual_script;
+    mergedScript = expandedScript;
   }
 
   await store.setScript(session_id, mergedScript);
@@ -209,21 +216,29 @@ export async function handleUpdateScene(
   const session = store.getSession(session_id);
   if (!session) return mcpNotFound(session_id);
 
+  // Expand compact format before validation
+  const expandResult = stage0Expand(visual_script);
+  if (!expandResult.ok) {
+    const firstError = expandResult.errors[0];
+    return mcpValidationError(firstError?.message ?? 'Invalid visual_script structure.');
+  }
+  const expandedScript = expandResult.expanded as any;
+
   // Validate visual_script structure
-  const validationError = validateVisualScript(visual_script);
+  const validationError = validateVisualScript(expandedScript);
   if (validationError) {
     return mcpValidationError(validationError);
   }
 
-  await store.setScript(session_id, visual_script);
+  await store.setScript(session_id, expandedScript);
 
-  sse.emit(session_id, { type: 'script_update', script: visual_script });
+  sse.emit(session_id, { type: 'script_update', script: expandedScript });
 
   return mcpOk({
     session_id,
-    frame_count: visual_script.frames.length,
-    total_duration_ms: visual_script.totalDuration,
-    entity_count: visual_script.frames.reduce(
+    frame_count: expandedScript.frames.length,
+    total_duration_ms: expandedScript.totalDuration,
+    entity_count: expandedScript.frames.reduce(
       (sum: number, f: any) => sum + (f.entities?.length ?? 0), 0
     ),
     updated_at: new Date().toISOString(),
@@ -285,16 +300,13 @@ export async function handleGetSessionUrl(
   const suffix = buildPlayerUrlSuffix(prefs.theme, prefs.palette);
   const embedSuffix = suffix ? `?embed=1&${suffix.slice(1)}` : '?embed=1';
 
-  const preferences = getPreferencesWithColors(prefs);
-
   const data: Record<string, unknown> = {
     session_id,
     player_url: `${baseUrl}/player/${session_id}${suffix}`,
     embed_url: `${baseUrl}/player/${session_id}${embedSuffix}`,
     preferences: {
-      theme: preferences.theme,
-      palette: preferences.palette,
-      colors: preferences.colors,
+      theme: prefs.theme,
+      palette: prefs.palette,
     },
   };
 

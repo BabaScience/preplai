@@ -75,7 +75,7 @@ async function main() {
   const apiKey = { id: validated.id, tier: validated.tier };
 
   // 3. Create MCP server with stdio transport
-  const mcpInstructions = `When creating a new presentation, you MUST call get_preferences FIRST before create_session. This returns the user's theme, palette, and entity colors. Use that data when creating the session (pass style to override theme if needed) and when building add_scene visual_script (use preferences.colors for entity.color). Workflow: get_preferences → create_session → add_scene (repeat) → get_session_url.`;
+  const mcpInstructions = `When creating a new presentation: (1) get_preferences FIRST, (2) create_session, (3) add_scene (repeat), (4) get_session_url. For add_scene you MUST use COMPACT format: short keys (sid, td, f, e, p, n, l, src, tgt), position as [x,y], aliases (BT, ARR, CST, CB, etc.), omit color. Example: {"sid":"<session_id>","td":5000,"f":[{"e":[{"id":"x","type":"Label","p":[50,6],"l":"Title","sz":2}],"n":"Narration"}]}`;
   const mcp = new McpServer(
     { name: 'preplai', version: '0.1.0' },
     { instructions: mcpInstructions },

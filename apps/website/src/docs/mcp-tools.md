@@ -2,7 +2,7 @@
 
 **Summary:** preplai exposes 9 MCP (Model Context Protocol) tools that **any AI agent** can call to create and manage cinema-quality presentations. Claude, ChatGPT, or any MCP client — one API, nine tools.
 
-**Required workflow:** When creating a new presentation, call `get_preferences` **first** (before `create_session`). This returns the user's theme, palette, and entity colors. Use that data when creating the session and when building `add_scene` visual_script. Flow: `get_preferences` → `create_session` → `add_scene` (repeat) → `get_session_url` → share the player URL.
+**Required workflow:** When creating a new presentation, call `get_preferences` **first** (before `create_session`). This returns the user's theme and palette. Omit `entity.color` in `add_scene` — the player uses the palette automatically. Flow: `get_preferences` → `create_session` → `add_scene` (repeat) → `get_session_url` → share the player URL.
 
 All tools require authentication via `X-Preplai-API-Key` or `Authorization: Bearer <token>`.
 
@@ -48,7 +48,7 @@ All tools return JSON with `success: true` and `data` on success, or `success: f
 | `VALIDATION_ERROR` | Invalid `visual_script` or other input | Fix the listed field errors and retry. For `add_scene`/`update_scene`, ensure `frames`, `entities`, and entity metadata match the [VisualScript schema](/docs/visualscript). |
 | `LIMIT_EXCEEDED` | Session or scene limit reached | Tell the user to upgrade at [preplai.com/pricing](https://preplai.com/pricing) or delete unused sessions via `delete_session` or `list_sessions`. |
 | `FORBIDDEN` | Session owned by a different API key | Only the key that created the session can modify it. Use `list_sessions` to find sessions for the current key, or create a new session. |
-| `INTERNAL_ERROR` | Server or database failure | Retry once. If it persists, inform the user and suggest trying again later. For `get_preferences`, proceed with default colors so the presentation can still be created. |
+| `INTERNAL_ERROR` | Server or database failure | Retry once. If it persists, inform the user and suggest trying again later. |
 
 **Agent guidance:** When you receive an error, read `error.suggestion` and act on it. Do not retry the same failing call indefinitely; switch strategy (e.g. create a new session, use defaults) when appropriate.
 
@@ -56,7 +56,7 @@ All tools return JSON with `success: true` and `data` on success, or `success: f
 
 | Tool | Description |
 |------|-------------|
-| `get_preferences` | **Call first.** Get user's theme, palette, and entity colors |
+| `get_preferences` | **Call first.** Get user's theme and palette |
 | `create_session` | Create a new presentation session (call after get_preferences) |
 | `add_scene` | Append a visual scene (frames) to a session |
 | `update_scene` | Replace the visual script for a scene |
@@ -70,7 +70,7 @@ All tools return JSON with `success: true` and `data` on success, or `success: f
 
 ## create_session
 
-Create a new presentation session. **Call `get_preferences` first** to get the user's theme and palette, then create the session. Pass `style` to override the theme (e.g. `"minimal"` for algorithm visualizations) if desired. Returns `session_id`, `player_url`, and `preferences` (theme, palette, colors). Use `preferences.colors` when building `add_scene` visual_script. When running locally, the player URL is automatically opened in the browser (see [Callbacks](#callbacks)).
+Create a new presentation session. **Call `get_preferences` first** to get the user's theme and palette, then create the session. Pass `style` to override the theme (e.g. `"minimal"` for algorithm visualizations) if desired. Returns `session_id`, `player_url`, and `preferences` (theme, palette). Omit `entity.color` in `add_scene` — the player uses the palette automatically. When running locally, the player URL is automatically opened in the browser (see [Callbacks](#callbacks)).
 
 **Parameters:**
 
@@ -80,13 +80,13 @@ Create a new presentation session. **Call `get_preferences` first** to get the u
 | `aspect_ratio` | string | No | Default `"16:9"`. Options: `"16:9"`, `"4:3"` |
 | `style` | string | No | Override theme: `"cinema"` or `"minimal"`. Omit to use the user's dashboard preference. Palette is always from the dashboard. |
 
-**Response includes:** `preferences: { theme, palette, colors }` — use `colors` for entity colors in add_scene.
+**Response includes:** `preferences: { theme, palette }`.
 
 ---
 
 ## get_preferences
 
-**Call this FIRST** when creating a new presentation — before `create_session`. Returns the user's theme, palette, and entity colors. Use the returned data to decide how to create the session and to set `entity.color` in `add_scene` (e.g. Server → `colors.server`, Database → `colors.database`, User → `colors.user`).
+**Call this FIRST** when creating a new presentation — before `create_session`. Returns the user's theme and palette. Use the returned data to decide how to create the session. Omit `entity.color` in `add_scene` — the player uses the palette automatically.
 
 **When to call:**
 - **Required:** Before `create_session` when starting a new presentation.
@@ -94,9 +94,9 @@ Create a new presentation session. **Call `get_preferences` first** to get the u
 
 **Parameters:** None.
 
-**Returns:** `{ theme, palette, colors }` where `colors` is `{ server, database, cloud, user, concept, label, codeblock, generic, accent }`.
+**Returns:** `{ theme, palette }`.
 
-**If it fails:** On `UNAUTHORIZED`, ensure the client has a valid API key. On `INTERNAL_ERROR`, retry once; if it persists, proceed with default colors (e.g. `#22d3ee` for server, `#a78bfa` for database) so the presentation can still be created.
+**If it fails:** On `UNAUTHORIZED`, ensure the client has a valid API key. On `INTERNAL_ERROR`, retry once.
 
 ---
 
@@ -106,7 +106,7 @@ Add a visual scene to a presentation session. Scenes are rendered as animated SV
 
 **Append behavior:** Calling `add_scene` multiple times **appends** new frames. Use `update_scene` to replace an existing scene.
 
-**Colors:** Use `preferences.colors` from `create_session` or call `get_preferences` to get the user's palette. Map entity types to colors: Server/Service → `colors.server`, Database/Cache/HashTable → `colors.database`, Cloud → `colors.cloud`, User → `colors.user`, Concept → `colors.concept`, Label → `colors.label`, CodeBlock → `colors.codeblock`, others → `colors.generic`.
+**Colors:** Omit `entity.color`. The player uses the theme palette automatically based on entity type.
 
 **Parameters:**
 
@@ -148,7 +148,7 @@ Add narration text to a specific frame. The text appears as a subtitle overlay i
 
 ## get_session_url
 
-Get the player URL for a session. **Always returns `preferences` (theme, palette, colors)** — use `preferences.colors` for `entity.color` in `add_scene` if you didn't get them from `create_session`. The URL includes the user's theme and palette. Open this URL in a browser to view the presentation.
+Get the player URL for a session. Returns `player_url`, `embed_url`, and `preferences` (theme, palette). The URL includes the user's theme and palette. Open this URL in a browser to view the presentation.
 
 **Parameters:**
 
@@ -157,7 +157,7 @@ Get the player URL for a session. **Always returns `preferences` (theme, palette
 | `session_id` | string | Yes | Session ID |
 | `include_stats` | boolean | No | Include frame count, duration, etc. |
 
-**Returns:** `player_url`, `embed_url`, `preferences: { theme, palette, colors }`, and optionally `frame_count`, `total_duration_ms` when `include_stats` is true.
+**Returns:** `player_url`, `embed_url`, `preferences: { theme, palette }`, and optionally `frame_count`, `total_duration_ms` when `include_stats` is true.
 
 ---
 

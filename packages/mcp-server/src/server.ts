@@ -185,6 +185,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     '/metrics',
     '/player.css',
     '/player.js',
+    '/favicon.ico',
     '/.well-known/oauth-protected-resource',
   ]);
 
@@ -193,7 +194,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
 
     if (PUBLIC_ROUTES.has(path)) return;
     if (path.startsWith('/player/')) return;
-    if (path.startsWith('/session/') && path.endsWith('/events')) return;
+    if (path.startsWith('/session/') && (path.endsWith('/events') || path.endsWith('/script'))) return;
 
     // Accept X-Preplai-API-Key or Authorization: Bearer <key|jwt>
     // Note: @pyroprompts/mcp-stdio-to-streamable-http-adapter sends "Bearer: <token>" (colon) instead of "Bearer <token>" (space).
@@ -269,7 +270,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
         }
       : undefined;
 
-  const MCP_INSTRUCTIONS = `When creating a new presentation, you MUST call get_preferences FIRST before create_session. This returns the user's theme, palette, and entity colors. Use that data when creating the session (pass style to override theme if needed) and when building add_scene visual_script (use preferences.colors for entity.color). Workflow: get_preferences → create_session → add_scene (repeat) → get_session_url.`;
+  const MCP_INSTRUCTIONS = `When creating a new presentation: (1) get_preferences FIRST, (2) create_session, (3) add_scene (repeat), (4) get_session_url. For add_scene you MUST use COMPACT format: short keys (sid, td, f, e, p, n, l, src, tgt), position as [x,y], aliases (BT, ARR, CST, CB, etc.), omit color. Example: {"sid":"<session_id>","td":5000,"f":[{"e":[{"id":"x","type":"Label","p":[50,6],"l":"Title","sz":2}],"n":"Narration"}]}`;
 
   await app.register(FastifyMcpServer, {
     createMcpServer: () => {
@@ -330,9 +331,9 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     return allowedOrigins.includes(requestOrigin) ? requestOrigin : allowedOrigins[0] ?? '*';
   };
 
-  app.get<{ Params: { id: string } }>('/session/:id/events', (request, reply) => {
+  app.get<{ Params: { id: string } }>('/session/:id/events', async (request, reply) => {
     const { id } = request.params;
-    const session = store.getSession(id);
+    const session = await store.getSessionOrHydrate(id);
     if (!session) {
       reply.status(404).send({ error: 'Session not found.' });
       return;
@@ -359,24 +360,47 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     });
   });
 
+  // ── Script fallback (for when SSE fails or player loads before script_update)
+  app.get<{ Params: { id: string } }>('/session/:id/script', async (request, reply) => {
+    const { id } = request.params;
+    const session = await store.getSessionOrHydrate(id);
+    if (!session) {
+      reply.status(404).send({ error: 'Session not found.' });
+      return;
+    }
+    if (!session.script?.frames?.length) {
+      reply.status(200).send({ script: null, frame_count: 0 });
+      return;
+    }
+    reply
+      .header('Access-Control-Allow-Origin', resolveCorsOrigin(request.headers.origin as string))
+      .send({ script: session.script, frame_count: session.script.frames.length });
+  });
+
   // ── Player HTML route ─────────────────────────────────────────────
   app.get<{ Params: { sessionId: string }; Querystring: { style?: string } }>(
     '/player/:sessionId',
     async (request, reply) => {
       const { sessionId } = request.params;
-      const session = store.getSession(sessionId);
+      const session = await store.getSessionOrHydrate(sessionId);
       if (!session) {
         reply.status(404).send({ error: 'Session not found or expired.' });
         return;
       }
       const style = request.query.style === 'minimal' ? 'minimal' : 'cinema';
-      const html = PLAYER_HTML_TEMPLATE.replace(/\{\{SESSION_ID\}\}/g, sessionId).replace(
-        /\{\{STYLE\}\}/g,
-        style,
-      );
+      const eventsBase = cfg.baseUrl.replace(/\/$/, '');
+      const html = PLAYER_HTML_TEMPLATE
+        .replace(/\{\{SESSION_ID\}\}/g, sessionId)
+        .replace(/\{\{STYLE\}\}/g, style)
+        .replace(/\{\{EVENTS_BASE\}\}/g, eventsBase);
       reply.type('text/html').send(html);
     },
   );
+
+  // ── Favicon (avoid 401 on automatic browser request) ─────────────────
+  app.get('/favicon.ico', async (_request, reply) => {
+    reply.status(204).send();
+  });
 
   // ── Player static assets ──────────────────────────────────────────
   app.get('/player.css', async (request, reply) => {

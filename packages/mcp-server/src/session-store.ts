@@ -68,6 +68,32 @@ export class SessionStore {
   }
 
   /**
+   * Get session from memory, or hydrate from MongoDB if not present.
+   * Use when serving player/SSE so sessions created by another process are visible.
+   */
+  async getSessionOrHydrate(id: string): Promise<InMemorySession | null> {
+    const cached = this.store.get(id);
+    if (cached) return cached;
+
+    const row = await SessionModel.findOne({ id }).lean() as { id: string; title: string; aspectRatio: string; apiKeyId?: string | null; createdAt: number } | null;
+    if (!row) return null;
+
+    const scriptDoc = await VisualScript.findOne({ sessionId: id }).lean();
+    const scriptData = scriptDoc && 'scriptJson' in scriptDoc ? scriptDoc.scriptJson : null;
+
+    const session: InMemorySession = {
+      id: row.id,
+      title: row.title,
+      aspect_ratio: row.aspectRatio,
+      api_key_id: row.apiKeyId ?? null,
+      script: scriptData ? JSON.parse(scriptData as string) : null,
+      created_at: row.createdAt,
+    };
+    this.store.set(id, session);
+    return session;
+  }
+
+  /**
    * Set or replace the VisualScript for a session.
    */
   async setScript(sessionId: string, script: any): Promise<void> {

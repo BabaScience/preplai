@@ -38,7 +38,7 @@ function verifySessionOwnership(
 
 export const VisualEntitySchema = z.object({
   id: z.string(),
-  type: z.string().describe('Entity type. See add_scene description for topic→type mapping. Dedicated: Server, Service, API, APIGateway, Database, User, Cloud, BinaryTree, BTree, LinkedList, HashTable, CallStack, Stack, AST, ProcessState, GanttChart, BarChart, BigO, MemoryLayout, ConfusionMatrix, CodeBlock, Concept, Label, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver. Connections: Arrow, DataFlow.'),
+  type: z.string().describe('Entity type. See add_scene description for topic→type mapping. Dedicated: Server, Service, API, APIGateway, Database, Cache, User, Cloud, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, StepList, AST, ProcessState, GanttChart, BarChart, BigO, MemoryLayout, ConfusionMatrix, CodeBlock, Concept, Label, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Analogy, Comparison, Proof. Connections: Arrow, DataFlow.'),
   position: z.object({
     x: z.number().describe('X position as percentage 0-100 of the 1920px canvas'),
     y: z.number().describe('Y position as percentage 0-100 of the 1080px canvas'),
@@ -87,24 +87,22 @@ const VisualScriptSchema = z.object({
 
 // ── Rich tool descriptions ────────────────────────────────────────────
 
-export const ADD_SCENE_DESCRIPTION = `Add a visual scene to a presentation session. The scene is rendered as animated SVG on a 1920x1080 dark canvas with vignette background, drop shadows, and rich gradients.
+export const ADD_SCENE_DESCRIPTION = `Add a visual scene to a presentation session. The scene is rendered as animated SVG on a 1920x1080 dark canvas.
 
-APPEND BEHAVIOR: Calling add_scene multiple times APPENDS new frames to the existing presentation. Frame timings are automatically offset so new frames play after existing ones. Use update_scene instead if you want to REPLACE the entire script.
+REQUIRED — USE COMPACT FORMAT (reduces tokens significantly):
+- Short keys: sid (sceneId), td (totalDuration), f (frames), e (entities), n (narrationSegment), p (position), l (label), m (metadata), src (sourceEntityId), tgt (targetEntityId), sz (size), a (animation)
+- Position: [50,50] NOT {x:50,y:50}
+- Omit: color (palette used), frame id/startTime/endTime/description, entity id for non-connected entities
+- Aliases: BT, BTR, ARR, CST, CB, G2, COORD, BC, DNS, SVC, GW, SL, PS, GC, CH, ML, CKT, CYC
 
-IMPORTANT: The visual_script must follow the exact schema below. Positions use percentages (0-100). An 80px horizontal and 60px vertical margin/safe zone is applied automatically.
+Example (REQUIRED format):
+{"sid":"<session_id>","td":5000,"f":[{"e":[{"id":"title","type":"Label","p":[50,6],"l":"Title","sz":2},{"id":"srv","type":"Server","p":[30,45],"l":"API"},{"id":"db","type":"Database","p":[70,45],"l":"DB"},{"id":"a1","type":"Arrow","p":[50,45],"src":"srv","tgt":"db","l":"Queries"}],"n":"Narration text"}]
 
-TOKEN OPTIMIZATION (use to reduce output tokens):
-- Short keys: f→frames, td→totalDuration, e→entities, n→narrationSegment, p→position, m→metadata, l→label, src→sourceEntityId, tgt→targetEntityId, sz→size, etc. Full list in @preplai/illustrations COMPACT_REFERENCE.md.
-- Position shorthand: [50, 50] instead of {x: 50, y: 50}.
-- Entity type aliases: BT→BinaryTree, CST→CallStack, CB→CodeBlock, G2→Graph2D, COORD→CoordinateSystem, BC→BarChart, etc.
-- Omit entity.color — player uses theme palette. Omit frame id/startTime/endTime/description for defaults. Omit entity id for non-connected entities (auto-assigned).
+APPEND BEHAVIOR: Multiple add_scene calls APPEND frames. Use update_scene to REPLACE. Use session_id as sid. Positions 0-100 (percent).
 
 DESIGN GUIDELINES:
-- Labels can be up to ~80 chars. Longer labels auto-wrap to multiple lines. Use narrationSegment for full paragraphs.
-- COLORS — Omit entity.color to use theme palette (recommended). Or use preferences.colors from create_session/get_session_url: Server/Service → colors.server, Database/HashTable → colors.database, Cloud → colors.cloud, User → colors.user, Concept → colors.concept, Label → colors.label, CodeBlock → colors.codeblock, others → colors.generic. Do NOT invent custom palettes.
-- If no preferences after get_preferences: use a COHESIVE palette, 2-3 colors max. Fallbacks: Cyan (#4FC3F7) + Violet (#b388ff) + Warm (#FFD54F), or Blue (#64B5F6) + Green (#81C784) + White (#FFFFFF).
-- Title labels: type "Label", color "#FFFFFF", size 2 or higher. They render with large bold text (42-48px).
-- Subtitle labels: type "Label", size ~1.5, renders at 28-32px.
+- COLORS — Always omit entity.color. Player uses palette automatically.
+- Title: type Label, sz 2+, l="Title". Subtitle: sz ~1.5.
 - Space entities evenly. Minimum 15% gap between entity positions.
 - Use "highlight": true to emphasize the currently discussed entity.
 - Entities are large and visually rich (drop shadows, gradient fills). Size 1 = ~110px, size 2 = ~220px.
@@ -124,6 +122,9 @@ Topic → Preferred type:
 - Key-value storage → HashTable (metadata.pairs) or Dict
 - Arrays, lists, indexed data → Array (metadata.values, metadata.disabledIndexes)
 - Analogies, "X is like Y" → Analogy (metadata.label, metadata.description)
+- Step-by-step tutorials, numbered procedures → StepList (metadata.steps, metadata.currentStep, metadata.checkmarks)
+- Side-by-side comparisons → Comparison (label or textContent)
+- Mathematical proofs → Proof (label or textContent)
 - Architecture diagrams → Server, Database, Cloud, Arrow, LoadBalancer
 - Microservices, backend services → Service (cogwheel with label in hub)
 - REST APIs, API endpoints → API (cogwheel with "API" in hub; inherits Service)
@@ -139,11 +140,11 @@ Topic → Preferred type:
 - DNS, nameservers, domain resolution → DNSResolver (server rack with globe + domain→IP flow)
 - Layered model, OSI, tech stack → Stack (metadata.layers)
 
-PREFER dedicated types (rich visuals): Server, Service, API, APIGateway, Database, Cache, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, AST, ProcessState, GanttChart, BarChart, BigO, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Timeline, StepList, Definition, Callout, Analogy.
+PREFER dedicated types (rich visuals): Server, Service, API, APIGateway, Database, Cache, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, StepList, AST, ProcessState, GanttChart, BarChart, BigO, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Timeline, Definition, Callout, Analogy, Comparison, Proof.
 
 AVOID generic fallbacks when possible: Entity, Group, Tree, FSM, NeuralNetwork — these render as plain rounded rects.
 
-WHEN IN DOUBT: API/endpoint → API. Microservice → Service. API gateway → APIGateway. Key-value → HashTable. Binary tree → BinaryTree. Multi-way tree → BTree. Code snippet → CodeBlock. Abstract idea → Concept. Loop/lifecycle → Cycle. Vectors/coordinates → CoordinateSystem. Function plot → Graph2D. Flow between components → Arrow or DataFlow.
+WHEN IN DOUBT: API/endpoint → API. Microservice → Service. API gateway → APIGateway. Key-value → HashTable. Binary tree → BinaryTree. Multi-way tree → BTree. Code snippet → CodeBlock. Abstract idea → Concept. Loop/lifecycle → Cycle. Vectors/coordinates → CoordinateSystem. Function plot → Graph2D. Flow between components → Arrow or DataFlow. Indexed data → Array. Caching layer → Cache. Step-by-step procedure → StepList. "X is like Y" → Analogy.
 
 DEDICATED (prefer these — rich custom renderers):
   Server (rack with LEDs), Service (cogwheel with label in hub; microservices), API (cogwheel with "API" in hub; REST endpoints), APIGateway (cogwheel with label in hub; routing), Database (cylinder), Cache (database cylinder with flash icon), User (avatar), Cloud (cumulus blob), Concept (auto-sized circle; label ≤12 chars inside, else below), Label (text with optional pill), CodeBlock (dark terminal with traffic-light dots + line numbers), DNSResolver (server rack with globe + domain→IP flow), Cycle (rotating dashed circle for loops/lifecycles), Circuit (battery/resistor/capacitor/bulb/switch), CoordinateSystem (2D axes + points + vectors)
@@ -166,6 +167,7 @@ METADATA (required for correct rendering):
 - HashTable: metadata.pairs = [[key, value], ...]
 - Array: metadata.values = [string|number, ...] (agent can display any values), metadata.disabledIndexes = [0-based indexes to dim], metadata.selectedIndexes = [0-based indexes to highlight], or metadata.cells = [{value, enabled?, selected?}]. Max 8 cells.
 - Analogy: metadata.label (or entity.label), metadata.width?, metadata.maxLines?. Text wraps by line; overflow gets "...".
+- StepList: metadata.steps = [string, ...] (step labels), metadata.currentStep = number (0-based, -1 = none), metadata.checkmarks = true (show checkmarks for completed steps). Use entity.textContent as fallback for steps (split on newline).
 - MemoryLayout: metadata.stack = [...], metadata.heap = [...]
 - AST/ParseTree: metadata.ast = {type, value?, children?}
 - BarChart: metadata.bars = [{label, value, color?}, ...] (required), metadata.xLabel?, metadata.yLabel?, metadata.horizontal? (true = horizontal bars). Use for categorical comparisons. Max 12 bars.
@@ -173,7 +175,7 @@ METADATA (required for correct rendering):
 - Circuit: metadata.components = [{type, label?}, ...] (types: battery|voltage|v|cell, resistor|r, capacitor|c, bulb|lamp|light, switch|s). metadata.connections = [{from, to}, ...] (indices into components).
 - CoordinateSystem: metadata.xRange, metadata.yRange (default [-5,5]), metadata.gridSpacing?, metadata.showGrid?, metadata.xLabel?, metadata.yLabel?, metadata.points = [{x, y, label?, color?}], metadata.vectors = [{dx, dy, label?, color?}]. Use for vectors/geometry; use Graph2D for function plots.
 - BigO: metadata.curves = ["O(1)", "O(log n)", "O(n)", "O(n log n)", "O(n²)", "O(2^n)"] (pick subset; default all except O(2^n)). metadata.domain = [min, max] for n (default [0, 10]). Use [0, 8] when including O(2^n). For algorithm complexity, Big O notation, DSA education.
-- Cycle, Cloud, Concept, DNSResolver: no metadata. Use entity.label, entity.color, entity.position.
+- Cycle, Cloud, Concept, DNSResolver: no metadata. Use entity.label, entity.position.
 
 Graph2D: metadata.domain = [xMin, xMax], metadata.range = [yMin, yMax] (or xRange/yRange), metadata.xLabel?, metadata.yLabel?, metadata.showGrid? (default true). Modes: (1) expression = "x * x" for y=f(x); (2) parametric=true with xExpression, yExpression, tRange for x(t),y(t); (3) curveType="roc" with points=[{x:FPR,y:TPR},...]; (4) curveType="loss" with points=[{x:epoch,y:loss},...]; (5) curveType="scatter" or omit with points=[{x,y},...]. Curves are clipped to chart area.
 
@@ -185,57 +187,9 @@ Connection types (rendered as arrows with glow and animated flow):
 
 CURVED vs STRAIGHT: All connection types render STRAIGHT by default. Use metadata.curved = true to render curved.
 
-Entrance animations available: fadeInUp (default for Server/Database), fadeIn (default for Label), scaleIn (default for User), drawIn (default for Concept), floatIn (default for Cloud), slideInLeft (default for CodeBlock), dropIn.
+Entrance animations: fadeInUp, fadeIn, scaleIn, drawIn, floatIn, slideInLeft, dropIn. Omit a (animation) to use defaults.`;
 
-Example visual_script for a simple scene with a title and two entities:
-{
-  "sceneId": "scene-1",
-  "totalDuration": 5000,
-  "frames": [
-    {
-      "id": "frame-1",
-      "startTime": 0,
-      "endTime": 5000,
-      "description": "Shows a server connecting to a database",
-      "narrationSegment": "The server sends queries to the database",
-      "entities": [
-        {
-          "id": "title",
-          "type": "Label",
-          "position": {"x": 50, "y": 6},
-          "label": "System Architecture",
-          "color": "#FFFFFF",
-          "size": 2
-        },
-        {
-          "id": "srv",
-          "type": "Server",
-          "position": {"x": 30, "y": 45},
-          "label": "API Server",
-          "color": "#4FC3F7"
-        },
-        {
-          "id": "db",
-          "type": "Database",
-          "position": {"x": 70, "y": 45},
-          "label": "PostgreSQL",
-          "color": "#81C784"
-        },
-        {
-          "id": "arrow1",
-          "type": "Arrow",
-          "position": {"x": 50, "y": 45},
-          "sourceEntityId": "srv",
-          "targetEntityId": "db",
-          "label": "SQL Queries",
-          "color": "#FFD54F"
-        }
-      ]
-    }
-  ]
-}`;
-
-export const UPDATE_SCENE_DESCRIPTION = `Replace the visual script for a session with a new one. Use this to modify an existing scene. Same format as add_scene — include sceneId, frames array, totalDuration. Follow the same entity selection, metadata requirements, and design guidelines.`;
+export const UPDATE_SCENE_DESCRIPTION = `Replace the visual script for a session with a new one. Use this to modify an existing scene. Use the same compact format as add_scene (short keys sid, td, f, e, p, n, src, tgt; position [x,y]; aliases BT, CST, CB, etc.; omit color) to reduce tokens. Follow the same entity selection, metadata requirements, and design guidelines.`;
 
 // ── Dependencies for tool handlers ────────────────────────────────────
 
@@ -262,7 +216,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
 
 REQUIRED: Call get_preferences FIRST before create_session. Use the returned theme and palette to decide how to create the session. Pass style to override theme (e.g. "minimal" for algorithm viz) if desired; otherwise the user's preference is used.
 
-THEMES: "cinema" (rich gradients) or "minimal" (flat, algorithm-viz). PALETTES: "default", "ocean", "sunset", "forest", "mono". The user's dashboard preference is used unless you pass style. The response also includes preferences.colors — use these for entity.color in add_scene. Player URL: open in browser for user to watch.
+THEMES: "cinema" (rich gradients) or "minimal" (flat, algorithm-viz). PALETTES: "default", "ocean", "sunset", "forest", "mono". The user's dashboard preference is used unless you pass style. Omit entity.color in add_scene — the player uses the palette automatically. Player URL: open in browser for user to watch.
 
 CALLBACK: When running locally, the player URL is auto-opened. For remote clients, share the player_url.`,
     {
@@ -304,7 +258,7 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
 
   mcp.tool(
     'get_preferences',
-    `REQUIRED FIRST STEP when creating a new presentation. Call this BEFORE create_session. Returns the user's theme, palette, and entity colors. Use the returned data to: (1) decide style for create_session (pass style to override theme if desired), (2) set entity.color in add_scene using colors.server, colors.database, colors.cloud, colors.user, colors.concept, colors.label, colors.codeblock, colors.generic. On failure: UNAUTHORIZED → check API key; INTERNAL_ERROR → retry once, then use default colors.`,
+    `REQUIRED FIRST STEP when creating a new presentation. Call this BEFORE create_session. Returns the user's theme and palette only (no entity colors — omit entity.color in add_scene; the player uses the palette automatically). Use the returned data to decide style for create_session (pass style to override theme if desired). On failure: UNAUTHORIZED → check API key; INTERNAL_ERROR → retry once.`,
     {},
     async (_args, extra) => {
       const apiKey = getApiKey(extra);
@@ -322,7 +276,7 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
     ADD_SCENE_DESCRIPTION,
     {
       session_id: z.string().describe('Session ID from create_session'),
-      visual_script: VisualScriptSchema.describe('The visual script defining the scene. Must include sceneId, frames array, and totalDuration.'),
+      visual_script: z.record(z.unknown()).describe('REQUIRED compact format: sid, td, f, e, p, n, l, src, tgt; position [x,y]; omit color. Use session_id as sid.'),
     },
     async (args, extra) => {
       const { trackUsage, checkSceneLimit } = await import('./auth.js');
@@ -357,7 +311,7 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
     UPDATE_SCENE_DESCRIPTION,
     {
       session_id: z.string().describe('Session ID'),
-      visual_script: VisualScriptSchema.describe('The replacement visual script. Same format as add_scene.'),
+      visual_script: z.record(z.unknown()).describe('The replacement visual script. Same compact format as add_scene.'),
     },
     async (args, extra) => {
       const { trackUsage, checkSceneLimit } = await import('./auth.js');
@@ -420,7 +374,7 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
 
   mcp.tool(
     'get_session_url',
-    'Get the player URL for a session. Always returns preferences (theme, palette, colors) — use preferences.colors for entity.color in add_scene. Set include_stats to true for frame count and duration. Open the player_url in a browser to view the presentation.',
+    'Get the player URL for a session. Returns preferences (theme, palette). Set include_stats to true for frame count and duration. Open the player_url in a browser to view the presentation.',
     {
       session_id: z.string().describe('Session ID'),
       include_stats: z.boolean().optional().describe('Include frame count, duration, etc.'),
