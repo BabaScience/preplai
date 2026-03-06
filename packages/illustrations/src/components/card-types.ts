@@ -57,11 +57,3 @@ export const renderQuote = createTextCardRenderer({
   defaultWidth: 56,
   defaultMaxLines: 3,
 });
-
-export const renderStack = createTextCardRenderer({
-  typeName: 'Stack',
-  defaultColor: getCategoryColor('Stack'),
-  fallbackText: 'Stack',
-  defaultWidth: 56,
-  defaultMaxLines: 3,
-});

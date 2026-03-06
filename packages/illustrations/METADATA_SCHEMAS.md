@@ -4,7 +4,7 @@ This document describes the expected `metadata` shapes for entity types that acc
 
 > **For agents:** See [ILLUSTRATIONS_AGENT_GUIDE.md](./ILLUSTRATIONS_AGENT_GUIDE.md) for a quick reference on when to use each type and how to choose between similar ones.
 
-## Text Card (Analogy, Annotation, Label, Comparison, Proof, Quote, Stack)
+## Text Card (Analogy, Annotation, Label, Comparison, Proof, Quote)
 
 All these types inherit from the same text-card base. Same metadata for all:
 
@@ -91,6 +91,36 @@ Or with per-cell control:
 - `frames`: Array of stack frames
 - `frames[].name`: Function name
 - `frames[].locals`: Optional local variables string
+
+## Stack
+
+Vertical stack of customizable layers. Use for: OSI model, tech stack, layered architecture, protocol stacks, any vertical hierarchy of labeled blocks. **Not** for call stacks (use CallStack) or cache levels (use CacheHierarchy).
+
+```json
+{
+  "layers": [
+    { "label": "Application", "sublabel": "HTTP, DNS" },
+    { "label": "Transport", "sublabel": "TCP, UDP" },
+    { "label": "Network", "sublabel": "IP" },
+    { "label": "Link", "sublabel": "Ethernet" },
+    { "label": "Physical", "sublabel": "Cables, signals" }
+  ]
+}
+```
+
+**Fields:**
+- `layers`: **Required.** Array of layer definitions. Each layer: `{ label: string, sublabel?: string, color?: string }`
+- `layers[].label`: Main label for the layer (e.g. "Application", "React")
+- `layers[].sublabel`: Optional secondary text below the label (e.g. "HTTP, DNS", "v18")
+- `layers[].color`: Optional hex color for this layer (e.g. `"#e040fb"`). Falls back to entity color if omitted.
+
+**Agent usage:**
+- Use Stack for: OSI/TCP-IP layers, tech stack diagrams (React, Node, PostgreSQL), layered architecture, any vertical list of labeled blocks where each block can have a main label and optional sublabel.
+- Use CallStack for: function call stacks, recursion frames, stack traces.
+- Use CacheHierarchy for: L1/L2/L3/RAM memory hierarchy.
+- Use MemoryLayout for: stack vs heap memory regions side by side.
+- Example: "OSI model layers" → `layers: [{label: "Application", sublabel: "HTTP"}, {label: "Transport", sublabel: "TCP"}, ...]`
+- Example: "Tech stack" → `layers: [{label: "React", sublabel: "Frontend"}, {label: "Node.js", sublabel: "Backend"}, {label: "PostgreSQL", sublabel: "Database"}]`
 
 ## BTree
 

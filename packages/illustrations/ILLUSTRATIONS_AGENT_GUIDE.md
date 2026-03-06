@@ -22,6 +22,7 @@ This guide helps AI agents choose and configure the right illustration types whe
 | Array, list indices | **Array** | `metadata.values` or `metadata.cells` |
 | BST, heap, tree | **BinaryTree** | `metadata.tree` or `metadata.nodes` |
 | Stack frames | **CallStack** | `metadata.frames` |
+| Layered model, tech stack, OSI | **Stack** | `metadata.layers` |
 | Process states | **ProcessState** | `metadata.states`, `metadata.transitions` |
 
 ---
@@ -85,6 +86,13 @@ This guide helps AI agents choose and configure the right illustration types whe
 - **Metadata:** `matrix`, `rowLabels`, `colLabels`
 - **Auto-coloring:** 2×2 with headers → TP (green), TN (teal), FP (orange), FN (red)
 
+### Stack
+- **Purpose:** Vertical stack of customizable layers — OSI model, tech stack, layered architecture, protocol stacks
+- **Metadata:** `layers` — array of `{ label: string, sublabel?: string, color?: string }`
+- **Use for:** OSI/TCP-IP layers, tech stack (React, Node, PostgreSQL), any vertical list of labeled blocks
+- **Not for:** Call stacks (use CallStack), cache hierarchy (use CacheHierarchy), stack/heap memory (use MemoryLayout)
+- **Example:** `layers: [{label: "Application", sublabel: "HTTP, DNS"}, {label: "Transport", sublabel: "TCP, UDP"}, ...]`
+
 ---
 
 ## Choosing Between Similar Types
@@ -100,6 +108,9 @@ This guide helps AI agents choose and configure the right illustration types whe
 | Long explanation | Definition, Callout, Analogy | Concept |
 | Code snippet | CodeBlock | (text in card) |
 | Loop/lifecycle indicator | Cycle | (generic shape) |
+| OSI layers, tech stack | Stack | CallStack, CacheHierarchy |
+| Call stack, recursion | CallStack | Stack |
+| L1/L2/L3 cache hierarchy | CacheHierarchy | Stack |
 
 ---
 

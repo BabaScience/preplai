@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ENTITY_DEFAULTS } from '@preplai/shared';
 
 /** Types that inherit from text-card (same metadata: label, width, maxLines) */
-const CARD_TYPES = ['Analogy', 'Annotation', 'Label', 'Comparison', 'Proof', 'Quote', 'Stack'];
+const CARD_TYPES = ['Analogy', 'Annotation', 'Label', 'Comparison', 'Proof', 'Quote'];
 
 /** Connection types (Arrow, DataFlow, etc.) — need source/target + special params */
 const CONNECTION_TYPES = ['Arrow', 'DataFlow', 'Transition', 'Bus'];
@@ -1061,6 +1061,64 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
             />
             <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
               Input size range for x-axis
+            </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Stack' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Stack metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Layers (one per line: label or label:sublabel or label|#color)</label>
+            <textarea
+              className="form-input"
+              rows={6}
+              value={(() => {
+                const layers = entity.metadata?.layers ?? [];
+                if (!Array.isArray(layers)) return '';
+                return layers
+                  .map((l) => {
+                    if (typeof l !== 'object' || l == null) return '';
+                    const { label, sublabel, color } = l;
+                    let s = label ?? '';
+                    if (sublabel) s += `:${sublabel}`;
+                    if (color) s += `|${color}`;
+                    return s;
+                  })
+                  .filter(Boolean)
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                const layers = lines.map((line) => {
+                  const pipeIdx = line.lastIndexOf('|');
+                  let color;
+                  let rest = line;
+                  if (pipeIdx >= 0) {
+                    color = line.slice(pipeIdx + 1).trim();
+                    rest = line.slice(0, pipeIdx).trim();
+                    if (!/^#[0-9a-fA-F]{3,8}$/.test(color)) color = undefined;
+                  }
+                  const colon = rest.indexOf(':');
+                  if (colon >= 0) {
+                    const label = rest.slice(0, colon).trim();
+                    const sublabel = rest.slice(colon + 1).trim();
+                    return { label: label || '?', sublabel: sublabel || undefined, color };
+                  }
+                  return { label: rest || '?', color };
+                });
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  layers: layers.length ? layers : undefined,
+                });
+              }}
+              placeholder={'Application\nTransport\nNetwork\nLink\nPhysical'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One layer per line. label:sublabel for sublabel, label|#hex for color.
             </p>
           </div>
         </>

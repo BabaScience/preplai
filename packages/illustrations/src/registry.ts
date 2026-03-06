@@ -43,8 +43,8 @@ import {
   renderComparison,
   renderProof,
   renderQuote,
-  renderStack,
 } from './components/card-types.js';
+import { renderStack } from './components/stack.js';
 import { renderArray } from './components/array.js';
 import { renderLinkedList } from './components/linkedlist.js';
 import { renderBinaryTree } from './components/binarytree.js';
@@ -242,7 +242,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Register: csArchOrg,
   MemoryBlock: csArchPrp,
   LogicGate: csArchGrn,
-  Bus: csArch,  // Special: needs source/target
+  Bus: renderDataFlow as any,  // Uses DataFlow for bus connections
 
   // ── Operating Systems
   ProcessBlock: osBcd,

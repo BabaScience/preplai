@@ -72,6 +72,7 @@ export { renderDockerImage } from './components/dockerimage.js';
 export { renderDockerRegistry } from './components/dockerregistry.js';
 export { renderAST } from './components/ast.js';
 export { renderCallStack } from './components/callstack.js';
+export { renderStack } from './components/stack.js';
 export { renderBTree } from './components/btree.js';
 export { renderProcessState } from './components/processstate.js';
 export { renderGanttChart } from './components/ganttchart.js';

@@ -118,7 +118,15 @@ export const METADATA_DEFAULTS = {
   Comparison: { label: 'Compare items here.', width: 56, maxLines: 3 },
   Proof: { label: 'Proof step or statement.', width: 56, maxLines: 3 },
   Quote: { label: 'Quote or citation.', width: 56, maxLines: 3 },
-  Stack: { label: 'Stack item or frame.', width: 56, maxLines: 3 },
+  Stack: {
+    layers: [
+      { label: 'Application', sublabel: 'HTTP, DNS' },
+      { label: 'Transport', sublabel: 'TCP, UDP' },
+      { label: 'Network', sublabel: 'IP' },
+      { label: 'Link', sublabel: 'Ethernet' },
+      { label: 'Physical', sublabel: 'Cables, signals' },
+    ],
+  },
   Array: {
     values: ['a', 'b', 'c', 'd', 'e'],
     disabledIndexes: [1, 3],
