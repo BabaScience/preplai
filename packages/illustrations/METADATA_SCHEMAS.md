@@ -157,6 +157,12 @@ B-trees, B+ trees, multi-way trees. Use for: database indexes, file systems, dis
 - `tasks[].end`: End time
 - `maxTime`: Optional max value for axis (default: max of all end times)
 
+## Cache
+
+Cache renders as a **database cylinder with a lightning bolt (flash) icon** inside. Use for Redis, Memcached, CDN, or any in-memory cache in architecture diagrams.
+
+No metadata required. Use standard entity fields: `id`, `type: "Cache"`, `position`, `label` (e.g. "Redis"), `color`, `size`.
+
 ## CacheHierarchy
 
 ```json

@@ -57,6 +57,7 @@
 
 - **Server** — Rack with LEDs
 - **Database** — Cylinder
+- **Cache** — Database cylinder with lightning bolt (flash) icon inside; use for Redis, Memcached, CDN, in-memory caches
 - **User** — Avatar
 - **Cloud** — Blob
 - **Concept** — Auto-sized circle
@@ -93,6 +94,7 @@
 | Arrays, lists, indexed data | Array |
 | Analogies, "X is like Y" | Analogy |
 | Architecture diagrams | Server, Database, Cloud, Arrow |
+| Caching layers (Redis, Memcached, CDN) | Cache |
 | Categorical comparisons (sales, counts, rankings) | BarChart |
 
 ## Entity Schema

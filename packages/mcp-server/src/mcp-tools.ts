@@ -119,19 +119,20 @@ Topic → Preferred type:
 - Arrays, lists, indexed data → Array (metadata.values, metadata.disabledIndexes)
 - Analogies, "X is like Y" → Analogy (metadata.label, metadata.description)
 - Architecture diagrams → Server, Database, Cloud, Arrow, LoadBalancer
+- Caching layers (Redis, Memcached, CDN) → Cache (database cylinder with flash icon)
 - Categorical comparisons (sales by month, counts by type, rankings) → BarChart (metadata.bars)
 
-PREFER dedicated types (rich visuals): Server, Database, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, AST, ProcessState, GanttChart, BarChart, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, Timeline, StepList, Definition, Callout, Analogy.
+PREFER dedicated types (rich visuals): Server, Database, Cache, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, AST, ProcessState, GanttChart, BarChart, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, Timeline, StepList, Definition, Callout, Analogy.
 
 AVOID generic fallbacks when possible: Entity, Group, Tree, Stack, FSM, NeuralNetwork — these render as plain rounded rects.
 
 WHEN IN DOUBT: Key-value → HashTable. Binary tree → BinaryTree. Multi-way tree → BTree. Code snippet → CodeBlock. Abstract idea → Concept. Flow between components → Arrow or DataFlow.
 
 DEDICATED (prefer these — rich custom renderers):
-  Server (rack with LEDs), Database (cylinder), User (avatar), Cloud (blob), Concept (auto-sized circle), Label (text with optional pill), CodeBlock (dark terminal with traffic-light dots)
+  Server (rack with LEDs), Database (cylinder), Cache (database cylinder with flash icon), User (avatar), Cloud (blob), Concept (auto-sized circle), Label (text with optional pill), CodeBlock (dark terminal with traffic-light dots)
 
 SHAPED renderers:
-  Cache (circle), LoadBalancer (hexagon), Decision (diamond), Metric (circle)
+  LoadBalancer (hexagon), Decision (diamond), Metric (circle)
 
 CS-specific with custom renderers:
   AST (parse tree), CallStack (stack frames), BTree (multi-child tree), ProcessState (state diagram), GanttChart (task bars), BarChart (axes + bars with value labels), CacheHierarchy (L1/L2/L3 stack), MemoryLayout (stack/heap), ConfusionMatrix (TP/FP/TN/FN grid)

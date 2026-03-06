@@ -106,7 +106,7 @@ Add a visual scene to a presentation session. Scenes are rendered as animated SV
 
 **Append behavior:** Calling `add_scene` multiple times **appends** new frames. Use `update_scene` to replace an existing scene.
 
-**Colors:** Use `preferences.colors` from `create_session` or call `get_preferences` to get the user's palette. Map entity types to colors: Server/Service → `colors.server`, Database/HashTable → `colors.database`, Cloud → `colors.cloud`, User → `colors.user`, Concept → `colors.concept`, Label → `colors.label`, CodeBlock → `colors.codeblock`, others → `colors.generic`.
+**Colors:** Use `preferences.colors` from `create_session` or call `get_preferences` to get the user's palette. Map entity types to colors: Server/Service → `colors.server`, Database/Cache/HashTable → `colors.database`, Cloud → `colors.cloud`, User → `colors.user`, Concept → `colors.concept`, Label → `colors.label`, CodeBlock → `colors.codeblock`, others → `colors.generic`.
 
 **Parameters:**
 

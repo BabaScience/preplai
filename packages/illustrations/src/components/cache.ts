@@ -1,36 +1,90 @@
 /**
  * @preplai/illustrations — Cache Component
- * Circle with lightning bolt path inside
+ * Database cylinder with lightning bolt (flash) icon inside
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createRadialGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import { createLinearGradient, ensureDefs } from '../visual-utils.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderCache(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const s = getSizeParam(entity);
+  const size = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Cache');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-cache-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createRadialGradient(gradId, color, defs);
+  createLinearGradient(gradId, color, 'vertical', defs);
 
-  const r = s / 2;
+  const rx = size / 2;
+  const ry = size / 6;
+  const bodyH = size * 0.55;
+  const topY = -size / 3;
+  const botY = topY + bodyH;
 
-  // ── Circle
-  const circle = document.createElementNS(SVG_NS, 'circle');
-  circle.setAttribute('cx', '0');
-  circle.setAttribute('cy', '0');
-  circle.setAttribute('r', String(r));
-  circle.setAttribute('fill', `url(#${gradId})`);
-  circle.setAttribute('stroke', color);
-  circle.setAttribute('stroke-width', '2');
-  innerG.appendChild(circle);
+  // ── Top ellipse (cap)
+  const topEllipse = document.createElementNS(SVG_NS, 'ellipse');
+  topEllipse.setAttribute('cx', '0');
+  topEllipse.setAttribute('cy', String(topY));
+  topEllipse.setAttribute('rx', String(rx));
+  topEllipse.setAttribute('ry', String(ry));
+  topEllipse.setAttribute('fill', `${color}25`);
+  topEllipse.setAttribute('stroke', color);
+  topEllipse.setAttribute('stroke-width', String(SHAPES.strokeWidth));
+  innerG.appendChild(topEllipse);
 
-  // ── Lightning bolt (simplified path)
-  const boltScale = r * 0.35;
+  // ── Body fill with gradient for 3D effect
+  const bodyFill = document.createElementNS(SVG_NS, 'rect');
+  bodyFill.setAttribute('x', String(-rx));
+  bodyFill.setAttribute('y', String(topY));
+  bodyFill.setAttribute('width', String(rx * 2));
+  bodyFill.setAttribute('height', String(bodyH));
+  bodyFill.setAttribute('fill', `url(#${gradId})`);
+  bodyFill.setAttribute('stroke', 'none');
+  innerG.appendChild(bodyFill);
+
+  // ── Bottom ellipse (base)
+  const botEllipse = document.createElementNS(SVG_NS, 'ellipse');
+  botEllipse.setAttribute('cx', '0');
+  botEllipse.setAttribute('cy', String(botY));
+  botEllipse.setAttribute('rx', String(rx));
+  botEllipse.setAttribute('ry', String(ry));
+  botEllipse.setAttribute('fill', `${color}15`);
+  botEllipse.setAttribute('stroke', color);
+  botEllipse.setAttribute('stroke-width', String(SHAPES.strokeWidth));
+  innerG.appendChild(botEllipse);
+
+  // ── Vertical side lines
+  for (const xSign of [-1, 1]) {
+    const line = document.createElementNS(SVG_NS, 'line');
+    line.setAttribute('x1', String(xSign * rx));
+    line.setAttribute('y1', String(topY));
+    line.setAttribute('x2', String(xSign * rx));
+    line.setAttribute('y2', String(botY));
+    line.setAttribute('stroke', color);
+    line.setAttribute('stroke-width', String(SHAPES.strokeWidth));
+    innerG.appendChild(line);
+  }
+
+  // ── Horizontal data stripes
+  const stripeOffsets = [0.2, 0.45, 0.7];
+  for (const t of stripeOffsets) {
+    const sy = topY + bodyH * t;
+    const sw = rx * 0.85;
+    const stripe = document.createElementNS(SVG_NS, 'line');
+    stripe.setAttribute('x1', String(-sw));
+    stripe.setAttribute('y1', String(sy));
+    stripe.setAttribute('x2', String(sw));
+    stripe.setAttribute('y2', String(sy));
+    stripe.setAttribute('stroke', color);
+    stripe.setAttribute('stroke-width', '1.5');
+    stripe.setAttribute('opacity', '0.5');
+    innerG.appendChild(stripe);
+  }
+
+  // ── Lightning bolt (flash icon) inside database
+  const boltScale = rx * 0.35;
   const boltPath = [
     `M 0 ${-boltScale}`,
     `L ${boltScale * 0.5} 0`,
@@ -49,7 +103,7 @@ export function renderCache(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(r + 18));
+    text.setAttribute('y', String(botY + ry + 20));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));

@@ -235,7 +235,7 @@ export type VisualEntityType =
   | 'DataFlow'      // Animated dashed arrow for data streams
   | 'Process'       // Rounded rectangle for a running process
   | 'Queue'         // Message queue (FIFO lines)
-  | 'Cache'         // In-memory cache (lightning bolt)
+  | 'Cache'         // In-memory cache (database cylinder with flash icon)
   | 'LoadBalancer'  // Load balancer trapezoid
   | 'Service'       // Generic microservice box
   // ── Extended Infrastructure ──────────────────────────────────────

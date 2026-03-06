@@ -845,7 +845,7 @@ All 88 entity types currently in the system, organized by category. Each row sho
 | `DataFlow` | `#b388ff` | Animated dashed flow arrow — `stroke-dasharray` + SMIL animate |
 | `Process` | `#00bcd4` | Process box — rounded rect + play-triangle icon |
 | `Queue` | `#ffab00` | Message queue — three stacked rects + exit arrow |
-| `Cache` | `#00e676` | Cache — circle with lightning bolt |
+| `Cache` | `#00e676` | Cache — database cylinder with lightning bolt (flash) icon inside |
 | `LoadBalancer` | `#00e5ff` | Load balancer — hexagon + Y-fork lines |
 | `Service` | `#00e5ff` | Microservice — rounded rect + gear/cog icon |
 | `Firewall` | `#ff4444` | Firewall — shield outline + lock icon |
