@@ -554,27 +554,6 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   transition: width 0.2s ease;
 }
 
-/* ── Step message (Step X/Y: message) ────────────────────────────── */
-
-#step-message {
-  position: fixed;
-  bottom: 88px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 115;
-  max-width: 600px;
-  padding: 10px 14px;
-  font-size: 13px;
-  color: #cbd5e1;
-  text-align: center;
-  pointer-events: none;
-}
-
-#step-counter {
-  color: #6366f1;
-  font-weight: 700;
-}
-
 /* ── Minimal theme overrides ─────────────────────────────────────── */
 
 [data-theme="minimal"] html,
@@ -622,13 +601,6 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 [data-theme="minimal"] .frame-dot.current {
   background: #6366f1;
   box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
-}
-
-[data-theme="minimal"] #step-message {
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  padding: 10px 14px;
 }
 
 [data-theme="minimal"] #progress-bar {

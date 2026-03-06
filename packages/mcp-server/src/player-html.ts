@@ -49,11 +49,6 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
     <div id="progress-fill" class="progress-fill"></div>
   </div>
 
-  <!-- Step message (Step X/Y: message) -->
-  <div id="step-message" class="step-message">
-    <span id="step-counter">Step 1/1: </span><span id="step-text"></span>
-  </div>
-
   <!-- Frame navigation (keyboard + click) -->
   <div id="frame-nav">
     <button id="prev-frame" aria-label="Previous frame" title="Previous frame (←)">
