@@ -88,7 +88,7 @@ export const PLAYER_JS = `(function() {
     if (t === 'Cloud') return palette.cloud;
     if (t === 'User') return palette.user;
     if (t === 'Concept') return palette.concept;
-    if (t === 'Label' || t === 'Annotation' || t === 'Definition' || t === 'Callout' || t === 'Quote' || t === 'Badge') return palette.label;
+    if (t === 'Label' || t === 'Annotation' || t === 'Definition' || t === 'Callout' || t === 'Quote' || t === 'Badge' || t === 'H1' || t === 'H2' || t === 'H3') return palette.label;
     if (t === 'CodeBlock') return palette.codeblock;
     return palette.generic;
   }
@@ -395,6 +395,9 @@ export const PLAYER_JS = `(function() {
       case 'Callout':
       case 'Quote':
       case 'Badge':
+      case 'H1':
+      case 'H2':
+      case 'H3':
         return 'fadeIn';
       case 'CodeBlock':
         return 'slideInLeft';
@@ -953,6 +956,46 @@ export const PLAYER_JS = `(function() {
         letterSpacing: '0.02em'
       });
     }
+
+    parentEl.appendChild(g.outerG);
+    return g.outerG;
+  }
+
+  // ── H1, H2, H3: section headings with typographic hierarchy ─────
+  function renderHeading(entity, parentEl, delay) {
+    var meta = entity.metadata || {};
+    var content = meta.label || entity.label || entity.type || '';
+    if (!content || !String(content).trim()) return null;
+
+    var g = createEntityGroup(entity, delay);
+    var innerG = g.innerG;
+    var s = sizeToPixels(entity.size);
+    var color = getEntityColor(entity);
+
+    var fontSize, fontWeight;
+    if (entity.type === 'H1') {
+      fontSize = Math.min(Math.max(s * 0.28, 36), 48);
+      fontWeight = '700';
+    } else if (entity.type === 'H2') {
+      fontSize = Math.min(Math.max(s * 0.20, 24), 32);
+      fontWeight = '600';
+    } else {
+      fontSize = Math.min(Math.max(s * 0.16, 18), 24);
+      fontWeight = '600';
+    }
+
+    var text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', '0');
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'central');
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(fontSize));
+    text.setAttribute('font-weight', fontWeight);
+    text.setAttribute('font-family', FONT_UI);
+    text.setAttribute('letter-spacing', '0.02em');
+    text.textContent = truncLabel(content, 80);
+    innerG.appendChild(text);
 
     parentEl.appendChild(g.outerG);
     return g.outerG;
@@ -2278,6 +2321,8 @@ export const PLAYER_JS = `(function() {
       return renderConcept(entity, parentEl, delay);
     if (t === 'Label' || t === 'Annotation' || t === 'Definition' || t === 'Callout' || t === 'Quote' || t === 'Badge' || t === 'Analogy' || t === 'Comparison' || t === 'Proof')
       return renderLabel(entity, parentEl, delay);
+    if (t === 'H1' || t === 'H2' || t === 'H3')
+      return renderHeading(entity, parentEl, delay);
     if (t === 'CodeBlock')
       return renderCodeBlock(entity, parentEl, delay);
     if (t === 'Array')
@@ -2653,16 +2698,6 @@ export const PLAYER_JS = `(function() {
     if (progressBar) {
       var pct = total > 1 ? (currentFrame / (total - 1)) * 100 : 100;
       progressBar.style.width = pct + '%';
-    }
-
-    // Step message (Step X/Y: narration)
-    var stepCounter = document.getElementById('step-counter');
-    var stepText = document.getElementById('step-text');
-    if (stepCounter && stepText) {
-      stepCounter.textContent = 'Step ' + (currentFrame + 1) + '/' + total + ': ';
-      var frame = currentScript.frames[currentFrame];
-      var nar = frame && frame.narrationSegment ? (typeof frame.narrationSegment === 'string' ? frame.narrationSegment : (frame.narrationSegment.text || '')) : '';
-      stepText.textContent = nar || '';
     }
 
     // Update prev/next button aria-disabled

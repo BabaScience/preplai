@@ -4,6 +4,9 @@ import { ENTITY_DEFAULTS } from '@preplai/shared';
 /** Types that inherit from text-card (same metadata: label, width, maxLines) */
 const CARD_TYPES = ['Analogy', 'Annotation', 'Label', 'Comparison', 'Proof', 'Quote'];
 
+/** Heading types (H1, H2, H3) — metadata: label, showUnderline */
+const HEADING_TYPES = ['H1', 'H2', 'H3'];
+
 /** Connection types (Arrow, DataFlow, etc.) — need source/target + special params */
 const CONNECTION_TYPES = ['Arrow', 'DataFlow', 'Transition', 'Bus'];
 
@@ -253,6 +256,28 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
                   maxLines: Math.max(1, Math.min(6, Number(e.target.value) || 3)),
                 })
               }
+            />
+          </div>
+        </>
+      )}
+
+      {HEADING_TYPES.includes(entity.type) && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Heading metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Label</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.label ?? entity.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  label: e.target.value,
+                })
+              }
+              placeholder="Heading text"
             />
           </div>
         </>

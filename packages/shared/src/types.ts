@@ -22,6 +22,8 @@ export type VisualEntityType =
   | 'BidirectArrow' | 'DottedArrow'
   // Abstract / Universal (12)
   | 'Concept' | 'Entity' | 'Group' | 'Label' | 'Comparison'
+  // Headings (3)
+  | 'H1' | 'H2' | 'H3'
   | 'Timeline' | 'Metric' | 'Cycle' | 'Stack' | 'Tree'
   | 'Badge' | 'Quote'
   // Math & Science (6)

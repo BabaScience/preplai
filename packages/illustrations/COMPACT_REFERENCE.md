@@ -45,6 +45,9 @@ Token-saving reference for agents. Use short keys and aliases when building `add
 | DNS | DNSResolver |
 | CB | CodeBlock |
 | DF | Definition |
+| H1 | H1 |
+| H2 | H2 |
+| H3 | H3 |
 | SL | StepList |
 | CST | CallStack |
 | COORD | CoordinateSystem |
@@ -89,4 +92,4 @@ Token-saving reference for agents. Use short keys and aliases when building `add
 
 ## No Metadata (use entity fields only)
 
-Server, Database, User, Cloud, Service, API, APIGateway, Cache, Concept, Cycle, DNSResolver, Label, Arrow, DataFlow — use `id`, `type`, `position`, `label`, `color`, `size`.
+Server, Database, User, Cloud, Service, API, APIGateway, Cache, Concept, Cycle, DNSResolver, Label, H1, H2, H3, Arrow, DataFlow — use `id`, `type`, `position`, `label` (or `metadata.label`), `color`, `size`.

@@ -4,6 +4,19 @@ This document describes the expected `metadata` shapes for entity types that acc
 
 > **For agents:** See [ILLUSTRATIONS_AGENT_GUIDE.md](./ILLUSTRATIONS_AGENT_GUIDE.md) for a quick reference on when to use each type and how to choose between similar ones.
 
+## Headings (H1, H2, H3)
+
+Section heading illustrations with typographic hierarchy. H1 = largest, H2 = medium, H3 = smallest.
+
+```json
+{
+  "label": "Main Heading"
+}
+```
+
+- `label`: Heading text (or use entity.label)
+- No other metadata. Size controls scale; H1/H2/H3 control font size hierarchy.
+
 ## Text Card (Analogy, Annotation, Label, Comparison, Proof, Quote)
 
 All these types inherit from the same text-card base. Same metadata for all:

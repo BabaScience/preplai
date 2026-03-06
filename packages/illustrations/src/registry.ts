@@ -44,6 +44,7 @@ import {
   renderProof,
   renderQuote,
 } from './components/card-types.js';
+import { renderH1, renderH2, renderH3 } from './components/heading.js';
 import { renderStack } from './components/stack.js';
 import { renderArray } from './components/array.js';
 import { renderLinkedList } from './components/linkedlist.js';
@@ -173,6 +174,9 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Entity: univCyan,
   Group: renderGroup,
   Label: renderLabel,
+  H1: renderH1,
+  H2: renderH2,
+  H3: renderH3,
   Comparison: renderComparison,
   Timeline: renderTimeline,
   Metric: renderMetric,

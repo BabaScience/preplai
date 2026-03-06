@@ -66,6 +66,8 @@ export const KNOWN_ENTITY_TYPES: ReadonlySet<string> = new Set([
   'Concept', 'Entity', 'Group', 'Label', 'Comparison',
   'Timeline', 'Metric', 'Cycle', 'Stack', 'Tree',
   'Badge', 'Quote',
+  // Headings (3)
+  'H1', 'H2', 'H3',
   // Math & Science (6)
   'Equation', 'Expression', 'Matrix', 'Graph2D',
   'NumberLine', 'CoordinateSystem',
@@ -121,6 +123,9 @@ export const BASE_ENTITY_SIZES: ReadonlyMap<string, { w: number; h: number }> = 
   ['Entity',   { w: 80,  h: 60 }],
   ['Group',    { w: 200, h: 150 }],
   ['Label',    { w: 100, h: 40 }],
+  ['H1',       { w: 200, h: 60 }],
+  ['H2',       { w: 180, h: 50 }],
+  ['H3',       { w: 160, h: 45 }],
   ['CodeBlock',{ w: 200, h: 120 }],
   ['Table',    { w: 200, h: 120 }],
 ]);

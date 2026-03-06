@@ -38,7 +38,7 @@ function verifySessionOwnership(
 
 export const VisualEntitySchema = z.object({
   id: z.string(),
-  type: z.string().describe('Entity type. See add_scene description for topic→type mapping. Dedicated: Server, Service, API, APIGateway, Database, Cache, User, Cloud, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, StepList, AST, ProcessState, GanttChart, BarChart, BigO, MemoryLayout, ConfusionMatrix, CodeBlock, Concept, Label, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Analogy, Comparison, Proof. Connections: Arrow, DataFlow.'),
+  type: z.string().describe('Entity type. See add_scene description for topic→type mapping. Dedicated: Server, Service, API, APIGateway, Database, Cache, User, Cloud, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, StepList, AST, ProcessState, GanttChart, BarChart, BigO, MemoryLayout, ConfusionMatrix, CodeBlock, Concept, Label, H1, H2, H3, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Analogy, Comparison, Proof. Connections: Arrow, DataFlow.'),
   position: z.object({
     x: z.number().describe('X position as percentage 0-100 of the 1920px canvas'),
     y: z.number().describe('Y position as percentage 0-100 of the 1080px canvas'),
@@ -102,7 +102,7 @@ APPEND BEHAVIOR: Multiple add_scene calls APPEND frames. Use update_scene to REP
 
 DESIGN GUIDELINES:
 - COLORS — Always omit entity.color. Player uses palette automatically.
-- Title: type Label, sz 2+, l="Title". Subtitle: sz ~1.5.
+- Title: type H1 (main heading), H2 (section), or H3 (subsection). Use metadata.label or l. sz 2+ for H1.
 - Space entities evenly. Minimum 15% gap between entity positions.
 - Use "highlight": true to emphasize the currently discussed entity.
 - Entities are large and visually rich (drop shadows, gradient fills). Size 1 = ~110px, size 2 = ~220px.
@@ -140,14 +140,14 @@ Topic → Preferred type:
 - DNS, nameservers, domain resolution → DNSResolver (server rack with globe + domain→IP flow)
 - Layered model, OSI, tech stack → Stack (metadata.layers)
 
-PREFER dedicated types (rich visuals): Server, Service, API, APIGateway, Database, Cache, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, StepList, AST, ProcessState, GanttChart, BarChart, BigO, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Timeline, Definition, Callout, Analogy, Comparison, Proof.
+PREFER dedicated types (rich visuals): Server, Service, API, APIGateway, Database, Cache, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, StepList, AST, ProcessState, GanttChart, BarChart, BigO, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Timeline, Definition, Callout, Analogy, Comparison, Proof, H1, H2, H3.
 
 AVOID generic fallbacks when possible: Entity, Group, Tree, FSM, NeuralNetwork — these render as plain rounded rects.
 
 WHEN IN DOUBT: API/endpoint → API. Microservice → Service. API gateway → APIGateway. Key-value → HashTable. Binary tree → BinaryTree. Multi-way tree → BTree. Code snippet → CodeBlock. Abstract idea → Concept. Loop/lifecycle → Cycle. Vectors/coordinates → CoordinateSystem. Function plot → Graph2D. Flow between components → Arrow or DataFlow. Indexed data → Array. Caching layer → Cache. Step-by-step procedure → StepList. "X is like Y" → Analogy.
 
 DEDICATED (prefer these — rich custom renderers):
-  Server (rack with LEDs), Service (cogwheel with label in hub; microservices), API (cogwheel with "API" in hub; REST endpoints), APIGateway (cogwheel with label in hub; routing), Database (cylinder), Cache (database cylinder with flash icon), User (avatar), Cloud (cumulus blob), Concept (auto-sized circle; label ≤12 chars inside, else below), Label (text with optional pill), CodeBlock (dark terminal with traffic-light dots + line numbers), DNSResolver (server rack with globe + domain→IP flow), Cycle (rotating dashed circle for loops/lifecycles), Circuit (battery/resistor/capacitor/bulb/switch), CoordinateSystem (2D axes + points + vectors)
+  Server (rack with LEDs), Service (cogwheel with label in hub; microservices), API (cogwheel with "API" in hub; REST endpoints), APIGateway (cogwheel with label in hub; routing), Database (cylinder), Cache (database cylinder with flash icon), User (avatar), Cloud (cumulus blob), Concept (auto-sized circle; label ≤12 chars inside, else below), Label (text with optional pill), H1/H2/H3 (section headings; metadata.label or l; H1 largest, H3 smallest), CodeBlock (dark terminal with traffic-light dots + line numbers), DNSResolver (server rack with globe + domain→IP flow), Cycle (rotating dashed circle for loops/lifecycles), Circuit (battery/resistor/capacitor/bulb/switch), CoordinateSystem (2D axes + points + vectors)
 
 SHAPED renderers:
   LoadBalancer (hexagon), Decision (diamond), Metric (circle)
@@ -176,6 +176,7 @@ METADATA (required for correct rendering):
 - CoordinateSystem: metadata.xRange, metadata.yRange (default [-5,5]), metadata.gridSpacing?, metadata.showGrid?, metadata.xLabel?, metadata.yLabel?, metadata.points = [{x, y, label?, color?}], metadata.vectors = [{dx, dy, label?, color?}]. Use for vectors/geometry; use Graph2D for function plots.
 - BigO: metadata.curves = ["O(1)", "O(log n)", "O(n)", "O(n log n)", "O(n²)", "O(2^n)"] (pick subset; default all except O(2^n)). metadata.domain = [min, max] for n (default [0, 10]). Use [0, 8] when including O(2^n). For algorithm complexity, Big O notation, DSA education.
 - Cycle, Cloud, Concept, DNSResolver: no metadata. Use entity.label, entity.position.
+- H1, H2, H3: metadata.label (or entity.label). Section headings; H1 largest, H3 smallest.
 
 Graph2D: metadata.domain = [xMin, xMax], metadata.range = [yMin, yMax] (or xRange/yRange), metadata.xLabel?, metadata.yLabel?, metadata.showGrid? (default true). Modes: (1) expression = "x * x" for y=f(x); (2) parametric=true with xExpression, yExpression, tRange for x(t),y(t); (3) curveType="roc" with points=[{x:FPR,y:TPR},...]; (4) curveType="loss" with points=[{x:epoch,y:loss},...]; (5) curveType="scatter" or omit with points=[{x,y},...]. Curves are clipped to chart area.
 

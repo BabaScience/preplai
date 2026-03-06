@@ -28,6 +28,9 @@ This guide helps AI agents choose and configure the right illustration types whe
 | Layered model, tech stack, OSI | **Stack** | `metadata.layers` |
 | Numbered steps, algorithm walkthrough | **StepList** | `metadata.steps`, `currentStep`, `checkmarks` |
 | Process states | **ProcessState** | `metadata.states`, `metadata.transitions` |
+| Main heading, title | **H1** | metadata.label or entity.label; largest |
+| Section heading | **H2** | metadata.label or entity.label; medium |
+| Subsection heading | **H3** | metadata.label or entity.label; smallest |
 
 ---
 

@@ -1,0 +1,15 @@
+---
+description: Build illustrations package after changes
+globs: packages/illustrations/**/*
+alwaysApply: false
+---
+
+# Illustrations Package Build
+
+After making any edits to files in `packages/illustrations/`, run the build:
+
+```bash
+pnpm --filter @preplai/illustrations run build
+```
+
+This ensures the package compiles and dependent packages (e.g. player, website) use the latest output.
