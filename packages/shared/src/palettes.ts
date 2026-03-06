@@ -98,6 +98,7 @@ export function getEntityColor(
   switch (entityType) {
     case 'Server':
     case 'Service':
+    case 'API':
     case 'APIGateway':
     case 'Lambda':
       return p.server;

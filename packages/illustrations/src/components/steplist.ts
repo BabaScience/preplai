@@ -20,6 +20,8 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
   const meta = entity.metadata ?? {};
   const steps = (meta.steps as string[]) ?? (entity.textContent ? entity.textContent.split('\n') : ['Step 1', 'Step 2', 'Step 3']);
   const visibleSteps = steps.slice(0, 5);
+  const currentStep = typeof meta.currentStep === 'number' ? meta.currentStep : -1;
+  const checkmarks = meta.checkmarks === true;
 
   const stepH = 28;
   const numR = 10;
@@ -27,6 +29,8 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
 
   visibleSteps.forEach((step, i) => {
     const y = startY + i * stepH;
+    const isCompleted = checkmarks && currentStep >= 0 && i < currentStep;
+    const isCurrent = currentStep >= 0 && i === currentStep;
 
     if (i > 0) {
       const prevY = startY + (i - 1) * stepH;
@@ -45,21 +49,34 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
     circle.setAttribute('cx', String(-s * 0.6));
     circle.setAttribute('cy', String(y));
     circle.setAttribute('r', String(numR));
-    circle.setAttribute('fill', `url(#${gradId})`);
+    circle.setAttribute('fill', isCompleted ? color : `url(#${gradId})`);
     circle.setAttribute('stroke', color);
-    circle.setAttribute('stroke-width', '2');
+    circle.setAttribute('stroke-width', isCurrent ? '3' : '2');
+    circle.setAttribute('opacity', isCompleted ? '0.6' : '1');
     innerG.appendChild(circle);
 
-    const num = document.createElementNS(SVG_NS, 'text');
-    num.setAttribute('x', String(-s * 0.6));
-    num.setAttribute('y', String(y + 4));
-    num.setAttribute('text-anchor', 'middle');
-    num.setAttribute('fill', color);
-    num.setAttribute('font-size', '11');
-    num.setAttribute('font-weight', '600');
-    num.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-    num.textContent = String(i + 1);
-    innerG.appendChild(num);
+    if (isCompleted) {
+      const cx = -s * 0.6;
+      const check = document.createElementNS(SVG_NS, 'path');
+      check.setAttribute('d', `M ${cx - 5} ${y + 4} L ${cx - 2} ${y} L ${cx + 6} ${y - 4}`);
+      check.setAttribute('fill', 'none');
+      check.setAttribute('stroke', 'white');
+      check.setAttribute('stroke-width', '2');
+      check.setAttribute('stroke-linecap', 'round');
+      check.setAttribute('stroke-linejoin', 'round');
+      innerG.appendChild(check);
+    } else {
+      const num = document.createElementNS(SVG_NS, 'text');
+      num.setAttribute('x', String(-s * 0.6));
+      num.setAttribute('y', String(y + 4));
+      num.setAttribute('text-anchor', 'middle');
+      num.setAttribute('fill', isCurrent ? color : 'white');
+      num.setAttribute('font-size', '11');
+      num.setAttribute('font-weight', '600');
+      num.setAttribute('font-family', TYPOGRAPHY.fontBadge);
+      num.textContent = String(i + 1);
+      innerG.appendChild(num);
+    }
 
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', String(-s * 0.6 + numR + 14));

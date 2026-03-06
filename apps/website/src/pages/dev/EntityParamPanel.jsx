@@ -1124,6 +1124,76 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
+      {entity.type === 'StepList' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>StepList metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Steps (one per line)</label>
+            <textarea
+              className="form-input"
+              rows={6}
+              value={(() => {
+                const steps = entity.metadata?.steps;
+                if (Array.isArray(steps)) return steps.join('\n');
+                if (entity.textContent) return entity.textContent;
+                return 'Step 1: Initialize\nStep 2: Process\nStep 3: Finalize';
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  steps: lines.length ? lines : undefined,
+                });
+              }}
+              placeholder={'Step 1: Initialize\nStep 2: Process\nStep 3: Finalize'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One step per line. Up to 5 steps displayed.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Current step (0-based, -1 = none)</label>
+            <input
+              type="number"
+              className="form-input"
+              min={-1}
+              max={Math.max(0, (entity.metadata?.steps ?? (entity.textContent ? entity.textContent.split('\n') : [])).length - 1)}
+              value={entity.metadata?.currentStep ?? -1}
+              onChange={(e) => {
+                const v = parseInt(e.target.value, 10);
+                const currentStep = Number.isNaN(v) ? -1 : Math.max(-1, v);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  currentStep,
+                });
+              }}
+              placeholder="-1"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Highlights this step; completed steps show checkmarks when enabled.
+            </p>
+          </div>
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <input
+              type="checkbox"
+              id="steplist-checkmarks"
+              checked={entity.metadata?.checkmarks === true}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  checkmarks: e.target.checked,
+                })
+              }
+            />
+            <label htmlFor="steplist-checkmarks" className="form-label" style={{ marginBottom: 0 }}>
+              Show checkmarks for completed steps
+            </label>
+          </div>
+        </>
+      )}
+
       {entity.type === 'Array' && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />

@@ -847,9 +847,10 @@ All 88 entity types currently in the system, organized by category. Each row sho
 | `Queue` | `#ffab00` | Message queue — three stacked rects + exit arrow |
 | `Cache` | `#00e676` | Cache — database cylinder with lightning bolt (flash) icon inside |
 | `LoadBalancer` | `#00e5ff` | Load balancer — hexagon + Y-fork lines |
-| `Service` | `#00e5ff` | Microservice — rounded rect + gear/cog icon |
+| `Service` | `#4ECDC4` | Microservice — cogwheel (gear) with label in hub |
+| `API` | `#4ECDC4` | REST API — cogwheel with "API" in hub (inherits Service) |
 | `Firewall` | `#ff4444` | Firewall — shield outline + lock icon |
-| `APIGateway` | `#00e5ff` | API Gateway — rect with parallel lines + I/O stubs |
+| `APIGateway` | `#4ECDC4` | API Gateway — cogwheel with label in hub (same as Service) |
 | `Lambda` | `#ffab00` | Lambda/serverless — rounded rect + λ character |
 | `Subnet` | `#4488ff` | Subnet — large dashed rect + CIDR badge |
 | `Volume` | `#b388ff` | Storage volume — cylinder with rings |
@@ -982,7 +983,7 @@ All 88 entity types currently in the system, organized by category. Each row sho
 | `NeuralNetwork` | `#b388ff` | Neural network layer diagram — columns of circle neurons per layer (input, hidden×N, output), weighted edge lines between layers, activation labels |
 | `DecisionBoundary` | `#00e5ff` | 2D classification plot — coordinate plane with colored point clusters and decision boundary line/curve separating classes |
 
-**Total: 88 entity types** across 13 categories.
+**Total: 89 entity types** across 13 categories.
 
 ---
 

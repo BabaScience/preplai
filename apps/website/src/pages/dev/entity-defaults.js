@@ -148,6 +148,11 @@ export const METADATA_DEFAULTS = {
     curves: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)'],
     domain: [0, 10],
   },
+  StepList: {
+    steps: ['Initialize variables', 'Process input', 'Validate result', 'Return output'],
+    currentStep: -1,
+    checkmarks: false,
+  },
   BarChart: {
     bars: [
       { label: 'Jan', value: 10 },
@@ -188,8 +193,5 @@ export const ENTITY_FIELD_DEFAULTS = {
   CodeBlock: {
     textContent: 'function fib(n) {\n  if (n <= 1) return n;\n  return fib(n-1) + fib(n-2);\n}',
     codeLanguage: 'javascript',
-  },
-  StepList: {
-    textContent: 'Step 1: Initialize\nStep 2: Process\nStep 3: Finalize',
   },
 };

@@ -9,6 +9,9 @@ This guide helps AI agents choose and configure the right illustration types whe
 | User intent / topic | Use this type | Notes |
 |--------------------|---------------|-------|
 | Cloud, SaaS, AWS/GCP | **Cloud** | Cumulus cloud icon |
+| Service, microservice, backend | **Service** | Cogwheel with label in hub |
+| API, REST API, API endpoint | **API** | Cogwheel with "API" in hub (inherits Service) |
+| API gateway, routing layer | **APIGateway** | Same cogwheel as Service; label in hub |
 | DNS, nameserver, domain→IP | **DNSResolver** | Server rack + globe + resolution flow |
 | Key concept, glossary term | **Concept** | Bubble; label ≤12 chars inside, else below |
 | Code snippet, algorithm | **CodeBlock** | `metadata.code` or `metadata.lines` |
@@ -23,11 +26,22 @@ This guide helps AI agents choose and configure the right illustration types whe
 | BST, heap, tree | **BinaryTree** | `metadata.tree` or `metadata.nodes` |
 | Stack frames | **CallStack** | `metadata.frames` |
 | Layered model, tech stack, OSI | **Stack** | `metadata.layers` |
+| Numbered steps, algorithm walkthrough | **StepList** | `metadata.steps`, `currentStep`, `checkmarks` |
 | Process states | **ProcessState** | `metadata.states`, `metadata.transitions` |
 
 ---
 
 ## Recently Added / Updated Illustrations
+
+### Service, API, APIGateway
+- **Purpose:** Service-like entities — microservices, APIs, API gateways. All render as a **cogwheel (gear) icon** with text inside the central hub.
+- **Visual:** Gear with 10 teeth, inner circle, optional label below. Clean, minimal.
+- **Service:** `label` or `type` shown inside the hub. Use for: microservices, backend services, generic "service" components.
+- **API:** Always shows "API" inside the hub. Use for: REST APIs, API endpoints, application programming interfaces. Inherits from Service.
+- **APIGateway:** Same cogwheel as Service; `label` or `type` in hub. Use for: API gateways, routing layers, API management.
+- **Metadata:** None required. Standard entity fields: `id`, `type`, `position`, `label`, `color`, `size`.
+- **Example:** `{ "id": "api-1", "type": "API", "position": { "x": 40, "y": 50 }, "label": "REST API" }` — shows "API" in the gear; "REST API" below if `label` differs.
+- **Choosing:** Use **API** when the entity is specifically an API/endpoint. Use **Service** for generic services or microservices. Use **APIGateway** for gateways/routing.
 
 ### Circuit
 - **Purpose:** Electronic circuits (battery, resistor, capacitor, bulb, switch)
@@ -93,12 +107,23 @@ This guide helps AI agents choose and configure the right illustration types whe
 - **Not for:** Call stacks (use CallStack), cache hierarchy (use CacheHierarchy), stack/heap memory (use MemoryLayout)
 - **Example:** `layers: [{label: "Application", sublabel: "HTTP, DNS"}, {label: "Transport", sublabel: "TCP, UDP"}, ...]`
 
+### StepList
+- **Purpose:** Numbered step sequence — algorithm walkthroughs, tutorials, how-to guides, sequential processes
+- **Metadata:** `steps` (array of strings), `currentStep` (0-based, -1 = none), `checkmarks` (show ✓ for completed steps)
+- **Visual:** Circles with numbers, connecting lines, optional title. When `currentStep` is set, that step is highlighted; when `checkmarks` is true, completed steps show ✓ instead of numbers.
+- **Use for:** Algorithm steps, tutorial sequences, numbered procedures. Pairs well with CodeBlock + Array/BinaryTree.
+- **Example:** `steps: ["Parse", "Validate", "Transform"], currentStep: 1, checkmarks: true` — step 1 shows ✓, step 2 highlighted.
+
 ---
 
 ## Choosing Between Similar Types
 
 | If you need… | Use | Not |
 |--------------|-----|-----|
+| API, REST endpoint, API service | API | Service, Server |
+| Generic service, microservice | Service | API, Server |
+| API gateway, routing layer | APIGateway | API, Service |
+| Physical server, rack, host | Server | Service, API |
 | Vectors, coordinate geometry | CoordinateSystem | Graph2D |
 | Function plot, scatter, ROC | Graph2D | CoordinateSystem |
 | Big O, complexity curves | BigO | Graph2D |
@@ -108,6 +133,7 @@ This guide helps AI agents choose and configure the right illustration types whe
 | Long explanation | Definition, Callout, Analogy | Concept |
 | Code snippet | CodeBlock | (text in card) |
 | Loop/lifecycle indicator | Cycle | (generic shape) |
+| Numbered steps, algorithm walkthrough | StepList | CallStack, Stack |
 | OSI layers, tech stack | Stack | CallStack, CacheHierarchy |
 | Call stack, recursion | CallStack | Stack |
 | L1/L2/L3 cache hierarchy | CacheHierarchy | Stack |
@@ -116,7 +142,7 @@ This guide helps AI agents choose and configure the right illustration types whe
 
 ## Common Patterns
 
-1. **Infrastructure diagram:** Group + Server, Database, Cloud, DNSResolver, Arrow/DataFlow
+1. **Infrastructure diagram:** Group + Server, Database, Cloud, Service, API, APIGateway, DNSResolver, Arrow/DataFlow
 2. **Algorithm walkthrough:** CodeBlock + Array/BinaryTree + StepList
 3. **Complexity / Big O:** BigO with `curves: ["O(n)", "O(n²)"]` or similar subset
 4. **ML evaluation:** ConfusionMatrix + BarChart (precision/recall); Graph2D with `curveType: "roc"` for ROC curve, `curveType: "loss"` for training loss

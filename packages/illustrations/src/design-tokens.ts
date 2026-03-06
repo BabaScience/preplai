@@ -78,6 +78,7 @@ export const ENTITY_COLORS: Record<string, string> = {
   Cache: COLORS.green,
   LoadBalancer: COLORS.cyan,
   Service: COLORS.cyan,
+  API: COLORS.cyan,
   Firewall: COLORS.red,
   APIGateway: COLORS.cyan,
   Lambda: COLORS.orange,

@@ -59,7 +59,7 @@ describe('registry', () => {
     const infraTypes = [
       'User', 'Server', 'Database', 'Container', 'Pod', 'Cloud',
       'Network', 'Device', 'Arrow', 'DataFlow', 'Process', 'Queue',
-      'Cache', 'LoadBalancer', 'Service', 'Firewall', 'APIGateway',
+      'Cache', 'LoadBalancer', 'Service', 'API', 'Firewall', 'APIGateway',
       'Lambda', 'Subnet', 'Volume', 'Registry', 'Monitor', 'Pipeline',
       'Decision', 'Cluster',
       'DNSResolver', 'Decorator', 'BindMount', 'Tmpfs',

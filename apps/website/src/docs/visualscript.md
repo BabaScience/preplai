@@ -56,6 +56,9 @@
 ### Dedicated (prefer these — rich visuals)
 
 - **Server** — Rack with LEDs
+- **Service** — Cogwheel (gear) with label in hub; use for microservices, backend services
+- **API** — Cogwheel with "API" in hub; use for REST APIs, API endpoints (inherits Service)
+- **APIGateway** — Cogwheel with label in hub; use for API gateways, routing layers
 - **Database** — Cylinder
 - **Cache** — Database cylinder with lightning bolt (flash) icon inside; use for Redis, Memcached, CDN, in-memory caches
 - **User** — Avatar
@@ -94,7 +97,10 @@
 | Key-value storage | HashTable |
 | Arrays, lists, indexed data | Array |
 | Analogies, "X is like Y" | Analogy |
-| Architecture diagrams | Server, Database, Cloud, Arrow |
+| Architecture diagrams | Server, Database, Cloud, Service, API, APIGateway, Arrow |
+| Microservices, backend services | Service |
+| REST APIs, API endpoints | API |
+| API gateways, routing | APIGateway |
 | Caching layers (Redis, Memcached, CDN) | Cache |
 | Big O, algorithm complexity, DSA | BigO |
 | Categorical comparisons (sales, counts, rankings) | BarChart |

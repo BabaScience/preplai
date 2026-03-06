@@ -122,6 +122,30 @@ Vertical stack of customizable layers. Use for: OSI model, tech stack, layered a
 - Example: "OSI model layers" → `layers: [{label: "Application", sublabel: "HTTP"}, {label: "Transport", sublabel: "TCP"}, ...]`
 - Example: "Tech stack" → `layers: [{label: "React", sublabel: "Frontend"}, {label: "Node.js", sublabel: "Backend"}, {label: "PostgreSQL", sublabel: "Database"}]`
 
+## StepList
+
+Numbered step sequence with circles, connecting lines, and optional progress indicators. Use for: algorithm walkthroughs, tutorials, how-to guides, sequential processes.
+
+```json
+{
+  "steps": ["Initialize variables", "Process input", "Validate result", "Return output"],
+  "currentStep": 1,
+  "checkmarks": true
+}
+```
+
+**Fields:**
+- `steps`: **Required.** Array of strings — one step per line. Max 5 steps displayed. Fallback: `entity.textContent` split on newlines.
+- `currentStep`: **Optional.** 0-based index of the current/active step. `-1` = none highlighted. When set, the current step gets a thicker border.
+- `checkmarks`: **Optional.** If `true` and `currentStep >= 0`, completed steps (index < currentStep) show a checkmark instead of the number, with solid fill.
+
+**Standard entity fields:** `label` (optional title above steps), `color`, `size`, `position`.
+
+**Agent usage:**
+- Use StepList for: algorithm steps, tutorial sequences, how-to flows, numbered procedures.
+- Pair with CodeBlock + Array/BinaryTree for algorithm walkthroughs.
+- Example: `steps: ["Parse input", "Validate", "Transform", "Output"]`, `currentStep: 2`, `checkmarks: true` — steps 1–2 show ✓, step 3 highlighted.
+
 ## BTree
 
 B-trees, B+ trees, multi-way trees. Use for: database indexes, file systems, disk-based structures.
@@ -188,6 +212,23 @@ B-trees, B+ trees, multi-way trees. Use for: database indexes, file systems, dis
 - `tasks[].start`: Start time (normalized or absolute)
 - `tasks[].end`: End time
 - `maxTime`: Optional max value for axis (default: max of all end times)
+
+## Service, API, APIGateway
+
+All three render as a **cogwheel (gear) icon** with text inside the central hub. Use for: microservices, APIs, API gateways, backend services.
+
+**No metadata required.** Use standard entity fields: `id`, `type`, `position`, `label`, `color`, `size`.
+
+**Fields:**
+- `label`: Shown inside the hub (short) or below the gear (longer). For **API**, the hub always shows "API"; `label` can add context below (e.g. "REST API", "GraphQL").
+- `type`: `"Service"` | `"API"` | `"APIGateway"`
+
+**Agent usage:**
+- **Service:** Generic microservice, backend service, or "service" component. Hub shows `label` or `"Service"`. Use when the entity is a general service.
+- **API:** Application Programming Interface, REST endpoint, API service. Hub always shows "API". Use when the entity is specifically an API.
+- **APIGateway:** API gateway, routing layer, API management. Hub shows `label` or `"APIGateway"`. Use for gateways that route to multiple APIs.
+- Example: `{ "id": "api-1", "type": "API", "position": { "x": 40, "y": 50 }, "label": "REST API" }` — gear with "API" inside, "REST API" below.
+- Example: `{ "id": "svc-auth", "type": "Service", "position": { "x": 30, "y": 50 }, "label": "Auth Service" }` — gear with "Auth Service" in hub.
 
 ## Cache
 

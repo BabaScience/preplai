@@ -38,7 +38,7 @@ function verifySessionOwnership(
 
 export const VisualEntitySchema = z.object({
   id: z.string(),
-  type: z.string().describe('Entity type. See add_scene description for topic→type mapping. Dedicated: Server, Database, User, Cloud, BinaryTree, BTree, LinkedList, HashTable, CallStack, Stack, AST, ProcessState, GanttChart, BarChart, BigO, MemoryLayout, ConfusionMatrix, CodeBlock, Concept, Label, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver. Connections: Arrow, DataFlow.'),
+  type: z.string().describe('Entity type. See add_scene description for topic→type mapping. Dedicated: Server, Service, API, APIGateway, Database, User, Cloud, BinaryTree, BTree, LinkedList, HashTable, CallStack, Stack, AST, ProcessState, GanttChart, BarChart, BigO, MemoryLayout, ConfusionMatrix, CodeBlock, Concept, Label, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver. Connections: Arrow, DataFlow.'),
   position: z.object({
     x: z.number().describe('X position as percentage 0-100 of the 1920px canvas'),
     y: z.number().describe('Y position as percentage 0-100 of the 1080px canvas'),
@@ -119,6 +119,9 @@ Topic → Preferred type:
 - Arrays, lists, indexed data → Array (metadata.values, metadata.disabledIndexes)
 - Analogies, "X is like Y" → Analogy (metadata.label, metadata.description)
 - Architecture diagrams → Server, Database, Cloud, Arrow, LoadBalancer
+- Microservices, backend services → Service (cogwheel with label in hub)
+- REST APIs, API endpoints → API (cogwheel with "API" in hub; inherits Service)
+- API gateways, routing → APIGateway (cogwheel with label in hub)
 - Caching layers (Redis, Memcached, CDN) → Cache (database cylinder with flash icon)
 - Categorical comparisons (sales by month, counts by type, rankings) → BarChart (metadata.bars)
 - Code snippets, algorithms → CodeBlock (metadata.code or metadata.lines; entity.label = filename)
@@ -130,14 +133,14 @@ Topic → Preferred type:
 - DNS, nameservers, domain resolution → DNSResolver (server rack with globe + domain→IP flow)
 - Layered model, OSI, tech stack → Stack (metadata.layers)
 
-PREFER dedicated types (rich visuals): Server, Database, Cache, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, AST, ProcessState, GanttChart, BarChart, BigO, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Timeline, StepList, Definition, Callout, Analogy.
+PREFER dedicated types (rich visuals): Server, Service, API, APIGateway, Database, Cache, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, AST, ProcessState, GanttChart, BarChart, BigO, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Timeline, StepList, Definition, Callout, Analogy.
 
 AVOID generic fallbacks when possible: Entity, Group, Tree, FSM, NeuralNetwork — these render as plain rounded rects.
 
-WHEN IN DOUBT: Key-value → HashTable. Binary tree → BinaryTree. Multi-way tree → BTree. Code snippet → CodeBlock. Abstract idea → Concept. Loop/lifecycle → Cycle. Vectors/coordinates → CoordinateSystem. Function plot → Graph2D. Flow between components → Arrow or DataFlow.
+WHEN IN DOUBT: API/endpoint → API. Microservice → Service. API gateway → APIGateway. Key-value → HashTable. Binary tree → BinaryTree. Multi-way tree → BTree. Code snippet → CodeBlock. Abstract idea → Concept. Loop/lifecycle → Cycle. Vectors/coordinates → CoordinateSystem. Function plot → Graph2D. Flow between components → Arrow or DataFlow.
 
 DEDICATED (prefer these — rich custom renderers):
-  Server (rack with LEDs), Database (cylinder), Cache (database cylinder with flash icon), User (avatar), Cloud (cumulus blob), Concept (auto-sized circle; label ≤12 chars inside, else below), Label (text with optional pill), CodeBlock (dark terminal with traffic-light dots + line numbers), DNSResolver (server rack with globe + domain→IP flow), Cycle (rotating dashed circle for loops/lifecycles), Circuit (battery/resistor/capacitor/bulb/switch), CoordinateSystem (2D axes + points + vectors)
+  Server (rack with LEDs), Service (cogwheel with label in hub; microservices), API (cogwheel with "API" in hub; REST endpoints), APIGateway (cogwheel with label in hub; routing), Database (cylinder), Cache (database cylinder with flash icon), User (avatar), Cloud (cumulus blob), Concept (auto-sized circle; label ≤12 chars inside, else below), Label (text with optional pill), CodeBlock (dark terminal with traffic-light dots + line numbers), DNSResolver (server rack with globe + domain→IP flow), Cycle (rotating dashed circle for loops/lifecycles), Circuit (battery/resistor/capacitor/bulb/switch), CoordinateSystem (2D axes + points + vectors)
 
 SHAPED renderers:
   LoadBalancer (hexagon), Decision (diamond), Metric (circle)

@@ -58,7 +58,7 @@ export const KNOWN_ENTITY_TYPES: ReadonlySet<string> = new Set([
   'Cloud', 'Network', 'Device', 'Arrow', 'DataFlow',
   'Process', 'Queue', 'Cache', 'LoadBalancer', 'Service',
   // Extended Infrastructure (10)
-  'Firewall', 'APIGateway', 'Lambda', 'Subnet', 'Volume',
+  'Firewall', 'API', 'APIGateway', 'Lambda', 'Subnet', 'Volume',
   'Registry', 'Monitor', 'Pipeline', 'Decision', 'Cluster',
   // Flow / Connection (2)
   'BidirectArrow', 'DottedArrow',

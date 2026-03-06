@@ -73,6 +73,8 @@ import { renderCircuit } from './components/circuit.js';
 import { renderCoordinateSystem } from './components/coordinatesystem.js';
 import { renderCycle } from './components/cycle.js';
 import { renderBigO } from './components/bigo.js';
+import { renderService } from './components/service.js';
+import { renderAPI } from './components/api.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -82,7 +84,7 @@ import { getCategoryColor } from './design-tokens.js';
 const generic = (type: string, shape: 'rect' | 'circle' | 'diamond' | 'hexagon' = 'rect') =>
   createGenericRenderer(getCategoryColor(type), shape);
 
-const infra = generic('Service');
+const infraGeneric = generic('Service');
 const infraAlt = generic('Pod');
 const infraOrg = generic('Queue');  // fallback only; renderQueue used
 const infraRed = generic('Firewall');
@@ -143,9 +145,10 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Queue: renderQueue,
   Cache: renderCache,
   LoadBalancer: renderLoadBalancer,
-  Service: infra,
+  Service: renderService,
+  API: renderAPI,
   Firewall: infraRed,
-  APIGateway: infra,
+  APIGateway: renderService,
   Lambda: renderLambda,
   Subnet: infraBlu,
   Volume: renderVolume,
@@ -196,14 +199,14 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Particle: circleParticle,
 
   // ── General Purpose
-  Table: infra,
+  Table: infraGeneric,
   Histogram: genGrn,
-  PieChart: infra,
+  PieChart: infraGeneric,
   FlowDiagram: genBcd,
-  VennDiagram: infra,
+  VennDiagram: infraGeneric,
   Annotation: renderAnnotation,
   BarChart: renderBarChart,
-  ScatterPlot: infra,
+  ScatterPlot: infraGeneric,
 
   // ── Pedagogical (CodeBlock fully implemented)
   StepList: renderStepList,
@@ -221,7 +224,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   HashTable: renderHashTable,
   Dict: renderHashTable,
   Heap: dsBcd,
-  GraphDS: infra,
+  GraphDS: infraGeneric,
   Trie: dsGrn,
   List: renderList,
   Tuple: renderTuple,
@@ -233,9 +236,9 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   RecursionTree: algoPrp,
 
   // ── Automata & Theory
-  FSM: infra,
+  FSM: infraGeneric,
   StateNode: circleCache,
-  Transition: infra,  // Special: needs source/target, handled like Arrow
+  Transition: infraGeneric,  // Special: needs source/target, handled like Arrow
 
   // ── Computer Architecture
   CPU: csArch,
@@ -255,7 +258,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Architecture
   CacheHierarchy: renderCacheHierarchy,
-  PipelineStage: infra,
+  PipelineStage: infraGeneric,
   MemoryLayout: renderMemoryLayout,
 
   // ── Networking
@@ -271,10 +274,10 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   AST: renderAST,
   CallStack: renderCallStack,
   ParseTree: renderAST,
-  SymbolTable: infra,
+  SymbolTable: infraGeneric,
 
   // ── Databases
-  QueryPlan: infra,
+  QueryPlan: infraGeneric,
 
   // ── Concurrency
   Semaphore: generic('Semaphore'),
