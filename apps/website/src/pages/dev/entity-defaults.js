@@ -136,6 +136,10 @@ export const METADATA_DEFAULTS = {
       { from: 2, to: 0 },
     ],
   },
+  BigO: {
+    curves: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)'],
+    domain: [0, 10],
+  },
   BarChart: {
     bars: [
       { label: 'Jan', value: 10 },
@@ -168,6 +172,7 @@ export const METADATA_DEFAULTS = {
 
 /** Entity-level defaults (not metadata) for types that need textContent etc. */
 export const ENTITY_FIELD_DEFAULTS = {
+  BigO: { size: 2 },
   Circuit: { size: 2 },
   CoordinateSystem: { size: 2 },
   BinaryTree: { size: 2.5 },

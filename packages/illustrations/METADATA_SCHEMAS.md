@@ -347,26 +347,128 @@ Server rack with globe icon and domain→IP flow. Use for: DNS lookups, nameserv
 
 ## Graph2D
 
+2D Cartesian plotter with axes, grid, and multiple curve modes. Use for: function plots, ROC curves, training loss, scatter data, parametric curves. **Curves are clipped to the chart area** — values outside domain/range are not drawn beyond the component bounds.
+
+**When to use:** Function plots (y = f(x)), ROC curves, loss curves, scatter plots, parametric curves (x(t), y(t)).  
+**When to use CoordinateSystem instead:** Vectors, basis vectors, linear algebra, coordinate geometry.
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `domain` | `[number, number]` | `[-5, 5]` | X-axis data range (min, max). Also accepts `xRange`. |
+| `range` | `[number, number]` | `[-5, 5]` | Y-axis data range (min, max). Also accepts `yRange`. |
+| `xLabel` | `string` | `""` (or auto for roc/loss) | Label for x-axis (e.g. `"x"`, `"FPR"`, `"Epoch"`). |
+| `yLabel` | `string` | `""` (or auto for roc/loss) | Label for y-axis (e.g. `"y"`, `"TPR"`, `"Loss"`). |
+| `showGrid` | `boolean` | `true` | Show grid lines in chart area. |
+| `curveType` | `"roc"` \| `"loss"` \| `"scatter"` | `"scatter"` | Rendering mode for `points` (see below). |
+| `points` | `Array<{x, y}>` | `[]` | Data points. Meaning depends on `curveType`. |
+| `expression` | `string` | — | JS expression in `x` for explicit curve y = f(x). |
+| `parametric` | `boolean` | `false` | If true, draw parametric curve x(t), y(t). |
+| `xExpression` | `string` | `"Math.cos(t)"` | Parametric x(t) expression (when `parametric`). |
+| `yExpression` | `string` | `"Math.sin(t)"` | Parametric y(t) expression (when `parametric`). |
+| `tRange` | `[number, number]` | `[0, 2π]` | Parameter range for parametric curve. |
+
+### Modes
+
+**1. Explicit function (y = f(x))**  
+Set `expression` with a JS expression in `x`. Examples: `"x * x"`, `"Math.sin(x)"`, `"2 * x + 1"`.
+
 ```json
 {
   "domain": [-5, 5],
   "range": [-5, 5],
   "xLabel": "x",
   "yLabel": "y",
-  "showGrid": true,
-  "curveType": "roc",
-  "points": [{ "x": 0, "y": 0 }, { "x": 1, "y": 1 }],
   "expression": "x * x"
 }
 ```
 
-- `domain`: [min, max] for x-axis
-- `range`: [min, max] for y-axis
-- `xLabel`, `yLabel`: Axis labels
-- `showGrid`: Boolean (default true)
-- `curveType`: "roc" | "loss" | "scatter" for special curve rendering
-- `points`: Array of { x, y } for scatter or curve data
-- `expression`: Optional JS expression in x for explicit curve (e.g. "x * x")
+**2. Parametric curve (x(t), y(t))**  
+Set `parametric: true`. Use `xExpression` and `yExpression` with variable `t`. Optionally set `tRange`.
+
+```json
+{
+  "domain": [-2, 2],
+  "range": [-2, 2],
+  "parametric": true,
+  "xExpression": "Math.cos(t)",
+  "yExpression": "Math.sin(t)",
+  "tRange": [0, 6.283]
+}
+```
+
+**3. ROC curve**  
+Set `curveType: "roc"`. `points` = array of `{x: FPR, y: TPR}`. Domain/range default to [0, 1].
+
+```json
+{
+  "curveType": "roc",
+  "xLabel": "FPR",
+  "yLabel": "TPR",
+  "points": [{ "x": 0, "y": 0 }, { "x": 0.1, "y": 0.3 }, { "x": 0.5, "y": 0.8 }, { "x": 1, "y": 1 }]
+}
+```
+
+**4. Loss curve**  
+Set `curveType: "loss"`. `points` = array of `{x: epoch, y: loss}`. Domain defaults to [0, 10], range to [0, 2].
+
+```json
+{
+  "curveType": "loss",
+  "xLabel": "Epoch",
+  "yLabel": "Loss",
+  "points": [{ "x": 0, "y": 1.8 }, { "x": 2, "y": 1.2 }, { "x": 6, "y": 0.5 }, { "x": 10, "y": 0.25 }]
+}
+```
+
+**5. Scatter plot**  
+Set `curveType: "scatter"` or omit. `points` = array of `{x, y}` rendered as dots.
+
+```json
+{
+  "domain": [-5, 5],
+  "range": [-5, 5],
+  "points": [{ "x": 0, "y": 0 }, { "x": 1, "y": 1 }, { "x": 2, "y": 4 }]
+}
+```
+
+### Agent usage
+
+- **Function plot:** Use `expression` with domain/range that fits the curve. Set `domain` and `range` to the visible window — curves are clipped, so e.g. `y = x*x` with domain [-5,5] will show only the portion inside [-5,5]×[-5,5].
+- **ROC curve:** `curveType: "roc"`, `points` as (FPR, TPR) pairs, domain/range [0,1].
+- **Training loss:** `curveType: "loss"`, `points` as (epoch, loss) pairs.
+- **Parametric (circle, ellipse, etc.):** `parametric: true`, `xExpression`, `yExpression`, `tRange`.
+- **Scatter:** `points` array, optionally with `expression` to overlay a fitted curve.
+
+## BigO
+
+Complexity growth chart showing algorithm time/space complexity curves. Use for: explaining Big O notation, comparing algorithm efficiency (O(1) vs O(n) vs O(n²)), complexity analysis, DSA education.
+
+```json
+{
+  "curves": ["O(1)", "O(log n)", "O(n)", "O(n log n)", "O(n²)"],
+  "domain": [0, 10]
+}
+```
+
+**Fields:**
+
+- `curves`: **Optional.** Array of curve names to display. Default: `["O(1)", "O(log n)", "O(n)", "O(n log n)", "O(n²)"]`. Valid values: `"O(1)"`, `"O(log n)"`, `"O(n)"`, `"O(n log n)"`, `"O(n²)"`, `"O(2^n)"`. Agent can pick a subset to focus on specific comparisons (e.g. `["O(n)", "O(n²)"]` for linear vs quadratic).
+- `domain`: **Optional.** `[min, max]` for the x-axis (input size n). Default `[0, 10]`. Y-axis (operations) auto-scales to fit all curves. Use `[0, 8]` when including `O(2^n)` to avoid overflow.
+
+**Standard entity fields:**
+
+- `label`: Optional chart title (e.g. "Algorithm Complexity").
+- `size`: Scale factor (default 2). Affects chart dimensions.
+- `color`: Accent color for chart border/background (default gold).
+
+**Agent usage:**
+
+- Use BigO for: explaining Big O notation, comparing sorting algorithms (O(n log n) vs O(n²)), showing why exponential algorithms scale poorly, DSA/algorithm complexity lessons.
+- Use Graph2D instead for: custom functions, ROC curves, loss curves, scatter data, or arbitrary expressions.
+- Example: "Compare linear vs quadratic complexity" → `curves: ["O(n)", "O(n²)"]`, `domain: [0, 10]`.
+- Example: "Show why O(2^n) is bad" → `curves: ["O(n)", "O(n²)", "O(2^n)"]`, `domain: [0, 8]`.
 
 ## BarChart
 

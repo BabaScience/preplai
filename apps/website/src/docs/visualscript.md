@@ -73,6 +73,7 @@
 - **MemoryLayout** — Stack/heap
 - **ConfusionMatrix** — TP/FP/TN/FN grid
 - **Graph2D** — 2D plots (ROC, loss, scatter)
+- **BigO** — Complexity growth chart; use `metadata.curves` (e.g. `["O(1)", "O(n)", "O(n²)"]`), `metadata.domain` (e.g. `[0, 10]`). For Big O notation, algorithm complexity, DSA education.
 - **BarChart** — Bar chart; use `metadata.bars` (array of `{label, value, color?}`), `metadata.xLabel`, `metadata.yLabel`, `metadata.horizontal` (boolean). Use for categorical comparisons (sales by month, counts by type). Max 12 bars.
 
 ### Connection Types
@@ -95,6 +96,7 @@
 | Analogies, "X is like Y" | Analogy |
 | Architecture diagrams | Server, Database, Cloud, Arrow |
 | Caching layers (Redis, Memcached, CDN) | Cache |
+| Big O, algorithm complexity, DSA | BigO |
 | Categorical comparisons (sales, counts, rankings) | BarChart |
 
 ## Entity Schema
@@ -126,6 +128,8 @@ For **BTree**: use `metadata.tree` = `{value, children?}` for multi-way trees. N
 For **Array**: use `metadata.values` (e.g. `["a", "b", "c", "d", "e"]`) to set cell contents; `metadata.disabledIndexes` (e.g. `[1, 3]`) to dim specific 0-based indexes; `metadata.selectedIndexes` (e.g. `[0, 2]`) to highlight cells (e.g. current comparison in binary search). Or `metadata.cells = [{value, enabled?, selected?}]`. Max 8 cells.
 
 For **Analogy**: use `metadata.label` (or entity.label). Text wraps to new lines; set `metadata.width` and `metadata.maxLines` to control layout. Overflow truncates with "...".
+
+For **BigO**: use `metadata.curves` — array of curve names (e.g. `["O(1)", "O(log n)", "O(n)", "O(n log n)", "O(n²)", "O(2^n)"]`; pick a subset). Optional: `metadata.domain` = `[min, max]` for n (default `[0, 10]`). Use `[0, 8]` when including O(2^n).
 
 For **BarChart**: use `metadata.bars` — array of `{label: string, value: number, color?: string}` (e.g. `[{label: "Jan", value: 10}, {label: "Feb", value: 25}]`). Optional: `metadata.xLabel`, `metadata.yLabel`, `metadata.horizontal` (true = horizontal bars). Max 12 bars.
 

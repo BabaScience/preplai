@@ -61,7 +61,7 @@ export default function IllustrationDebugPage() {
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: '200px 1fr 340px',
+        gridTemplateColumns: '200px 1fr 380px',
         height: '100vh',
         overflow: 'hidden',
       }}
@@ -146,11 +146,12 @@ export default function IllustrationDebugPage() {
         <IllustrationPreview entity={entity} renderError={setRenderError} />
       </div>
 
-      {/* Right: Parameter panel */}
+      {/* Right: Parameter panel — all parameters live here */}
       <div
         style={{
           overflowY: 'auto',
           borderLeft: '1px solid var(--color-border)',
+          width: '100%',
         }}
       >
         <EntityParamPanel
@@ -164,7 +165,7 @@ export default function IllustrationDebugPage() {
             style={{
               position: 'fixed',
               bottom: 'var(--space-4)',
-              right: '500px',
+              right: '400px',
               padding: 'var(--space-2) var(--space-3)',
               background: 'var(--color-success)',
               color: 'white',

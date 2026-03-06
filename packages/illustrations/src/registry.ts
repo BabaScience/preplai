@@ -72,6 +72,7 @@ import { renderBarChart } from './components/barchart.js';
 import { renderCircuit } from './components/circuit.js';
 import { renderCoordinateSystem } from './components/coordinatesystem.js';
 import { renderCycle } from './components/cycle.js';
+import { renderBigO } from './components/bigo.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -285,7 +286,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Theory
   TuringMachine: generic('TuringMachine'),
-  BigO: generic('BigO'),
+  BigO: renderBigO,
 
   // ── Algorithms extended
   SortAnimation: generic('SortAnimation'),

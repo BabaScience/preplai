@@ -30,6 +30,7 @@ Each frame contains **entities** — visual elements with a type, position, and 
 | HashTable | Key-value storage |
 | GanttChart | Scheduler, CPU timelines |
 | Graph2D | ROC curves, loss plots |
+| BigO | Algorithm complexity, Big O notation |
 | BarChart | Categorical comparisons (sales, counts, rankings) |
 | Label | Titles, subtitles |
 | Arrow, DataFlow | Connections between entities |

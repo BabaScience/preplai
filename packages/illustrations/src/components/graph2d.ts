@@ -1,6 +1,10 @@
 /**
  * @preplai/illustrations — Graph2D Component
- * 2D function plotter: axes, grid, explicit/parametric curves, scatter points
+ * 2D function plotter: axes, grid, explicit/parametric curves, scatter points.
+ * Curves are clipped to the chart area.
+ *
+ * @see METADATA_SCHEMAS.md#graph2d
+ * @see ILLUSTRATIONS_AGENT_GUIDE.md
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
@@ -34,10 +38,27 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
 
   const chartW = totalW - pad * 2;
   const chartH = totalH - pad * 2;
+  const chartLeft = -totalW / 2 + pad;
+  const chartTop = -totalH / 2 + pad;
 
   // Mapping helpers
-  const mapX = (v: number) => -totalW / 2 + pad + ((v - domain[0]) / (domain[1] - domain[0])) * chartW;
-  const mapY = (v: number) => totalH / 2 - pad - ((v - range[0]) / (range[1] - range[0])) * chartH;
+  const mapX = (v: number) => chartLeft + ((v - domain[0]) / (domain[1] - domain[0])) * chartW;
+  const mapY = (v: number) => chartTop + chartH - ((v - range[0]) / (range[1] - range[0])) * chartH;
+
+  // ── Clip path so curves stay inside chart area
+  const clipId = `clip-graph2d-${Math.random().toString(36).slice(2, 9)}`;
+  const clipPath = document.createElementNS(SVG_NS, 'clipPath');
+  clipPath.setAttribute('id', clipId);
+  const clipRect = document.createElementNS(SVG_NS, 'rect');
+  clipRect.setAttribute('x', String(chartLeft));
+  clipRect.setAttribute('y', String(chartTop));
+  clipRect.setAttribute('width', String(chartW));
+  clipRect.setAttribute('height', String(chartH));
+  clipPath.appendChild(clipRect);
+  defs.appendChild(clipPath);
+
+  const chartGroup = document.createElementNS(SVG_NS, 'g');
+  chartGroup.setAttribute('clip-path', `url(#${clipId})`);
 
   // ── Background with subtle gradient
   const bg = document.createElementNS(SVG_NS, 'rect');
@@ -50,6 +71,7 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
   bg.setAttribute('stroke', color);
   bg.setAttribute('stroke-width', '1');
   innerG.appendChild(bg);
+  innerG.appendChild(chartGroup);
 
   // ── Grid lines (more visible)
   if (showGrid) {
@@ -57,44 +79,44 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
       const gx = mapX(v);
       const gl = document.createElementNS(SVG_NS, 'line');
       gl.setAttribute('x1', String(gx));
-      gl.setAttribute('y1', String(-totalH / 2 + pad));
+      gl.setAttribute('y1', String(chartTop));
       gl.setAttribute('x2', String(gx));
-      gl.setAttribute('y2', String(totalH / 2 - pad));
+      gl.setAttribute('y2', String(chartTop + chartH));
       gl.setAttribute('stroke', '#ffffff12');
       gl.setAttribute('stroke-width', '1');
-      innerG.appendChild(gl);
+      chartGroup.appendChild(gl);
     }
     for (let v = Math.ceil(range[0]); v <= Math.floor(range[1]); v++) {
       const gy = mapY(v);
       const gl = document.createElementNS(SVG_NS, 'line');
-      gl.setAttribute('x1', String(-totalW / 2 + pad));
+      gl.setAttribute('x1', String(chartLeft));
       gl.setAttribute('y1', String(gy));
-      gl.setAttribute('x2', String(totalW / 2 - pad));
+      gl.setAttribute('x2', String(chartLeft + chartW));
       gl.setAttribute('y2', String(gy));
       gl.setAttribute('stroke', '#ffffff12');
       gl.setAttribute('stroke-width', '1');
-      innerG.appendChild(gl);
+      chartGroup.appendChild(gl);
     }
   }
 
   // ── Axes
   const xAxis = document.createElementNS(SVG_NS, 'line');
-  xAxis.setAttribute('x1', String(-totalW / 2 + pad));
+  xAxis.setAttribute('x1', String(chartLeft));
   xAxis.setAttribute('y1', String(mapY(0)));
-  xAxis.setAttribute('x2', String(totalW / 2 - pad));
+  xAxis.setAttribute('x2', String(chartLeft + chartW));
   xAxis.setAttribute('y2', String(mapY(0)));
   xAxis.setAttribute('stroke', '#ffffff40');
   xAxis.setAttribute('stroke-width', '1.5');
-  innerG.appendChild(xAxis);
+  chartGroup.appendChild(xAxis);
 
   const yAxis = document.createElementNS(SVG_NS, 'line');
   yAxis.setAttribute('x1', String(mapX(0)));
-  yAxis.setAttribute('y1', String(-totalH / 2 + pad));
+  yAxis.setAttribute('y1', String(chartTop));
   yAxis.setAttribute('x2', String(mapX(0)));
-  yAxis.setAttribute('y2', String(totalH / 2 - pad));
+  yAxis.setAttribute('y2', String(chartTop + chartH));
   yAxis.setAttribute('stroke', '#ffffff40');
   yAxis.setAttribute('stroke-width', '1.5');
-  innerG.appendChild(yAxis);
+  chartGroup.appendChild(yAxis);
 
   // ── Axis labels
   if (xLabel) {
@@ -139,7 +161,7 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
       path.setAttribute('fill', 'none');
       path.setAttribute('stroke', color);
       path.setAttribute('stroke-width', '2.5');
-      innerG.appendChild(path);
+      chartGroup.appendChild(path);
     }
   }
 
@@ -168,7 +190,7 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
       path.setAttribute('fill', 'none');
       path.setAttribute('stroke', '#e040fb');
       path.setAttribute('stroke-width', '2.5');
-      innerG.appendChild(path);
+      chartGroup.appendChild(path);
     }
   }
 
@@ -186,7 +208,7 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
       path.setAttribute('fill', 'none');
       path.setAttribute('stroke', color);
       path.setAttribute('stroke-width', '2.5');
-      innerG.appendChild(path);
+      chartGroup.appendChild(path);
     }
   }
 
@@ -204,7 +226,7 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
       path.setAttribute('fill', 'none');
       path.setAttribute('stroke', color);
       path.setAttribute('stroke-width', '2.5');
-      innerG.appendChild(path);
+      chartGroup.appendChild(path);
     }
   }
 
@@ -219,7 +241,7 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
     dot.setAttribute('fill', color);
     dot.setAttribute('stroke', '#0b0d14');
     dot.setAttribute('stroke-width', '1.5');
-    innerG.appendChild(dot);
+    chartGroup.appendChild(dot);
   }
 
   // ── Title label

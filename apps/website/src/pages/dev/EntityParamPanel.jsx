@@ -764,6 +764,308 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
+      {entity.type === 'Graph2D' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Graph2D metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Curve type</label>
+            <select
+              className="form-input"
+              value={entity.metadata?.curveType ?? 'scatter'}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  curveType: e.target.value || undefined,
+                })
+              }
+            >
+              <option value="">scatter (default)</option>
+              <option value="roc">roc</option>
+              <option value="loss">loss</option>
+              <option value="scatter">scatter</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Domain (x min, max)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(() => {
+                const d = entity.metadata?.domain ?? entity.metadata?.xRange ?? [-5, 5];
+                return Array.isArray(d) ? `${d[0]}, ${d[1]}` : String(d);
+              })()}
+              onChange={(e) => {
+                const parts = e.target.value.split(',').map((s) => parseFloat(s.trim())).filter((n) => !Number.isNaN(n));
+                if (parts.length >= 2) {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    domain: [parts[0], parts[1]],
+                  });
+                }
+              }}
+              placeholder="-5, 5"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Range (y min, max)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(() => {
+                const r = entity.metadata?.range ?? entity.metadata?.yRange ?? [-5, 5];
+                return Array.isArray(r) ? `${r[0]}, ${r[1]}` : String(r);
+              })()}
+              onChange={(e) => {
+                const parts = e.target.value.split(',').map((s) => parseFloat(s.trim())).filter((n) => !Number.isNaN(n));
+                if (parts.length >= 2) {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    range: [parts[0], parts[1]],
+                  });
+                }
+              }}
+              placeholder="-5, 5"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">X-axis label</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.xLabel ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  xLabel: e.target.value,
+                })
+              }
+              placeholder="x (or FPR, Epoch)"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Y-axis label</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.yLabel ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  yLabel: e.target.value,
+                })
+              }
+              placeholder="y (or TPR, Loss)"
+            />
+          </div>
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <input
+              type="checkbox"
+              id="graph2d-showGrid"
+              checked={entity.metadata?.showGrid !== false}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  showGrid: e.target.checked,
+                })
+              }
+            />
+            <label htmlFor="graph2d-showGrid" className="form-label" style={{ marginBottom: 0 }}>
+              Show grid
+            </label>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Expression (y = f(x), e.g. x * x)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.expression ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  expression: e.target.value || undefined,
+                })
+              }
+              placeholder="x * x"
+            />
+          </div>
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <input
+              type="checkbox"
+              id="graph2d-parametric"
+              checked={entity.metadata?.parametric === true}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  parametric: e.target.checked,
+                })
+              }
+            />
+            <label htmlFor="graph2d-parametric" className="form-label" style={{ marginBottom: 0 }}>
+              Parametric curve
+            </label>
+          </div>
+          {entity.metadata?.parametric && (
+            <>
+              <div className="form-group">
+                <label className="form-label">X expression (t)</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={entity.metadata?.xExpression ?? 'Math.cos(t)'}
+                  onChange={(e) =>
+                    update('metadata', {
+                      ...(entity.metadata || {}),
+                      xExpression: e.target.value || 'Math.cos(t)',
+                    })
+                  }
+                  placeholder="Math.cos(t)"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Y expression (t)</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={entity.metadata?.yExpression ?? 'Math.sin(t)'}
+                  onChange={(e) =>
+                    update('metadata', {
+                      ...(entity.metadata || {}),
+                      yExpression: e.target.value || 'Math.sin(t)',
+                    })
+                  }
+                  placeholder="Math.sin(t)"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">t range (min, max)</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={(() => {
+                    const t = entity.metadata?.tRange ?? [0, 2 * Math.PI];
+                    return Array.isArray(t) ? `${t[0]}, ${t[1]}` : String(t);
+                  })()}
+                  onChange={(e) => {
+                    const parts = e.target.value.split(',').map((s) => parseFloat(s.trim())).filter((n) => !Number.isNaN(n));
+                    if (parts.length >= 2) {
+                      update('metadata', {
+                        ...(entity.metadata || {}),
+                        tRange: [parts[0], parts[1]],
+                      });
+                    }
+                  }}
+                  placeholder="0, 6.283"
+                />
+              </div>
+            </>
+          )}
+          <div className="form-group">
+            <label className="form-label">Points (x,y per line)</label>
+            <textarea
+              className="form-input"
+              rows={4}
+              value={(() => {
+                const pts = entity.metadata?.points ?? [];
+                if (!Array.isArray(pts)) return '';
+                return pts
+                  .map((p) => {
+                    if (typeof p !== 'object' || p == null) return '';
+                    const { x, y } = p;
+                    return `${x},${y}`;
+                  })
+                  .filter(Boolean)
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                const points = lines.map((line) => {
+                  const [x, y] = line.split(',').map((s) => parseFloat(s.trim()));
+                  if (Number.isNaN(x) || Number.isNaN(y)) return null;
+                  return { x, y };
+                }).filter(Boolean);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  points: points.length ? points : undefined,
+                });
+              }}
+              placeholder={'0,0\n1,1\n2,4'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One point per line: x,y. Used for scatter, ROC, or loss curves.
+            </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'BigO' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>BigO metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Curves to visualize</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+              {['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)', 'O(2^n)'].map((curve) => {
+                const curves = entity.metadata?.curves ?? ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)'];
+                const checked = curves.includes(curve);
+                return (
+                  <label key={curve} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) => {
+                        let next = entity.metadata?.curves ?? ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)'];
+                        if (e.target.checked) {
+                          next = [...next, curve].sort((a, b) => {
+                            const order = ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)', 'O(2^n)'];
+                            return order.indexOf(a) - order.indexOf(b);
+                          });
+                        } else {
+                          next = next.filter((c) => c !== curve);
+                        }
+                        update('metadata', {
+                          ...(entity.metadata || {}),
+                          curves: next.length ? next : ['O(1)'],
+                        });
+                      }}
+                    />
+                    <span style={{ fontSize: 'var(--text-xs)' }}>{curve}</span>
+                  </label>
+                );
+              })}
+            </div>
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Select which complexity curves to display
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Domain (n min, max)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(() => {
+                const d = entity.metadata?.domain ?? [0, 10];
+                return Array.isArray(d) ? `${d[0]}, ${d[1]}` : String(d);
+              })()}
+              onChange={(e) => {
+                const parts = e.target.value.split(',').map((s) => parseFloat(s.trim())).filter((n) => !Number.isNaN(n));
+                if (parts.length >= 2) {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    domain: [parts[0], parts[1]],
+                  });
+                }
+              }}
+              placeholder="0, 10"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Input size range for x-axis
+            </p>
+          </div>
+        </>
+      )}
+
       {entity.type === 'Array' && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />

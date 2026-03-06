@@ -16,6 +16,7 @@ This guide helps AI agents choose and configure the right illustration types whe
 | Electronic circuit | **Circuit** | `metadata.components` + `metadata.connections` |
 | 2D plane, vectors, coordinates | **CoordinateSystem** | `metadata.points`, `metadata.vectors` |
 | Function plot, ROC, scatter | **Graph2D** | `metadata.points`, `metadata.expression` |
+| Big O, complexity curves | **BigO** | `metadata.curves`, `metadata.domain` |
 | Categorical comparison | **BarChart** | `metadata.bars` with label/value |
 | Classification metrics | **ConfusionMatrix** | `metadata.matrix`, row/col labels |
 | Array, list indices | **Array** | `metadata.values` or `metadata.cells` |
@@ -31,6 +32,24 @@ This guide helps AI agents choose and configure the right illustration types whe
 - **Purpose:** Electronic circuits (battery, resistor, capacitor, bulb, switch)
 - **Metadata:** `components` (array of `{type, label?}`), `connections` (array of `{from, to}` indices)
 - **Component types:** `battery`|`voltage`|`v`|`cell`, `resistor`|`r`, `capacitor`|`c`, `bulb`|`lamp`|`light`, `switch`|`s`
+
+### BigO
+- **Purpose:** Algorithm complexity growth chart — O(1), O(log n), O(n), O(n log n), O(n²), O(2^n)
+- **Metadata:** `curves` (array of curve names to show), `domain` ([min, max] for n, default [0, 10])
+- **Curves:** `"O(1)"`, `"O(log n)"`, `"O(n)"`, `"O(n log n)"`, `"O(n²)"`, `"O(2^n)"`. Pick a subset to focus comparisons.
+- **Use for:** Big O notation, algorithm efficiency, DSA education; use Graph2D for custom functions/ROC/loss
+
+### Graph2D
+- **Purpose:** 2D Cartesian plotter — function curves, ROC curves, loss curves, scatter plots, parametric curves
+- **Metadata:** `domain`, `range` (or `xRange`, `yRange`), `xLabel`, `yLabel`, `showGrid`, `curveType`, `points`, `expression`, `parametric`, `xExpression`, `yExpression`, `tRange`
+- **Modes:**
+  - **Explicit:** `expression: "x * x"` — y = f(x), JS expression in `x`
+  - **Parametric:** `parametric: true`, `xExpression`, `yExpression`, `tRange` — x(t), y(t)
+  - **ROC:** `curveType: "roc"`, `points` = [{x: FPR, y: TPR}, ...]
+  - **Loss:** `curveType: "loss"`, `points` = [{x: epoch, y: loss}, ...]
+  - **Scatter:** `curveType: "scatter"` or omit, `points` = [{x, y}, ...]
+- **Clipping:** Curves stay inside the chart — values outside domain/range are clipped
+- **Use for:** Function plots, ROC, training loss, scatter data; use CoordinateSystem for vectors/geometry
 
 ### CoordinateSystem
 - **Purpose:** 2D coordinate plane with axes, grid, points, vectors
@@ -74,6 +93,7 @@ This guide helps AI agents choose and configure the right illustration types whe
 |--------------|-----|-----|
 | Vectors, coordinate geometry | CoordinateSystem | Graph2D |
 | Function plot, scatter, ROC | Graph2D | CoordinateSystem |
+| Big O, complexity curves | BigO | Graph2D |
 | Categorical bars (Jan, Feb, Region) | BarChart | Graph2D |
 | Frequency bins | Histogram | BarChart |
 | Short concept (≤12 chars) | Concept | Definition |
@@ -87,6 +107,7 @@ This guide helps AI agents choose and configure the right illustration types whe
 
 1. **Infrastructure diagram:** Group + Server, Database, Cloud, DNSResolver, Arrow/DataFlow
 2. **Algorithm walkthrough:** CodeBlock + Array/BinaryTree + StepList
-3. **ML evaluation:** ConfusionMatrix + BarChart (precision/recall)
-4. **Physics/electronics:** Circuit + Concept (for terms)
-5. **Math/linear algebra:** CoordinateSystem (vectors) or Graph2D (functions)
+3. **Complexity / Big O:** BigO with `curves: ["O(n)", "O(n²)"]` or similar subset
+4. **ML evaluation:** ConfusionMatrix + BarChart (precision/recall); Graph2D with `curveType: "roc"` for ROC curve, `curveType: "loss"` for training loss
+5. **Physics/electronics:** Circuit + Concept (for terms)
+6. **Math/linear algebra:** CoordinateSystem (vectors) or Graph2D (functions via `expression` or `parametric`)
