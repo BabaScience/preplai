@@ -32,6 +32,22 @@ export const METADATA_DEFAULTS = {
       { x: 2, y: 4 },
     ],
   },
+  CoordinateSystem: {
+    xRange: [-5, 5],
+    yRange: [-5, 5],
+    gridSpacing: 1,
+    showGrid: true,
+    xLabel: 'x',
+    yLabel: 'y',
+    points: [
+      { x: 2, y: 3, label: 'P' },
+      { x: -3, y: 1, label: 'Q' },
+    ],
+    vectors: [
+      { dx: 3, dy: 2, label: 'v⃗' },
+      { dx: -2, dy: 4, label: 'w⃗', color: '#e040fb' },
+    ],
+  },
   HashTable: {
     pairs: [
       ['key1', 'value1'],
@@ -108,6 +124,18 @@ export const METADATA_DEFAULTS = {
     disabledIndexes: [1, 3],
     selectedIndexes: [0, 2],
   },
+  Circuit: {
+    components: [
+      { type: 'battery', label: 'V' },
+      { type: 'resistor', label: 'R' },
+      { type: 'capacitor', label: 'C' },
+    ],
+    connections: [
+      { from: 0, to: 1 },
+      { from: 1, to: 2 },
+      { from: 2, to: 0 },
+    ],
+  },
   BarChart: {
     bars: [
       { label: 'Jan', value: 10 },
@@ -140,6 +168,8 @@ export const METADATA_DEFAULTS = {
 
 /** Entity-level defaults (not metadata) for types that need textContent etc. */
 export const ENTITY_FIELD_DEFAULTS = {
+  Circuit: { size: 2 },
+  CoordinateSystem: { size: 2 },
   BinaryTree: { size: 2.5 },
   BTree: { size: 2.5 },
   CodeBlock: {

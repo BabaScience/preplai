@@ -34,8 +34,8 @@ function buildDefaultEntity(type, overrides = {}) {
 }
 
 export default function IllustrationDebugPage() {
-  const [selectedType, setSelectedType] = useState(null);
-  const [entity, setEntity] = useState(null);
+  const [selectedType, setSelectedType] = useState('Cloud');
+  const [entity, setEntity] = useState(() => buildDefaultEntity('Cloud'));
   const [renderError, setRenderError] = useState(null);
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [search, setSearch] = useState('');

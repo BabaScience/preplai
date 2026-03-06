@@ -15,6 +15,7 @@ import { renderConcept } from './components/concept.js';
 import { renderCodeBlock } from './components/codeblock.js';
 import { renderArrow, renderDataFlow } from './components/arrow.js';
 import { renderGraph2D } from './components/graph2d.js';
+import { renderCoordinateSystem } from './components/coordinatesystem.js';
 import { SVG_NS } from './utils.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -179,11 +180,11 @@ describe('renderCloud', () => {
     expect(result.getAttribute('data-type')).toBe('Cloud');
   });
 
-  it('should contain overlapping ellipses (cloud shape)', () => {
+  it('should contain overlapping ellipses (cumulus cloud shape)', () => {
     const entity = makeEntity({ type: 'Cloud' });
     renderCloud(entity, parentEl);
     const ellipses = parentEl.querySelectorAll('.animate-element ellipse');
-    expect(ellipses.length).toBeGreaterThanOrEqual(3);
+    expect(ellipses.length).toBe(4);
   });
 });
 
@@ -416,6 +417,89 @@ describe('renderGraph2D', () => {
     renderGraph2D(entity, parentEl);
     const texts = parentEl.querySelectorAll('text');
     const titleText = Array.from(texts).find(t => t.textContent === 'y = sin(x)');
+    expect(titleText).toBeTruthy();
+  });
+});
+
+// ── CoordinateSystem ──────────────────────────────────────────────────
+
+describe('renderCoordinateSystem', () => {
+  let parentEl: SVGSVGElement;
+  beforeEach(() => { parentEl = makeSvg(); });
+
+  it('should return an SVGGElement with CoordinateSystem data-type', () => {
+    const entity = makeEntity({ id: 'coords-1', type: 'CoordinateSystem' });
+    const result = renderCoordinateSystem(entity, parentEl)!;
+    expect(result.getAttribute('id')).toBe('coords-1');
+    expect(result.getAttribute('data-type')).toBe('CoordinateSystem');
+  });
+
+  it('should render a background rect', () => {
+    const entity = makeEntity({
+      type: 'CoordinateSystem',
+      metadata: { xRange: [-5, 5], yRange: [-5, 5] },
+    });
+    renderCoordinateSystem(entity, parentEl);
+    const rects = parentEl.querySelectorAll('.animate-element rect');
+    expect(rects.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('should render axes lines', () => {
+    const entity = makeEntity({
+      type: 'CoordinateSystem',
+      metadata: { xRange: [-5, 5], yRange: [-5, 5] },
+    });
+    renderCoordinateSystem(entity, parentEl);
+    const lines = parentEl.querySelectorAll('.animate-element line');
+    expect(lines.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('should render grid when showGrid is true', () => {
+    const entity = makeEntity({
+      type: 'CoordinateSystem',
+      metadata: { xRange: [-5, 5], yRange: [-5, 5], gridSpacing: 1, showGrid: true },
+    });
+    renderCoordinateSystem(entity, parentEl);
+    const lines = parentEl.querySelectorAll('.animate-element line');
+    expect(lines.length).toBeGreaterThan(2);
+  });
+
+  it('should render points when metadata.points provided', () => {
+    const entity = makeEntity({
+      type: 'CoordinateSystem',
+      metadata: {
+        xRange: [0, 5],
+        yRange: [0, 5],
+        points: [{ x: 1, y: 2 }, { x: 3, y: 4 }],
+      },
+    });
+    renderCoordinateSystem(entity, parentEl);
+    const circles = parentEl.querySelectorAll('.animate-element circle');
+    expect(circles.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('should render vectors when metadata.vectors provided', () => {
+    const entity = makeEntity({
+      type: 'CoordinateSystem',
+      metadata: {
+        xRange: [-5, 5],
+        yRange: [-5, 5],
+        vectors: [{ dx: 3, dy: 2, label: 'v' }],
+      },
+    });
+    renderCoordinateSystem(entity, parentEl);
+    const polygons = parentEl.querySelectorAll('.animate-element polygon');
+    expect(polygons.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('should render title label', () => {
+    const entity = makeEntity({
+      type: 'CoordinateSystem',
+      label: 'xy-plane',
+    });
+    renderCoordinateSystem(entity, parentEl);
+    const texts = parentEl.querySelectorAll('text');
+    const titleText = Array.from(texts).find(t => t.textContent === 'xy-plane');
     expect(titleText).toBeTruthy();
   });
 });

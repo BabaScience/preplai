@@ -164,3 +164,39 @@ export function ensureDropShadowFilter(parentEl: SVGElement): string {
 
   return `url(#${DROP_SHADOW_FILTER_ID})`;
 }
+
+// ── Glow filter (colored soft glow) ────────────────────────────────────────
+
+/**
+ * Create a soft colored glow filter. Use for concept bubbles, highlighted elements.
+ * Returns the filter URL; caller applies via element.setAttribute('filter', url).
+ */
+export function ensureGlowFilter(
+  parentEl: SVGElement,
+  color: string,
+  filterId: string = 'pre-concept-glow',
+): string {
+  const defs = ensureDefs(parentEl);
+  const id = `${filterId}-${color.replace(/[^a-fA-F0-9]/g, '')}`;
+  if (defs.querySelector(`#${id}`)) {
+    return `url(#${id})`;
+  }
+
+  const filter = document.createElementNS(SVG_NS, 'filter');
+  filter.setAttribute('id', id);
+  filter.setAttribute('x', '-30%');
+  filter.setAttribute('y', '-30%');
+  filter.setAttribute('width', '160%');
+  filter.setAttribute('height', '160%');
+
+  const feDropShadow = document.createElementNS(SVG_NS, 'feDropShadow');
+  feDropShadow.setAttribute('dx', '0');
+  feDropShadow.setAttribute('dy', '0');
+  feDropShadow.setAttribute('stdDeviation', '6');
+  feDropShadow.setAttribute('flood-color', color);
+  feDropShadow.setAttribute('flood-opacity', '0.5');
+  filter.appendChild(feDropShadow);
+  defs.appendChild(filter);
+
+  return `url(#${id})`;
+}

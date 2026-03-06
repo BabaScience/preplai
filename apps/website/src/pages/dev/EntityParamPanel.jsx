@@ -501,6 +501,269 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
+      {entity.type === 'ConfusionMatrix' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>ConfusionMatrix metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Matrix (one row per line, comma-separated values)</label>
+            <textarea
+              className="form-input"
+              rows={4}
+              value={(() => {
+                const m = entity.metadata?.matrix;
+                if (!Array.isArray(m)) return '45, 5\n8, 42';
+                return m.map((row) => (Array.isArray(row) ? row.map((v) => Number(v)).join(', ') : '')).join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').filter(Boolean);
+                const matrix = lines.map((line) =>
+                  line
+                    .split(',')
+                    .map((s) => parseInt(s.trim(), 10))
+                    .filter((n) => !Number.isNaN(n)),
+                ).filter((row) => row.length > 0);
+                if (matrix.length > 0) {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    matrix,
+                  });
+                }
+              }}
+              placeholder={'45, 5\n8, 42'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Each line = one row. Values: TN, FP (top row); FN, TP (bottom row) for 2×2.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Row labels (comma-separated)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.rowLabels ?? ['Actual -', 'Actual +']).join(', ')}
+              onChange={(e) => {
+                const rowLabels = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  rowLabels: rowLabels.length ? rowLabels : undefined,
+                });
+              }}
+              placeholder="Actual -, Actual +"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Column labels (comma-separated)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.colLabels ?? ['Pred -', 'Pred +']).join(', ')}
+              onChange={(e) => {
+                const colLabels = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  colLabels: colLabels.length ? colLabels : undefined,
+                });
+              }}
+              placeholder="Pred -, Pred +"
+            />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'CoordinateSystem' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>CoordinateSystem metadata</h4>
+          <div className="form-group">
+            <label className="form-label">X range (min, max)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(() => {
+                const r = entity.metadata?.xRange ?? [-5, 5];
+                return Array.isArray(r) ? `${r[0]}, ${r[1]}` : String(r);
+              })()}
+              onChange={(e) => {
+                const parts = e.target.value.split(',').map((s) => parseFloat(s.trim())).filter((n) => !Number.isNaN(n));
+                if (parts.length >= 2) {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    xRange: [parts[0], parts[1]],
+                  });
+                }
+              }}
+              placeholder="-5, 5"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Y range (min, max)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(() => {
+                const r = entity.metadata?.yRange ?? [-5, 5];
+                return Array.isArray(r) ? `${r[0]}, ${r[1]}` : String(r);
+              })()}
+              onChange={(e) => {
+                const parts = e.target.value.split(',').map((s) => parseFloat(s.trim())).filter((n) => !Number.isNaN(n));
+                if (parts.length >= 2) {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    yRange: [parts[0], parts[1]],
+                  });
+                }
+              }}
+              placeholder="-5, 5"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Grid spacing</label>
+            <input
+              type="number"
+              className="form-input"
+              min={0.1}
+              max={5}
+              step={0.5}
+              value={entity.metadata?.gridSpacing ?? 1}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  gridSpacing: Math.max(0.1, Number(e.target.value) || 1),
+                })
+              }
+            />
+          </div>
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <input
+              type="checkbox"
+              id="coords-showGrid"
+              checked={entity.metadata?.showGrid !== false}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  showGrid: e.target.checked,
+                })
+              }
+            />
+            <label htmlFor="coords-showGrid" className="form-label" style={{ marginBottom: 0 }}>
+              Show grid
+            </label>
+          </div>
+          <div className="form-group">
+            <label className="form-label">X-axis label</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.xLabel ?? 'x'}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  xLabel: e.target.value,
+                })
+              }
+              placeholder="x"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Y-axis label</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.yLabel ?? 'y'}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  yLabel: e.target.value,
+                })
+              }
+              placeholder="y"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Points (x,y:label per line)</label>
+            <textarea
+              className="form-input"
+              rows={3}
+              value={(() => {
+                const pts = entity.metadata?.points ?? [];
+                if (!Array.isArray(pts)) return '';
+                return pts
+                  .map((p) => {
+                    if (typeof p !== 'object' || p == null) return '';
+                    const { x, y, label } = p;
+                    if (label) return `${x},${y}:${label}`;
+                    return `${x},${y}`;
+                  })
+                  .filter(Boolean)
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                const points = lines.map((line) => {
+                  const colon = line.indexOf(':');
+                  const coords = colon >= 0 ? line.slice(0, colon).trim() : line;
+                  const label = colon >= 0 ? line.slice(colon + 1).trim() : undefined;
+                  const [x, y] = coords.split(',').map((s) => parseFloat(s.trim()));
+                  if (Number.isNaN(x) || Number.isNaN(y)) return null;
+                  return label ? { x, y, label } : { x, y };
+                }).filter(Boolean);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  points: points.length ? points : undefined,
+                });
+              }}
+              placeholder={'2,3:P\n-3,1:Q'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One point per line: x,y or x,y:label
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Vectors (dx,dy:label per line)</label>
+            <textarea
+              className="form-input"
+              rows={3}
+              value={(() => {
+                const vecs = entity.metadata?.vectors ?? [];
+                if (!Array.isArray(vecs)) return '';
+                return vecs
+                  .map((v) => {
+                    if (typeof v !== 'object' || v == null) return '';
+                    const { dx, dy, label } = v;
+                    if (label) return `${dx},${dy}:${label}`;
+                    return `${dx},${dy}`;
+                  })
+                  .filter(Boolean)
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                const vectors = lines.map((line) => {
+                  const colon = line.indexOf(':');
+                  const coords = colon >= 0 ? line.slice(0, colon).trim() : line;
+                  const label = colon >= 0 ? line.slice(colon + 1).trim() : undefined;
+                  const [dx, dy] = coords.split(',').map((s) => parseFloat(s.trim()));
+                  if (Number.isNaN(dx) || Number.isNaN(dy)) return null;
+                  return label ? { dx, dy, label } : { dx, dy };
+                }).filter(Boolean);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  vectors: vectors.length ? vectors : undefined,
+                });
+              }}
+              placeholder={'3,2:v⃗\n-2,4:w⃗'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One vector per line: dx,dy or dx,dy:label (from origin)
+            </p>
+          </div>
+        </>
+      )}
+
       {entity.type === 'Array' && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />

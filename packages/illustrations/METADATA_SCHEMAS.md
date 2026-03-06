@@ -2,6 +2,8 @@
 
 This document describes the expected `metadata` shapes for entity types that accept structured data.
 
+> **For agents:** See [ILLUSTRATIONS_AGENT_GUIDE.md](./ILLUSTRATIONS_AGENT_GUIDE.md) for a quick reference on when to use each type and how to choose between similar ones.
+
 ## Text Card (Analogy, Annotation, Label, Comparison, Proof, Quote, Stack)
 
 All these types inherit from the same text-card base. Same metadata for all:
@@ -205,6 +207,96 @@ No metadata required. Use standard entity fields: `id`, `type: "Cache"`, `positi
 
 - `pairs`: Array of [key, value] tuples
 
+## Circuit
+
+Electronic circuit diagrams with battery, resistor, capacitor, bulb, switch. Use for: physics (Ohm's law, RC circuits), electronics education, electrical engineering concepts.
+
+```json
+{
+  "components": [
+    { "type": "battery", "label": "V" },
+    { "type": "resistor", "label": "R" },
+    { "type": "capacitor", "label": "C" },
+    { "type": "bulb", "label": "L" }
+  ],
+  "connections": [
+    { "from": 0, "to": 1 },
+    { "from": 1, "to": 2 },
+    { "from": 2, "to": 3 },
+    { "from": 3, "to": 0 }
+  ]
+}
+```
+
+**Fields:**
+- `components`: Array of `{ type: string, label?: string }`. Types: `battery`|`voltage`|`v`|`cell`, `resistor`|`r`, `capacitor`|`c`, `bulb`|`lamp`|`light`, `switch`|`s`. Order determines layout (left to right).
+- `connections`: Array of `{ from: number, to: number }` — indices into `components`. Draws wires between component positions.
+
+**Agent usage:**
+- Use Circuit for: series/parallel circuits, RC time constant, voltage dividers, basic electronics.
+- Example: "Simple series circuit with battery and resistor" → `components: [{type: "battery", label: "9V"}, {type: "resistor", label: "R1"}]`, `connections: [{from: 0, to: 1}, {from: 1, to: 0}]`.
+
+## CodeBlock
+
+Code editor visual: dark panel with traffic-light dots, line numbers, and monospace code. Use for: syntax examples, algorithm snippets, debugging walkthroughs.
+
+```json
+{
+  "code": "function fib(n) {\n  if (n <= 1) return n;\n  return fib(n-1) + fib(n-2);\n}",
+  "lines": ["function fib(n) {", "  if (n <= 1) return n;", "  return fib(n-1) + fib(n-2);", "}"]
+}
+```
+
+**Fields:**
+- `code`: Raw string — split on `\n` to get lines. Use when you have a single code string.
+- `lines`: Array of strings — one per line. Overrides `code` if both present. Use for explicit line control or when code is pre-split.
+
+**Agent usage:**
+- Use CodeBlock for: showing code snippets, explaining algorithms step-by-step, syntax highlighting context.
+- `entity.label` becomes the title bar filename (e.g. "fib.js"). Keep short; long names truncate.
+- Long lines truncate with "..."; max ~80 chars per line. Keep snippets concise.
+
+## Concept
+
+Concept bubble: gradient circle with radial glow and centered label. Use for: key ideas, abstract concepts, glossary terms, mental models.
+
+**No metadata required.** Use standard entity fields: `id`, `type: "Concept"`, `position`, `label`, `color`.
+
+**Agent usage:**
+- Labels ≤12 chars render **inside** the circle; longer labels render **below** the circle.
+- Use Concept for: single-word or short-phrase concepts (e.g. "Recursion", "Cache", "API").
+- For longer explanations, use Definition, Callout, or Analogy instead.
+
+## CoordinateSystem
+
+2D coordinate plane with axes, optional grid, points, and vectors. Use for: linear algebra, vector math, function plotting, geometry.
+
+```json
+{
+  "xRange": [-5, 5],
+  "yRange": [-5, 5],
+  "gridSpacing": 1,
+  "showGrid": true,
+  "xLabel": "x",
+  "yLabel": "y",
+  "points": [{ "x": 2, "y": 3, "label": "P", "color": "#4ECDC4" }],
+  "vectors": [{ "dx": 3, "dy": 1, "label": "v", "color": "#ff2d7b" }]
+}
+```
+
+**Fields:**
+- `xRange`, `yRange`: `[min, max]` for each axis (default `[-5, 5]`).
+- `gridSpacing`: Distance between grid lines (default 1). Set 0 to disable grid.
+- `showGrid`: Boolean (default true).
+- `xLabel`, `yLabel`: Axis labels.
+- `points`: Array of `{ x, y, label?, color? }` — plotted as dots. Vectors are from origin.
+- `vectors`: Array of `{ dx, dy, label?, color? }` — arrows from (0,0) to (dx,dy).
+
+**Agent usage:**
+- Use CoordinateSystem (not Graph2D) when: showing vectors, basis vectors, coordinate geometry, linear transformations.
+- Use Graph2D when: plotting functions, ROC curves, scatter data, expressions.
+- Example: "Vector (3, 2) in the plane" → `vectors: [{dx: 3, dy: 2, label: "v"}]`.
+
 ## ConfusionMatrix
 
 ```json
@@ -218,6 +310,40 @@ No metadata required. Use standard entity fields: `id`, `type: "Cache"`, `positi
 - `matrix`: 2D array of numbers
 - `rowLabels`: Optional row header labels
 - `colLabels`: Optional column header labels
+
+**Agent usage:**
+- For 2×2 matrices with headers, cells are auto-colored: TP (green), TN (teal), FP (orange), FN (red).
+- Use ConfusionMatrix for: classification metrics, precision/recall context, ML model evaluation.
+
+## Cycle
+
+Rotating dashed circle with centered label. Use for: lifecycle diagrams, process loops, infinite loops, iterative processes, feedback loops.
+
+**No metadata required.** Use standard entity fields: `id`, `type: "Cycle"`, `position`, `label`, `color`.
+
+**Agent usage:**
+- Cycle has a built-in rotation animation (4s per revolution). Use for "loop", "repeat", "lifecycle", "iterative".
+- Example labels: "while", "loop", "retry", "lifecycle", "PDCA".
+
+## Cloud
+
+Classic cumulus cloud shape (overlapping ellipses). Use for: cloud computing, SaaS, cloud storage, distributed systems.
+
+**No metadata required.** Use standard entity fields: `id`, `type: "Cloud"`, `position`, `label`, `color`.
+
+**Agent usage:**
+- Use Cloud for: AWS/GCP/Azure diagrams, cloud-native architecture, "the cloud" as a concept.
+- Often paired with Server, Database, Lambda in infrastructure diagrams.
+
+## DNSResolver
+
+Server rack with globe icon and domain→IP flow. Use for: DNS lookups, nameservers, domain resolution, service discovery.
+
+**No metadata required.** Use standard entity fields: `id`, `type: "DNSResolver"`, `position`, `label`, `color`.
+
+**Agent usage:**
+- Use DNSResolver for: explaining DNS, resolver chains, caching nameservers, domain registration flow.
+- Visual includes globe + arrow + IP dots to convey "domain name → IP address" resolution.
 
 ## Graph2D
 

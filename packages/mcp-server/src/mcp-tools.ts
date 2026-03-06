@@ -38,7 +38,7 @@ function verifySessionOwnership(
 
 export const VisualEntitySchema = z.object({
   id: z.string(),
-  type: z.string().describe('Entity type. See add_scene description for topic→type mapping. Dedicated: Server, Database, User, Cloud, BinaryTree, BTree, LinkedList, HashTable, CallStack, AST, ProcessState, GanttChart, BarChart, MemoryLayout, ConfusionMatrix, CodeBlock, Concept, Label, Graph2D. Connections: Arrow, DataFlow.'),
+  type: z.string().describe('Entity type. See add_scene description for topic→type mapping. Dedicated: Server, Database, User, Cloud, BinaryTree, BTree, LinkedList, HashTable, CallStack, AST, ProcessState, GanttChart, BarChart, MemoryLayout, ConfusionMatrix, CodeBlock, Concept, Label, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver. Connections: Arrow, DataFlow.'),
   position: z.object({
     x: z.number().describe('X position as percentage 0-100 of the 1920px canvas'),
     y: z.number().describe('Y position as percentage 0-100 of the 1080px canvas'),
@@ -121,21 +121,27 @@ Topic → Preferred type:
 - Architecture diagrams → Server, Database, Cloud, Arrow, LoadBalancer
 - Caching layers (Redis, Memcached, CDN) → Cache (database cylinder with flash icon)
 - Categorical comparisons (sales by month, counts by type, rankings) → BarChart (metadata.bars)
+- Code snippets, algorithms → CodeBlock (metadata.code or metadata.lines; entity.label = filename)
+- Loops, lifecycles, retry logic → Cycle (rotating dashed circle; entity.label only)
+- Electronic circuits (Ohm's law, RC) → Circuit (metadata.components, metadata.connections)
+- Vectors, coordinate geometry, linear algebra → CoordinateSystem (metadata.points, metadata.vectors)
+- Function plots, ROC curves, scatter → Graph2D (metadata.points, metadata.expression)
+- DNS, nameservers, domain resolution → DNSResolver (server rack with globe + domain→IP flow)
 
-PREFER dedicated types (rich visuals): Server, Database, Cache, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, AST, ProcessState, GanttChart, BarChart, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, Timeline, StepList, Definition, Callout, Analogy.
+PREFER dedicated types (rich visuals): Server, Database, Cache, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, AST, ProcessState, GanttChart, BarChart, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Timeline, StepList, Definition, Callout, Analogy.
 
 AVOID generic fallbacks when possible: Entity, Group, Tree, Stack, FSM, NeuralNetwork — these render as plain rounded rects.
 
-WHEN IN DOUBT: Key-value → HashTable. Binary tree → BinaryTree. Multi-way tree → BTree. Code snippet → CodeBlock. Abstract idea → Concept. Flow between components → Arrow or DataFlow.
+WHEN IN DOUBT: Key-value → HashTable. Binary tree → BinaryTree. Multi-way tree → BTree. Code snippet → CodeBlock. Abstract idea → Concept. Loop/lifecycle → Cycle. Vectors/coordinates → CoordinateSystem. Function plot → Graph2D. Flow between components → Arrow or DataFlow.
 
 DEDICATED (prefer these — rich custom renderers):
-  Server (rack with LEDs), Database (cylinder), Cache (database cylinder with flash icon), User (avatar), Cloud (blob), Concept (auto-sized circle), Label (text with optional pill), CodeBlock (dark terminal with traffic-light dots)
+  Server (rack with LEDs), Database (cylinder), Cache (database cylinder with flash icon), User (avatar), Cloud (cumulus blob), Concept (auto-sized circle; label ≤12 chars inside, else below), Label (text with optional pill), CodeBlock (dark terminal with traffic-light dots + line numbers), DNSResolver (server rack with globe + domain→IP flow), Cycle (rotating dashed circle for loops/lifecycles), Circuit (battery/resistor/capacitor/bulb/switch), CoordinateSystem (2D axes + points + vectors)
 
 SHAPED renderers:
   LoadBalancer (hexagon), Decision (diamond), Metric (circle)
 
 CS-specific with custom renderers:
-  AST (parse tree), CallStack (stack frames), BTree (multi-child tree), ProcessState (state diagram), GanttChart (task bars), BarChart (axes + bars with value labels), CacheHierarchy (L1/L2/L3 stack), MemoryLayout (stack/heap), ConfusionMatrix (TP/FP/TN/FN grid)
+  AST (parse tree), CallStack (stack frames), BTree (multi-child tree), ProcessState (state diagram), GanttChart (task bars), BarChart (axes + bars with value labels), CacheHierarchy (L1/L2/L3 stack), MemoryLayout (stack/heap), ConfusionMatrix (TP/FP/TN/FN grid), CoordinateSystem (2D plane for vectors — use Graph2D for function plots)
 
 METADATA (required for correct rendering):
 - Arrow/DataFlow: metadata.curved = true (optional) — when true, render curved; default is straight
@@ -151,6 +157,10 @@ METADATA (required for correct rendering):
 - MemoryLayout: metadata.stack = [...], metadata.heap = [...]
 - AST/ParseTree: metadata.ast = {type, value?, children?}
 - BarChart: metadata.bars = [{label, value, color?}, ...] (required), metadata.xLabel?, metadata.yLabel?, metadata.horizontal? (true = horizontal bars). Use for categorical comparisons. Max 12 bars.
+- CodeBlock: metadata.code = string (split on \\n) OR metadata.lines = [string, ...]. entity.label = title bar filename. Use textContent as fallback.
+- Circuit: metadata.components = [{type, label?}, ...] (types: battery|voltage|v|cell, resistor|r, capacitor|c, bulb|lamp|light, switch|s). metadata.connections = [{from, to}, ...] (indices into components).
+- CoordinateSystem: metadata.xRange, metadata.yRange (default [-5,5]), metadata.gridSpacing?, metadata.showGrid?, metadata.xLabel?, metadata.yLabel?, metadata.points = [{x, y, label?, color?}], metadata.vectors = [{dx, dy, label?, color?}]. Use for vectors/geometry; use Graph2D for function plots.
+- Cycle, Cloud, Concept, DNSResolver: no metadata. Use entity.label, entity.color, entity.position.
 
 Graph2D supports metadata.curveType: "roc" (ROC curve), "loss" (training loss), or "scatter" for scatter points.
 

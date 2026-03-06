@@ -1,9 +1,20 @@
 /**
  * @preplai/illustrations — CodeBlock Component
- * Code editor visual: dark rect + traffic-light dots + line number column + monospace text
+ *
+ * Code editor visual: dark rect + traffic-light dots + line number column + monospace text.
+ * Use for: code snippets, algorithm walkthroughs, syntax examples.
+ *
+ * @see METADATA_SCHEMAS.md#codeblock
+ * @see ILLUSTRATIONS_AGENT_GUIDE.md
+ *
+ * Metadata:
+ *   code: string — split on \n for lines (or use lines directly)
+ *   lines: string[] — one per line, overrides code if both present
+ * entity.label: title bar filename (truncates if long)
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
+import { ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -16,9 +27,28 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
   const code = (meta.code as string) ?? entity.textContent ?? '';
   const lines = (meta.lines as string[]) ?? code.split('\n');
 
-  const totalW = s * 3;
+  const totalW = s * 7; // Wide enough for ~80 chars per line (10px monospace)
   const totalH = s * 2;
   const lineNumColW = 32;
+
+  // ── Clip path to prevent content overflow
+  const defs = ensureDefs(parentEl);
+  const clipId = `clip-codeblock-${entity.id}`;
+  let clipEl = defs.querySelector(`#${clipId}`) as SVGClipPathElement | null;
+  if (!clipEl) {
+    clipEl = document.createElementNS(SVG_NS, 'clipPath');
+    clipEl.setAttribute('id', clipId);
+    defs.appendChild(clipEl);
+  }
+  clipEl.innerHTML = '';
+  const clipRect = document.createElementNS(SVG_NS, 'rect');
+  clipRect.setAttribute('x', String(-totalW / 2));
+  clipRect.setAttribute('y', String(-totalH / 2));
+  clipRect.setAttribute('width', String(totalW));
+  clipRect.setAttribute('height', String(totalH));
+  clipRect.setAttribute('rx', String(SHAPES.borderRadiusLarge));
+  clipEl.appendChild(clipRect);
+  innerG.setAttribute('clip-path', `url(#${clipId})`);
 
   // ── Background
   const bg = document.createElementNS(SVG_NS, 'rect');
@@ -62,8 +92,14 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
     innerG.appendChild(dot);
   });
 
-  // ── File name in title bar
+  // ── File name in title bar (truncate if too long)
   if (entity.label) {
+    const titleAreaWidth = totalW - 64; // leave space for dots
+    const titleMaxChars = Math.max(8, Math.floor(titleAreaWidth / 6));
+    const titleText =
+      entity.label.length <= titleMaxChars
+        ? entity.label
+        : entity.label.slice(0, titleMaxChars - 3) + '...';
     const title = document.createElementNS(SVG_NS, 'text');
     title.setAttribute('x', '0');
     title.setAttribute('y', String(-totalH / 2 + 16));
@@ -71,7 +107,7 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
     title.setAttribute('fill', '#ffffff80');
     title.setAttribute('font-size', '10');
     title.setAttribute('font-family', TYPOGRAPHY.fontCode);
-    title.textContent = entity.label;
+    title.textContent = titleText;
     innerG.appendChild(title);
   }
 
@@ -84,11 +120,19 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
   lineNumBg.setAttribute('fill', '#0d0d14');
   innerG.appendChild(lineNumBg);
 
-  // ── Code lines
+  // ── Code lines (truncate long lines to prevent overflow)
   const lineHeight = 14;
   const startY = -totalH / 2 + 40;
   const maxLines = Math.floor((totalH - 40) / lineHeight);
   const visibleLines = lines.slice(0, maxLines);
+  const codeAreaWidth = totalW - lineNumColW - 16;
+  const charWidth = 6; // ~0.6em for 10px monospace
+  const maxCharsPerLine = Math.max(10, Math.floor(codeAreaWidth / charWidth));
+
+  const truncateLine = (text: string): string => {
+    if (text.length <= maxCharsPerLine) return text;
+    return text.slice(0, maxCharsPerLine - 3) + '...';
+  };
 
   visibleLines.forEach((line: string, i: number) => {
     // Line number
@@ -101,14 +145,14 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
     lineNum.textContent = String(i + 1);
     innerG.appendChild(lineNum);
 
-    // Code text
+    // Code text (truncated to fit)
     const codeLine = document.createElementNS(SVG_NS, 'text');
     codeLine.setAttribute('x', String(-totalW / 2 + lineNumColW + 8));
     codeLine.setAttribute('y', String(startY + i * lineHeight));
     codeLine.setAttribute('fill', color);
     codeLine.setAttribute('font-size', '10');
     codeLine.setAttribute('font-family', TYPOGRAPHY.fontCode);
-    codeLine.textContent = line;
+    codeLine.textContent = truncateLine(line);
     innerG.appendChild(codeLine);
   });
 

@@ -69,6 +69,9 @@ import { renderCacheHierarchy } from './components/cachehierarchy.js';
 import { renderMemoryLayout } from './components/memorylayout.js';
 import { renderConfusionMatrix } from './components/confusionmatrix.js';
 import { renderBarChart } from './components/barchart.js';
+import { renderCircuit } from './components/circuit.js';
+import { renderCoordinateSystem } from './components/coordinatesystem.js';
+import { renderCycle } from './components/cycle.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -89,7 +92,7 @@ const univBcd = generic('Group');
 const univRed = generic('Badge');
 const mathSci = generic('Equation');
 const mathPrp = generic('Matrix');
-const physOrg = generic('Circuit');
+const physOrg = generic('FreeBodyDiagram');
 const physBcd = generic('Wave');
 const physPnk = generic('Vector');
 const physPrp = generic('Field');
@@ -116,7 +119,6 @@ const mlCyan = generic('DecisionBoundary');
 
 const decisionDiamond = generic('Decision', 'diamond');
 const circleCache = generic('StateNode', 'circle');
-const circleCycle = generic('Cycle', 'circle');
 const circleParticle = generic('Particle', 'circle');
 const circleCluster = generic('Cluster', 'circle');
 
@@ -170,7 +172,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Comparison: renderComparison,
   Timeline: renderTimeline,
   Metric: renderMetric,
-  Cycle: circleCycle,
+  Cycle: renderCycle,
   Stack: renderStack,
   Tree: univGrn,
   Badge: renderBadge,
@@ -182,11 +184,11 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Matrix: mathPrp,
   Graph2D: renderGraph2D,
   NumberLine: mathSci,
-  CoordinateSystem: mathSci,
+  CoordinateSystem: renderCoordinateSystem,
 
   // ── Physics
   FreeBodyDiagram: physOrg,
-  Circuit: physOrg,
+  Circuit: renderCircuit,
   Wave: physBcd,
   Vector: physPnk,
   Field: physPrp,
