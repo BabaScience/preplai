@@ -1291,6 +1291,33 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
+      {entity.type === 'LinkedList' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>LinkedList metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Values (comma-separated)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.values ?? []).map(String).join(', ')}
+              onChange={(e) => {
+                const raw = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
+                const values = raw.map((v) => (Number(v).toString() === v ? Number(v) : v));
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  values: values.length ? values : undefined,
+                });
+              }}
+              placeholder="1, 2, 3, 4"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Node values. Max 6 nodes displayed. Numbers or short strings.
+            </p>
+          </div>
+        </>
+      )}
+
       {entity.type === 'Array' && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />

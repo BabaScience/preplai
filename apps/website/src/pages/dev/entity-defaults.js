@@ -144,6 +144,9 @@ export const METADATA_DEFAULTS = {
     disabledIndexes: [1, 3],
     selectedIndexes: [0, 2],
   },
+  LinkedList: {
+    values: [1, 2, 3, 4],
+  },
   Circuit: {
     components: [
       { type: 'battery', label: 'V' },

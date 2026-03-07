@@ -1,17 +1,31 @@
 /**
  * @preplai/illustrations — LinkedList Component
  * Chain of node boxes (value + next pointer) with arrow connectors
+ *
+ * Layout in design units; uniform scale transform so size changes scale the whole illustration.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
+
+const DESIGN_NODE_W = 48;
+const DESIGN_NODE_H = 28;
+const DESIGN_GAP = 24;
+
+/** Truncate node value to fit within node width (approx 6px per char). */
+function truncateNodeValue(text: string, maxWidth: number): string {
+  const maxChars = Math.max(1, Math.floor((maxWidth - 16) / 6));
+  const s = String(text);
+  if (s.length <= maxChars) return s;
+  return s.slice(0, maxChars - 1) + '…';
+}
 
 export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const _s = getSizeParam(entity);
+  const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('LinkedList');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-ll-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -19,13 +33,17 @@ export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SV
 
   const meta = entity.metadata ?? {};
   const values = (meta.values as (string | number)[]) ?? [1, 2, 3];
-  const visibleValues = values.slice(0, 4);
+  const visibleValues = values.slice(0, 6);
 
-  const nodeW = 36;
-  const nodeH = 28;
-  const gap = 20;
+  const nodeW = DESIGN_NODE_W;
+  const nodeH = DESIGN_NODE_H;
+  const gap = DESIGN_GAP;
   const totalW = visibleValues.length * (nodeW + gap) - gap;
   const startX = -totalW / 2 + (nodeW + gap) / 2;
+
+  const scale = s / 50;
+  const scaleGroup = document.createElementNS(SVG_NS, 'g');
+  scaleGroup.setAttribute('transform', `scale(${scale})`);
 
   visibleValues.forEach((val, i) => {
     const x = startX + i * (nodeW + gap);
@@ -35,22 +53,23 @@ export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SV
     node.setAttribute('y', String(-nodeH / 2));
     node.setAttribute('width', String(nodeW));
     node.setAttribute('height', String(nodeH));
-    node.setAttribute('rx', '4');
+    node.setAttribute('rx', String(SHAPES.borderRadius));
     node.setAttribute('fill', `url(#${gradId})`);
     node.setAttribute('stroke', color);
-    node.setAttribute('stroke-width', '2');
-    innerG.appendChild(node);
+    node.setAttribute('stroke-width', String(SHAPES.strokeWidth));
+    scaleGroup.appendChild(node);
 
+    const displayVal = truncateNodeValue(String(val), nodeW);
     const valueText = document.createElementNS(SVG_NS, 'text');
-    valueText.setAttribute('x', String(x - 6));
+    valueText.setAttribute('x', String(x));
     valueText.setAttribute('y', String(4));
     valueText.setAttribute('text-anchor', 'middle');
     valueText.setAttribute('fill', color);
     valueText.setAttribute('font-size', '12');
     valueText.setAttribute('font-weight', '600');
     valueText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-    valueText.textContent = String(val);
-    innerG.appendChild(valueText);
+    valueText.textContent = displayVal;
+    scaleGroup.appendChild(valueText);
 
     if (i < visibleValues.length - 1) {
       const line = document.createElementNS(SVG_NS, 'line');
@@ -59,9 +78,9 @@ export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SV
       line.setAttribute('x2', String(x + nodeW / 2 + gap));
       line.setAttribute('y2', '0');
       line.setAttribute('stroke', color);
-      line.setAttribute('stroke-width', '2');
+      line.setAttribute('stroke-width', String(SHAPES.strokeWidth));
       line.setAttribute('opacity', '0.8');
-      innerG.appendChild(line);
+      scaleGroup.appendChild(line);
     }
   });
 
@@ -75,8 +94,10 @@ export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SV
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;
-    innerG.appendChild(text);
+    scaleGroup.appendChild(text);
   }
+
+  innerG.appendChild(scaleGroup);
 
   applyEntranceAnimation(innerG, entity);
   parentEl.appendChild(outerG);

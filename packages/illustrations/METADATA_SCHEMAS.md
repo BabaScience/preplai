@@ -65,6 +65,23 @@ Or with per-cell control:
 - `pointerLabels`: Optional. Array of `{index, label, color?, value?, showValue?, showIndex?, highlight?}` — labels below cells with pill background. Semantic colors: low→green, mid→gold, high→red. `value` or `showValue: true` shows "label = index → value". `highlight: true` for active comparison. `showIndex: false` to omit index. Max 3–4 pointers.
 - Max 8 cells displayed
 
+## LinkedList
+
+Chain of node boxes with values and arrow connectors. Use for: linked list visualization, pointer traversal, data structure education.
+
+```json
+{
+  "values": [1, 2, 3, 4]
+}
+```
+
+- `values`: **Required.** Array of strings or numbers — node values. Max 6 nodes displayed. Keep values short (1–2 chars preferred) for clean display.
+- **Standard entity fields:** `label` (optional title below), `color`, `size`, `position`.
+
+**Agent usage:**
+- Use LinkedList for: linked list visualization, pointer traversal, insertion/deletion demos.
+- Example: `values: [1, 2, 3, 4]` or `values: ["A", "B", "C"]`
+
 ## AST / ParseTree
 
 ```json
