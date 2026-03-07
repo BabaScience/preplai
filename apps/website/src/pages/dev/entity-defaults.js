@@ -121,6 +121,7 @@ export const METADATA_DEFAULTS = {
   Comparison: { label: 'Compare items here.', width: 56, maxLines: 3 },
   Proof: { label: 'Proof step or statement.', width: 56, maxLines: 3 },
   Quote: { label: 'Quote or citation.', width: 56, maxLines: 3 },
+  Goal: { label: 'By the end of this lesson you will understand the key concepts.' },
   Stack: {
     layers: [
       { label: 'Application', sublabel: 'HTTP, DNS' },

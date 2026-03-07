@@ -139,6 +139,7 @@ export const ENTITY_COLORS: Record<string, string> = {
   CodeBlock: COLORS.violet,
   Definition: COLORS.green,
   Callout: COLORS.orange,
+  Goal: COLORS.gold,
   Proof: COLORS.violet,
   Analogy: COLORS.cyan,
   // Data Structures

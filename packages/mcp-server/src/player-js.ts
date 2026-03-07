@@ -15,6 +15,8 @@
  * - IMPROVEMENT 7: Better server entity interior (more opaque stripes + arrow icon)
  * - IMPROVEMENT 8: Scene transition stagger timing (60ms/50ms, faster)
  * - IMPROVEMENT 9: Narrator GSAP entrance animation
+ * - BUG FIX 5: Content-based sizing — rect/circle/hexagon size to fit label text;
+ *   min font size and min entity size so text+shape stay visible when scaled down.
  *
  * Served at GET /player.js as vanilla ES5-compat IIFE.
  */
@@ -31,6 +33,8 @@ export const PLAYER_JS = `(function() {
   var LABEL_MAX_CHARS = 80;
   var MARGIN_X = 80;
   var MARGIN_Y = 60;
+  var MIN_FONT_SIZE = 10;   // Minimum readable font size (px)
+  var MIN_ENTITY_SIZE = 28; // Minimum base size so text+rect stay visible when scaled down
   var FONT_UI = "'Inter', sans-serif";
   var FONT_MONO = "'JetBrains Mono', monospace";
 
@@ -295,9 +299,16 @@ export const PLAYER_JS = `(function() {
   }
 
   // Utility: Parse size param → pixel base (matches @preplai/illustrations getSizeParam)
+  // MIN_ENTITY_SIZE ensures text+rect stay readable when scaled down
   function sizeToPixels(s) {
     s = s || 1;
-    return Math.min(Math.max(s * 50, 15), 120);
+    return Math.min(Math.max(s * 50, MIN_ENTITY_SIZE), 120);
+  }
+
+  // Estimate text width in px (Inter ~0.58em per char). Used to size rects to content.
+  function estimateTextWidth(text, fontSize) {
+    if (!text) return 0;
+    return String(text).length * fontSize * 0.58;
   }
 
   // Utility: hex color → rgba with alpha
@@ -798,7 +809,10 @@ export const PLAYER_JS = `(function() {
     var fill = getFill(color, canvas);
 
     if (renderStyle === 'minimal') {
-      var r = s * 0.5;
+      var labelTextMin = entity.label || '';
+      var fontSizeMin = Math.max(MIN_FONT_SIZE, Math.min(14, s * 0.22));
+      var textWMin = estimateTextWidth(truncLabel(labelTextMin, 16), fontSizeMin);
+      var r = Math.max(s * 0.5, (textWMin + 16) / 2);
       var circ = document.createElementNS(SVG_NS, 'circle');
       circ.setAttribute('cx', '0');
       circ.setAttribute('cy', '0');
@@ -811,7 +825,7 @@ export const PLAYER_JS = `(function() {
         text.setAttribute('y', '5');
         text.setAttribute('text-anchor', 'middle');
         text.setAttribute('fill', '#ffffff');
-        text.setAttribute('font-size', String(Math.min(14, s * 0.18)));
+        text.setAttribute('font-size', String(fontSizeMin));
         text.setAttribute('font-weight', '600');
         text.setAttribute('font-family', FONT_UI);
         text.textContent = truncLabel(entity.label, 16);
@@ -821,14 +835,14 @@ export const PLAYER_JS = `(function() {
       return g.outerG;
     }
 
-    // Compute radius from label length to avoid overflow
+    // Compute radius from label length to avoid overflow; font scales with size
     var labelText = entity.label || '';
     var lines = wrapText(labelText, 14);
     var longestLine = 0;
     for (var li = 0; li < lines.length; li++) {
       if (lines[li].length > longestLine) longestLine = lines[li].length;
     }
-    var labelFontSize = Math.min(16, s * 0.18);
+    var labelFontSize = Math.max(MIN_FONT_SIZE, Math.min(16, s * 0.22));
     var textW = longestLine * labelFontSize * 0.58;
     var textH = lines.length * (labelFontSize * 1.3);
     var minR = Math.sqrt(textW * textW + textH * textH) * 0.65;
@@ -906,7 +920,7 @@ export const PLAYER_JS = `(function() {
       fontSize = Math.min(Math.max(s * 0.24, 28), 32);
       fontWeight = '600';
     } else {
-      fontSize = Math.min(Math.max(s * 0.18, 16), 20);
+      fontSize = Math.max(MIN_FONT_SIZE, Math.min(Math.max(s * 0.22, 16), 20));
       fontWeight = '500';
     }
 
@@ -915,12 +929,13 @@ export const PLAYER_JS = `(function() {
     var lines = wrapText(label, maxCharsPerLine);
 
     var lineHeight = fontSize * 1.35;
-    var totalH = lines.length * lineHeight + 24;
+    var totalH = Math.max(lines.length * lineHeight + 24, fontSize * 2 + 16);
     var maxLineLen = 0;
     for (var li = 0; li < lines.length; li++) {
       if (lines[li].length > maxLineLen) maxLineLen = lines[li].length;
     }
-    var pw = Math.min(maxLineLen * fontSize * 0.58 + 40, 900);
+    var textW = maxLineLen * fontSize * 0.58;
+    var pw = Math.min(Math.max(textW + 48, 80), 900);
     var pill = document.createElementNS(SVG_NS, 'rect');
     pill.setAttribute('x', String(-pw/2));
     pill.setAttribute('y', String(-totalH/2));
@@ -1112,9 +1127,9 @@ export const PLAYER_JS = `(function() {
     var fill = getFill(color, canvas);
     var meta = entity.metadata || {};
     var cells = parseArrayCells(meta);
-    var scale = s / 110;
-    var cellW = 28 * scale;
-    var cellH = 24 * scale;
+    var scale = Math.max(0.5, s / 110);
+    var cellW = Math.max(24, 28 * scale);
+    var cellH = Math.max(20, 24 * scale);
     var totalW = cells.length * cellW;
     var startX = -totalW / 2 + cellW / 2;
 
@@ -1142,7 +1157,7 @@ export const PLAYER_JS = `(function() {
       idxText.setAttribute('y', String(-cellH / 2 - 6));
       idxText.setAttribute('text-anchor', 'middle');
       idxText.setAttribute('fill', colorAlpha(color, 0.6));
-      idxText.setAttribute('font-size', String(Math.round(9 * scale)));
+      idxText.setAttribute('font-size', String(Math.max(MIN_FONT_SIZE, Math.round(9 * scale))));
       idxText.setAttribute('font-family', FONT_MONO);
       idxText.textContent = String(i);
       innerG.appendChild(idxText);
@@ -1152,7 +1167,7 @@ export const PLAYER_JS = `(function() {
       valText.setAttribute('y', '4');
       valText.setAttribute('text-anchor', 'middle');
       valText.setAttribute('fill', color);
-      valText.setAttribute('font-size', String(Math.round(11 * scale)));
+      valText.setAttribute('font-size', String(Math.max(MIN_FONT_SIZE, Math.round(11 * scale))));
       valText.setAttribute('font-weight', '600');
       valText.setAttribute('font-family', FONT_MONO);
       valText.textContent = String(cell.value);
@@ -2173,13 +2188,17 @@ export const PLAYER_JS = `(function() {
     shape = shape || 'rect';
 
     if (renderStyle === 'minimal') {
-      var w = s * 1.3;
-      var h = s * 0.85;
+      var labForSize = truncLabel(entity.label || '', 22);
+      var fsMin = Math.max(MIN_FONT_SIZE, Math.min(s * 0.2, 18));
+      var textWMin = estimateTextWidth(labForSize, fsMin);
+      var w = Math.max(s * 1.3, textWMin + 24);
+      var h = Math.max(s * 0.85, fsMin * 1.4 + 12);
       if (shape === 'circle') {
+        var rMin = Math.max(s * 0.45, (textWMin + 16) / 2);
         var circ = document.createElementNS(SVG_NS, 'circle');
         circ.setAttribute('cx', '0');
         circ.setAttribute('cy', '0');
-        circ.setAttribute('r', String(s * 0.45));
+        circ.setAttribute('r', String(rMin));
         circ.setAttribute('fill', fill);
         innerG.appendChild(circ);
       } else {
@@ -2198,10 +2217,10 @@ export const PLAYER_JS = `(function() {
         lab.setAttribute('y', String(s * 0.06));
         lab.setAttribute('text-anchor', 'middle');
         lab.setAttribute('fill', '#ffffff');
-        lab.setAttribute('font-size', String(Math.max(12, Math.min(s * 0.16, 18))));
+        lab.setAttribute('font-size', String(fsMin));
         lab.setAttribute('font-weight', '600');
         lab.setAttribute('font-family', FONT_UI);
-        lab.textContent = truncLabel(entity.label, 22);
+        lab.textContent = labForSize;
         innerG.appendChild(lab);
       }
       parentEl.appendChild(g.outerG);
@@ -2209,10 +2228,14 @@ export const PLAYER_JS = `(function() {
     }
 
     if (shape === 'circle') {
+      var labCircle = truncLabel(entity.label || '', 16);
+      var fsCircle = Math.max(MIN_FONT_SIZE, Math.min(s * 0.18, 16));
+      var textWCircle = estimateTextWidth(labCircle, fsCircle);
+      var rCircle = Math.max(s * 0.45, (textWCircle + 20) / 2);
       var circ = document.createElementNS(SVG_NS, 'circle');
       circ.setAttribute('cx', '0');
       circ.setAttribute('cy', '0');
-      circ.setAttribute('r', String(s * 0.45));
+      circ.setAttribute('r', String(rCircle));
       circ.setAttribute('fill', fill);
       circ.setAttribute('stroke', color);
       circ.setAttribute('stroke-width', '1.5');
@@ -2228,10 +2251,14 @@ export const PLAYER_JS = `(function() {
       poly.setAttribute('filter', 'url(#soft-shadow)');
       innerG.appendChild(poly);
     } else if (shape === 'hexagon') {
+      var labHex = truncLabel(entity.label || '', 18);
+      var fsHex = Math.max(MIN_FONT_SIZE, Math.min(s * 0.2, 20));
+      var textWHex = estimateTextWidth(labHex, fsHex);
+      var rHex = Math.max(s * 0.45, (textWHex + 24) / 2);
       var pts = [];
       for (var hi = 0; hi < 6; hi++) {
         var angle = (Math.PI / 3) * hi - Math.PI / 6;
-        pts.push((Math.cos(angle) * s * 0.45).toFixed(1) + ',' + (Math.sin(angle) * s * 0.45).toFixed(1));
+        pts.push((Math.cos(angle) * rHex).toFixed(1) + ',' + (Math.sin(angle) * rHex).toFixed(1));
       }
       var hex = document.createElementNS(SVG_NS, 'polygon');
       hex.setAttribute('points', pts.join(' '));
@@ -2241,9 +2268,13 @@ export const PLAYER_JS = `(function() {
       hex.setAttribute('filter', 'url(#soft-shadow)');
       innerG.appendChild(hex);
     } else {
-      // Rounded rect (default)
-      var w = s * 1.3;
-      var h = s * 0.85;
+      // Rounded rect (default) — size to content so text never truncates visually
+      var truncMaxRect = 22;
+      var labRect = truncLabel(entity.label || '', truncMaxRect);
+      var insideFontSizeRect = Math.max(MIN_FONT_SIZE, Math.min(s * 0.2, 20));
+      var textWRect = estimateTextWidth(labRect, insideFontSizeRect);
+      var w = Math.max(s * 1.3, Math.min(textWRect + 32, s * 3.5));
+      var h = Math.max(s * 0.85, insideFontSizeRect * 1.5 + 16);
       var rect = document.createElementNS(SVG_NS, 'rect');
       rect.setAttribute('x', String(-w/2));
       rect.setAttribute('y', String(-h/2));
@@ -2257,8 +2288,7 @@ export const PLAYER_JS = `(function() {
       innerG.appendChild(rect);
     }
 
-    // Interior label centered inside shape
-    // BUG FIX 3: reduced truncation and font size for circle and hexagon
+    // Interior label centered inside shape — font scales with size, min for readability
     if (entity.label) {
       var labelInside = document.createElementNS(SVG_NS, 'text');
       labelInside.setAttribute('x', '0');
@@ -2269,15 +2299,13 @@ export const PLAYER_JS = `(function() {
 
       var truncMax, insideFontSize;
       if (shape === 'circle') {
-        // BUG FIX 3: smaller font and tighter truncation for circles
-        insideFontSize = Math.max(10, Math.min(s * 0.13, 16));
+        insideFontSize = Math.max(MIN_FONT_SIZE, Math.min(s * 0.18, 16));
         truncMax = 16;
       } else if (shape === 'hexagon') {
-        // BUG FIX 3: slightly tighter truncation for hexagons
-        insideFontSize = Math.max(12, Math.min(s * 0.16, 20));
+        insideFontSize = Math.max(MIN_FONT_SIZE, Math.min(s * 0.2, 20));
         truncMax = 18;
       } else {
-        insideFontSize = Math.max(12, Math.min(s * 0.16, 20));
+        insideFontSize = Math.max(MIN_FONT_SIZE, Math.min(s * 0.2, 20));
         truncMax = 22;
       }
 
