@@ -17,7 +17,6 @@ export type {
 export {
   KNOWN_ENTITY_TYPES,
   BASE_ENTITY_SIZES,
-  TYPE_SIZE_DEFAULTS,
   SKIP_CLAMP_TYPES,
 } from './types.js';
 

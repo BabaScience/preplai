@@ -12,7 +12,7 @@ import type { VisualEntity } from '@preplai/shared';
 export function renderHashTable(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const _s = getSizeParam(entity, 1.5);
+  const _s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('HashTable');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-ht-${color.replace(/[^a-fA-F0-9]/g, '')}`;

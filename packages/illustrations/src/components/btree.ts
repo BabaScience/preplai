@@ -17,7 +17,7 @@ import type { VisualEntity } from '@preplai/shared';
 export function renderBTree(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const s = getSizeParam(entity, 1.5);
+  const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('BTree');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-btree-${color.replace(/[^a-fA-F0-9]/g, '')}`;

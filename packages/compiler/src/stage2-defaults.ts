@@ -4,7 +4,7 @@
  * For each entity in each frame:
  *  - Warns on unknown entity types
  *  - Deep-merges ENTITY_DEFAULTS (agent values take precedence)
- *  - Applies type-specific size defaults (TYPE_SIZE_DEFAULTS)
+ *  - Applies default size 1.0 when omitted (uniform across all types)
  *
  * Returns a mutated copy of the script with defaults applied + warnings.
  */
@@ -12,7 +12,7 @@
 import type { VisualScript, VisualEntity } from '@preplai/shared';
 import { ENTITY_DEFAULTS } from '@preplai/shared';
 import type { CompilerWarning } from './types.js';
-import { KNOWN_ENTITY_TYPES, TYPE_SIZE_DEFAULTS } from './types.js';
+import { KNOWN_ENTITY_TYPES } from './types.js';
 
 export interface Stage2Result {
   script: VisualScript;
@@ -52,9 +52,6 @@ function applyEntityDefaults(
     });
   }
 
-  // Determine default size — type-specific override or global default
-  const sizeDefault = TYPE_SIZE_DEFAULTS.get(entity.type) ?? ENTITY_DEFAULTS.size;
-
   // Deep-merge animation (agent values take precedence)
   const animation: Required<NonNullable<VisualEntity['animation']>> = {
     delay: entity.animation?.delay ?? ENTITY_DEFAULTS.animation.delay,
@@ -65,7 +62,7 @@ function applyEntityDefaults(
 
   return {
     ...entity,
-    size: entity.size ?? sizeDefault,
+    size: entity.size ?? ENTITY_DEFAULTS.size,
     color: entity.color,
     highlight: entity.highlight ?? ENTITY_DEFAULTS.highlight,
     animation,

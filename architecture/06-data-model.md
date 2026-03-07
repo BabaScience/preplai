@@ -98,6 +98,7 @@ export interface VisualEntity {
   /**
    * Uniform scaling multiplier applied to the entity's default dimensions.
    * 1.0 = default size. 0.5 = half size. 2.0 = double size.
+   * Uniform across all entity types — size 1 means the same visibility for everyone.
    * Renderer applies: effectiveWidth = defaultWidth * size
    */
   size?: number;

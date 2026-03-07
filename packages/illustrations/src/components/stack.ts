@@ -20,7 +20,7 @@ interface StackLayer {
 export function renderStack(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const s = getSizeParam(entity, 1.5);
+  const s = getSizeParam(entity);
   const defaultColor = entity.color ?? getCategoryColor('Stack');
   const defs = ensureDefs(parentEl);
 

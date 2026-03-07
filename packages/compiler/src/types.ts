@@ -130,17 +130,6 @@ export const BASE_ENTITY_SIZES: ReadonlyMap<string, { w: number; h: number }> = 
   ['Table',    { w: 200, h: 120 }],
 ]);
 
-// ── Type-specific size multiplier defaults ────────────────────────────
-// Override for types that should default to a different size multiplier.
-
-export const TYPE_SIZE_DEFAULTS: ReadonlyMap<string, number> = new Map([
-  ['Group',    1.5],
-  ['Table',    1.2],
-  ['CodeBlock',1.2],
-  ['Graph2D',  1.3],
-  ['Matrix',   1.1],
-]);
-
 // ── Arrow-like types (skip position clamping) ─────────────────────────
 
 export const SKIP_CLAMP_TYPES: ReadonlySet<string> = new Set([

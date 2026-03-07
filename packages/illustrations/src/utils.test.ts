@@ -162,10 +162,4 @@ describe('getSizeParam', () => {
     // 5.0 * 50 = 250, clamped to 120
     expect(px).toBe(120);
   });
-
-  it('should accept a custom default size', () => {
-    const px = getSizeParam(makeEntity(), 2.0);
-    // 2.0 * 50 = 100
-    expect(px).toBe(100);
-  });
 });

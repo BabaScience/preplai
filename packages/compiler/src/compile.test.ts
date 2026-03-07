@@ -346,6 +346,28 @@ describe('Stage 2 — Entity Defaults Application', () => {
     expect(entity.size).toBe(ENTITY_DEFAULTS.size);
   });
 
+  it('applies size 1.0 for all types when size omitted (unified visibility)', () => {
+    const raw = {
+      sceneId: '550e8400-e29b-41d4-a716-446655440000',
+      totalDuration: 5000,
+      frames: [{
+        id: 'f1', startTime: 0, endTime: 5000,
+        entities: [
+          { id: 'g1', type: 'Group', position: { x: 50, y: 50 } },
+          { id: 'c1', type: 'CodeBlock', position: { x: 50, y: 50 } },
+          { id: 's1', type: 'Server', position: { x: 50, y: 50 } },
+        ],
+        narrationSegment: '', description: '',
+      }],
+    };
+    const result = compileVisualScript(raw);
+    if (!result.success) throw new Error('Expected success');
+    const entities = result.script.frames[0].entities;
+    expect(entities[0].size).toBe(1);
+    expect(entities[1].size).toBe(1);
+    expect(entities[2].size).toBe(1);
+  });
+
   it('leaves color undefined when not specified (player uses theme palette)', () => {
     const result = compileVisualScript(minimalScript());
     if (!result.success) throw new Error('Expected success');

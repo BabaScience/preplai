@@ -18,7 +18,7 @@ const CALLOUT_CONFIG: Record<string, { icon: string; colorOffset?: number }> = {
 export function renderCallout(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const s = getSizeParam(entity, 1.4);
+  const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Callout');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-callout-${color.replace(/[^a-fA-F0-9]/g, '')}`;

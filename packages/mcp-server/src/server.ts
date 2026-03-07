@@ -7,6 +7,7 @@
  */
 import { exec } from 'node:child_process';
 import crypto from 'node:crypto';
+import { readFileSync, existsSync } from 'node:fs';
 import { config } from 'dotenv';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -409,8 +410,15 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   });
 
   app.get('/player.js', async (request, reply) => {
-    const { PLAYER_JS } = await import('./player-js.js');
-    reply.type('text/javascript').send(PLAYER_JS);
+    // Prefer illustrations-based bundle when built
+    const bundlePath = join(__dirname, '..', '..', 'player', 'dist', 'player-bundle.js');
+    if (existsSync(bundlePath)) {
+      const bundle = readFileSync(bundlePath, 'utf-8');
+      reply.type('text/javascript').send(bundle);
+    } else {
+      const { PLAYER_JS } = await import('./player-js.js');
+      reply.type('text/javascript').send(PLAYER_JS);
+    }
   });
 
   // ── MCP-style API routes ──────────────────────────────────────────

@@ -84,7 +84,7 @@ export function createTextCardRenderer(config: TextCardConfig) {
   return function renderTextCard(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
     const { outerG, innerG } = buildEntityGroup(entity);
 
-    const s = getSizeParam(entity, 1.5);
+    const s = getSizeParam(entity);
     const color = entity.color ?? defaultColor;
     const defs = ensureDefs(parentEl);
     const gradId = `grad-${typeName.toLowerCase()}-${color.replace(/[^a-fA-F0-9]/g, '')}`;

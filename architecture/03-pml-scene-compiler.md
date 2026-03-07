@@ -362,49 +362,13 @@ Compiler enriches to:
 }
 ```
 
-### 4.4 Type-Specific Default Size Overrides
+### 4.4 Size Default (Unified Visibility)
 
-Different entity types have different natural default sizes. The compiler applies these after the base defaults:
+When `size` is omitted, the compiler applies `ENTITY_DEFAULTS.size` (1.0) for all entity types. Size is a uniform scale: 1 = default, 0.5 = half, 2 = double — same visibility across Concept, BinaryTree, Server, Graph2D, etc.
 
 ```javascript
-// compiler/type-defaults.js
-
-const TYPE_SIZE_DEFAULTS = {
-  // Infrastructure
-  Server:       1.0,
-  Database:     1.0,
-  Cache:        0.8,
-  LoadBalancer: 1.1,
-  Queue:        1.0,
-  CDN:          1.0,
-  Cloud:        1.4,
-  Container:    1.2,
-
-  // Connections (size meaningless — computed from endpoints)
-  Arrow:        null,
-  BidirectArrow:null,
-  DataFlow:     null,
-
-  // Math / Data
-  Graph2D:      1.6,   // Graphs need more space
-  Graph3D:      1.8,
-  Matrix:       1.3,
-  Equation:     1.2,
-  Table:        1.8,
-  CodeBlock:    1.6,
-
-  // UI / Layout
-  Frame:        2.0,   // Frames are containers — always large
-  Label:        0.6,
-};
-
-function applyTypeDefaults(entity) {
-  const sizeDefault = TYPE_SIZE_DEFAULTS[entity.type];
-  if (sizeDefault !== null && sizeDefault !== undefined && entity.size === undefined) {
-    entity.size = sizeDefault;
-  }
-  return entity;
-}
+// compiler/stage2-defaults.ts
+size: entity.size ?? ENTITY_DEFAULTS.size,  // always 1.0 when omitted
 ```
 
 ---

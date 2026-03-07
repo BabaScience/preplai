@@ -6,7 +6,15 @@
  */
 
 // ── Core utilities
-export { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from './utils.js';
+export {
+  SVG_NS,
+  buildEntityGroup,
+  applyEntranceAnimation,
+  getSizeParam,
+  VISIBILITY_BASE,
+  SIZE_CLAMP_MIN,
+  SIZE_CLAMP_MAX,
+} from './utils.js';
 
 // ── Design tokens & visual utilities
 export {

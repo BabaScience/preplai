@@ -26,7 +26,7 @@ type VectorSpec = { dx: number; dy: number; label?: string; color?: string };
 export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const s = getSizeParam(entity, 2.0);
+  const s = getSizeParam(entity);
   const totalW = s * 4;
   const totalH = s * 3;
 

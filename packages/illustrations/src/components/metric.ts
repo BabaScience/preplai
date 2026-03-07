@@ -11,7 +11,7 @@ import type { VisualEntity } from '@preplai/shared';
 export function renderMetric(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const s = getSizeParam(entity, 1.2);
+  const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Metric');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-metric-${color.replace(/[^a-fA-F0-9]/g, '')}`;

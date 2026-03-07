@@ -294,10 +294,10 @@ export const PLAYER_JS = `(function() {
     return text.length > max ? text.substring(0, max - 1) + '\u2026' : text;
   }
 
-  // Utility: Parse size param → pixel base
+  // Utility: Parse size param → pixel base (matches @preplai/illustrations getSizeParam)
   function sizeToPixels(s) {
     s = s || 1;
-    return Math.min(Math.max(s * 110, 60), 400);
+    return Math.min(Math.max(s * 50, 15), 120);
   }
 
   // Utility: hex color → rgba with alpha
@@ -366,7 +366,7 @@ export const PLAYER_JS = `(function() {
 
   // Approximate radius from center to edge (for arrow shortening)
   function entityRadius(entity) {
-    var s = sizeToPixels(entity.size || 1);
+    var s = sizeToPixels(entity.size);
     return s * 0.5;
   }
 
@@ -1107,7 +1107,7 @@ export const PLAYER_JS = `(function() {
   function renderArray(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
-    var s = sizeToPixels(entity.size || 1.5);
+    var s = sizeToPixels(entity.size);
     var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
     var meta = entity.metadata || {};
@@ -1168,7 +1168,7 @@ export const PLAYER_JS = `(function() {
   function renderStack(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
-    var s = sizeToPixels(entity.size || 1.5);
+    var s = sizeToPixels(entity.size);
     var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
     var meta = entity.metadata || {};
@@ -1217,7 +1217,7 @@ export const PLAYER_JS = `(function() {
   function renderStepList(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
-    var s = sizeToPixels(entity.size || 1.5);
+    var s = sizeToPixels(entity.size);
     var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
     var meta = entity.metadata || {};
@@ -1320,7 +1320,7 @@ export const PLAYER_JS = `(function() {
   function renderBarChart(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
-    var s = sizeToPixels(entity.size || 1.5);
+    var s = sizeToPixels(entity.size);
     var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
     var meta = entity.metadata || {};
@@ -1402,7 +1402,7 @@ export const PLAYER_JS = `(function() {
   function renderCycle(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
-    var s = sizeToPixels(entity.size || 1);
+    var s = sizeToPixels(entity.size);
     var r = s / 2;
     var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
@@ -1436,7 +1436,7 @@ export const PLAYER_JS = `(function() {
   function renderConfusionMatrix(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
-    var s = sizeToPixels(entity.size || 1.5);
+    var s = sizeToPixels(entity.size);
     var scale = s / 110;
     var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
@@ -1519,7 +1519,7 @@ export const PLAYER_JS = `(function() {
   function renderBigO(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
-    var s = sizeToPixels(entity.size || 2);
+    var s = sizeToPixels(entity.size);
     var totalW = s * 4;
     var totalH = s * 3;
     var color = getEntityColor(entity);
@@ -1634,7 +1634,7 @@ export const PLAYER_JS = `(function() {
   function renderBinaryTree(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
-    var s = sizeToPixels(entity.size || 1.5);
+    var s = sizeToPixels(entity.size);
     var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
     var meta = entity.metadata || {};
@@ -1707,7 +1707,7 @@ export const PLAYER_JS = `(function() {
   function renderCircuit(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
-    var s = sizeToPixels(entity.size || 1.5);
+    var s = sizeToPixels(entity.size);
     var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
     var meta = entity.metadata || {};
@@ -1800,7 +1800,7 @@ export const PLAYER_JS = `(function() {
   function renderCoordinateSystem(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
-    var s = sizeToPixels(entity.size || 2);
+    var s = sizeToPixels(entity.size);
     var totalW = s * 4;
     var totalH = s * 3;
     var color = getEntityColor(entity);
@@ -1899,7 +1899,7 @@ export const PLAYER_JS = `(function() {
   function renderGraph2D(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
-    var s = sizeToPixels(entity.size || 2);
+    var s = sizeToPixels(entity.size);
     var totalW = s * 4;
     var totalH = s * 3;
     var color = getEntityColor(entity);
@@ -2014,7 +2014,7 @@ export const PLAYER_JS = `(function() {
   function renderDNSResolver(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
-    var s = sizeToPixels(entity.size || 1);
+    var s = sizeToPixels(entity.size);
     var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
     var w = s * 1.4;
@@ -2084,7 +2084,7 @@ export const PLAYER_JS = `(function() {
   function renderCache(entity, parentEl, delay) {
     var g = createEntityGroup(entity, delay);
     var innerG = g.innerG;
-    var s = sizeToPixels(entity.size || 1);
+    var s = sizeToPixels(entity.size);
     var color = getEntityColor(entity);
     var fill = getFill(color, canvas);
     var rx = s / 2;

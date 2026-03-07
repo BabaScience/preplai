@@ -47,7 +47,7 @@ function getCellType(
 export function renderConfusionMatrix(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const s = getSizeParam(entity, 1.5);
+  const s = getSizeParam(entity);
   const scale = s / 50;
   const baseColor = entity.color ?? getCategoryColor('ConfusionMatrix');
   const defs = ensureDefs(parentEl);

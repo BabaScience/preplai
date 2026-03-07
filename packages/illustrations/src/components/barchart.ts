@@ -38,7 +38,7 @@ function parseBars(meta: Record<string, unknown>, defaultColor: string): BarSpec
 export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const s = getSizeParam(entity, 1.5);
+  const s = getSizeParam(entity);
   const defaultColor = entity.color ?? getCategoryColor('BarChart');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-barchart-${defaultColor.replace(/[^a-fA-F0-9]/g, '')}`;

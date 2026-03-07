@@ -24,7 +24,7 @@ function createHeadingRenderer(level: HeadingLevel) {
   return function renderHeading(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
     const { outerG, innerG } = buildEntityGroup(entity);
 
-    const s = getSizeParam(entity, 1.5);
+    const s = getSizeParam(entity);
     const color = entity.color ?? getCategoryColor(level);
 
     const meta = entity.metadata ?? {};

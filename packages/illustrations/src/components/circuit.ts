@@ -200,7 +200,7 @@ export function renderCircuit(entity: VisualEntity, parentEl: SVGElement): SVGGE
     { from: 2, to: 0 },
   ];
 
-  const s = getSizeParam(entity, 2.0);
+  const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Circuit');
   const defs = ensureDefs(parentEl);
   const bgGradId = `grad-circuit-${color.replace(/[^a-fA-F0-9]/g, '')}`;

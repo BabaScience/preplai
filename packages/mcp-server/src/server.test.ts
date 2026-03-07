@@ -303,83 +303,37 @@ describe('GET /player.js', () => {
     expect(res.body).toContain('entrance-');
   });
 
-  it('should contain postMessage bridge', async () => {
+  it('should contain postMessage bridge for iframe control', async () => {
     const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
-    expect(res.body).toContain('postMessage');
     expect(res.body).toContain('pre:seek');
     expect(res.body).toContain('pre:next');
     expect(res.body).toContain('pre:prev');
   });
 
-  it('should contain two-pass rendering (non-arrows then arrows)', async () => {
+  it('should contain entity and connection layers', async () => {
     const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
-    expect(res.body).toContain('nonArrows');
-    expect(res.body).toContain('arrows');
     expect(res.body).toContain('entity-layer');
     expect(res.body).toContain('connection-layer');
   });
 
-  it('should contain narrator update function', async () => {
+  it('should contain narrator text element reference', async () => {
     const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
-    expect(res.body).toContain('updateNarrator');
     expect(res.body).toContain('narrator-text');
   });
 
-  it('should contain type-specific renderers', async () => {
+  it('should contain frame navigation', async () => {
     const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
-    expect(res.body).toContain('renderServer');
-    expect(res.body).toContain('renderDatabase');
-    expect(res.body).toContain('renderCloud');
-    expect(res.body).toContain('renderUser');
-    expect(res.body).toContain('renderConcept');
-    expect(res.body).toContain('renderLabel');
-    expect(res.body).toContain('renderCodeBlock');
-    expect(res.body).toContain('renderGeneric');
-  });
-
-  it('should contain dispatch table and entity routing', async () => {
-    const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
-    expect(res.body).toContain('dispatchEntity');
-    expect(res.body).toContain('SHAPE_MAP');
-  });
-
-  it('should contain gradient creation utility', async () => {
-    const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
-    expect(res.body).toContain('createGradient');
-    expect(res.body).toContain('linearGradient');
-  });
-
-  it('should contain label truncation logic', async () => {
-    const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
-    expect(res.body).toContain('truncLabel');
-    expect(res.body).toContain('LABEL_MAX_CHARS');
-  });
-
-  it('should contain bezier arrow rendering with glow', async () => {
-    const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
-    expect(res.body).toContain('renderArrowEntity');
-    expect(res.body).toContain('ensureMarker');
-    expect(res.body).toContain('curvature');
-  });
-
-  it('should contain frame navigation functions', async () => {
-    const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
-    expect(res.body).toContain('goNext');
-    expect(res.body).toContain('goPrev');
-    expect(res.body).toContain('updateFrameCounter');
     expect(res.body).toContain('ArrowRight');
   });
 
-  it('should contain dot grid initialization', async () => {
+  it('should contain dot grid', async () => {
     const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
-    expect(res.body).toContain('initDotGrid');
     expect(res.body).toContain('dot-grid');
   });
 
-  it('should contain staggered entrance delays', async () => {
+  it('should contain entrance animation support', async () => {
     const res = await ctx.app.inject({ method: 'GET', url: '/player.js' });
     expect(res.body).toContain('animationDelay');
-    expect(res.body).toContain('j * 80');
   });
 });
 

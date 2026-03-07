@@ -80,17 +80,19 @@ export function applyEntranceAnimation(innerG: SVGGElement, entity: VisualEntity
 
 // ── getSizeParam ─────────────────────────────────────────────────────
 
+/** Base pixel unit at size=1. Uniform across all entity types. */
+export const VISIBILITY_BASE = 50;
+export const SIZE_CLAMP_MIN = 15;
+export const SIZE_CLAMP_MAX = 120;
+
 /**
- * Convert agent size (number 0–10 scale factor or percentage width)
- * to a usable component base unit in pixels.
+ * Convert agent size (0–10 scale factor) to a usable component base unit in pixels.
+ * Uniform across all entity types: size 1 = same visibility for everyone.
  *
  * @param entity - VisualEntity descriptor
- * @param defaultSize - Default size value if entity.size is undefined
- * @returns Base unit in pixels (typically 25-80px range)
+ * @returns Base unit in pixels (typically 25–80px range)
  */
-export function getSizeParam(entity: VisualEntity, defaultSize: number = 1.0): number {
-  const s = entity.size ?? defaultSize;
-  // size is a 0–10 scale factor. Convert to pixel base unit.
-  // 1.0 = default ≈ 50px base, scale linearly
-  return Math.min(Math.max(s * 50, 15), 120);
+export function getSizeParam(entity: VisualEntity): number {
+  const s = entity.size ?? 1;
+  return Math.min(Math.max(s * VISIBILITY_BASE, SIZE_CLAMP_MIN), SIZE_CLAMP_MAX);
 }

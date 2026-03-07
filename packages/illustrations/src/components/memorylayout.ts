@@ -14,7 +14,7 @@ import type { VisualEntity } from '@preplai/shared';
 export function renderMemoryLayout(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const s = getSizeParam(entity, 1.5);
+  const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('MemoryLayout');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-ml-${color.replace(/[^a-fA-F0-9]/g, '')}`;

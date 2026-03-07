@@ -21,7 +21,7 @@ import type { VisualEntity } from '@preplai/shared';
 export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const s = getSizeParam(entity, 1.5);
+  const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('CodeBlock');
   const meta = entity.metadata ?? {};
   const code = (meta.code as string) ?? entity.textContent ?? '';

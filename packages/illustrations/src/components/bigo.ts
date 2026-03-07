@@ -50,7 +50,7 @@ const DEFAULT_CURVES: BigOCurve[] = ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', '
 export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const s = getSizeParam(entity, 2.0);
+  const s = getSizeParam(entity);
   const totalW = s * 4;
   const totalH = s * 3;
 
