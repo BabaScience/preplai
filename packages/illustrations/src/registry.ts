@@ -77,6 +77,7 @@ import { renderCycle } from './components/cycle.js';
 import { renderBigO } from './components/bigo.js';
 import { renderService } from './components/service.js';
 import { renderAPI } from './components/api.js';
+import { renderAPIGateway } from './components/apigateway.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -150,7 +151,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Service: renderService,
   API: renderAPI,
   Firewall: infraRed,
-  APIGateway: renderService,
+  APIGateway: renderAPIGateway,
   Lambda: renderLambda,
   Subnet: infraBlu,
   Volume: renderVolume,

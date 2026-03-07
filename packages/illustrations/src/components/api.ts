@@ -10,7 +10,8 @@ import type { VisualEntity } from '@preplai/shared';
 
 /**
  * Renders an API entity using the service cogwheel with "API" in the hub.
+ * The gear rotates continuously to suggest active API processing.
  */
 export function renderAPI(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
-  return renderService(entity, parentEl, 'API');
+  return renderService(entity, parentEl, 'API', { rotate: true });
 }

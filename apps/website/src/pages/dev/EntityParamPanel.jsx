@@ -241,12 +241,12 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
               type="number"
               className="form-input"
               min={30}
-              max={120}
-              value={entity.metadata?.width ?? 56}
+              max={300}
+              value={entity.metadata?.width ?? 200}
               onChange={(e) =>
                 update('metadata', {
                   ...(entity.metadata || {}),
-                  width: Number(e.target.value) || 56,
+                  width: Number(e.target.value) || 200,
                 })
               }
             />
@@ -258,11 +258,11 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
               className="form-input"
               min={1}
               max={6}
-              value={entity.metadata?.maxLines ?? 3}
+              value={entity.metadata?.maxLines ?? 6}
               onChange={(e) =>
                 update('metadata', {
                   ...(entity.metadata || {}),
-                  maxLines: Math.max(1, Math.min(6, Number(e.target.value) || 3)),
+                  maxLines: Math.max(1, Math.min(6, Number(e.target.value) || 6)),
                 })
               }
             />

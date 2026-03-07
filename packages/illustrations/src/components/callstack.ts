@@ -16,6 +16,14 @@ interface StackFrame {
   locals?: string;
 }
 
+/** Truncate text to fit within pixel width; ~0.6em per char for typical font */
+function truncateToFit(text: string, maxWidth: number, fontSize: number): string {
+  const approxCharWidth = fontSize * 0.6;
+  const maxChars = Math.max(5, Math.floor((maxWidth - 16) / approxCharWidth));
+  if (text.length <= maxChars) return text;
+  return text.slice(0, maxChars - 3) + '...';
+}
+
 export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
@@ -37,9 +45,30 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
     label: f.name,
     sublabel: f.locals,
   }));
-  const blocks = stackLayout(items, { blockWidth: s * 1.6, blockHeight: 26, gap: 6 });
+  const blockWidth = s * 2.8;
+  const blockHeight = 28;
+  const blocks = stackLayout(items, { blockWidth, blockHeight, gap: 6 });
 
-  blocks.forEach(({ x, y, width, height, label, sublabel }) => {
+  blocks.forEach(({ x, y, width, height, label, sublabel }, i) => {
+    const clipId = `clip-callstack-${entity.id}-${i}`;
+    let clipEl = defs.querySelector(`#${clipId}`) as SVGClipPathElement | null;
+    if (!clipEl) {
+      clipEl = document.createElementNS(SVG_NS, 'clipPath');
+      clipEl.setAttribute('id', clipId);
+      defs.appendChild(clipEl);
+    }
+    clipEl.innerHTML = '';
+    const clipRect = document.createElementNS(SVG_NS, 'rect');
+    clipRect.setAttribute('x', String(x - width / 2));
+    clipRect.setAttribute('y', String(y - height / 2));
+    clipRect.setAttribute('width', String(width));
+    clipRect.setAttribute('height', String(height));
+    clipRect.setAttribute('rx', String(SHAPES.borderRadius));
+    clipEl.appendChild(clipRect);
+
+    const blockG = document.createElementNS(SVG_NS, 'g');
+    blockG.setAttribute('clip-path', `url(#${clipId})`);
+
     const rect = document.createElementNS(SVG_NS, 'rect');
     rect.setAttribute('x', String(x - width / 2));
     rect.setAttribute('y', String(y - height / 2));
@@ -49,20 +78,24 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
     rect.setAttribute('fill', `url(#${gradId})`);
     rect.setAttribute('stroke', color);
     rect.setAttribute('stroke-width', String(SHAPES.strokeWidthThin));
-    innerG.appendChild(rect);
+    blockG.appendChild(rect);
+
+    const usableWidth = width - 16;
+    const displayLabel = truncateToFit(label, usableWidth, 11);
+    const displaySublabel = sublabel ? truncateToFit(sublabel, usableWidth, 9) : undefined;
 
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', String(x));
-    text.setAttribute('y', String(y + (sublabel ? -2 : 4)));
+    text.setAttribute('y', String(y + (displaySublabel ? -2 : 4)));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
     text.setAttribute('font-size', '11');
     text.setAttribute('font-weight', '600');
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-    text.textContent = label;
-    innerG.appendChild(text);
+    text.textContent = displayLabel;
+    blockG.appendChild(text);
 
-    if (sublabel) {
+    if (displaySublabel) {
       const sub = document.createElementNS(SVG_NS, 'text');
       sub.setAttribute('x', String(x));
       sub.setAttribute('y', String(y + 10));
@@ -70,13 +103,15 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
       sub.setAttribute('fill', `${color}99`);
       sub.setAttribute('font-size', '9');
       sub.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-      sub.textContent = sublabel;
-      innerG.appendChild(sub);
+      sub.textContent = displaySublabel;
+      blockG.appendChild(sub);
     }
+
+    innerG.appendChild(blockG);
   });
 
   if (entity.label) {
-    const totalH = blocks.length * 26 + (blocks.length - 1) * 6;
+    const totalH = blocks.length * blockHeight + (blocks.length - 1) * 6;
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
     text.setAttribute('y', String(totalH / 2 + 20));

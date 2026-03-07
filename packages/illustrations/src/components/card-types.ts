@@ -14,46 +14,52 @@ export const renderAnalogy = createTextCardRenderer({
   typeName: 'Analogy',
   defaultColor: getCategoryColor('Analogy'),
   fallbackText: 'Analogy',
-  defaultWidth: 56,
-  defaultMaxLines: 3,
+  defaultWidth: 200,
+  defaultMaxLines: 6,
+  minFontSize: 10,
 });
 
 export const renderAnnotation = createTextCardRenderer({
   typeName: 'Annotation',
   defaultColor: getCategoryColor('Annotation'),
   fallbackText: 'Annotation',
-  defaultWidth: 56,
-  defaultMaxLines: 3,
+  defaultWidth: 200,
+  defaultMaxLines: 6,
+  minFontSize: 10,
 });
 
 export const renderLabel = createTextCardRenderer({
   typeName: 'Label',
   defaultColor: getCategoryColor('Label'),
   fallbackText: 'Label',
-  defaultWidth: 56,
-  defaultMaxLines: 3,
+  defaultWidth: 200,
+  defaultMaxLines: 6,
+  minFontSize: 10,
 });
 
 export const renderComparison = createTextCardRenderer({
   typeName: 'Comparison',
   defaultColor: getCategoryColor('Comparison'),
   fallbackText: 'Comparison',
-  defaultWidth: 56,
-  defaultMaxLines: 3,
+  defaultWidth: 200,
+  defaultMaxLines: 6,
+  minFontSize: 10,
 });
 
 export const renderProof = createTextCardRenderer({
   typeName: 'Proof',
   defaultColor: getCategoryColor('Proof'),
   fallbackText: 'Proof',
-  defaultWidth: 56,
-  defaultMaxLines: 3,
+  defaultWidth: 200,
+  defaultMaxLines: 6,
+  minFontSize: 10,
 });
 
 export const renderQuote = createTextCardRenderer({
   typeName: 'Quote',
   defaultColor: getCategoryColor('Quote'),
   fallbackText: 'Quote',
-  defaultWidth: 56,
-  defaultMaxLines: 3,
+  defaultWidth: 200,
+  defaultMaxLines: 6,
+  minFontSize: 10,
 });

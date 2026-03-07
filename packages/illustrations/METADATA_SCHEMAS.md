@@ -24,14 +24,14 @@ All these types inherit from the same text-card base. Same metadata for all:
 ```json
 {
   "label": "Binary search is like a phone book. Divide and conquer on sorted array.",
-  "width": 56,
-  "maxLines": 3
+  "width": 200,
+  "maxLines": 6
 }
 ```
 
 - `label`: Text content (or use entity.label). Wraps to new lines by word; no shrinking
-- `width`: Panel width in scale units (default 56). Drives font size and chars per line.
-- `maxLines`: Max lines before truncation with "..." (default 3)
+- `width`: Panel width in scale units (default 200 for Analogy, Annotation, Label, Comparison, Proof, Quote).
+- `maxLines`: Max lines before truncation with "..." (default 6 for text-card types).
 - Longer text → smaller font so all text stays visible. Font size is chosen as the largest (8–24px) that fits the full text within maxLines.
 
 ## Array
@@ -142,14 +142,14 @@ Numbered step sequence with circles, connecting lines, and optional progress ind
 
 ```json
 {
-  "steps": ["Initialize variables", "Process input", "Validate result", "Return output"],
+  "steps": ["Parse", "Validate", "Transform", "Output"],
   "currentStep": 1,
   "checkmarks": true
 }
 ```
 
 **Fields:**
-- `steps`: **Required.** Array of strings — one step per line. Max 5 steps displayed. Fallback: `entity.textContent` split on newlines.
+- `steps`: **Required.** Array of strings — one step per line. Max 5 steps displayed. **Keep each step label short: 1 word preferred, max 2 words** (e.g. "Parse", "Validate", "Compare values"). Fallback: `entity.textContent` split on newlines.
 - `currentStep`: **Optional.** 0-based index of the current/active step. `-1` = none highlighted. When set, the current step gets a thicker border.
 - `checkmarks`: **Optional.** If `true` and `currentStep >= 0`, completed steps (index < currentStep) show a checkmark instead of the number, with solid fill.
 
@@ -158,7 +158,7 @@ Numbered step sequence with circles, connecting lines, and optional progress ind
 **Agent usage:**
 - Use StepList for: algorithm steps, tutorial sequences, how-to flows, numbered procedures.
 - Pair with CodeBlock + Array/BinaryTree for algorithm walkthroughs.
-- Example: `steps: ["Parse input", "Validate", "Transform", "Output"]`, `currentStep: 2`, `checkmarks: true` — steps 1–2 show ✓, step 3 highlighted.
+- Example: `steps: ["Parse", "Validate", "Transform", "Output"]`, `currentStep: 2`, `checkmarks: true` — steps 1–2 show ✓, step 3 highlighted.
 
 ## BTree
 

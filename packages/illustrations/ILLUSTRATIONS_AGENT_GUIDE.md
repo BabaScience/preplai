@@ -115,6 +115,7 @@ This guide helps AI agents choose and configure the right illustration types whe
 ### StepList
 - **Purpose:** Numbered step sequence — algorithm walkthroughs, tutorials, how-to guides, sequential processes
 - **Metadata:** `steps` (array of strings), `currentStep` (0-based, -1 = none), `checkmarks` (show ✓ for completed steps)
+- **Label length:** 1 word preferred, max 2 words per step. Long labels may overflow.
 - **Visual:** Circles with numbers, connecting lines, optional title. When `currentStep` is set, that step is highlighted; when `checkmarks` is true, completed steps show ✓ instead of numbers.
 - **Use for:** Algorithm steps, tutorial sequences, numbered procedures. Pairs well with CodeBlock + Array/BinaryTree.
 - **Example:** `steps: ["Parse", "Validate", "Transform"], currentStep: 1, checkmarks: true` — step 1 shows ✓, step 2 highlighted.

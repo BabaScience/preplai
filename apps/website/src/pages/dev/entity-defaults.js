@@ -118,17 +118,17 @@ export const METADATA_DEFAULTS = {
   },
   Analogy: {
     label: 'Binary search is like a phone book. Divide and conquer on sorted array.',
-    width: 56,
-    maxLines: 3,
+    width: 200,
+    maxLines: 6,
   },
-  Annotation: { label: 'Add your annotation here.', width: 56, maxLines: 3 },
-  Label: { label: 'Label text', width: 56, maxLines: 3 },
+  Annotation: { label: 'Add your annotation here.', width: 200, maxLines: 6 },
+  Label: { label: 'Label text', width: 200, maxLines: 6 },
   H1: { label: 'Main Heading' },
   H2: { label: 'Section Heading' },
   H3: { label: 'Subsection Heading' },
-  Comparison: { label: 'Compare items here.', width: 56, maxLines: 3 },
-  Proof: { label: 'Proof step or statement.', width: 56, maxLines: 3 },
-  Quote: { label: 'Quote or citation.', width: 56, maxLines: 3 },
+  Comparison: { label: 'Compare items here.', width: 200, maxLines: 6 },
+  Proof: { label: 'Proof step or statement.', width: 200, maxLines: 6 },
+  Quote: { label: 'Quote or citation.', width: 200, maxLines: 6 },
   Goal: { label: 'By the end of this lesson you will understand the key concepts.' },
   Stack: {
     layers: [
@@ -161,7 +161,7 @@ export const METADATA_DEFAULTS = {
     domain: [0, 10],
   },
   StepList: {
-    steps: ['Initialize variables', 'Process input', 'Validate result', 'Return output'],
+    steps: ['Parse', 'Validate', 'Transform', 'Output'],
     currentStep: -1,
     checkmarks: false,
   },

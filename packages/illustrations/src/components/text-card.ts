@@ -4,6 +4,9 @@
  * Shared base for rounded-rect card illustrations with wrapped text.
  * Used by Analogy, Annotation, and other card-like types.
  *
+ * Layout is done in design units; a uniform scale transform scales the whole
+ * card (rectangle + text) so size changes preserve aspect ratio.
+ *
  * Rules (no overflow):
  * 1. Longer text → smaller font so all text stays visible (no truncation).
  * 2. Conservative CHAR_WIDTH_RATIO so we wrap before hitting actual pixel width.
@@ -66,6 +69,8 @@ export type TextCardConfig = {
   fallbackText: string;
   defaultWidth?: number;
   defaultMaxLines?: number;
+  /** Minimum font size for readability (default: 8). */
+  minFontSize?: number;
 };
 
 /**
@@ -79,6 +84,7 @@ export function createTextCardRenderer(config: TextCardConfig) {
     fallbackText,
     defaultWidth = 56,
     defaultMaxLines = 3,
+    minFontSize: configMinFont = MIN_FONT_SIZE,
   } = config;
 
   return function renderTextCard(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -95,16 +101,17 @@ export function createTextCardRenderer(config: TextCardConfig) {
     const widthUnits = (meta.width as number) ?? defaultWidth;
     const maxLines = Math.max(1, Math.min(6, ((meta.maxLines as number) ?? defaultMaxLines) | 0));
 
-    const scale = s / 50;
-    const w = widthUnits * scale;
-    const padX = 10 * scale;
-    const padY = 8 * scale;
+    // Layout in design units (scale=1). Uniform scale transform applied at the end.
+    const padX = 10;
+    const padY = 8;
+    const w = widthUnits;
     const availableWidth = Math.max(30, w - 2 * padX);
 
     // Find largest font size that fits all text (no truncation). Longer text → smaller font.
+    const effectiveMinFont = Math.max(MIN_FONT_SIZE, configMinFont);
     let fontSize = MAX_FONT_SIZE;
     let lines: string[] = [];
-    for (; fontSize >= MIN_FONT_SIZE; fontSize--) {
+    for (; fontSize >= effectiveMinFont; fontSize--) {
       const maxCharsPerLine = Math.max(10, Math.floor(availableWidth / (fontSize * CHAR_WIDTH_RATIO)));
       const result = wrapText(label, maxCharsPerLine, maxLines);
       lines = result.lines;
@@ -114,6 +121,11 @@ export function createTextCardRenderer(config: TextCardConfig) {
     const lineHeight = fontSize * 1.2;
     const h = 2 * padY + lineHeight * Math.max(1, lines.length);
 
+    // Scale group: uniform scaling so rectangle and text scale together (no disproportionate widening)
+    const scale = s / 50;
+    const scaleGroup = document.createElementNS(SVG_NS, 'g');
+    scaleGroup.setAttribute('transform', `scale(${scale})`);
+
     const card = document.createElementNS(SVG_NS, 'rect');
     card.setAttribute('x', String(-w / 2));
     card.setAttribute('y', String(-h / 2));
@@ -122,8 +134,8 @@ export function createTextCardRenderer(config: TextCardConfig) {
     card.setAttribute('rx', String(SHAPES.borderRadius));
     card.setAttribute('fill', `url(#${gradId})`);
     card.setAttribute('stroke', color);
-    card.setAttribute('stroke-width', String(1.5 * scale));
-    innerG.appendChild(card);
+    card.setAttribute('stroke-width', '1.5');
+    scaleGroup.appendChild(card);
 
     // Clip content to card bounds — guarantees no overflow
     const clipId = `clip-${typeName.toLowerCase()}-${entity.id}`;
@@ -160,7 +172,8 @@ export function createTextCardRenderer(config: TextCardConfig) {
       textGroup.appendChild(tspan);
     });
 
-    innerG.appendChild(textGroup);
+    scaleGroup.appendChild(textGroup);
+    innerG.appendChild(scaleGroup);
 
     applyEntranceAnimation(innerG, entity);
     parentEl.appendChild(outerG);

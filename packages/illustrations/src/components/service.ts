@@ -27,12 +27,19 @@ function buildGearPath(outerR: number, innerR: number): string {
   return `M ${points.join(' L ')} Z`;
 }
 
+export interface ServiceRenderOptions {
+  /** When true, the cogwheel rotates continuously (e.g. for API). */
+  rotate?: boolean;
+}
+
 export function renderService(
   entity: VisualEntity,
   parentEl: SVGElement,
   innerText?: string,
+  options?: ServiceRenderOptions,
 ): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
+  const rotate = options?.rotate ?? false;
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Service');
@@ -43,6 +50,20 @@ export function renderService(
   const outerR = s * 0.48;
   const innerR = outerR * (1 - INNER_HUB_RATIO);
 
+  // Content group: gear + hub + text (optionally wrapped for rotation)
+  const contentG = document.createElementNS(SVG_NS, 'g');
+  if (rotate) {
+    contentG.setAttribute('transform-origin', '0 0');
+    const animate = document.createElementNS(SVG_NS, 'animateTransform');
+    animate.setAttribute('attributeName', 'transform');
+    animate.setAttribute('type', 'rotate');
+    animate.setAttribute('from', '0 0 0');
+    animate.setAttribute('to', '360 0 0');
+    animate.setAttribute('dur', '12s');
+    animate.setAttribute('repeatCount', 'indefinite');
+    contentG.appendChild(animate);
+  }
+
   // ── Cogwheel outer shape
   const gearPath = buildGearPath(outerR, innerR);
   const gear = document.createElementNS(SVG_NS, 'path');
@@ -51,7 +72,7 @@ export function renderService(
   gear.setAttribute('stroke', color);
   gear.setAttribute('stroke-width', String(SHAPES.strokeWidth));
   gear.setAttribute('stroke-linejoin', 'round');
-  innerG.appendChild(gear);
+  contentG.appendChild(gear);
 
   // ── Inner circle (hub)
   const hubR = s * 0.22;
@@ -62,9 +83,11 @@ export function renderService(
   hub.setAttribute('fill', `url(#${gradId})`);
   hub.setAttribute('stroke', color);
   hub.setAttribute('stroke-width', String(SHAPES.strokeWidth));
-  innerG.appendChild(hub);
+  contentG.appendChild(hub);
 
-  // ── Text inside hub
+  innerG.appendChild(contentG);
+
+  // ── Text inside hub (outside rotating group so it stays fixed when gear rotates)
   const displayText = innerText ?? entity.label ?? entity.type;
   if (displayText) {
     const text = document.createElementNS(SVG_NS, 'text');

@@ -168,7 +168,7 @@ METADATA (required for correct rendering):
 - HashTable: metadata.pairs = [[key, value], ...]
 - Array: metadata.values, metadata.disabledIndexes, metadata.selectedIndexes, metadata.pointerLabels = [{index, label, color?, value?, showValue?, showIndex?, highlight?}]. Pointers: low→green, mid→gold, high→red; showValue:true or value for "→ value"; highlight:true for active. Max 8 cells.
 - Analogy: metadata.label (or entity.label), metadata.width?, metadata.maxLines?. Text wraps by line; overflow gets "...".
-- StepList: metadata.steps = [string, ...] (step labels), metadata.currentStep = number (0-based, -1 = none), metadata.checkmarks = true (show checkmarks for completed steps). Use entity.textContent as fallback for steps (split on newline).
+- StepList: metadata.steps = [string, ...] (step labels; 1–2 words each, e.g. "Parse", "Validate"), metadata.currentStep = number (0-based, -1 = none), metadata.checkmarks = true (show checkmarks for completed steps). Use entity.textContent as fallback for steps (split on newline).
 - MemoryLayout: metadata.stack = [...], metadata.heap = [...]
 - AST/ParseTree: metadata.ast = {type, value?, children?}
 - BarChart: metadata.bars = [{label, value, color?}, ...] (required), metadata.xLabel?, metadata.yLabel?, metadata.horizontal? (true = horizontal bars). Use for categorical comparisons. Max 12 bars.
