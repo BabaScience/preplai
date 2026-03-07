@@ -360,12 +360,19 @@ Code editor visual: dark panel with traffic-light dots, line numbers, and monosp
 
 ## Concept
 
-Concept bubble: gradient circle with radial glow and centered label. Use for: key ideas, abstract concepts, glossary terms, mental models.
+Concept shape: rounded rectangle with gradient fill, inner dotted rectangle accent, and centered label. Use for: key ideas, abstract concepts, glossary terms, mental models.
 
-**No metadata required.** Use standard entity fields: `id`, `type: "Concept"`, `position`, `label`, `color`.
+```json
+{
+  "label": "Recursion"
+}
+```
+
+- `label`: **Optional.** Text inside or below the circle. Use `metadata.label` or `entity.label`.
+- Labels ≤12 chars render **inside** the circle; longer labels render **below** (truncated at 24 chars).
+- **Standard entity fields:** `color`, `size`, `position`.
 
 **Agent usage:**
-- Labels ≤12 chars render **inside** the circle; longer labels render **below** the circle.
 - Use Concept for: single-word or short-phrase concepts (e.g. "Recursion", "Cache", "API").
 - For longer explanations, use Definition, Callout, or Analogy instead.
 

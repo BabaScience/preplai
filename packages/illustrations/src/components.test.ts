@@ -195,11 +195,12 @@ describe('renderConcept', () => {
   let parentEl: SVGSVGElement;
   beforeEach(() => { parentEl = makeSvg(); });
 
-  it('should contain two circles (outer + dashed inner)', () => {
+  it('should contain outer rect and inner dotted rect', () => {
     const entity = makeEntity({ type: 'Concept', label: 'API' });
     renderConcept(entity, parentEl);
-    const circles = parentEl.querySelectorAll('.animate-element circle');
-    expect(circles.length).toBeGreaterThanOrEqual(2);
+    const rects = parentEl.querySelectorAll('.animate-element rect');
+    expect(rects.length).toBe(2);
+    expect(rects[1].getAttribute('stroke-dasharray')).toBe('4,4');
   });
 
   it('should render centered label text', () => {

@@ -15,7 +15,7 @@ This guide helps AI agents choose and configure the right illustration types whe
 | API, REST API, API endpoint | **API** | Cogwheel with "API" in hub (inherits Service) |
 | API gateway, routing layer | **APIGateway** | Same cogwheel as Service; label in hub |
 | DNS, nameserver, domain→IP | **DNSResolver** | Server rack + globe + resolution flow |
-| Key concept, glossary term | **Concept** | Bubble; label ≤12 chars inside, else below |
+| Key concept, glossary term | **Concept** | Rectangle with dotted inner border; label ≤12 chars inside, else below |
 | Code snippet, algorithm | **CodeBlock** | `metadata.code` or `metadata.lines` |
 | Loop, lifecycle, retry | **Cycle** | Rotating dashed circle |
 | Electronic circuit | **Circuit** | `metadata.components` + `metadata.connections` |
@@ -87,8 +87,9 @@ This guide helps AI agents choose and configure the right illustration types whe
 - **Entity.label:** Becomes title bar filename (truncates if long)
 
 ### Concept
-- **Purpose:** Concept bubble for key ideas, abstract terms
-- **Behavior:** Label ≤12 chars → inside circle; longer → below circle
+- **Purpose:** Concept shape for key ideas, abstract terms
+- **Visual:** Rounded rectangle with gradient fill + inner dotted rectangle (like Annotation with dashed accent)
+- **Behavior:** Label ≤12 chars → inside shape; longer → below
 - **Use for:** Short concepts; use Definition/Callout for longer text
 
 ### Cloud
