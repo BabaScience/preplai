@@ -72,7 +72,7 @@ Token-saving reference for agents. Use short keys and aliases when building `add
 |------|-------|---------------|---------|
 | BinaryTree | BT | tree/nodes, disabledIndexes?, selectedIndexes? | `{nodes:[5,3,8], selectedIndexes:[1]}` |
 | BTree | BTR | tree, branchingFactor? | `{tree:{value:"[10,20]", children:[]}}` |
-| Array | ARR | values/cells, disabledIndexes?, selectedIndexes? | `{values:["a","b","c"]}` |
+| Array | ARR | values/cells, disabledIndexes?, selectedIndexes?, pointerLabels? | `{values:[5,12,42], pointerLabels:[{index:0,label:"low"},{index:1,label:"mid",showValue:true,highlight:true}]}` |
 | CallStack | CST | frames | `{frames:[{name:"main()"}]}` |
 | Stack | — | layers | `{layers:[{label:"App", sublabel:"HTTP"}]}` |
 | StepList | SL | steps, currentStep?, checkmarks? | `{steps:["Parse","Validate"], currentStep:1}` |

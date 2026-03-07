@@ -16,6 +16,7 @@ import { renderCodeBlock } from './components/codeblock.js';
 import { renderArrow, renderDataFlow } from './components/arrow.js';
 import { renderGraph2D } from './components/graph2d.js';
 import { renderCoordinateSystem } from './components/coordinatesystem.js';
+import { renderArray } from './components/array.js';
 import { SVG_NS } from './utils.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -501,5 +502,71 @@ describe('renderCoordinateSystem', () => {
     const texts = parentEl.querySelectorAll('text');
     const titleText = Array.from(texts).find(t => t.textContent === 'xy-plane');
     expect(titleText).toBeTruthy();
+  });
+});
+
+// ── Array ────────────────────────────────────────────────────────────────
+
+describe('renderArray', () => {
+  let parentEl: SVGSVGElement;
+  beforeEach(() => { parentEl = makeSvg(); });
+
+  it('should render pointerLabels when metadata.pointerLabels provided', () => {
+    const entity = makeEntity({
+      id: 'arr-1',
+      type: 'Array',
+      metadata: {
+        values: ['5', '12', '17', '23', '42', '56', '68', '79'],
+        pointerLabels: [
+          { index: 0, label: 'low' },
+          { index: 3, label: 'mid' },
+          { index: 7, label: 'high' },
+        ],
+      },
+    });
+    renderArray(entity, parentEl);
+    const texts = parentEl.querySelectorAll('text');
+    const lowText = Array.from(texts).find(t => t.textContent?.includes('low'));
+    const midText = Array.from(texts).find(t => t.textContent?.includes('mid'));
+    const highText = Array.from(texts).find(t => t.textContent?.includes('high'));
+    expect(lowText).toBeTruthy();
+    expect(midText).toBeTruthy();
+    expect(highText).toBeTruthy();
+  });
+
+  it('should render connector lines and pill for pointerLabels', () => {
+    const entity = makeEntity({
+      id: 'arr-2',
+      type: 'Array',
+      metadata: {
+        values: ['a', 'b', 'c'],
+        pointerLabels: [{ index: 1, label: 'mid' }],
+      },
+    });
+    renderArray(entity, parentEl);
+    const lines = parentEl.querySelectorAll('.animate-element line');
+    const rects = parentEl.querySelectorAll('.animate-element rect');
+    expect(lines.length).toBeGreaterThanOrEqual(1);
+    expect(rects.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('should show value when showValue or value provided', () => {
+    const entity = makeEntity({
+      id: 'arr-3',
+      type: 'Array',
+      metadata: {
+        values: ['5', '12', '42'],
+        pointerLabels: [
+          { index: 1, label: 'mid', showValue: true },
+          { index: 2, label: 'high', value: 42 },
+        ],
+      },
+    });
+    renderArray(entity, parentEl);
+    const texts = parentEl.querySelectorAll('text');
+    const midText = Array.from(texts).find(t => t.textContent?.includes('12'));
+    const highText = Array.from(texts).find(t => t.textContent?.includes('42'));
+    expect(midText).toBeTruthy();
+    expect(highText).toBeTruthy();
   });
 });

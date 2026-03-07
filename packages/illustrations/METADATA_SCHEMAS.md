@@ -62,6 +62,7 @@ Or with per-cell control:
 - `cells`: Alternative — array of `{ value, enabled?, selected? }` for per-cell control
 - `disabledIndexes`: 0-based indexes to show as disabled (dimmed, dashed border). Ignored when using `cells`
 - `selectedIndexes`: 0-based indexes to highlight (thicker stroke, glow). Used for e.g. current comparison in binary search
+- `pointerLabels`: Optional. Array of `{index, label, color?, value?, showValue?, showIndex?, highlight?}` — labels below cells with pill background. Semantic colors: low→green, mid→gold, high→red. `value` or `showValue: true` shows "label = index → value". `highlight: true` for active comparison. `showIndex: false` to omit index. Max 3–4 pointers.
 - Max 8 cells displayed
 
 ## AST / ParseTree

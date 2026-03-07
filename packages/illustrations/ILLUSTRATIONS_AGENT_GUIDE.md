@@ -24,7 +24,7 @@ This guide helps AI agents choose and configure the right illustration types whe
 | Big O, complexity curves | **BigO** | `metadata.curves`, `metadata.domain` |
 | Categorical comparison | **BarChart** | `metadata.bars` with label/value |
 | Classification metrics | **ConfusionMatrix** | `metadata.matrix`, row/col labels |
-| Array, list indices | **Array** | `metadata.values` or `metadata.cells` |
+| Array, list indices | **Array** | `metadata.values` or `metadata.cells`; use `pointerLabels` for low/mid/high in binary search (color-coded, optional `value`/`showValue`, `highlight` for active) |
 | BST, heap, tree | **BinaryTree** | `metadata.tree` or `metadata.nodes` |
 | Stack frames | **CallStack** | `metadata.frames` |
 | Layered model, tech stack, OSI | **Stack** | `metadata.layers` |
@@ -142,13 +142,15 @@ This guide helps AI agents choose and configure the right illustration types whe
 | OSI layers, tech stack | Stack | CallStack, CacheHierarchy |
 | Call stack, recursion | CallStack | Stack |
 | L1/L2/L3 cache hierarchy | CacheHierarchy | Stack |
+| Binary search on sorted array | Array (with pointerLabels) | BinaryTree |
+| BST search, tree structure | BinaryTree | Array |
 
 ---
 
 ## Common Patterns
 
 1. **Infrastructure diagram:** Group + Server, Database, Cloud, Service, API, APIGateway, DNSResolver, Arrow/DataFlow
-2. **Algorithm walkthrough:** CodeBlock + Array/BinaryTree + StepList
+2. **Algorithm walkthrough:** CodeBlock + Array (with pointerLabels) + StepList. Use StepList.currentStep to show which step is active.
 3. **Complexity / Big O:** BigO with `curves: ["O(n)", "O(n²)"]` or similar subset
 4. **ML evaluation:** ConfusionMatrix + BarChart (precision/recall); Graph2D with `curveType: "roc"` for ROC curve, `curveType: "loss"` for training loss
 5. **Physics/electronics:** Circuit + Concept (for terms)

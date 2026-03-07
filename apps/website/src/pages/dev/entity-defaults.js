@@ -55,6 +55,14 @@ export const METADATA_DEFAULTS = {
       ['key3', 'value3'],
     ],
   },
+  Dict: {
+    pairs: [
+      ['name', 'Alice'],
+      ['age', '30'],
+      ['city', 'NYC'],
+      ['role', 'developer'],
+    ],
+  },
   CallStack: {
     frames: [
       { name: 'main()' },
@@ -194,6 +202,8 @@ export const ENTITY_FIELD_DEFAULTS = {
   CoordinateSystem: { size: 2 },
   BinaryTree: { size: 2.5 },
   BTree: { size: 2.5 },
+  HashTable: { size: 2 },
+  Dict: { size: 2 },
   CodeBlock: {
     textContent: 'function fib(n) {\n  if (n <= 1) return n;\n  return fib(n-1) + fib(n-2);\n}',
     codeLanguage: 'javascript',

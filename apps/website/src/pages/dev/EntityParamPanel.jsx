@@ -14,6 +14,7 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
   const [showJson, setShowJson] = useState(false);
   const [jsonInput, setJsonInput] = useState('');
   const [btreeTreeJson, setBtreeTreeJson] = useState('');
+  const [pointerLabelsText, setPointerLabelsText] = useState('');
 
   const update = (path, value) => {
     const next = JSON.parse(JSON.stringify(entity));
@@ -54,6 +55,14 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
       setBtreeTreeJson(JSON.stringify(entity.metadata?.tree ?? {}, null, 2));
     }
   }, [entity?.type, entity?.metadata?.tree]);
+
+  // Sync Array pointerLabels when entity changes
+  useEffect(() => {
+    if (entity?.type === 'Array') {
+      const pl = entity.metadata?.pointerLabels;
+      setPointerLabelsText(Array.isArray(pl) ? JSON.stringify(pl, null, 2) : '');
+    }
+  }, [entity?.type, entity?.metadata?.pointerLabels]);
 
   if (!entity) {
     return (
@@ -1219,6 +1228,69 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
+      {(entity.type === 'HashTable' || entity.type === 'Dict') && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
+            {entity.type} metadata
+          </h4>
+          <div className="form-group">
+            <label className="form-label">Pairs (key:value per line)</label>
+            <textarea
+              className="form-input"
+              rows={6}
+              value={(() => {
+                const pairs = entity.metadata?.pairs;
+                if (!Array.isArray(pairs)) return '';
+                return pairs
+                  .map((p) => (Array.isArray(p) ? `${p[0] ?? ''}:${p[1] ?? ''}` : String(p)))
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                const pairs = lines.map((line) => {
+                  const colon = line.indexOf(':');
+                  if (colon >= 0) {
+                    const key = line.slice(0, colon).trim();
+                    const val = line.slice(colon + 1).trim();
+                    return [key || '?', val || ''];
+                  }
+                  return [line || '?', ''];
+                });
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  pairs: pairs.length ? pairs : undefined,
+                });
+              }}
+              placeholder={'name:Alice\nage:30\ncity:NYC'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One key:value pair per line. Up to 8 pairs displayed.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Columns (1–4)</label>
+            <input
+              type="number"
+              className="form-input"
+              min={1}
+              max={4}
+              value={entity.metadata?.cols ?? 2}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  cols: Math.max(1, Math.min(4, Number(e.target.value) || 2)),
+                })
+              }
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Grid columns for key:value layout
+            </p>
+          </div>
+        </>
+      )}
+
       {entity.type === 'Array' && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
@@ -1284,6 +1356,38 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
               }}
               placeholder="0, 2"
             />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Pointer labels (JSON array)</label>
+            <textarea
+              className="form-input"
+              rows={4}
+              value={pointerLabelsText}
+              onChange={(e) => {
+                const val = e.target.value;
+                setPointerLabelsText(val);
+                try {
+                  const trimmed = val.trim();
+                  const pointerLabels = trimmed ? JSON.parse(trimmed) : undefined;
+                  if (!Array.isArray(pointerLabels) && pointerLabels !== undefined) return;
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    pointerLabels: pointerLabels?.length ? pointerLabels : undefined,
+                  });
+                } catch (_) {}
+              }}
+              placeholder={[
+                '[',
+                '  { "index": 0, "label": "low" },',
+                '  { "index": 3, "label": "mid", "showValue": true, "highlight": true },',
+                '  { "index": 7, "label": "high" }',
+                ']',
+              ].join('\n')}
+              style={{ fontFamily: 'monospace', fontSize: '12px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '4px' }}>
+              Optional: index, label, color?, value?, showValue?, showIndex?, highlight?
+            </p>
           </div>
         </>
       )}

@@ -168,6 +168,8 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Flow / Connection (special)
   Arrow: renderArrow as any,    // Extended signature handled by renderEntity dispatcher
+  BidirectArrow: renderArrow as any,
+  DottedArrow: renderArrow as any,
   DataFlow: renderDataFlow as any,
 
   // ── Universal
@@ -322,9 +324,11 @@ export function renderEntity(
     return null;
   }
 
-  // Arrow, DataFlow, Transition, and Bus need position resolution across all entities
+  // Arrow, BidirectArrow, DottedArrow, DataFlow, Transition, Bus need position resolution
   if (
     entity.type === 'Arrow' ||
+    entity.type === 'BidirectArrow' ||
+    entity.type === 'DottedArrow' ||
     entity.type === 'DataFlow' ||
     entity.type === 'Transition' ||
     entity.type === 'Bus'

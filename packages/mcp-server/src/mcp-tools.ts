@@ -123,6 +123,7 @@ Topic → Preferred type:
 - Arrays, lists, indexed data → Array (metadata.values, metadata.disabledIndexes)
 - Analogies, "X is like Y" → Analogy (metadata.label, metadata.description)
 - Step-by-step tutorials, numbered procedures → StepList (metadata.steps, metadata.currentStep, metadata.checkmarks)
+- Algorithm walkthrough (binary search, sorting, etc.) → Array (metadata.pointerLabels for low/mid/high) + StepList (metadata.currentStep) + optional CodeBlock
 - Side-by-side comparisons → Comparison (label or textContent)
 - Mathematical proofs → Proof (label or textContent)
 - Architecture diagrams → Server, Database, Cloud, Arrow, LoadBalancer
@@ -159,13 +160,13 @@ METADATA (required for correct rendering):
 - Arrow/DataFlow: metadata.curved = true (optional) — when true, render curved; default is straight
 - CallStack: metadata.frames = [{name, locals?}]
 - Stack: metadata.layers = [{label, sublabel?, color?}, ...]. Use for OSI model, tech stack, layered architecture. Not for call stacks (use CallStack) or cache hierarchy (use CacheHierarchy).
-- BinaryTree: metadata.tree = {value, left?, right?} OR metadata.nodes = [level-order values]. metadata.disabledIndexes = [0-based indexes to dim], metadata.selectedIndexes = [0-based indexes to highlight]. Use for BST, heap, binary search.
+- BinaryTree: metadata.tree = {value, left?, right?} OR metadata.nodes = [level-order values]. metadata.disabledIndexes = [0-based indexes to dim], metadata.selectedIndexes = [0-based indexes to highlight]. Use for BST search, heap, tree structure. For binary search on a sorted array, use Array with pointerLabels instead.
 - BTree: metadata.tree = {value, children?}, metadata.branchingFactor?. Use for multi-way trees (B-tree, B+ tree). Node labels can be key ranges like "[10,20]".
 - GanttChart: metadata.tasks = [{name, start, end}], metadata.maxTime?
 - ProcessState: metadata.states, metadata.transitions
 - ConfusionMatrix: metadata.matrix (2D array), metadata.rowLabels?, metadata.colLabels?
 - HashTable: metadata.pairs = [[key, value], ...]
-- Array: metadata.values = [string|number, ...] (agent can display any values), metadata.disabledIndexes = [0-based indexes to dim], metadata.selectedIndexes = [0-based indexes to highlight], or metadata.cells = [{value, enabled?, selected?}]. Max 8 cells.
+- Array: metadata.values, metadata.disabledIndexes, metadata.selectedIndexes, metadata.pointerLabels = [{index, label, color?, value?, showValue?, showIndex?, highlight?}]. Pointers: low→green, mid→gold, high→red; showValue:true or value for "→ value"; highlight:true for active. Max 8 cells.
 - Analogy: metadata.label (or entity.label), metadata.width?, metadata.maxLines?. Text wraps by line; overflow gets "...".
 - StepList: metadata.steps = [string, ...] (step labels), metadata.currentStep = number (0-based, -1 = none), metadata.checkmarks = true (show checkmarks for completed steps). Use entity.textContent as fallback for steps (split on newline).
 - MemoryLayout: metadata.stack = [...], metadata.heap = [...]

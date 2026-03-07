@@ -201,6 +201,8 @@ export function renderArrow(
 
   const color = entity.color ?? getCategoryColor('Arrow');
   const useCurved = entity.metadata?.curved === true;
+  const isBidirect = entity.type === 'BidirectArrow';
+  const isDotted = entity.type === 'DottedArrow';
 
   let ctrlX = 0;
   let ctrlY = 0;
@@ -222,17 +224,23 @@ export function renderArrow(
   // Wrapper group
   const g = document.createElementNS(SVG_NS, 'g');
   g.setAttribute('id', entity.id);
-  g.setAttribute('data-type', 'Arrow');
+  g.setAttribute('data-type', entity.type);
   g.style.willChange = 'opacity';
+
+  const strokeAttrs: Record<string, string> = {
+    fill: 'none',
+    stroke: color,
+    'stroke-width': '2.5',
+    opacity: '0.85',
+    'marker-end': `url(#${markerId})`,
+  };
+  if (isBidirect) strokeAttrs['marker-start'] = `url(#${markerId})`;
+  if (isDotted) strokeAttrs['stroke-dasharray'] = '6,4';
 
   if (useCurved) {
     const path = document.createElementNS(SVG_NS, 'path');
     path.setAttribute('d', `M ${x1} ${y1} Q ${ctrlX} ${ctrlY} ${x2} ${y2}`);
-    path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', color);
-    path.setAttribute('stroke-width', '2.5');
-    path.setAttribute('opacity', '0.85');
-    path.setAttribute('marker-end', `url(#${markerId})`);
+    for (const [k, v] of Object.entries(strokeAttrs)) path.setAttribute(k, v);
     g.appendChild(path);
   } else {
     const line = document.createElementNS(SVG_NS, 'line');
@@ -240,10 +248,7 @@ export function renderArrow(
     line.setAttribute('y1', String(y1));
     line.setAttribute('x2', String(x2));
     line.setAttribute('y2', String(y2));
-    line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', '2.5');
-    line.setAttribute('opacity', '0.85');
-    line.setAttribute('marker-end', `url(#${markerId})`);
+    for (const [k, v] of Object.entries(strokeAttrs)) line.setAttribute(k, v);
     g.appendChild(line);
   }
 
