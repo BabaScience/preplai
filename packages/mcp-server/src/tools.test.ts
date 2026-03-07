@@ -17,6 +17,7 @@ import {
   handleAddNarration,
   handleGetSessionUrl,
   handleGetPreferences,
+  handleGetIllustrations,
 } from './tools.js';
 
 let mongod: MongoMemoryServer;
@@ -73,6 +74,26 @@ describe('MCP Tool Handlers', () => {
       expect(data.success).toBe(true);
       expect(data.data).toEqual({ theme: 'cinema', palette: 'default' });
       expect(data.data.colors).toBeUndefined();
+    });
+  });
+
+  // ── get_illustrations ───────────────────────────────────────────
+  describe('handleGetIllustrations', () => {
+    it('returns entityTypes, aliases, shortKeys, topicHints, metadataHints, positionFormat, defaultSize', async () => {
+      const result = await handleGetIllustrations();
+      const data = parse(result);
+      expect(data.success).toBe(true);
+      expect(data.data.entityTypes).toContain('Server');
+      expect(data.data.entityTypes).toContain('BinaryTree');
+      expect(data.data.aliases).toEqual(expect.objectContaining({ BT: 'BinaryTree', CST: 'CallStack' }));
+      expect(data.data.shortKeys).toEqual(expect.objectContaining({ sid: 'sceneId', f: 'frames', e: 'entities', p: 'position' }));
+      expect(Object.keys(data.data.topicHints).length).toBeGreaterThan(0);
+      expect(data.data.metadataHints).toEqual(expect.objectContaining({
+        BinaryTree: expect.any(String),
+        Array: expect.any(String),
+      }));
+      expect(data.data.positionFormat).toBe('[x,y]');
+      expect(data.data.defaultSize).toBe(2);
     });
   });
 

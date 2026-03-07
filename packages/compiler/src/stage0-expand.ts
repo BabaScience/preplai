@@ -49,6 +49,12 @@ const ENTITY_KEYS: Record<string, string> = {
   hl: 'highlight',
 };
 
+export const AGENT_SHORT_KEYS: Record<string, string> = {
+  ...SCRIPT_KEYS,
+  ...FRAME_KEYS,
+  ...ENTITY_KEYS,
+};
+
 // ── Entity type aliases (no overlapping) ──────────────────────────────────
 
 export const ENTITY_TYPE_ALIASES: Record<string, string> = {

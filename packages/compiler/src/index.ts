@@ -20,4 +20,4 @@ export {
   SKIP_CLAMP_TYPES,
 } from './types.js';
 
-export { ENTITY_TYPE_ALIASES, stage0Expand } from './stage0-expand.js';
+export { ENTITY_TYPE_ALIASES, AGENT_SHORT_KEYS, stage0Expand } from './stage0-expand.js';

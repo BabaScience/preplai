@@ -6,7 +6,7 @@
 
 ## Overview
 
-preplai works with **any MCP-compatible AI agent**. ChatGPT uses the **ChatGPT Apps** (formerly Connectors) platform. You create a connector that points to preplai's MCP endpoint. Once connected, ChatGPT can use preplai's tools (`create_session`, `add_scene`, etc.) to build presentations.
+preplai works with **any MCP-compatible AI agent**. ChatGPT uses the **ChatGPT Apps** (formerly Connectors) platform. You create a connector that points to preplai's MCP endpoint. Once connected, ChatGPT can use preplai's tools (`get_preferences`, `get_illustrations`, `create_session`, `add_scene`, etc.) to build presentations.
 
 **ChatGPT Web and Desktop:** Connectors created on ChatGPT Web are automatically available on ChatGPT Desktop and mobile apps. You only need to set up the connector once.
 

@@ -1,8 +1,8 @@
 # MCP Tools Reference
 
-**Summary:** preplai exposes 9 MCP (Model Context Protocol) tools that **any AI agent** can call to create and manage cinema-quality presentations. Claude, ChatGPT, or any MCP client — one API, nine tools.
+**Summary:** preplai exposes 10 MCP (Model Context Protocol) tools that **any AI agent** can call to create and manage cinema-quality presentations. Claude, ChatGPT, or any MCP client — one API, ten tools.
 
-**Required workflow:** When creating a new presentation, call `get_preferences` **first** (before `create_session`). This returns the user's theme and palette. Omit `entity.color` in `add_scene` — the player uses the palette automatically. Flow: `get_preferences` → `create_session` → `add_scene` (repeat) → `get_session_url` → share the player URL.
+**Required workflow:** When creating a new presentation, call `get_preferences` **first** (before `create_session`). Then call `get_illustrations` for the full list of entity types and topic hints. Omit `entity.color` in `add_scene` — the player uses the palette automatically. Flow: `get_preferences` → `get_illustrations` → `create_session` → `add_scene` (repeat) → `get_session_url` → share the player URL.
 
 All tools require authentication via `X-Preplai-API-Key` or `Authorization: Bearer <token>`.
 
@@ -57,6 +57,7 @@ All tools return JSON with `success: true` and `data` on success, or `success: f
 | Tool | Description |
 |------|-------------|
 | `get_preferences` | **Call first.** Get user's theme and palette |
+| `get_illustrations` | Get full list of entity types, aliases, short keys, topic hints, metadata hints |
 | `create_session` | Create a new presentation session (call after get_preferences) |
 | `add_scene` | Append a visual scene (frames) to a session |
 | `update_scene` | Replace the visual script for a scene |
@@ -97,6 +98,21 @@ Create a new presentation session. **Call `get_preferences` first** to get the u
 **Returns:** `{ theme, palette }`.
 
 **If it fails:** On `UNAUTHORIZED`, ensure the client has a valid API key. On `INTERNAL_ERROR`, retry once.
+
+---
+
+## get_illustrations
+
+Get the full list of available illustration types, aliases, short keys, topic hints, and metadata hints. **Call when starting a new presentation** to discover all entity types and which to use for the user's topic.
+
+**When to call:**
+- **Recommended:** After `get_preferences` and before `create_session` when starting a new presentation.
+- Use the returned `topicHints` to pick the right entity type for the user's topic.
+- Use `aliases` (e.g. BT→BinaryTree) and `shortKeys` (e.g. sid→sceneId) for compact `add_scene` payloads.
+
+**Parameters:** None.
+
+**Returns:** `{ entityTypes, aliases, shortKeys, topicHints, metadataHints, positionFormat, defaultSize }`.
 
 ---
 

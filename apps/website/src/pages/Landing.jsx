@@ -60,7 +60,7 @@ export default function Landing() {
           <div className="feature-card fade-in">
             <div className="feature-icon"><Cpu size={20} /></div>
             <h3>MCP API</h3>
-            <p>8 tools any AI agent can call. create_session, add_scene, get_session_url. Works with Claude, ChatGPT, and any MCP-compatible client.</p>
+            <p>10 tools any AI agent can call. get_preferences, get_illustrations, create_session, add_scene, get_session_url. Works with Claude, ChatGPT, and any MCP-compatible client.</p>
           </div>
           <div className="feature-card fade-in">
             <div className="feature-icon"><Film size={20} /></div>

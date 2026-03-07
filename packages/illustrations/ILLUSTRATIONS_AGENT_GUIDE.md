@@ -2,7 +2,7 @@
 
 This guide helps AI agents choose and configure the right illustration types when generating educational content. Reference [METADATA_SCHEMAS.md](./METADATA_SCHEMAS.md) for exact metadata shapes.
 
-**Size:** `size` is a uniform scale across all entity types. 1 = default, 0.5 = half, 2 = double, 3 = triple — same visibility for Concept, BinaryTree, Server, Graph2D, etc.
+**Size:** `size` is a uniform scale across all entity types. 2 = default, 1 = half, 3 = 1.5x, 4 = double — same visibility for Concept, BinaryTree, Server, Graph2D, etc.
 
 ---
 

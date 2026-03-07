@@ -11,7 +11,7 @@
  */
 
 import type { VisualScript, VisualEntity } from '@preplai/shared';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@preplai/shared';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, ENTITY_DEFAULTS } from '@preplai/shared';
 import type { CompilerWarning } from './types.js';
 import { BASE_ENTITY_SIZES, SKIP_CLAMP_TYPES } from './types.js';
 
@@ -70,7 +70,7 @@ function clampEntityPosition(
 
   // Get base size for this entity type
   const baseSize = BASE_ENTITY_SIZES.get(entity.type) ?? BASE_ENTITY_SIZES.get('_default')!;
-  const sizeMult = entity.size ?? 1.0;
+  const sizeMult = entity.size ?? ENTITY_DEFAULTS.size;
 
   // Convert half-pixel extents to percentage of canvas
   const halfWPct = (baseSize.w * sizeMult / 2) / CANVAS_WIDTH * 100;

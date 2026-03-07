@@ -1,5 +1,7 @@
 # Compact Illustration Reference
 
+**Agents:** Call `get_illustrations` for runtime data. This file is developer documentation.
+
 Token-saving reference for agents. Use short keys and aliases when building `add_scene` visual_script. See [METADATA_SCHEMAS.md](./METADATA_SCHEMAS.md) for full details.
 
 ## Short Keys

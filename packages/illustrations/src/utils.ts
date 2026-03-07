@@ -5,7 +5,7 @@
  * Implements the double-<g> pattern (Section 5 of architecture).
  */
 
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@preplai/shared';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, ENTITY_DEFAULTS } from '@preplai/shared';
 import type { VisualEntity } from '@preplai/shared';
 
 // ── SVG namespace (required for createElementNS) ─────────────────────
@@ -93,6 +93,6 @@ export const SIZE_CLAMP_MAX = 120;
  * @returns Base unit in pixels (typically 25–80px range)
  */
 export function getSizeParam(entity: VisualEntity): number {
-  const s = entity.size ?? 1;
+  const s = entity.size ?? ENTITY_DEFAULTS.size;
   return Math.min(Math.max(s * VISIBILITY_BASE, SIZE_CLAMP_MIN), SIZE_CLAMP_MAX);
 }

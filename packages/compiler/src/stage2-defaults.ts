@@ -4,7 +4,7 @@
  * For each entity in each frame:
  *  - Warns on unknown entity types
  *  - Deep-merges ENTITY_DEFAULTS (agent values take precedence)
- *  - Applies default size 1.0 when omitted (uniform across all types)
+ *  - Applies default size 2.0 when omitted (uniform across all types)
  *
  * Returns a mutated copy of the script with defaults applied + warnings.
  */

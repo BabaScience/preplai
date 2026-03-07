@@ -87,7 +87,7 @@ describe('Limit constants', () => {
 
 describe('ENTITY_DEFAULTS', () => {
   it('should define correct default values', () => {
-    expect(ENTITY_DEFAULTS.size).toBe(1.0);
+    expect(ENTITY_DEFAULTS.size).toBe(2.0);
     expect(ENTITY_DEFAULTS.color).toBe('#4A90D9');
     expect(ENTITY_DEFAULTS.highlight).toBe(false);
   });

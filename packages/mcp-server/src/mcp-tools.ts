@@ -12,6 +12,7 @@ import type { SseRegistry } from './sse.js';
 import {
   handleCreateSession,
   handleGetPreferences,
+  handleGetIllustrations,
   handleAddScene,
   handleUpdateScene,
   handleAddNarration,
@@ -43,7 +44,7 @@ export const VisualEntitySchema = z.object({
     x: z.number().describe('X position as percentage 0-100 of the 1920px canvas'),
     y: z.number().describe('Y position as percentage 0-100 of the 1080px canvas'),
   }),
-  size: z.number().optional().default(1).describe('Scale factor, default 1'),
+  size: z.number().optional().default(2).describe('Scale factor, default 2'),
   label: z.string().optional().describe('Text label displayed on the entity'),
   color: z.string().optional().describe('CSS color, e.g. "#4FC3F7" or "cyan"'),
   highlight: z.boolean().optional().describe('Whether to highlight/glow this entity'),
@@ -87,7 +88,7 @@ const VisualScriptSchema = z.object({
 
 // ── Rich tool descriptions ────────────────────────────────────────────
 
-export const ADD_SCENE_DESCRIPTION = `Add a visual scene to a presentation session. The scene is rendered as animated SVG on a 1920x1080 dark canvas.
+export const ADD_SCENE_DESCRIPTION = `Add a visual scene to a presentation session. The scene is rendered as animated SVG on a 1920x1080 dark canvas. Call get_illustrations for the full type list, aliases, and topic hints.
 
 REQUIRED — USE COMPACT FORMAT (reduces tokens significantly):
 - Short keys: sid (sceneId), td (totalDuration), f (frames), e (entities), n (narrationSegment), p (position), l (label), m (metadata), src (sourceEntityId), tgt (targetEntityId), sz (size), a (animation)
@@ -269,6 +270,25 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
       const result = await withErrorBoundary(
         () => handleGetPreferences({}, { apiKeyId: apiKey.id }),
       )({});
+      return { content: result.content };
+    },
+  );
+
+  mcp.tool(
+    'get_illustrations',
+    'Get the full list of available illustration types, aliases, short keys, topic hints, and metadata hints. Call this when starting a new presentation to discover all entity types and which to use for the user\'s topic. Returns entityTypes, aliases (e.g. BT→BinaryTree), shortKeys (e.g. sid→sceneId), topicHints (topic→types), metadataHints (type→metadata keys), positionFormat ([x,y]), and defaultSize.',
+    {},
+    async (_args, extra) => {
+      const { trackUsage } = await import('./auth.js');
+      const apiKey = getApiKey(extra);
+      if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
+
+      const result = await withErrorBoundary(() => handleGetIllustrations())({});
+      try {
+        const data = JSON.parse(result.content[0].text);
+        if (data.success) await trackUsage(apiKey.id, 'get_illustrations');
+      } catch {}
+
       return { content: result.content };
     },
   );

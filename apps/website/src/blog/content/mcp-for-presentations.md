@@ -1,6 +1,6 @@
 # MCP for Presentations: A Developer Guide
 
-**Summary:** The Model Context Protocol (MCP) is an open standard that lets AI agents call external tools. preplai exposes an MCP server with 8 tools — create_session, add_scene, get_session_url, and more. Any MCP-compatible agent (Claude, ChatGPT, or custom) can create cinema-quality presentations through a single API.
+**Summary:** The Model Context Protocol (MCP) is an open standard that lets AI agents call external tools. preplai exposes an MCP server with 10 tools — get_preferences, get_illustrations, create_session, add_scene, get_session_url, and more. Any MCP-compatible agent (Claude, ChatGPT, or custom) can create cinema-quality presentations through a single API.
 
 **Key terms:** MCP, Model Context Protocol, AI agent, preplai, create_session, add_scene
 
@@ -20,10 +20,12 @@ Think of it as "plugins for AI" — one protocol, many tools. preplai is one of 
 
 ## How preplai uses MCP
 
-preplai exposes an MCP server at `https://player.preplai.com/mcp`. The server advertises 8 tools:
+preplai exposes an MCP server at `https://player.preplai.com/mcp`. The server advertises 10 tools:
 
 | Tool | What it does |
 |------|--------------|
+| `get_preferences` | Get user's theme and palette |
+| `get_illustrations` | Get full list of entity types, aliases, topic hints |
 | `create_session` | Create a new presentation, get session_id and player_url |
 | `add_scene` | Append a visual scene (frames + entities) |
 | `update_scene` | Replace a scene's visual script |

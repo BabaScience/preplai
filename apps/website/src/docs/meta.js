@@ -28,7 +28,7 @@ export const DOC_META = {
   },
   'mcp-tools': {
     title: 'MCP Tools Reference — preplai API',
-    description: 'Complete reference for preplai MCP tools. Any AI agent can call create_session, add_scene, update_scene, add_narration, get_session_url, list_sessions, delete_session, remove_scene.',
+    description: 'Complete reference for preplai MCP tools. Any AI agent can call get_preferences, get_illustrations, create_session, add_scene, update_scene, add_narration, get_session_url, list_sessions, delete_session, remove_scene.',
     keywords: ['preplai', 'MCP tools', 'create_session', 'add_scene', 'API', 'Model Context Protocol', 'AI agents'],
     schemaType: 'APIReference',
   },

@@ -9,6 +9,7 @@ import type { SessionStore } from './session-store.js';
 import type { SseRegistry } from './sse.js';
 import { getUserPlayerPrefs, buildPlayerUrlSuffix } from './auth.js';
 import { mcpOk, mcpNotFound, mcpErr, mcpValidationError, type McpToolContent } from './errors.js';
+import { getIllustrationsReference } from './illustrations-reference.js';
 
 // ── Dependency injection interfaces ───────────────────────────────────
 
@@ -137,6 +138,13 @@ export async function handleGetPreferences(
     theme: prefs.theme,
     palette: prefs.palette,
   });
+}
+
+// ── Tool: get_illustrations ────────────────────────────────────────────
+
+export async function handleGetIllustrations(): Promise<McpToolContent> {
+  const data = getIllustrationsReference();
+  return mcpOk({ ...data });
 }
 
 // ── Tool 3: add_scene ─────────────────────────────────────────────────

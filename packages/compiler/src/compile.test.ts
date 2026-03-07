@@ -346,7 +346,7 @@ describe('Stage 2 — Entity Defaults Application', () => {
     expect(entity.size).toBe(ENTITY_DEFAULTS.size);
   });
 
-  it('applies size 1.0 for all types when size omitted (unified visibility)', () => {
+  it('applies default size for all types when size omitted (unified visibility)', () => {
     const raw = {
       sceneId: '550e8400-e29b-41d4-a716-446655440000',
       totalDuration: 5000,
@@ -363,9 +363,9 @@ describe('Stage 2 — Entity Defaults Application', () => {
     const result = compileVisualScript(raw);
     if (!result.success) throw new Error('Expected success');
     const entities = result.script.frames[0].entities;
-    expect(entities[0].size).toBe(1);
-    expect(entities[1].size).toBe(1);
-    expect(entities[2].size).toBe(1);
+    expect(entities[0].size).toBe(ENTITY_DEFAULTS.size);
+    expect(entities[1].size).toBe(ENTITY_DEFAULTS.size);
+    expect(entities[2].size).toBe(ENTITY_DEFAULTS.size);
   });
 
   it('leaves color undefined when not specified (player uses theme palette)', () => {
@@ -936,7 +936,7 @@ describe('Integration — Full Pipeline', () => {
 
     // Stage 2: defaults applied
     const serverApi = result.script.frames[0].entities.find(e => e.id === 'server-api')!;
-    expect(serverApi.size).toBe(1.0);
+    expect(serverApi.size).toBe(ENTITY_DEFAULTS.size);
     expect(serverApi.highlight).toBe(false);
     expect(serverApi.animation?.duration).toBe(450);
 

@@ -141,8 +141,8 @@ describe('applyEntranceAnimation', () => {
 describe('getSizeParam', () => {
   it('should return default-based value when entity.size is undefined', () => {
     const px = getSizeParam(makeEntity());
-    // default 1.0 * 50 = 50, clamped to [15, 120]
-    expect(px).toBe(50);
+    // default 2.0 * 50 = 100, clamped to [15, 120]
+    expect(px).toBe(100);
   });
 
   it('should scale with entity.size value', () => {
