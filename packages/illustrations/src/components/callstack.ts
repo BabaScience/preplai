@@ -28,6 +28,9 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
+  const labelFontSize = Math.round(13 * scale);
+  const sublabelFontSize = Math.round(11 * scale);
   const color = entity.color ?? getCategoryColor('CallStack');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-cs-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -81,15 +84,15 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
     blockG.appendChild(rect);
 
     const usableWidth = width - 16;
-    const displayLabel = truncateToFit(label, usableWidth, 11);
-    const displaySublabel = sublabel ? truncateToFit(sublabel, usableWidth, 9) : undefined;
+    const displayLabel = truncateToFit(label, usableWidth, labelFontSize);
+    const displaySublabel = sublabel ? truncateToFit(sublabel, usableWidth, sublabelFontSize) : undefined;
 
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', String(x));
     text.setAttribute('y', String(y + (displaySublabel ? -2 : 4)));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', '11');
+    text.setAttribute('font-size', String(labelFontSize));
     text.setAttribute('font-weight', '600');
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     text.textContent = displayLabel;
@@ -101,7 +104,7 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
       sub.setAttribute('y', String(y + 10));
       sub.setAttribute('text-anchor', 'middle');
       sub.setAttribute('fill', `${color}99`);
-      sub.setAttribute('font-size', '9');
+      sub.setAttribute('font-size', String(sublabelFontSize));
       sub.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       sub.textContent = displaySublabel;
       blockG.appendChild(sub);

@@ -29,6 +29,9 @@ export function renderStack(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
+  const labelFontSize = Math.round(13 * scale);
+  const sublabelFontSize = Math.round(11 * scale);
   const defaultColor = entity.color ?? getCategoryColor('Stack');
   const defs = ensureDefs(parentEl);
 
@@ -85,15 +88,15 @@ export function renderStack(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     blockG.appendChild(rect);
 
     const usableWidth = width - 16;
-    const displayLabel = truncateToFit(label, usableWidth, 11);
-    const displaySublabel = sublabel ? truncateToFit(sublabel, usableWidth, 9) : undefined;
+    const displayLabel = truncateToFit(label, usableWidth, labelFontSize);
+    const displaySublabel = sublabel ? truncateToFit(sublabel, usableWidth, sublabelFontSize) : undefined;
 
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', String(x));
     text.setAttribute('y', String(y + (displaySublabel ? -2 : 4)));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', '11');
+    text.setAttribute('font-size', String(labelFontSize));
     text.setAttribute('font-weight', '600');
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     text.textContent = displayLabel;
@@ -105,7 +108,7 @@ export function renderStack(entity: VisualEntity, parentEl: SVGElement): SVGGEle
       sub.setAttribute('y', String(y + 10));
       sub.setAttribute('text-anchor', 'middle');
       sub.setAttribute('fill', `${color}99`);
-      sub.setAttribute('font-size', '9');
+      sub.setAttribute('font-size', String(sublabelFontSize));
       sub.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       sub.textContent = displaySublabel;
       blockG.appendChild(sub);

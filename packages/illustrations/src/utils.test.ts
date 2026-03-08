@@ -157,9 +157,9 @@ describe('getSizeParam', () => {
     expect(px).toBe(15);
   });
 
-  it('should clamp to maximum 120', () => {
+  it('should clamp to maximum 150', () => {
     const px = getSizeParam(makeEntity({ size: 5.0 }));
-    // 5.0 * 50 = 250, clamped to 120
-    expect(px).toBe(120);
+    // 5.0 * 50 = 250, clamped to 150
+    expect(px).toBe(150);
   });
 });

@@ -90,7 +90,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 
 #narrator-text {
   max-width: 800px;
-  max-height: calc(3.4em + 40px);
+  max-height: calc(5.5em + 48px);
   overflow-y: auto;
   scrollbar-gutter: stable;
   padding: 20px 36px;
@@ -106,7 +106,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   color: #b8b8d0;
   font-family: 'Inter', sans-serif;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 400;
   line-height: 1.7;
   letter-spacing: 0.01em;

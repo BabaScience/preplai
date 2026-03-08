@@ -39,6 +39,9 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
+  const labelFontSize = Math.round(12 * scale);
+  const axisFontSize = Math.round(13 * scale);
   const defaultColor = entity.color ?? getCategoryColor('BarChart');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-barchart-${defaultColor.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -91,7 +94,7 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
       labelText.setAttribute('y', String(y + 4));
       labelText.setAttribute('text-anchor', 'end');
       labelText.setAttribute('fill', colorWithAlpha(barColor, 'cc'));
-      labelText.setAttribute('font-size', '10');
+      labelText.setAttribute('font-size', String(labelFontSize));
       labelText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       labelText.textContent = bar.label;
       innerG.appendChild(labelText);
@@ -101,7 +104,7 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
       valText.setAttribute('x', String(x + Math.max(width, 2) + 6));
       valText.setAttribute('y', String(y + 4));
       valText.setAttribute('fill', colorWithAlpha(barColor, 'cc'));
-      valText.setAttribute('font-size', '10');
+      valText.setAttribute('font-size', String(labelFontSize));
       valText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       valText.textContent = String(bar.value);
       innerG.appendChild(valText);
@@ -135,7 +138,7 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
       labelText.setAttribute('y', String(yBase + 14));
       labelText.setAttribute('text-anchor', 'middle');
       labelText.setAttribute('fill', colorWithAlpha(barColor, 'cc'));
-      labelText.setAttribute('font-size', '10');
+      labelText.setAttribute('font-size', String(labelFontSize));
       labelText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       labelText.textContent = bar.label;
       innerG.appendChild(labelText);
@@ -146,7 +149,7 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
       valText.setAttribute('y', String(yBase - height - 4));
       valText.setAttribute('text-anchor', 'middle');
       valText.setAttribute('fill', colorWithAlpha(barColor, 'cc'));
-      valText.setAttribute('font-size', '10');
+      valText.setAttribute('font-size', String(labelFontSize));
       valText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       valText.textContent = String(bar.value);
       innerG.appendChild(valText);
@@ -185,7 +188,7 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
     xl.setAttribute('y', String(chartH / 2 - 4));
     xl.setAttribute('text-anchor', 'end');
     xl.setAttribute('fill', axisLabelColor);
-    xl.setAttribute('font-size', '11');
+    xl.setAttribute('font-size', String(axisFontSize));
     xl.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     xl.textContent = xLabel;
     innerG.appendChild(xl);
@@ -196,7 +199,7 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
     yl.setAttribute('y', String(-chartH / 2 + padTop - 4));
     yl.setAttribute('text-anchor', 'end');
     yl.setAttribute('fill', axisLabelColor);
-    yl.setAttribute('font-size', '11');
+    yl.setAttribute('font-size', String(axisFontSize));
     yl.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     yl.textContent = yLabel;
     innerG.appendChild(yl);

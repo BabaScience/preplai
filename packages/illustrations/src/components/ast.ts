@@ -29,6 +29,8 @@ export function renderAST(entity: VisualEntity, parentEl: SVGElement): SVGGEleme
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
+  const nodeFontSize = Math.round(12 * scale);
   const color = entity.color ?? getCategoryColor('AST');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-ast-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -83,7 +85,7 @@ export function renderAST(entity: VisualEntity, parentEl: SVGElement): SVGGEleme
     text.setAttribute('y', String(y + 4));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', '10');
+    text.setAttribute('font-size', String(nodeFontSize));
     text.setAttribute('font-weight', '600');
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     text.textContent = String(value);

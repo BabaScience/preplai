@@ -27,6 +27,9 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
+  const axisFontSize = Math.round(13 * scale);
+  const pointLabelFontSize = Math.round(12 * scale);
   const totalW = s * 4;
   const totalH = s * 3;
 
@@ -118,7 +121,7 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
     xl.setAttribute('y', String(mapY(0) - 6));
     xl.setAttribute('text-anchor', 'end');
     xl.setAttribute('fill', `${color}80`);
-    xl.setAttribute('font-size', '11');
+    xl.setAttribute('font-size', String(axisFontSize));
     xl.textContent = xLabel;
     innerG.appendChild(xl);
   }
@@ -127,7 +130,7 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
     yl.setAttribute('x', String(mapX(0) + 6));
     yl.setAttribute('y', String(-totalH / 2 + pad + 4));
     yl.setAttribute('fill', `${color}80`);
-    yl.setAttribute('font-size', '11');
+    yl.setAttribute('font-size', String(axisFontSize));
     yl.textContent = yLabel;
     innerG.appendChild(yl);
   }
@@ -169,7 +172,7 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
       tl.setAttribute('x', String(midX + 6));
       tl.setAttribute('y', String(midY - 4));
       tl.setAttribute('fill', vecColor);
-      tl.setAttribute('font-size', '10');
+      tl.setAttribute('font-size', String(pointLabelFontSize));
       tl.textContent = v.label;
       innerG.appendChild(tl);
     }
@@ -195,7 +198,7 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
       pl.setAttribute('x', String(px + 6));
       pl.setAttribute('y', String(py + 4));
       pl.setAttribute('fill', ptColor);
-      pl.setAttribute('font-size', '10');
+      pl.setAttribute('font-size', String(pointLabelFontSize));
       pl.textContent = p.label;
       innerG.appendChild(pl);
     }

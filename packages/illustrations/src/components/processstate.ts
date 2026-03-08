@@ -24,6 +24,8 @@ export function renderProcessState(entity: VisualEntity, parentEl: SVGElement): 
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
+  const stateFontSize = Math.round(12 * scale);
   const color = entity.color ?? getCategoryColor('ProcessState');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-ps-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -121,7 +123,7 @@ export function renderProcessState(entity: VisualEntity, parentEl: SVGElement): 
     text.setAttribute('y', String(pos.y + 4));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', '10');
+    text.setAttribute('font-size', String(stateFontSize));
     text.setAttribute('font-weight', '600');
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     text.textContent = st.name;

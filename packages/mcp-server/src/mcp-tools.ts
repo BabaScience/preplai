@@ -75,7 +75,7 @@ const IllustrationFrameSchema = z.object({
   endTime: z.number().describe('Frame end time in ms'),
   entities: z.array(VisualEntitySchema).describe('Array of visual entities in this frame'),
   transitions: z.array(EntityTransitionSchema).optional().describe('Animations between entity states'),
-  narrationSegment: z.string().describe('Subtitle shown to user. 1–2 sentences, conversational. Match the user\'s level (technical vs beginner).'),
+  narrationSegment: z.string().describe('Subtitle shown to user. 2–4 sentences, informative and detailed. Match the depth of a good chat explanation. Include key context and specifics.'),
   description: z.string().optional().describe('Internal note for this frame (not shown to user).'),
 });
 
@@ -108,8 +108,11 @@ DESIGN GUIDELINES:
 - Use "highlight": true to emphasize the currently discussed entity.
 - Entities are large and visually rich (drop shadows, gradient fills). Size 1 = ~110px, size 2 = ~220px.
 - Each entity type has a smart default entrance animation. You can override with the animation.entrance property.
+- SIZING: Use sz 2.5–3 for text-heavy entities (CodeBlock, Definition, Callout, StepList, CallStack, HashTable) so content is readable. Default sz 2 is acceptable for icons (Server, Database, Cloud); use larger for anything with substantial text.
 
-FRAME PACING: 3–5 seconds per frame for readability. Build complexity gradually — simpler frames first, add entities in later frames. Avoid overcrowding (3–7 entities per frame).
+FRAME PACING: 3–5 seconds per frame for readability. Build complexity gradually — simpler frames first, add entities in later frames. Aim for 5–7 entities per frame when the topic supports it. Avoid sparse slides with only 1–3 items — each frame should feel complete and informative.
+
+CONTENT DEPTH: Match the level of detail you would give in a chat explanation. Slides should be rich and informative, not stripped-down summaries. Include enough context in labels, metadata, and narration so viewers understand without prior knowledge.
 
 ENTITY SELECTION (choose types that match the user's topic for best visuals):
 
@@ -216,6 +219,8 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
   mcp.tool(
     'create_session',
     `Create a new presentation session. Returns a session_id and a player_url.
+
+PREREQUISITE: Only call this after you have gathered the user's topic, audience, and depth preferences (see server instructions). Do not call immediately when the user says "create a presentation" without context.
 
 REQUIRED: Call get_preferences FIRST before create_session. Use the returned theme and palette to decide how to create the session. Pass style to override theme (e.g. "minimal" for algorithm viz) if desired; otherwise the user's preference is used.
 

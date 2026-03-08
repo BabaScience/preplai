@@ -54,9 +54,9 @@ Use `getCategoryColor(type)` or `ENTITY_COLORS[type]` for default colors. Overri
 | TYPOGRAPHY.fontLabel | Entity labels, titles |
 | TYPOGRAPHY.fontBadge | Small badges, type indicators |
 | TYPOGRAPHY.fontCode | Code snippets |
-| TYPOGRAPHY.fontSizeLabel | 13px |
-| TYPOGRAPHY.fontSizeTitle | 14px |
-| TYPOGRAPHY.fontSizeBadge | 9px |
+| TYPOGRAPHY.fontSizeLabel | 15px |
+| TYPOGRAPHY.fontSizeTitle | 16px |
+| TYPOGRAPHY.fontSizeBadge | 11px |
 
 ---
 

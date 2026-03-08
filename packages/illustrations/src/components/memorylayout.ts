@@ -15,6 +15,9 @@ export function renderMemoryLayout(entity: VisualEntity, parentEl: SVGElement): 
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
+  const labelFontSize = Math.round(13 * scale);
+  const blockFontSize = Math.round(12 * scale);
   const color = entity.color ?? getCategoryColor('MemoryLayout');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-ml-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -38,7 +41,7 @@ export function renderMemoryLayout(entity: VisualEntity, parentEl: SVGElement): 
   stackLabel.setAttribute('y', String(-s * 0.5 - 10));
   stackLabel.setAttribute('text-anchor', 'middle');
   stackLabel.setAttribute('fill', color);
-  stackLabel.setAttribute('font-size', '11');
+  stackLabel.setAttribute('font-size', String(labelFontSize));
   stackLabel.setAttribute('font-weight', '600');
   stackLabel.setAttribute('font-family', TYPOGRAPHY.fontBadge);
   stackLabel.textContent = 'Stack';
@@ -61,7 +64,7 @@ export function renderMemoryLayout(entity: VisualEntity, parentEl: SVGElement): 
     text.setAttribute('y', String(y + 4));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', '10');
+    text.setAttribute('font-size', String(blockFontSize));
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     text.textContent = label;
     innerG.appendChild(text);
@@ -73,7 +76,7 @@ export function renderMemoryLayout(entity: VisualEntity, parentEl: SVGElement): 
   heapLabel.setAttribute('y', String(-s * 0.5 - 10));
   heapLabel.setAttribute('text-anchor', 'middle');
   heapLabel.setAttribute('fill', color);
-  heapLabel.setAttribute('font-size', '11');
+  heapLabel.setAttribute('font-size', String(labelFontSize));
   heapLabel.setAttribute('font-weight', '600');
   heapLabel.setAttribute('font-family', TYPOGRAPHY.fontBadge);
   heapLabel.textContent = 'Heap';
@@ -96,7 +99,7 @@ export function renderMemoryLayout(entity: VisualEntity, parentEl: SVGElement): 
     text.setAttribute('y', String(y + 4));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', '10');
+    text.setAttribute('font-size', String(blockFontSize));
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     text.textContent = label;
     innerG.appendChild(text);

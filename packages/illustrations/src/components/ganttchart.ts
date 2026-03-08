@@ -21,6 +21,8 @@ export function renderGanttChart(entity: VisualEntity, parentEl: SVGElement): SV
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
+  const taskFontSize = Math.round(12 * scale);
   const color = entity.color ?? getCategoryColor('GanttChart');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-gantt-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -71,7 +73,7 @@ export function renderGanttChart(entity: VisualEntity, parentEl: SVGElement): SV
     text.setAttribute('y', String(y + 4));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', '10');
+    text.setAttribute('font-size', String(taskFontSize));
     text.setAttribute('font-weight', '600');
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     text.textContent = label;

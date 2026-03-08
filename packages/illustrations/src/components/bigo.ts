@@ -51,6 +51,9 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
+  const axisFontSize = Math.round(13 * scale);
+  const legendFontSize = Math.round(12 * scale);
   const totalW = s * 4;
   const totalH = s * 3;
 
@@ -164,7 +167,7 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   xLabel.setAttribute('y', String(mapY(0) + 14));
   xLabel.setAttribute('text-anchor', 'end');
   xLabel.setAttribute('fill', `${color}80`);
-  xLabel.setAttribute('font-size', '11');
+  xLabel.setAttribute('font-size', String(axisFontSize));
   xLabel.textContent = 'n';
   innerG.appendChild(xLabel);
 
@@ -173,7 +176,7 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   yLabel.setAttribute('y', String(chartTop + 4));
   yLabel.setAttribute('text-anchor', 'end');
   yLabel.setAttribute('fill', `${color}80`);
-  yLabel.setAttribute('font-size', '11');
+  yLabel.setAttribute('font-size', String(axisFontSize));
   yLabel.textContent = 'Operations';
   innerG.appendChild(yLabel);
 
@@ -223,7 +226,7 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
     txt.setAttribute('y', String(legendY + 4));
     txt.setAttribute('text-anchor', 'start');
     txt.setAttribute('fill', lineColor);
-    txt.setAttribute('font-size', '10');
+    txt.setAttribute('font-size', String(legendFontSize));
     txt.textContent = curveName;
     innerG.appendChild(txt);
   });

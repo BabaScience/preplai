@@ -38,6 +38,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { buildServer, getDefaultConfig } from './server.js';
 import { registerMcpTools } from './mcp-tools.js';
+import { MCP_INSTRUCTIONS } from './mcp-instructions.js';
 
 // ── Boot ──────────────────────────────────────────────────────────────
 
@@ -75,10 +76,9 @@ async function main() {
   const apiKey = { id: validated.id, tier: validated.tier };
 
   // 3. Create MCP server with stdio transport
-  const mcpInstructions = `When creating a new presentation: (1) get_preferences FIRST, (2) get_illustrations for full type list, (3) create_session, (4) add_scene (repeat), (5) get_session_url. For add_scene you MUST use COMPACT format: short keys (sid, td, f, e, p, n, l, src, tgt), position as [x,y], aliases (BT, ARR, CST, CB, etc.), omit color. Example: {"sid":"<session_id>","td":5000,"f":[{"e":[{"id":"x","type":"Label","p":[50,6],"l":"Title","sz":2}],"n":"Narration"}]}`;
   const mcp = new McpServer(
     { name: 'preplai', version: '0.1.0' },
-    { instructions: mcpInstructions },
+    { instructions: MCP_INSTRUCTIONS },
   );
 
   registerMcpTools(mcp, {

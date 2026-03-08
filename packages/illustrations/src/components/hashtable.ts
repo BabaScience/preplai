@@ -58,7 +58,7 @@ export function renderHashTable(entity: VisualEntity, parentEl: SVGElement): SVG
     cell.setAttribute('stroke-width', String(Math.max(1, SHAPES.strokeWidthThin * scale)));
     innerG.appendChild(cell);
 
-    const fontSize = Math.round(8 * scale);
+    const fontSize = Math.max(10, Math.round(10 * scale));
     const usableWidth = width - 6;
     const displayContent = truncateToFit(content, usableWidth, fontSize);
 

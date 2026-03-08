@@ -16,6 +16,8 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
+  const axisFontSize = Math.round(13 * scale);
   const totalW = s * 4;
   const totalH = s * 3;
 
@@ -125,7 +127,7 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
     xl.setAttribute('y', String(mapY(0) - 6));
     xl.setAttribute('text-anchor', 'end');
     xl.setAttribute('fill', `${color}80`);
-    xl.setAttribute('font-size', '11');
+    xl.setAttribute('font-size', String(axisFontSize));
     xl.textContent = xLabel;
     innerG.appendChild(xl);
   }
@@ -134,7 +136,7 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
     yl.setAttribute('x', String(mapX(0) + 6));
     yl.setAttribute('y', String(-totalH / 2 + pad + 4));
     yl.setAttribute('fill', `${color}80`);
-    yl.setAttribute('font-size', '11');
+    yl.setAttribute('font-size', String(axisFontSize));
     yl.textContent = yLabel;
     innerG.appendChild(yl);
   }

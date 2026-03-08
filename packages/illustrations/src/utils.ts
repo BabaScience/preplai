@@ -83,7 +83,7 @@ export function applyEntranceAnimation(innerG: SVGGElement, entity: VisualEntity
 /** Base pixel unit at size=1. Uniform across all entity types. */
 export const VISIBILITY_BASE = 50;
 export const SIZE_CLAMP_MIN = 15;
-export const SIZE_CLAMP_MAX = 120;
+export const SIZE_CLAMP_MAX = 150;
 
 /**
  * Convert agent size (0–10 scale factor) to a usable component base unit in pixels.

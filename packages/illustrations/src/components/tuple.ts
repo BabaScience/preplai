@@ -11,7 +11,10 @@ import type { VisualEntity } from '@preplai/shared';
 export function renderTuple(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const _s = getSizeParam(entity);
+  const s = getSizeParam(entity);
+  const scale = s / 50;
+  const indexFontSize = Math.round(10 * scale);
+  const valueFontSize = Math.round(12 * scale);
   const color = entity.color ?? getCategoryColor('Tuple');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-tuple-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -45,7 +48,7 @@ export function renderTuple(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     indexText.setAttribute('y', String(-cellH / 2 - 5));
     indexText.setAttribute('text-anchor', 'middle');
     indexText.setAttribute('fill', `${color}99`);
-    indexText.setAttribute('font-size', '8');
+    indexText.setAttribute('font-size', String(indexFontSize));
     indexText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     indexText.textContent = `(${i})`;
     innerG.appendChild(indexText);
@@ -55,7 +58,7 @@ export function renderTuple(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     valueText.setAttribute('y', String(4));
     valueText.setAttribute('text-anchor', 'middle');
     valueText.setAttribute('fill', color);
-    valueText.setAttribute('font-size', '10');
+    valueText.setAttribute('font-size', String(valueFontSize));
     valueText.setAttribute('font-weight', '600');
     valueText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     valueText.textContent = String(val);

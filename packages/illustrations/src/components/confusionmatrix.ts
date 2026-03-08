@@ -49,6 +49,8 @@ export function renderConfusionMatrix(entity: VisualEntity, parentEl: SVGElement
 
   const s = getSizeParam(entity);
   const scale = s / 50;
+  const cellFontSize = Math.round(12 * scale);
+  const badgeFontSize = Math.max(8, Math.round(9 * scale));
   const baseColor = entity.color ?? getCategoryColor('ConfusionMatrix');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-cm-${baseColor.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -121,7 +123,7 @@ export function renderConfusionMatrix(entity: VisualEntity, parentEl: SVGElement
     text.setAttribute('text-anchor', 'middle');
     const textColor = cellType === 'header' ? baseColor : (cmType ? CM_COLORS[cmType] : baseColor);
     text.setAttribute('fill', textColor);
-    text.setAttribute('font-size', cellType === 'header' ? '10' : '12');
+    text.setAttribute('font-size', String(cellType === 'header' ? Math.round(10 * scale) : cellFontSize));
     text.setAttribute('font-weight', '600');
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     text.textContent = content;
@@ -133,7 +135,7 @@ export function renderConfusionMatrix(entity: VisualEntity, parentEl: SVGElement
       badge.setAttribute('y', String(y - height / 2 + 9));
       badge.setAttribute('text-anchor', 'start');
       badge.setAttribute('fill', textColor);
-      badge.setAttribute('font-size', '7');
+      badge.setAttribute('font-size', String(badgeFontSize));
       badge.setAttribute('font-weight', '500');
       badge.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       badge.setAttribute('opacity', '0.9');

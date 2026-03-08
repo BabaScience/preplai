@@ -22,14 +22,19 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('CodeBlock');
   const meta = entity.metadata ?? {};
   const code = (meta.code as string) ?? entity.textContent ?? '';
   const lines = (meta.lines as string[]) ?? code.split('\n');
 
-  const totalW = s * 7; // Wide enough for ~80 chars per line (10px monospace)
+  const totalW = s * 7; // Wide enough for ~80 chars per line
   const totalH = s * 2;
   const lineNumColW = 32;
+  const titleFontSize = Math.max(12, Math.round(12 * scale));
+  const lineNumFontSize = Math.max(12, Math.round(12 * scale));
+  const codeFontSize = Math.max(13, Math.round(13 * scale));
+  const lineHeight = Math.max(16, Math.round(16 * scale));
 
   // ── Clip path to prevent content overflow
   const defs = ensureDefs(parentEl);
@@ -95,7 +100,8 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
   // ── File name in title bar (truncate if too long)
   if (entity.label) {
     const titleAreaWidth = totalW - 64; // leave space for dots
-    const titleMaxChars = Math.max(8, Math.floor(titleAreaWidth / 6));
+    const titleCharWidth = titleFontSize * 0.6;
+    const titleMaxChars = Math.max(8, Math.floor(titleAreaWidth / titleCharWidth));
     const titleText =
       entity.label.length <= titleMaxChars
         ? entity.label
@@ -105,7 +111,7 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
     title.setAttribute('y', String(-totalH / 2 + 16));
     title.setAttribute('text-anchor', 'middle');
     title.setAttribute('fill', '#ffffff80');
-    title.setAttribute('font-size', '10');
+    title.setAttribute('font-size', String(titleFontSize));
     title.setAttribute('font-family', TYPOGRAPHY.fontCode);
     title.textContent = titleText;
     innerG.appendChild(title);
@@ -121,12 +127,11 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
   innerG.appendChild(lineNumBg);
 
   // ── Code lines (truncate long lines to prevent overflow)
-  const lineHeight = 14;
   const startY = -totalH / 2 + 40;
   const maxLines = Math.floor((totalH - 40) / lineHeight);
   const visibleLines = lines.slice(0, maxLines);
   const codeAreaWidth = totalW - lineNumColW - 16;
-  const charWidth = 6; // ~0.6em for 10px monospace
+  const charWidth = codeFontSize * 0.6; // ~0.6em for monospace
   const maxCharsPerLine = Math.max(10, Math.floor(codeAreaWidth / charWidth));
 
   const truncateLine = (text: string): string => {
@@ -140,7 +145,7 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
     lineNum.setAttribute('x', String(-totalW / 2 + 12));
     lineNum.setAttribute('y', String(startY + i * lineHeight));
     lineNum.setAttribute('fill', '#ffffff30');
-    lineNum.setAttribute('font-size', '10');
+    lineNum.setAttribute('font-size', String(lineNumFontSize));
     lineNum.setAttribute('font-family', TYPOGRAPHY.fontCode);
     lineNum.textContent = String(i + 1);
     innerG.appendChild(lineNum);
@@ -150,7 +155,7 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
     codeLine.setAttribute('x', String(-totalW / 2 + lineNumColW + 8));
     codeLine.setAttribute('y', String(startY + i * lineHeight));
     codeLine.setAttribute('fill', color);
-    codeLine.setAttribute('font-size', '10');
+    codeLine.setAttribute('font-size', String(codeFontSize));
     codeLine.setAttribute('font-family', TYPOGRAPHY.fontCode);
     codeLine.textContent = truncateLine(line);
     innerG.appendChild(codeLine);

@@ -20,6 +20,9 @@ export function renderCacheHierarchy(entity: VisualEntity, parentEl: SVGElement)
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
+  const labelFontSize = Math.round(14 * scale);
+  const sublabelFontSize = Math.round(11 * scale);
   const color = entity.color ?? getCategoryColor('CacheHierarchy');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-ch-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -55,7 +58,7 @@ export function renderCacheHierarchy(entity: VisualEntity, parentEl: SVGElement)
     text.setAttribute('y', String(y + (sublabel ? -2 : 4)));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', '12');
+    text.setAttribute('font-size', String(labelFontSize));
     text.setAttribute('font-weight', '600');
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     text.textContent = label;
@@ -67,7 +70,7 @@ export function renderCacheHierarchy(entity: VisualEntity, parentEl: SVGElement)
       sub.setAttribute('y', String(y + 10));
       sub.setAttribute('text-anchor', 'middle');
       sub.setAttribute('fill', `${color}99`);
-      sub.setAttribute('font-size', '9');
+      sub.setAttribute('font-size', String(sublabelFontSize));
       sub.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       sub.textContent = sublabel;
       innerG.appendChild(sub);

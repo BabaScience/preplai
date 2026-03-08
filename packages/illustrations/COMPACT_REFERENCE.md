@@ -95,3 +95,7 @@ Token-saving reference for agents. Use short keys and aliases when building `add
 ## No Metadata (use entity fields only)
 
 Server, Database, User, Cloud, Service, API, APIGateway, Cache, Concept, Cycle, DNSResolver, Label, H1, H2, H3, Arrow, DataFlow — use `id`, `type`, `position`, `label` (or `metadata.label`), `color`, `size`.
+
+## Size for readability
+
+Use `sz` 2.5–3 for text-heavy types (CodeBlock, Definition, Callout, StepList, CallStack, HashTable) so content is readable. Default sz 2 is fine for icons (Server, Database, Cloud).

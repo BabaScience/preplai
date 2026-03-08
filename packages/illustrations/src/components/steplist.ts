@@ -89,7 +89,7 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
       num.setAttribute('y', String(y + 4));
       num.setAttribute('text-anchor', 'middle');
       num.setAttribute('fill', isCurrent ? color : 'white');
-      num.setAttribute('font-size', '11');
+      num.setAttribute('font-size', String(Math.round(12 * scale)));
       num.setAttribute('font-weight', '600');
       num.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       num.textContent = String(i + 1);
@@ -101,7 +101,7 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
     text.setAttribute('y', String(y + 4));
     text.setAttribute('text-anchor', 'start');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeBadge + 1));
+    text.setAttribute('font-size', String(Math.round(13 * scale)));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = truncateStepLabel(step);
     scaleGroup.appendChild(text);
