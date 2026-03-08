@@ -12,6 +12,7 @@ import {
   getStrokeWidth,
   getLabelFontSize,
   TYPOGRAPHY,
+  LABEL_DEFAULTS,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -51,6 +52,11 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
   const scaleGroup = document.createElementNS(SVG_NS, 'g');
   scaleGroup.setAttribute('transform', `scale(${scale})`);
 
+  const numFontSize = getLabelFontSize('label', 1) / scale;
+  const stepFontSize = getLabelFontSize('title', 1) / scale;
+  const titleFontSize = getLabelFontSize('title', 1) / scale;
+  const textOffsetY = LABEL_DEFAULTS.hubOffsetY;
+
   visibleSteps.forEach((step, i) => {
     const y = startY + i * stepH;
     const isCompleted = checkmarks && currentStep >= 0 && i < currentStep;
@@ -81,7 +87,7 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
 
     if (isCompleted) {
       const check = document.createElementNS(SVG_NS, 'path');
-      check.setAttribute('d', `M ${leftX - 5} ${y + 4} L ${leftX - 2} ${y} L ${leftX + 6} ${y - 4}`);
+      check.setAttribute('d', `M ${leftX - 5} ${y + textOffsetY} L ${leftX - 2} ${y} L ${leftX + 6} ${y - 4}`);
       check.setAttribute('fill', 'none');
       check.setAttribute('stroke', 'white');
       check.setAttribute('stroke-width', String(getStrokeWidth('default', 1)));
@@ -91,11 +97,11 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
     } else {
       const num = document.createElementNS(SVG_NS, 'text');
       num.setAttribute('x', String(leftX));
-      num.setAttribute('y', String(y + 4));
+      num.setAttribute('y', String(y + textOffsetY));
       num.setAttribute('text-anchor', 'middle');
       num.setAttribute('fill', isCurrent ? color : 'white');
-      num.setAttribute('font-size', String(Math.round(12 * scale)));
-      num.setAttribute('font-weight', '600');
+      num.setAttribute('font-size', String(numFontSize));
+      num.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
       num.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       num.textContent = String(i + 1);
       scaleGroup.appendChild(num);
@@ -103,10 +109,11 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
 
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', String(DESIGN_TEXT_LEFT));
-    text.setAttribute('y', String(y + 4));
+    text.setAttribute('y', String(y + textOffsetY));
     text.setAttribute('text-anchor', 'start');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(getLabelFontSize('value', scale)));
+    text.setAttribute('font-size', String(stepFontSize));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = truncateStepLabel(step);
     scaleGroup.appendChild(text);
@@ -118,7 +125,7 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
     title.setAttribute('y', String(startY - 20));
     title.setAttribute('text-anchor', 'start');
     title.setAttribute('fill', color);
-    title.setAttribute('font-size', String(getLabelFontSize('title', scale)));
+    title.setAttribute('font-size', String(titleFontSize));
     title.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightTitle));
     title.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     title.textContent = entity.label;

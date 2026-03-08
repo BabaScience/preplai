@@ -119,7 +119,7 @@ export function renderRecursionTree(entity: VisualEntity, parentEl: SVGElement):
   const dx = s * 1.1;
   const dy = s * 0.7;
   const nodeRadius = 10 * scale;
-  const blockW = s * 1.4;
+  const blockW = s * 0.95;
   const blockH = 32;
   const { nodes, edges: layoutEdges } = layoutMultiChildTree(tree, 0, -s / 4, dx, dy, { nodeRadius });
 
@@ -156,7 +156,7 @@ export function renderRecursionTree(entity: VisualEntity, parentEl: SVGElement):
     rect.setAttribute('stroke', color);
     rect.setAttribute('stroke-width', String(getStrokeWidth(isExecuting ? 'emphasized' : 'thin', scale)));
     if (isPending) {
-      rect.setAttribute('opacity', String(OPACITY.strokeSoft));
+      rect.setAttribute('opacity', '0.9');
       rect.setAttribute('stroke-dasharray', '4,4');
     }
     if (isExecuting) {
@@ -172,7 +172,7 @@ export function renderRecursionTree(entity: VisualEntity, parentEl: SVGElement):
     text.setAttribute('x', String(n.x));
     text.setAttribute('y', String(n.y - (returnLabel ? 2 : 0)));
     text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', isPending ? colorWithAlpha(color, OPACITY.strokeSoft) : color);
+    text.setAttribute('fill', isPending ? colorWithAlpha(color, 'cc') : color);
     text.setAttribute('font-size', String(labelFontSize));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);

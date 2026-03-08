@@ -64,7 +64,7 @@ export const KNOWN_ENTITY_TYPES: ReadonlySet<string> = new Set([
   'BidirectArrow', 'DottedArrow',
   // Abstract / Universal (12)
   'Concept', 'Entity', 'Group', 'Label', 'Comparison',
-  'Timeline', 'Metric', 'Cycle', 'Stack', 'Tree',
+  'Timeline', 'Metric', 'Cycle', 'Stack',
   'Badge', 'Quote',
   // Headings (3)
   'H1', 'H2', 'H3',
@@ -88,8 +88,8 @@ export const KNOWN_ENTITY_TYPES: ReadonlySet<string> = new Set([
   'CPU', 'Register', 'MemoryBlock', 'LogicGate', 'Bus',
   // Operating Systems (3)
   'ProcessBlock', 'MemoryMap', 'Thread',
-  // Networking (2)
-  'Packet', 'ProtocolStack',
+  // Networking (1)
+  'Packet',
   // Machine Learning (1)
   'NeuralNetwork',
 ]);

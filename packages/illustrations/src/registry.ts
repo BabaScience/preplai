@@ -44,14 +44,16 @@ import { renderH1, renderH2, renderH3 } from './components/heading.js';
 import { renderStack } from './components/stack.js';
 import { renderArray } from './components/array.js';
 import { renderArrayCell } from './components/arraycell.js';
+import { renderSortAnimation } from './components/sortanimation.js';
 import { renderLinkedList } from './components/linkedlist.js';
 import { renderBinaryTree } from './components/binarytree.js';
 import { renderHashTable } from './components/hashtable.js';
+import { renderTable } from './components/table.js';
+import { renderThread } from './components/thread.js';
 import { renderQueue } from './components/queue.js';
 import { renderDecorator } from './components/decorator.js';
 import { renderDNSResolver } from './components/dnsresolver.js';
 import { renderVolume } from './components/volume.js';
-import { renderTmpfs } from './components/tmpfs.js';
 import { renderList } from './components/list.js';
 import { renderTuple } from './components/tuple.js';
 import { renderSet } from './components/set.js';
@@ -76,7 +78,10 @@ import { renderFirewall } from './components/firewall.js';
 import { renderCPU } from './components/cpu.js';
 import { renderEntityNode } from './components/entity.js';
 import { renderFlowDiagram } from './components/flowdiagram.js';
+import { renderVennDiagram } from './components/venndiagram.js';
 import { renderFreeBodyDiagram } from './components/freebodydiagram.js';
+import { renderVector } from './components/vector.js';
+import { renderWave } from './components/wave.js';
 import { renderFSM } from './components/fsm.js';
 import { renderHeap } from './components/heap.js';
 import { renderHistogram } from './components/histogram.js';
@@ -90,11 +95,11 @@ import { renderPieChart } from './components/piechart.js';
 import { renderPipelineStage } from './components/pipelinestage.js';
 import { renderPod } from './components/pod.js';
 import { renderProcess } from './components/process.js';
-import { renderProtocolLayer } from './components/protocollayer.js';
 import { renderRecursionTree } from './components/recursiontree.js';
 import { renderScatterPlot } from './components/scatterplot.js';
 import { renderSemaphore } from './components/semaphore.js';
 import { renderSubnet } from './components/subnet.js';
+import { renderTuringMachine } from './components/turingmachine.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -106,20 +111,13 @@ const generic = (type: string, shape: 'rect' | 'circle' | 'diamond' | 'hexagon' 
 
 const infraGeneric = generic('Service');
 const infraOrg = generic('Queue');  // fallback only; renderQueue used
-const univGrn = generic('Tree');
 const univBcd = generic('Group');
 const univRed = generic('Badge');
-const physBcd = generic('Wave');
-const physPnk = generic('Vector');
-const dsGrn = generic('LinkedList');
 const dsOrg = generic('HashTable');  // fallback only; renderHashTable used
 const dsPrp = generic('BinaryTree');
 const csArchGrn = generic('LogicGate');
-const osGrn = generic('Thread');
-const netOrg = generic('ProtocolStack');
 
 const decisionDiamond = generic('Decision', 'diamond');
-const circleCache = generic('StateNode', 'circle');
 const circleCluster = generic('Cluster', 'circle');
 
 /**
@@ -149,7 +147,6 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Volume: renderVolume,
   DNSResolver: renderDNSResolver,
   Decorator: renderDecorator,
-  Tmpfs: renderTmpfs,
   DockerImage: renderDockerImage,
   DockerRegistry: renderDockerRegistry,
   Monitor: renderMonitor,
@@ -175,7 +172,6 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Metric: renderMetric,
   Cycle: renderCycle,
   Stack: renderStack,
-  Tree: univGrn,
   Badge: renderBadge,
   Quote: renderQuote,
 
@@ -188,15 +184,15 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Physics
   FreeBodyDiagram: renderFreeBodyDiagram,
-  Wave: physBcd,
-  Vector: physPnk,
+  Vector: renderVector,
+  Wave: renderWave,
 
   // ── General Purpose
-  Table: infraGeneric,
+  Table: renderTable,
   Histogram: renderHistogram,
   PieChart: renderPieChart,
   FlowDiagram: renderFlowDiagram,
-  VennDiagram: infraGeneric,
+  VennDiagram: renderVennDiagram,
   Annotation: renderAnnotation,
   BarChart: renderBarChart,
   ScatterPlot: renderScatterPlot,
@@ -216,7 +212,6 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   HashTable: renderHashTable,
   Dict: renderHashTable,
   Heap: renderHeap,
-  Trie: dsGrn,
   List: renderList,
   Tuple: renderTuple,
   Set: renderSet,
@@ -227,8 +222,6 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Automata & Theory
   FSM: renderFSM,
-  StateNode: circleCache,
-  Transition: infraGeneric,  // Special: needs source/target, handled like Arrow
 
   // ── Computer Architecture
   CPU: renderCPU,
@@ -241,7 +234,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   GanttChart: renderGanttChart,
   DeadlockGraph: renderDeadlockGraph,
   MemoryMap: renderMemoryMap,
-  Thread: osGrn,
+  Thread: renderThread,
 
   // ── Architecture
   CacheHierarchy: renderCacheHierarchy,
@@ -250,7 +243,6 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Networking
   Packet: renderPacket,
-  ProtocolStack: netOrg,
 
   // ── Machine Learning
   NeuralNetwork: renderNeuralNetwork,
@@ -261,21 +253,16 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   SymbolTable: infraGeneric,
 
   // ── Databases
-  QueryPlan: infraGeneric,
-
   // ── Concurrency
   Semaphore: renderSemaphore,
   Mutex: generic('Mutex'),
 
-  // ── Networking extended
-  ProtocolLayer: renderProtocolLayer,
-
   // ── Theory
-  TuringMachine: generic('TuringMachine'),
+  TuringMachine: renderTuringMachine,
   BigO: renderBigO,
 
   // ── Algorithms extended
-  SortAnimation: generic('SortAnimation'),
+  SortAnimation: renderSortAnimation,
 };
 
 /**
@@ -298,13 +285,12 @@ export function renderEntity(
     return null;
   }
 
-  // Arrow, BidirectArrow, DottedArrow, DataFlow, Transition, Bus need position resolution
+  // Arrow, BidirectArrow, DottedArrow, DataFlow, Bus need position resolution
   if (
     entity.type === 'Arrow' ||
     entity.type === 'BidirectArrow' ||
     entity.type === 'DottedArrow' ||
     entity.type === 'DataFlow' ||
-    entity.type === 'Transition' ||
     entity.type === 'Bus'
   ) {
     // Cast to extended signature

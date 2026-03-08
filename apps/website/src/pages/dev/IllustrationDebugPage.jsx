@@ -5,12 +5,12 @@ import { METADATA_DEFAULTS, ENTITY_FIELD_DEFAULTS } from './entity-defaults';
 import IllustrationPreview from './IllustrationPreview';
 import EntityParamPanel from './EntityParamPanel';
 
-const EXCLUDED_TYPES = new Set(['Label', 'GraphDS', 'GraphTraversal', 'LogicGate', 'Mutex', 'NumberLine', 'ProcessBlock', 'Proof', 'Register', 'Registry']);
+const EXCLUDED_TYPES = new Set(['Label', 'GraphDS', 'GraphTraversal', 'LogicGate', 'Mutex', 'NumberLine', 'ProcessBlock', 'Proof', 'QueryPlan', 'Register', 'Registry', 'StateNode']);
 const ENTITY_TYPES = Object.keys(registry)
   .filter((type) => !EXCLUDED_TYPES.has(type))
   .sort();
 
-const CONNECTION_TYPES = new Set(['Arrow', 'DataFlow', 'Transition', 'Bus']);
+const CONNECTION_TYPES = new Set(['Arrow', 'DataFlow', 'Bus']);
 
 const STORAGE_KEY = 'preplai-illustration-debug-reviewed';
 

@@ -58,6 +58,24 @@ export const METADATA_DEFAULTS = {
       ['key3', 'value3'],
     ],
   },
+  Table: {
+    headers: ['Name', 'Type', 'Value'],
+    rows: [
+      ['id', 'int', '42'],
+      ['name', 'str', 'Alice'],
+      ['active', 'bool', 'true'],
+    ],
+  },
+  Thread: {
+    status: 'running',
+  },
+  Timeline: {
+    events: [
+      { label: 'Start', position: 0.2 },
+      { label: 'Process', position: 0.5 },
+      { label: 'End', position: 0.8 },
+    ],
+  },
   Dict: {
     pairs: [
       ['name', 'Alice'],
@@ -155,6 +173,24 @@ export const METADATA_DEFAULTS = {
       { label: 'N', angle: 270, magnitude: 1 },
     ],
   },
+  Vector: {
+    dx: 3,
+    dy: 2,
+    label: 'v⃗',
+    showMagnitude: false,
+  },
+  Wave: {
+    frequency: 2,
+    amplitude: 20,
+    phase: 0,
+    waveType: 'sine',
+  },
+  VennDiagram: {
+    sets: [
+      { label: 'A', color: '#00bcd4' },
+      { label: 'B', color: '#9B59B6' },
+    ],
+  },
   FlowDiagram: {
     steps: [
       { label: 'Start', type: 'default' },
@@ -208,6 +244,13 @@ export const METADATA_DEFAULTS = {
     swapIndexes: [],
     doneIndexes: [0],
   },
+  SortAnimation: {
+    values: [5, 2, 8, 1, 9, 3],
+    selectedIndexes: [2],
+    compareIndexes: [1, 2],
+    swapIndexes: [],
+    doneIndexes: [0],
+  },
   ArrayCell: {
     value: '42',
     index: 3,
@@ -219,6 +262,11 @@ export const METADATA_DEFAULTS = {
   BigO: {
     curves: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)'],
     domain: [0, 10],
+  },
+  TuringMachine: {
+    tape: ['a', 'b', '_', 'a', 'b', '_'],
+    headPosition: 2,
+    state: 'q0',
   },
   StepList: {
     steps: ['Parse', 'Validate', 'Transform', 'Output'],
@@ -290,10 +338,6 @@ export const METADATA_DEFAULTS = {
     label: 'Build',
     status: 'pending',
   },
-  ProtocolLayer: {
-    label: 'Transport',
-    protocol: 'TCP',
-  },
   Quote: {
     label: 'The only way to do great work is to love what you do.',
     author: '— Steve Jobs',
@@ -311,6 +355,9 @@ export const METADATA_DEFAULTS = {
   },
   Set: {
     values: ['a', 'b', 'c', 'd'],
+  },
+  Tuple: {
+    values: [1, 2, 3, 4, 5],
   },
   ScatterPlot: {
     domain: [-5, 5],
@@ -358,13 +405,18 @@ export const METADATA_DEFAULTS = {
 export const ENTITY_FIELD_DEFAULTS = {
   Entity: { label: 'Thing' },
   FlowDiagram: { size: 2 },
+  VennDiagram: { size: 2 },
   FreeBodyDiagram: { size: 2 },
+  Vector: { size: 2 },
+  Wave: { size: 2 },
   Service: { label: 'Auth Service' },
   Decision: { label: '?' },
   Equation: { expression: 'E = mc²' },
   Expression: { expression: 'f(x) = x^2' },
   Comparison: { label: 'Array vs LinkedList' },
   BigO: { size: 2 },
+  SortAnimation: { size: 2 },
+  TuringMachine: { size: 2 },
   NeuralNetwork: { size: 2 },
   CoordinateSystem: { size: 2 },
   ScatterPlot: { size: 2 },
@@ -374,6 +426,10 @@ export const ENTITY_FIELD_DEFAULTS = {
   BTree: { size: 2.5 },
   HashTable: { size: 2 },
   Dict: { size: 2 },
+  Table: { size: 2 },
+  Thread: { size: 2 },
+  Timeline: { size: 2 },
+  Tuple: { size: 2 },
   CodeBlock: {
     textContent: 'function fib(n) {\n  if (n <= 1) return n;\n  return fib(n-1) + fib(n-2);\n}',
     codeLanguage: 'javascript',

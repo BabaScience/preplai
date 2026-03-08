@@ -188,7 +188,6 @@ export const ENTITY_COLORS: Record<string, string> = {
   Metric: COLORS.pink,
   Cycle: COLORS.teal,
   Stack: COLORS.violet,
-  Tree: COLORS.green,
   Badge: COLORS.red,
   Quote: COLORS.violet,
   // Math & Science
@@ -248,7 +247,6 @@ export const ENTITY_COLORS: Record<string, string> = {
   Thread: COLORS.green,
   // Networking
   Packet: COLORS.cyan,
-  ProtocolStack: COLORS.orange,
   // ML
   NeuralNetwork: COLORS.violet,
   // Compilers & PL
@@ -268,8 +266,6 @@ export const ENTITY_COLORS: Record<string, string> = {
   // Concurrency
   Semaphore: COLORS.orange,
   Mutex: COLORS.red,
-  // Networking extended
-  ProtocolLayer: COLORS.teal,
   // Theory
   TuringMachine: COLORS.violet,
   BigO: COLORS.gold,

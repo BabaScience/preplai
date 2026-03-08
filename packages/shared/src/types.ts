@@ -24,7 +24,7 @@ export type VisualEntityType =
   | 'Concept' | 'Entity' | 'Group' | 'Label' | 'Comparison'
   // Headings (3)
   | 'H1' | 'H2' | 'H3'
-  | 'Timeline' | 'Metric' | 'Cycle' | 'Stack' | 'Tree'
+  | 'Timeline' | 'Metric' | 'Cycle' | 'Stack'
   | 'Badge' | 'Quote'
   // Math & Science (6)
   | 'Equation' | 'Expression' | 'Matrix' | 'Graph2D'
@@ -47,8 +47,8 @@ export type VisualEntityType =
   | 'CPU' | 'Register' | 'MemoryBlock' | 'LogicGate' | 'Bus'
   // Operating Systems (3)
   | 'ProcessBlock' | 'MemoryMap' | 'Thread'
-  // Networking (2)
-  | 'Packet' | 'ProtocolStack'
+  // Networking (1)
+  | 'Packet'
   // Machine Learning (1)
   | 'NeuralNetwork'
   // Compilers & PL (4)
@@ -61,8 +61,6 @@ export type VisualEntityType =
   | 'CacheHierarchy' | 'PipelineStage' | 'MemoryLayout'
   // Concurrency (2)
   | 'Semaphore' | 'Mutex'
-  // Networking extended (2)
-  | 'ProtocolLayer'
   // Theory (2)
   | 'TuringMachine' | 'BigO'
   // Algorithms extended (2)

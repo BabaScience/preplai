@@ -139,7 +139,7 @@ Topic → Preferred type:
 
 PREFER dedicated types (rich visuals): Server, Service (metadata.kind for API/Service/APIGateway), Database, Cache, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, StepList, ProcessState, GanttChart, BarChart, BigO, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Timeline, Definition, Callout, Analogy, Comparison, Proof, H1, H2, H3.
 
-AVOID generic fallbacks when possible: Entity, Group, Tree, FSM, NeuralNetwork — these render as plain rounded rects.
+AVOID generic fallbacks when possible: Entity, Group, FSM, NeuralNetwork — these render as plain rounded rects.
 
 WHEN IN DOUBT: API/endpoint → Service with metadata.kind: "API". Microservice → Service with metadata.kind: "Service". API gateway → Service with metadata.kind: "APIGateway". Key-value → HashTable. Binary tree → BinaryTree. Multi-way tree → BTree. Code snippet → CodeBlock. Abstract idea → Concept. Loop/lifecycle → Cycle. Vectors/coordinates → CoordinateSystem. Function plot → Graph2D. Flow between components → Arrow or DataFlow. Indexed data → Array. Caching layer → Cache. Step-by-step procedure → StepList. "X is like Y" → Analogy.
 
@@ -177,7 +177,7 @@ METADATA (required for correct rendering):
 Graph2D: metadata.domain = [xMin, xMax], metadata.range = [yMin, yMax] (or xRange/yRange), metadata.xLabel?, metadata.yLabel?, metadata.showGrid? (default true). Modes: (1) expression = "x * x" for y=f(x); (2) parametric=true with xExpression, yExpression, tRange for x(t),y(t); (3) curveType="roc" with points=[{x:FPR,y:TPR},...]; (4) curveType="loss" with points=[{x:epoch,y:loss},...]; (5) curveType="scatter" or omit with points=[{x,y},...]. Curves are clipped to chart area.
 
 GENERIC (use only if no dedicated type fits — render as rounded rectangles):
-  Entity, Group, Tree, FSM, NeuralNetwork, Process, Queue, Service, CPU, Register, MemoryBlock, Packet, ProtocolStack, Semaphore, Mutex, TuringMachine, SortAnimation, GraphTraversal, and more.
+  Entity, Group, FSM, NeuralNetwork, Process, Queue, Service, CPU, Register, MemoryBlock, Packet, Semaphore, Mutex, TuringMachine, SortAnimation, GraphTraversal, and more.
 
 Connection types (rendered as arrows with glow and animated flow):
   Arrow, DataFlow (fast animated dashes), BidirectArrow, DottedArrow, Transition, Bus

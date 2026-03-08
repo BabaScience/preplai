@@ -62,7 +62,7 @@ describe('registry', () => {
       'Cache', 'LoadBalancer', 'Service', 'Firewall',
       'Lambda', 'Subnet', 'Volume', 'Monitor', 'Pipeline',
       'Decision', 'Cluster',
-      'DNSResolver', 'Decorator', 'Tmpfs',
+      'DNSResolver', 'Decorator',
       'DockerImage', 'DockerRegistry',
     ];
     for (const type of infraTypes) {
@@ -73,7 +73,7 @@ describe('registry', () => {
   it('should have all universal types registered', () => {
     const types = [
       'Concept', 'Entity', 'Group', 'Comparison',
-      'Timeline', 'Metric', 'Cycle', 'Stack', 'Tree', 'Badge', 'Quote',
+      'Timeline', 'Metric', 'Cycle', 'Stack', 'Badge', 'Quote',
     ];
     for (const type of types) {
       expect(typeof registry[type], `registry['${type}'] should be a function`).toBe('function');
@@ -83,7 +83,7 @@ describe('registry', () => {
   it('should have all data structure types registered', () => {
     const types = [
       'Array', 'LinkedList', 'BinaryTree', 'BTree', 'HashTable', 'Dict',
-      'Heap', 'Trie', 'List', 'Tuple', 'Set',
+      'Heap', 'List', 'Tuple', 'Set',
     ];
     for (const type of types) {
       expect(typeof registry[type], `registry['${type}'] should be a function`).toBe('function');
@@ -93,15 +93,15 @@ describe('registry', () => {
   it('should have all CS-specific types registered', () => {
     const types = [
       'ArrayCell', 'RecursionTree',
-      'FSM', 'StateNode', 'Transition',
+      'FSM',
       'CPU', 'MemoryBlock', 'LogicGate', 'Bus',
       'ProcessState', 'GanttChart', 'DeadlockGraph',
       'MemoryMap', 'Thread',
       'CacheHierarchy', 'PipelineStage', 'MemoryLayout',
-      'Packet', 'ProtocolStack',
+      'Packet',
       'NeuralNetwork', 'ConfusionMatrix',
-      'CallStack', 'SymbolTable', 'QueryPlan',
-      'Semaphore', 'Mutex', 'ProtocolLayer',
+      'CallStack', 'SymbolTable',
+      'Semaphore', 'Mutex',
       'TuringMachine', 'BigO', 'SortAnimation',
     ];
     for (const type of types) {
