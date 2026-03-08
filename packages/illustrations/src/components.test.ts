@@ -284,8 +284,9 @@ describe('renderArrow', () => {
     });
     const result = renderArrow(arrow, allEntities, parentEl);
     expect(result).not.toBeNull();
-    const line = parentEl.querySelector('line');
-    expect(line).toBeTruthy();
+    const path = parentEl.querySelector('path');
+    expect(path).toBeTruthy();
+    expect(path!.getAttribute('d')).toBeTruthy();
   });
 
   it('should set correct x1/y1 and x2/y2 from source/target positions (edge-to-edge)', () => {
@@ -296,13 +297,20 @@ describe('renderArrow', () => {
       targetEntityId: 'tgt',
     });
     renderArrow(arrow, allEntities, parentEl);
-    const line = parentEl.querySelector('line')!;
-    // Arrows connect at entity edges, not centers. With default size 2.5, entities are larger.
-    // Source exit (right edge): ~534, target entry (left edge): ~1386
-    expect(Number(line.getAttribute('x1'))).toBeGreaterThan(384);
-    expect(Number(line.getAttribute('x1'))).toBeLessThanOrEqual(560);
-    expect(Number(line.getAttribute('x2'))).toBeLessThan(1536);
-    expect(Number(line.getAttribute('x2'))).toBeGreaterThanOrEqual(1380);
+    const path = parentEl.querySelector('path')!;
+    expect(path).toBeTruthy();
+    const d = path.getAttribute('d')!;
+    // Path format: M x1 y1 L x2 y2 or M x1 y1 Q cx cy x2 y2
+    const nums = d.match(/[\d.]+/g);
+    expect(nums).toBeTruthy();
+    expect(nums!.length).toBeGreaterThanOrEqual(4);
+    const x1 = Number(nums![0]);
+    const x2 = Number(nums![nums!.length - 2]);
+    // Arrows connect at entity edges, not centers. Source exit (right edge): ~534, target entry (left edge): ~1386
+    expect(x1).toBeGreaterThan(384);
+    expect(x1).toBeLessThanOrEqual(560);
+    expect(x2).toBeLessThan(1536);
+    expect(x2).toBeGreaterThanOrEqual(1380);
   });
 
   it('should return null when source is not resolvable', () => {
@@ -363,9 +371,9 @@ describe('renderDataFlow', () => {
     });
     const result = renderDataFlow(df, allEntities, parentEl);
     expect(result).not.toBeNull();
-    const line = parentEl.querySelector('line');
-    expect(line).toBeTruthy();
-    expect(line!.getAttribute('stroke-dasharray')).toBeTruthy();
+    const path = parentEl.querySelector('path');
+    expect(path).toBeTruthy();
+    expect(path!.getAttribute('stroke-dasharray')).toBeTruthy();
   });
 
   it('should include SMIL animation element', () => {

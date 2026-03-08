@@ -1,77 +1,79 @@
 import { Link } from 'react-router-dom';
-import { Cpu, Film, LinkIcon } from 'lucide-react';
+import { Cpu, Film, LinkIcon, Zap, Layers, Mic } from 'lucide-react';
 import LandingLayout from '../layouts/LandingLayout';
 import Logo from '../components/Logo';
+import HeroPlayer from '../components/HeroPlayer';
+import ShowcasePlayer from '../components/ShowcasePlayer';
+import { CS_SCRIPT, ARCH_SCRIPT, AGENT_SCRIPT } from '../components/showcase-scripts';
 
 export default function Landing() {
   return (
     <LandingLayout>
-      {/* Hero */}
-      <section className="hero-section">
-        <div className="hero-inner">
-          <div className="hero-text">
+      {/* Hero — Dark cinematic section */}
+      <section className="hero-cinema">
+        <div className="hero-cinema-bg" aria-hidden="true">
+          <div className="hero-dot-grid" />
+          <div className="hero-glow hero-glow-1" />
+          <div className="hero-glow hero-glow-2" />
+          <div className="hero-glow hero-glow-3" />
+        </div>
+        <div className="hero-cinema-inner">
+          <div className="hero-cinema-text">
             <h1 className="hero-fade-in hero-fade-in-delay-1">
               Cinema-quality<br />
               presentations.<br />
-              <span className="gold">Built for AI agents.</span>
+              <span className="hero-accent">Built for AI agents.</span>
             </h1>
-            <p className="hero-sub hero-fade-in hero-fade-in-delay-2">
+            <p className="hero-cinema-sub hero-fade-in hero-fade-in-delay-2">
               The presentation API for AI agents. Claude, ChatGPT, or any MCP client — one access token,
-              eight tools. Live, animated, voice-synced. Not slides. Cinema.
+              ten tools. Live, animated, voice-synced. Not slides. Cinema.
             </p>
             <div className="hero-ctas hero-fade-in hero-fade-in-delay-3">
               <Link to="/signup" className="btn btn-primary btn-lg">Get Access Token</Link>
-              <Link to="/docs" className="btn btn-ghost btn-lg">
-                View Docs
-              </Link>
+              <Link to="/docs" className="btn btn-ghost-light btn-lg">View Docs</Link>
             </div>
           </div>
-          <div className="hero-terminal hero-fade-in hero-fade-in-delay-4">
-          <div className="terminal-bar">
-            <span className="terminal-dot" />
-            <span className="terminal-dot" />
-            <span className="terminal-dot" />
-            <span className="terminal-title">Any AI agent</span>
-          </div>
-          <div className="terminal-body">
-            <span className="prompt">&gt;</span>{' '}
-            <span className="cmd">Create a presentation about our Q4 results</span>
-            <br /><br />
-            <span style={{ color: 'var(--color-text-faint)' }}>Using preplai MCP server...</span><br />
-            <span style={{ color: 'var(--color-success)' }}>✓</span> Session created<br />
-            <span style={{ color: 'var(--color-success)' }}>✓</span> 5 scenes built<br />
-            <span style={{ color: 'var(--color-success)' }}>✓</span> Voice narration synced<br />
-            <br />
-            <span className="prompt">→</span>{' '}
-            <span className="cmd" style={{ color: 'var(--color-primary)' }}>
-              https://play.preplai.com/abc123
-            </span>
-          </div>
         </div>
+
+        {/* Live player — auto-playing demo (P3.1) */}
+        <div className="hero-fade-in hero-fade-in-delay-4">
+          <HeroPlayer />
         </div>
       </section>
 
-      {/* Features */}
-      <section id="features" className="section-block">
-        <div className="section-label">Features</div>
-        <h2>Built for any AI agent</h2>
-        <p className="section-desc">One MCP API. Claude, ChatGPT, or any agent — create cinema-quality presentations in seconds.</p>
-        <div className="features-grid">
-          <div className="feature-card fade-in">
-            <div className="feature-icon"><Cpu size={20} /></div>
-            <h3>MCP API</h3>
-            <p>10 tools any AI agent can call. get_preferences, get_illustrations, create_session, add_scene, get_session_url. Works with Claude, ChatGPT, and any MCP-compatible client.</p>
-          </div>
-          <div className="feature-card fade-in">
-            <div className="feature-icon"><Film size={20} /></div>
-            <h3>Cinema Quality</h3>
-            <p>1920×1080 dark canvas, smooth animations, rich entity types (Server, Database, BinaryTree, etc.). Not slides. Cinema.</p>
-          </div>
-          <div className="feature-card fade-in">
-            <div className="feature-icon"><LinkIcon size={20} /></div>
-            <h3>Shareable URLs</h3>
-            <p>Every presentation gets a unique player URL. Share instantly. No downloads. Works on any device.</p>
-          </div>
+      {/* Use-case showcases — three live player embeds (P3.2) */}
+      <section id="showcases" className="section-block showcase-section">
+        <div className="section-label">Use Cases</div>
+        <h2>See it in action</h2>
+        <p className="section-desc">Every demo below is a live Preplai presentation — the same engine your AI agent will use.</p>
+        <div className="showcase-grid">
+          <ShowcasePlayer
+            script={CS_SCRIPT}
+            label="Computer Science"
+            description="Data structures, algorithms, and complexity — explained visually with real-time animations."
+          />
+          <ShowcasePlayer
+            script={ARCH_SCRIPT}
+            label="System Architecture"
+            description="Microservices, event-driven patterns, and infrastructure — architecture that builds itself."
+          />
+          <ShowcasePlayer
+            script={AGENT_SCRIPT}
+            label="Agent Reasoning"
+            description="Watch AI agents think: reasoning pipelines, confidence metrics, and verified outputs."
+          />
+        </div>
+      </section>
+
+      {/* Capabilities strip — minimal, icon-driven (P3.3) */}
+      <section id="features" className="capabilities-strip">
+        <div className="capabilities-inner">
+          <div className="capability-item fade-in"><Cpu size={18} /><span>MCP API</span></div>
+          <div className="capability-item fade-in"><Film size={18} /><span>Cinema Quality</span></div>
+          <div className="capability-item fade-in"><Mic size={18} /><span>Voice Narration</span></div>
+          <div className="capability-item fade-in"><Layers size={18} /><span>85+ Entity Types</span></div>
+          <div className="capability-item fade-in"><LinkIcon size={18} /><span>Shareable URLs</span></div>
+          <div className="capability-item fade-in"><Zap size={18} /><span>Instant Setup</span></div>
         </div>
       </section>
 

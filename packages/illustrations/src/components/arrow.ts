@@ -237,27 +237,22 @@ export function renderArrow(
   const strokeAttrs: Record<string, string> = {
     fill: 'none',
     stroke: color,
-    'stroke-width': '2.5',
-    opacity: '0.85',
+    'stroke-width': '3',
+    opacity: '0.9',
     'marker-end': `url(#${markerId})`,
   };
   if (isBidirect) strokeAttrs['marker-start'] = `url(#${markerId})`;
   if (isDotted) strokeAttrs['stroke-dasharray'] = '6,4';
 
-  if (useCurved) {
-    const path = document.createElementNS(SVG_NS, 'path');
-    path.setAttribute('d', `M ${x1} ${y1} Q ${ctrlX} ${ctrlY} ${x2} ${y2}`);
-    for (const [k, v] of Object.entries(strokeAttrs)) path.setAttribute(k, v);
-    g.appendChild(path);
-  } else {
-    const line = document.createElementNS(SVG_NS, 'line');
-    line.setAttribute('x1', String(x1));
-    line.setAttribute('y1', String(y1));
-    line.setAttribute('x2', String(x2));
-    line.setAttribute('y2', String(y2));
-    for (const [k, v] of Object.entries(strokeAttrs)) line.setAttribute(k, v);
-    g.appendChild(line);
-  }
+  // Build the path/line element
+  const pathD = useCurved
+    ? `M ${x1} ${y1} Q ${ctrlX} ${ctrlY} ${x2} ${y2}`
+    : `M ${x1} ${y1} L ${x2} ${y2}`;
+
+  const mainLine = document.createElementNS(SVG_NS, 'path');
+  mainLine.setAttribute('d', pathD);
+  for (const [k, v] of Object.entries(strokeAttrs)) mainLine.setAttribute(k, v);
+  g.appendChild(mainLine);
 
   // Optional midpoint label (text only, no background)
   if (entity.label) {
@@ -275,10 +270,77 @@ export function renderArrow(
     g.appendChild(text);
   }
 
-  // Entrance animation (only when delay > 0; avoid opacity:0 when fadeIn keyframes missing)
-  if (entity.animation?.delay != null && entity.animation.delay > 0) {
+  // ── Draw-on animation ──
+  // Line draws itself from source → target, then arrival pulse, then idle flow
+  const delayMs = entity.animation?.delay ?? 0;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const pathLen = useCurved ? dist * 1.08 : dist;
+
+  if (delayMs > 0 && pathLen > 10) {
+    // Hide group initially, quick fade to reveal
+    g.style.opacity = '0';
+    g.style.animation = 'fadeIn 0.15s ease both';
+    g.style.animationDelay = `${delayMs}ms`;
+
+    // Draw-on: use stroke-dashoffset transition
+    mainLine.style.strokeDasharray = `${pathLen}`;
+    mainLine.style.strokeDashoffset = `${pathLen}`;
+    mainLine.style.transition = 'stroke-dashoffset 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+
+    // Phase 1: trigger draw-on
+    setTimeout(() => {
+      mainLine.style.strokeDashoffset = '0';
+    }, delayMs + 30);
+
+    // Phase 2: arrival pulse at target
+    if (dist > 40) {
+      setTimeout(() => {
+        const pulse = document.createElementNS(SVG_NS, 'circle');
+        pulse.setAttribute('cx', String(x2));
+        pulse.setAttribute('cy', String(y2));
+        pulse.setAttribute('r', '3');
+        pulse.setAttribute('fill', color);
+        pulse.setAttribute('opacity', '0');
+        const scaleAnim = document.createElementNS(SVG_NS, 'animate');
+        scaleAnim.setAttribute('attributeName', 'r');
+        scaleAnim.setAttribute('from', '3');
+        scaleAnim.setAttribute('to', '12');
+        scaleAnim.setAttribute('dur', '0.4s');
+        scaleAnim.setAttribute('begin', 'indefinite');
+        scaleAnim.setAttribute('fill', 'freeze');
+        pulse.appendChild(scaleAnim);
+        const opacAnim = document.createElementNS(SVG_NS, 'animate');
+        opacAnim.setAttribute('attributeName', 'opacity');
+        opacAnim.setAttribute('values', '0;0.5;0');
+        opacAnim.setAttribute('keyTimes', '0;0.25;1');
+        opacAnim.setAttribute('dur', '0.4s');
+        opacAnim.setAttribute('begin', 'indefinite');
+        opacAnim.setAttribute('fill', 'freeze');
+        pulse.appendChild(opacAnim);
+        g.appendChild(pulse);
+        scaleAnim.beginElement();
+        opacAnim.beginElement();
+        setTimeout(() => { if (pulse.parentNode) pulse.parentNode.removeChild(pulse); }, 500);
+      }, delayMs + 600);
+    }
+
+    // Phase 3: transition to idle flow
+    setTimeout(() => {
+      // Clear CSS transition, switch to SVG attributes for SMIL
+      mainLine.style.strokeDasharray = '';
+      mainLine.style.strokeDashoffset = '';
+      mainLine.style.transition = '';
+      // Restore original dasharray if dotted
+      if (isDotted) {
+        mainLine.setAttribute('stroke-dasharray', '6,4');
+      }
+    }, delayMs + 1200);
+  } else if (delayMs > 0) {
+    // Short arrow or fallback: simple fadeIn
     g.style.animation = 'fadeIn 0.3s ease both';
-    g.style.animationDelay = `${entity.animation.delay}ms`;
+    g.style.animationDelay = `${delayMs}ms`;
   }
 
   parentEl.appendChild(g);
@@ -327,52 +389,81 @@ export function renderDataFlow(
   g.setAttribute('id', entity.id);
   g.setAttribute('data-type', 'DataFlow');
 
+  // Build path geometry
+  let pathD: string;
   if (useCurved) {
     const midX = (x1 + x2) / 2;
     const midY = (y1 + y2) / 2;
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const ddx = x2 - x1;
+    const ddy = y2 - y1;
+    const len = Math.sqrt(ddx * ddx + ddy * ddy) || 1;
     const curvature = curvatureSign * Math.min(len * 0.3, 80);
-    const ctrlX = midX + (-dy / len) * curvature;
-    const ctrlY = midY + (dx / len) * curvature;
-    const path = document.createElementNS(SVG_NS, 'path');
-    path.setAttribute('d', `M ${x1} ${y1} Q ${ctrlX} ${ctrlY} ${x2} ${y2}`);
-    path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', color);
-    path.setAttribute('stroke-width', '4');
-    path.setAttribute('stroke-dasharray', '8,4');
-    path.setAttribute('stroke-dashoffset', '0');
-    path.setAttribute('opacity', '0.7');
-    const anim = document.createElementNS(SVG_NS, 'animate');
-    anim.setAttribute('attributeName', 'stroke-dashoffset');
-    anim.setAttribute('from', '12');
-    anim.setAttribute('to', '0');
-    anim.setAttribute('dur', '0.8s');
-    anim.setAttribute('repeatCount', 'indefinite');
-    path.appendChild(anim);
-    g.appendChild(path);
+    const ctrlX = midX + (-ddy / len) * curvature;
+    const ctrlY = midY + (ddx / len) * curvature;
+    pathD = `M ${x1} ${y1} Q ${ctrlX} ${ctrlY} ${x2} ${y2}`;
   } else {
-    const line = document.createElementNS(SVG_NS, 'line');
-    line.setAttribute('x1', String(x1));
-    line.setAttribute('y1', String(y1));
-    line.setAttribute('x2', String(x2));
-    line.setAttribute('y2', String(y2));
-    line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', '4');
-    line.setAttribute('stroke-dasharray', '8,4');
-    line.setAttribute('stroke-dashoffset', '0');
-    line.setAttribute('opacity', '0.7');
-    const anim = document.createElementNS(SVG_NS, 'animate');
-    anim.setAttribute('attributeName', 'stroke-dashoffset');
-    anim.setAttribute('from', '12');
-    anim.setAttribute('to', '0');
-    anim.setAttribute('dur', '0.8s');
-    anim.setAttribute('repeatCount', 'indefinite');
-    line.appendChild(anim);
-    g.appendChild(line);
+    pathD = `M ${x1} ${y1} L ${x2} ${y2}`;
   }
 
+  const mainLine = document.createElementNS(SVG_NS, 'path');
+  mainLine.setAttribute('d', pathD);
+  mainLine.setAttribute('fill', 'none');
+  mainLine.setAttribute('stroke', color);
+  mainLine.setAttribute('stroke-width', '4');
+  mainLine.setAttribute('stroke-dasharray', '8,4');
+  mainLine.setAttribute('stroke-dashoffset', '0');
+  mainLine.setAttribute('opacity', '0.7');
+
+  // ── Draw-on animation for DataFlow ──
+  const delayMs = entity.animation?.delay ?? 0;
+  const dx2 = x2 - x1;
+  const dy2 = y2 - y1;
+  const dist = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+  const pathLen = useCurved ? dist * 1.08 : dist;
+
+  if (delayMs > 0 && pathLen > 10) {
+    // Hide group, quick fade to reveal
+    g.style.opacity = '0';
+    g.style.animation = 'fadeIn 0.15s ease both';
+    g.style.animationDelay = `${delayMs}ms`;
+
+    // Draw-on via stroke-dashoffset
+    mainLine.setAttribute('stroke-dasharray', `${pathLen}`);
+    mainLine.setAttribute('stroke-dashoffset', `${pathLen}`);
+    mainLine.style.transition = 'stroke-dashoffset 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+
+    // Phase 1: trigger draw-on
+    setTimeout(() => {
+      mainLine.style.strokeDashoffset = '0';
+    }, delayMs + 30);
+
+    // Phase 2: transition to DataFlow dash pattern + SMIL flow
+    setTimeout(() => {
+      mainLine.style.strokeDasharray = '';
+      mainLine.style.strokeDashoffset = '';
+      mainLine.style.transition = '';
+      mainLine.setAttribute('stroke-dasharray', '8,4');
+      mainLine.setAttribute('stroke-dashoffset', '0');
+      const anim = document.createElementNS(SVG_NS, 'animate');
+      anim.setAttribute('attributeName', 'stroke-dashoffset');
+      anim.setAttribute('from', '12');
+      anim.setAttribute('to', '0');
+      anim.setAttribute('dur', '0.8s');
+      anim.setAttribute('repeatCount', 'indefinite');
+      mainLine.appendChild(anim);
+    }, delayMs + 700);
+  } else {
+    // No draw-on: immediate SMIL flow animation
+    const anim = document.createElementNS(SVG_NS, 'animate');
+    anim.setAttribute('attributeName', 'stroke-dashoffset');
+    anim.setAttribute('from', '12');
+    anim.setAttribute('to', '0');
+    anim.setAttribute('dur', '0.8s');
+    anim.setAttribute('repeatCount', 'indefinite');
+    mainLine.appendChild(anim);
+  }
+
+  g.appendChild(mainLine);
   parentEl.appendChild(g);
   return g;
 }

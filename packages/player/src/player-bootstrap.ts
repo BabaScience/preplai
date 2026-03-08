@@ -5,6 +5,7 @@
  * Connects SSE, initializes SceneController, handles frame nav and narrator.
  */
 import type { VisualScript } from '@preplai/shared';
+import type { FocusInfo } from '@preplai/player';
 import { SceneController, NarratorController, resolveSessionId, createSSEHandler } from '@preplai/player';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -93,6 +94,26 @@ function main(): void {
 
   // ── SceneController + Narrator ───────────────────────────────────
   const narrator = new NarratorController(narratorText);
+  const narratorOverlayEl = document.getElementById('narrator-overlay');
+
+  function positionNarratorSpatial(focus: FocusInfo | null): void {
+    if (!narratorOverlayEl) return;
+
+    if (focus) {
+      // Position narrator near the focused entity (above it)
+      const margin = 24;
+      const top = Math.max(16, focus.screenY - margin);
+      const left = focus.screenX;
+
+      narratorOverlayEl.classList.add('narrator-spatial');
+      narratorOverlayEl.style.setProperty('--spatial-top', `${top}px`);
+      narratorOverlayEl.style.setProperty('--spatial-left', `${left}px`);
+    } else {
+      // Return to default bottom bar
+      narratorOverlayEl.classList.remove('narrator-spatial');
+    }
+  }
+
   const sceneController = new SceneController({
     entityLayer,
     connectionLayer,
@@ -101,6 +122,7 @@ function main(): void {
       if (ttsEnabled && synth && text?.trim()) speakNarration(text);
     },
     onFrameChange: () => updateFrameCounter(),
+    onFocusChange: positionNarratorSpatial,
   });
 
   let currentScript: VisualScript | null = null;
@@ -339,6 +361,7 @@ function main(): void {
     sessionId,
     getScript: () => currentScript,
     getFrame: () => currentFrame,
+    loadScript: applyScript,
   };
 
   console.log('[PRE] Player (illustrations) initialized for session:', sessionId);

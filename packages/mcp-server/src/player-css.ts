@@ -395,6 +395,34 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   to   { stroke-dashoffset: 0; }
 }
 
+/* ── Motivated entrance @keyframes (P2.4) ───────────────────────── */
+
+@keyframes flyInFromLeft {
+  0%   { opacity: 0; transform: translateX(-120px) scale(0.92); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes flyInFromRight {
+  0%   { opacity: 0; transform: translateX(120px) scale(0.92); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes flyInFromTop {
+  0%   { opacity: 0; transform: translateY(-80px) scale(0.92); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes flyInFromBottom {
+  0%   { opacity: 0; transform: translateY(80px) scale(0.92); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes growFromPoint {
+  0%   { opacity: 0; transform: scale(0.15); }
+  60%  { opacity: 1; transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 @keyframes gentlePulse {
   0%, 100% { opacity: 0.05; }
   50%      { opacity: 0.1; }
@@ -444,6 +472,28 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   animation: pathDraw 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* ── Motivated entrance classes (P2.4) ────────────────────────── */
+
+.entrance-flyInFromLeft {
+  animation: flyInFromLeft 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.entrance-flyInFromRight {
+  animation: flyInFromRight 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.entrance-flyInFromTop {
+  animation: flyInFromTop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.entrance-flyInFromBottom {
+  animation: flyInFromBottom 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.entrance-growFromPoint {
+  animation: growFromPoint 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
 /* ── Utility classes ─────────────────────────────────────────────── */
 
 .ambient-particle {
@@ -483,6 +533,50 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 
 .entity-highlighted {
   animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* ── Depth of field (P2.2) ───────────────────────────────────────── */
+
+#entity-layer > g {
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dof-focus {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.dof-bg {
+  opacity: 0.35 !important;
+  filter: blur(1.5px) saturate(0.5) !important;
+}
+
+/* ── Spatial narrator (P2.3) ─────────────────────────────────────── */
+
+#narrator-overlay {
+  transition: opacity 0.3s ease, visibility 0.3s ease,
+              top 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              left 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              bottom 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#narrator-overlay.narrator-spatial {
+  bottom: auto;
+  top: var(--spatial-top, 50%);
+  left: var(--spatial-left, 50%);
+  right: auto;
+  transform: translate(-50%, -100%);
+  padding: 0;
+  justify-content: center;
+}
+
+#narrator-overlay.narrator-spatial #narrator-text {
+  max-width: 480px;
+  font-size: 16px;
+  padding: 14px 24px;
+  text-align: left;
 }
 
 /* ── Interactive entity hover/focus states ───────────────────────── */
@@ -561,7 +655,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 
 #progress-fill {
   height: 100%;
-  background: #6366f1;
+  background: #C9A84C;
   border-radius: 4px;
   width: 0%;
   transition: width 0.2s ease;
@@ -608,12 +702,12 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 }
 
 [data-theme="minimal"] #frame-nav button:focus-visible {
-  outline: 2px solid #6366f1;
+  outline: 2px solid #94a3b8;
 }
 
 [data-theme="minimal"] .frame-dot.current {
-  background: #6366f1;
-  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+  background: #94a3b8;
+  box-shadow: 0 0 8px rgba(148, 163, 184, 0.4);
 }
 
 [data-theme="minimal"] #progress-bar {
@@ -622,7 +716,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 }
 
 [data-theme="minimal"] #progress-fill {
-  background: #6366f1;
+  background: #94a3b8;
 }
 
 [data-theme="minimal"] #dot-grid,
@@ -633,5 +727,147 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 
 [data-theme="minimal"] #bg {
   fill: #0f172a;
+}
+
+/* ── Entity idle micro-animations ────────────────────────────────── */
+/* GPU-only: opacity + transform. Activates after entrance completes. */
+/* Each entity type gets a unique ambient rhythm so the scene feels alive. */
+
+@keyframes idle-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.012); }
+}
+
+@keyframes idle-shimmer {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 0.85; }
+}
+
+@keyframes idle-pulse-led {
+  0%, 100% { opacity: 0.9; }
+  40%      { opacity: 0.5; }
+  60%      { opacity: 1; }
+}
+
+@keyframes idle-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2px); }
+}
+
+@keyframes idle-bob {
+  0%, 100% { transform: translateY(0); }
+  33%      { transform: translateY(-1.5px); }
+  66%      { transform: translateY(1px); }
+}
+
+@keyframes idle-rotate-slow {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes idle-data-flow {
+  0%   { opacity: 0.3; transform: translateX(-3px); }
+  50%  { opacity: 0.7; transform: translateX(3px); }
+  100% { opacity: 0.3; transform: translateX(-3px); }
+}
+
+@keyframes idle-flicker {
+  0%, 90%, 100% { opacity: 0.7; }
+  92%           { opacity: 0.4; }
+  95%           { opacity: 0.8; }
+  97%           { opacity: 0.3; }
+}
+
+/* ── Idle animation classes (applied via JS after entrance completes) ── */
+/* These override the entrance animation AFTER it finishes, so both play. */
+
+.idle-breathe {
+  animation: idle-breathe 4s ease-in-out infinite !important;
+}
+.idle-breathe-fast {
+  animation: idle-breathe 3s ease-in-out infinite !important;
+}
+.idle-breathe-slow {
+  animation: idle-breathe 5s ease-in-out infinite !important;
+}
+.idle-float {
+  animation: idle-float 5s ease-in-out infinite !important;
+}
+.idle-float-slow {
+  animation: idle-float 6s ease-in-out infinite !important;
+}
+.idle-bob {
+  animation: idle-bob 4s ease-in-out infinite !important;
+}
+
+/* ── Child-element idle rules (don't conflict with entrance on parent) ── */
+
+/* Server: rack lines shimmer, LEDs pulse */
+[data-type="Server"] .animate-element line {
+  animation: idle-shimmer 3s ease-in-out 0.8s infinite;
+}
+[data-type="Server"] .animate-element circle {
+  animation: idle-pulse-led 2.5s ease-in-out 1s infinite;
+}
+
+/* Database: stripe lines shimmer */
+[data-type="Database"] .animate-element line {
+  animation: idle-shimmer 3.5s ease-in-out 1.2s infinite;
+}
+
+/* CPU: register text shimmers */
+[data-type="CPU"] .animate-element text {
+  animation: idle-shimmer 2s ease-in-out 1s infinite;
+}
+
+/* Network: data flow on lines */
+[data-type="Network"] .animate-element line {
+  animation: idle-data-flow 3s ease-in-out infinite;
+}
+
+/* NeuralNetwork: activations shimmer on nodes and links */
+[data-type="NeuralNetwork"] .animate-element circle {
+  animation: idle-shimmer 2s ease-in-out infinite;
+}
+[data-type="NeuralNetwork"] .animate-element line {
+  animation: idle-data-flow 2.5s ease-in-out infinite;
+}
+
+/* Monitor: LED pulse on circles */
+[data-type="Monitor"] .animate-element circle {
+  animation: idle-pulse-led 3s ease-in-out infinite;
+}
+
+/* FSM: transition lines shimmer */
+[data-type="FSM"] .animate-element line,
+[data-type="FSM"] .animate-element path {
+  animation: idle-shimmer 3s ease-in-out infinite;
+}
+
+/* TuringMachine: tape cells shimmer */
+[data-type="TuringMachine"] .animate-element rect {
+  animation: idle-shimmer 4s ease-in-out infinite;
+}
+
+/* LogicGate: input/output lines shimmer */
+[data-type="LogicGate"] .animate-element line {
+  animation: idle-data-flow 2.5s ease-in-out infinite;
+}
+
+/* Disable ALL idle animations in minimal theme */
+[data-theme="minimal"] .idle-breathe,
+[data-theme="minimal"] .idle-breathe-fast,
+[data-theme="minimal"] .idle-breathe-slow,
+[data-theme="minimal"] .idle-float,
+[data-theme="minimal"] .idle-float-slow,
+[data-theme="minimal"] .idle-bob {
+  animation: none !important;
+}
+[data-theme="minimal"] [data-type] .animate-element line,
+[data-theme="minimal"] [data-type] .animate-element circle,
+[data-theme="minimal"] [data-type] .animate-element rect,
+[data-theme="minimal"] [data-type] .animate-element path,
+[data-theme="minimal"] [data-type] .animate-element text {
+  animation: none !important;
 }
 `;

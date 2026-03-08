@@ -10,7 +10,7 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
+import { createLinearGradient, ensureDefs, ensureGlassFilter } from '../visual-utils.js';
 import {
   getCategoryColor,
   TYPOGRAPHY,
@@ -48,6 +48,7 @@ export function renderCPU(entity: VisualEntity, parentEl: SVGElement): SVGGEleme
   die.setAttribute('stroke', color);
   die.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   die.setAttribute('stroke-linejoin', 'round');
+  die.setAttribute('filter', ensureGlassFilter(parentEl));
   innerG.appendChild(die);
 
   // ── Inner symbol: simplified processor grid (2×2 squares) or "CPU" text

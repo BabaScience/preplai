@@ -398,6 +398,16 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     },
   );
 
+  // ── Test player route (no auth, no session needed) ─────────────────
+  app.get('/player/_test', async (request, reply) => {
+    const eventsBase = cfg.baseUrl.replace(/\/$/, '');
+    const html = PLAYER_HTML_TEMPLATE
+      .replace(/\{\{SESSION_ID\}\}/g, '_test')
+      .replace(/\{\{STYLE\}\}/g, 'cinema')
+      .replace(/\{\{EVENTS_BASE\}\}/g, eventsBase);
+    reply.type('text/html').send(html);
+  });
+
   // ── Favicon (avoid 401 on automatic browser request) ─────────────────
   app.get('/favicon.ico', async (_request, reply) => {
     reply.status(204).send();

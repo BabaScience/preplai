@@ -4,7 +4,7 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
+import { createLinearGradient, ensureDefs, ensureGlassFilter } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -31,6 +31,7 @@ export function renderContainer(entity: VisualEntity, parentEl: SVGElement): SVG
   border.setAttribute('stroke', color);
   border.setAttribute('stroke-width', String(SHAPES.strokeWidth));
   border.setAttribute('stroke-dasharray', '6,4');
+  border.setAttribute('filter', ensureGlassFilter(parentEl));
   innerG.appendChild(border);
 
   // ── Inner process blocks (2 small rects)

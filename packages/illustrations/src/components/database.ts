@@ -19,6 +19,7 @@ export function renderDatabase(entity: VisualEntity, parentEl: SVGElement): SVGG
     color,
     gradId,
     stripeOffsets: [0.2, 0.45, 0.7],
+    glass: true,
   });
 
   if (entity.label) {
