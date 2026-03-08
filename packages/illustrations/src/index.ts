@@ -48,6 +48,8 @@ export { renderUser } from './components/user.js';
 export { renderCloud } from './components/cloud.js';
 export { renderConcept } from './components/concept.js';
 export { renderEntityNode } from './components/entity.js';
+export { renderFlowDiagram } from './components/flowdiagram.js';
+export { renderFreeBodyDiagram } from './components/freebodydiagram.js';
 export { renderEquation, formatMathExpression } from './components/equation.js';
 export { renderExpression } from './components/expression.js';
 export { renderCodeBlock } from './components/codeblock.js';

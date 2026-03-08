@@ -115,6 +115,22 @@ export const METADATA_DEFAULTS = {
     stack: ['main', 'foo()', 'bar()'],
     heap: ['obj1', 'arr', 'node'],
   },
+  FreeBodyDiagram: {
+    forces: [
+      { label: 'F₁', angle: 0, magnitude: 1 },
+      { label: 'F₂', angle: 90, magnitude: 1 },
+      { label: 'F₃', angle: 180, magnitude: 1 },
+      { label: 'N', angle: 270, magnitude: 1 },
+    ],
+  },
+  FlowDiagram: {
+    steps: [
+      { label: 'Start', type: 'default' },
+      { label: 'Condition?', type: 'decision' },
+      { label: 'Process', type: 'default' },
+      { label: 'End', type: 'default' },
+    ],
+  },
   ConfusionMatrix: {
     matrix: [
       [45, 5],
@@ -200,6 +216,8 @@ export const METADATA_DEFAULTS = {
 /** Entity-level defaults (not metadata) for types that need textContent etc. */
 export const ENTITY_FIELD_DEFAULTS = {
   Entity: { label: 'Thing' },
+  FlowDiagram: { size: 2 },
+  FreeBodyDiagram: { size: 2 },
   Service: { label: 'Auth Service' },
   Decision: { label: '?' },
   Equation: { expression: 'E = mc²' },

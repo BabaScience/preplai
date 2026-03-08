@@ -79,6 +79,8 @@ import { renderService } from './components/service.js';
 import { renderFirewall } from './components/firewall.js';
 import { renderCPU } from './components/cpu.js';
 import { renderEntityNode } from './components/entity.js';
+import { renderFlowDiagram } from './components/flowdiagram.js';
+import { renderFreeBodyDiagram } from './components/freebodydiagram.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -97,11 +99,9 @@ const univBcd = generic('Group');
 const univRed = generic('Badge');
 const mathSci = generic('Equation');
 const mathPrp = generic('Matrix');
-const physOrg = generic('FreeBodyDiagram');
 const physBcd = generic('Wave');
 const physPnk = generic('Vector');
 const genGrn = generic('Histogram');
-const genBcd = generic('FlowDiagram');
 const dsGrn = generic('LinkedList');
 const dsOrg = generic('HashTable');  // fallback only; renderHashTable used
 const dsBcd = generic('Heap');
@@ -191,7 +191,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   CoordinateSystem: renderCoordinateSystem,
 
   // ── Physics
-  FreeBodyDiagram: physOrg,
+  FreeBodyDiagram: renderFreeBodyDiagram,
   Wave: physBcd,
   Vector: physPnk,
   Particle: circleParticle,
@@ -200,7 +200,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Table: infraGeneric,
   Histogram: genGrn,
   PieChart: infraGeneric,
-  FlowDiagram: genBcd,
+  FlowDiagram: renderFlowDiagram,
   VennDiagram: infraGeneric,
   Annotation: renderAnnotation,
   BarChart: renderBarChart,

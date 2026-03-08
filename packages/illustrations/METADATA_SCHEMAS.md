@@ -198,6 +198,47 @@ Vertical stack of customizable layers. Use for: OSI model, tech stack, layered a
 - Example: "OSI model layers" → `layers: [{label: "Application", sublabel: "HTTP"}, {label: "Transport", sublabel: "TCP"}, ...]`
 - Example: "Tech stack" → `layers: [{label: "React", sublabel: "Frontend"}, {label: "Node.js", sublabel: "Backend"}, {label: "PostgreSQL", sublabel: "Database"}]`
 
+## FreeBodyDiagram
+
+Central body circle with force vectors at specified angles. Use for: physics FBD, force analysis, equilibrium.
+
+```json
+{
+  "forces": [
+    { "label": "F₁", "angle": 0, "magnitude": 1 },
+    { "label": "N", "angle": 270, "magnitude": 1 }
+  ]
+}
+```
+
+- `forces`: **Required.** Array of `{ label, angle, magnitude?, color? }`. Angle in degrees: 0=right, 90=up, 180=left, 270=down. Magnitude scales arrow length (0.3–2).
+- In EntityParamPanel: `label,angle,magnitude[,color]` per line.
+
+**Agent usage:**
+- Use for: inclined plane, pulley, equilibrium, Newton's laws.
+
+## FlowDiagram
+
+Vertical flowchart: rect/diamond steps connected by arrows. Use for: process flows, decision trees, algorithms.
+
+```json
+{
+  "steps": [
+    { "label": "Start", "type": "default" },
+    { "label": "Condition?", "type": "decision" },
+    { "label": "Process", "type": "default" },
+    { "label": "End", "type": "default" }
+  ]
+}
+```
+
+- `steps`: **Required.** Array of `{ label: string, type?: 'default' | 'decision' }`. `default` = rounded rect; `decision` = diamond.
+- In EntityParamPanel: one line per step; append `|decision` for diamond (e.g. `Condition?|decision`).
+
+**Agent usage:**
+- Use FlowDiagram for: process flows, decision trees, algorithm flowcharts.
+- Use StepList for: numbered sequences, tutorials. Use FlowDiagram for: branching logic, decisions.
+
 ## StepList
 
 Numbered step sequence with circles, connecting lines, and optional progress indicators. Use for: algorithm walkthroughs, tutorials, how-to guides, sequential processes.

@@ -1817,6 +1817,173 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
+      {entity.type === 'FlowDiagram' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>FlowDiagram metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Steps (one per line; append |decision for diamond)</label>
+            <textarea
+              className="form-input"
+              rows={8}
+              value={(() => {
+                const steps = entity.metadata?.steps ?? [];
+                if (!Array.isArray(steps)) return '';
+                return steps
+                  .map((st) => {
+                    if (typeof st !== 'object' || st == null) return '';
+                    const label = st.label ?? st.name ?? '';
+                    const type = st.type === 'decision' ? '|decision' : '';
+                    return label ? `${label}${type}` : '';
+                  })
+                  .filter(Boolean)
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                const steps = lines.map((line) => {
+                  const pipe = line.indexOf('|');
+                  if (pipe >= 0) {
+                    const label = line.slice(0, pipe).trim();
+                    const suffix = line.slice(pipe + 1).trim().toLowerCase();
+                    return {
+                      label: label || 'Step',
+                      type: suffix === 'decision' ? 'decision' : 'default',
+                    };
+                  }
+                  return { label: line || 'Step', type: 'default' };
+                });
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  steps: steps.length ? steps : undefined,
+                });
+              }}
+              placeholder={'Start\nCondition?|decision\nProcess\nEnd'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One step per line. Add |decision for diamond (e.g. "Check?|decision"). Default = rounded rect.
+            </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'FreeBodyDiagram' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>FreeBodyDiagram metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Forces (label,angle,magnitude per line; optional color)</label>
+            <textarea
+              className="form-input"
+              rows={8}
+              value={(() => {
+                const forces = entity.metadata?.forces ?? [];
+                if (!Array.isArray(forces)) return '';
+                return forces
+                  .map((f) => {
+                    if (typeof f !== 'object' || f == null) return '';
+                    const label = f.label ?? f.name ?? 'F';
+                    const angle = f.angle ?? 0;
+                    const mag = f.magnitude ?? 1;
+                    const color = f.color ? `,${f.color}` : '';
+                    return `${label},${angle},${mag}${color}`;
+                  })
+                  .filter(Boolean)
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                const forces = lines.map((line) => {
+                  const parts = line.split(',').map((p) => p.trim());
+                  const label = parts[0] || 'F';
+                  const angle = parseFloat(parts[1]) || 0;
+                  const magnitude = parseFloat(parts[2]) || 1;
+                  const color = parts[3] || undefined;
+                  return { label, angle, magnitude, color };
+                });
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  forces: forces.length ? forces : undefined,
+                });
+              }}
+              placeholder={'F₁,0,1\nF₂,90,1\nN,270,1'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              label,angle,magnitude[,color]. Angle: 0=right, 90=up, 180=left, 270=down.
+            </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'GanttChart' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>GanttChart metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Tasks (name,start,end per line)</label>
+            <textarea
+              className="form-input"
+              rows={6}
+              value={(() => {
+                const tasks = entity.metadata?.tasks ?? [];
+                if (!Array.isArray(tasks)) return '';
+                return tasks
+                  .map((t) => {
+                    if (typeof t !== 'object' || t == null) return '';
+                    const name = t.name ?? t.label ?? 'Task';
+                    const start = t.start ?? 0;
+                    const end = t.end ?? 1;
+                    return `${name},${start},${end}`;
+                  })
+                  .filter(Boolean)
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                const tasks = lines.map((line) => {
+                  const parts = line.split(',').map((p) => p.trim());
+                  const name = parts[0] || 'Task';
+                  const start = parseFloat(parts[1]) || 0;
+                  const endVal = parseFloat(parts[2]);
+                  const end = Number.isNaN(endVal) ? start + 1 : endVal;
+                  return { name, start, end };
+                });
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  tasks: tasks.length ? tasks : undefined,
+                });
+              }}
+              placeholder={'P1,0,3\nP2,1,5\nP3,4,7'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              name,start,end per line. Times can be absolute or normalized.
+            </p>
+          </div>
+          <div className="form-group" style={{ marginTop: 'var(--space-2)' }}>
+            <label className="form-label">Max time (optional)</label>
+            <input
+              type="number"
+              className="form-input"
+              min={1}
+              step={1}
+              value={entity.metadata?.maxTime ?? ''}
+              onChange={(e) => {
+                const v = e.target.value;
+                const num = v === '' ? undefined : parseFloat(v);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  maxTime: num != null && !Number.isNaN(num) ? num : undefined,
+                });
+              }}
+              placeholder="auto (from tasks)"
+            />
+          </div>
+        </>
+      )}
+
       {entity.type === 'StepList' && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
