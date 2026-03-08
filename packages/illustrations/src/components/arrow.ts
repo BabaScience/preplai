@@ -134,6 +134,27 @@ export function resolveEntityRef(ref: string | undefined, allEntities: VisualEnt
   return found ?? null;
 }
 
+const ARROW_LIKE_TYPES = ['Arrow', 'BidirectArrow', 'DottedArrow', 'DataFlow'] as const;
+
+/**
+ * Returns true if there is another arrow between the same two entities in the opposite direction.
+ * Used to auto-apply curved rendering so opposing arrows don't overlap.
+ */
+function hasOpposingArrow(
+  entity: VisualEntity,
+  allEntities: VisualEntity[],
+  sourceId: string,
+  targetId: string,
+): boolean {
+  return allEntities.some((e) => {
+    if (e.id === entity.id || !(ARROW_LIKE_TYPES as readonly string[]).includes(e.type)) return false;
+    const otherSource = resolveEntityRef(e.sourceEntityId, allEntities);
+    const otherTarget = resolveEntityRef(e.targetEntityId, allEntities);
+    if (!otherSource || !otherTarget) return false;
+    return otherSource.id === targetId && otherTarget.id === sourceId;
+  });
+}
+
 /**
  * Inject an arrowhead <marker> into <defs> if it doesn't already exist.
  */
@@ -200,9 +221,13 @@ export function renderArrow(
   const y2 = targetEntry?.y ?? ty;
 
   const color = entity.color ?? getCategoryColor('Arrow');
-  const useCurved = entity.metadata?.curved === true;
+  const hasOpposing = hasOpposingArrow(entity, allEntities, source.id, target.id);
+  const useCurved = entity.metadata?.curved === true || hasOpposing;
   const isBidirect = entity.type === 'BidirectArrow';
   const isDotted = entity.type === 'DottedArrow';
+
+  // When opposing arrows exist, curve them in opposite directions (one "up", one "down")
+  const curvatureSign = hasOpposing && source.id > target.id ? -1 : 1;
 
   let ctrlX = 0;
   let ctrlY = 0;
@@ -212,7 +237,7 @@ export function renderArrow(
     const dx = x2 - x1;
     const dy = y2 - y1;
     const len = Math.sqrt(dx * dx + dy * dy) || 1;
-    const curvature = Math.min(len * 0.3, 80);
+    const curvature = curvatureSign * Math.min(len * 0.3, 80);
     ctrlX = midX + (-dy / len) * curvature;
     ctrlY = midY + (dx / len) * curvature;
   }
@@ -252,23 +277,10 @@ export function renderArrow(
     g.appendChild(line);
   }
 
-  // Optional midpoint label with background pill for readability
+  // Optional midpoint label (text only, no background)
   if (entity.label) {
     const midX = useCurved ? 0.25 * x1 + 0.5 * ctrlX + 0.25 * x2 : (x1 + x2) / 2;
     const midY = useCurved ? 0.25 * y1 + 0.5 * ctrlY + 0.25 * y2 : (y1 + y2) / 2;
-    const labelLen = entity.label.length * 6;
-    const pillW = Math.max(labelLen + 16, 40);
-    const pillH = 20;
-    const pill = document.createElementNS(SVG_NS, 'rect');
-    pill.setAttribute('x', String(midX - pillW / 2));
-    pill.setAttribute('y', String(midY - pillH - 14));
-    pill.setAttribute('width', String(pillW));
-    pill.setAttribute('height', String(pillH));
-    pill.setAttribute('rx', '4');
-    pill.setAttribute('fill', 'rgba(12, 13, 20, 0.9)');
-    pill.setAttribute('stroke', `${color}60`);
-    pill.setAttribute('stroke-width', '1');
-    g.appendChild(pill);
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', String(midX));
     text.setAttribute('y', String(midY - 6));
@@ -325,7 +337,9 @@ export function renderDataFlow(
   const x2 = targetEntry?.x ?? tx;
   const y2 = targetEntry?.y ?? ty;
   const color = entity.color ?? getCategoryColor('DataFlow');
-  const useCurved = entity.metadata?.curved === true;
+  const hasOpposing = hasOpposingArrow(entity, allEntities, source.id, target.id);
+  const useCurved = entity.metadata?.curved === true || hasOpposing;
+  const curvatureSign = hasOpposing && source.id > target.id ? -1 : 1;
 
   const g = document.createElementNS(SVG_NS, 'g');
   g.setAttribute('id', entity.id);
@@ -337,7 +351,7 @@ export function renderDataFlow(
     const dx = x2 - x1;
     const dy = y2 - y1;
     const len = Math.sqrt(dx * dx + dy * dy) || 1;
-    const curvature = Math.min(len * 0.3, 80);
+    const curvature = curvatureSign * Math.min(len * 0.3, 80);
     const ctrlX = midX + (-dy / len) * curvature;
     const ctrlY = midY + (dx / len) * curvature;
     const path = document.createElementNS(SVG_NS, 'path');
