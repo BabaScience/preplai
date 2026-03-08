@@ -7,7 +7,7 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';
 import { colorWithAlpha } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -40,8 +40,8 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
 
   const s = getSizeParam(entity);
   const scale = s / 50;
-  const labelFontSize = Math.round(12 * scale);
-  const axisFontSize = Math.round(13 * scale);
+  const labelFontSize = getLabelFontSize('inline', scale);
+  const axisFontSize = getLabelFontSize('label', scale);
   const defaultColor = entity.color ?? getCategoryColor('BarChart');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-barchart-${defaultColor.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -85,7 +85,7 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
       rect.setAttribute('rx', String(SHAPES.borderRadius - 2));
       rect.setAttribute('fill', bar.color ? bar.color : `url(#${gradId})`);
       rect.setAttribute('stroke', barColor);
-      rect.setAttribute('stroke-width', String(SHAPES.strokeWidthThin));
+      rect.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
       innerG.appendChild(rect);
 
       // Label (left)
@@ -129,7 +129,7 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
       rect.setAttribute('rx', String(SHAPES.borderRadius - 2));
       rect.setAttribute('fill', bar.color ? bar.color : `url(#${gradId})`);
       rect.setAttribute('stroke', barColor);
-      rect.setAttribute('stroke-width', String(SHAPES.strokeWidthThin));
+      rect.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
       innerG.appendChild(rect);
 
       // Label (below bar)
@@ -158,6 +158,7 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
 
   // Axis lines
   const axisColor = colorWithAlpha(defaultColor, '40');
+  const axisStroke = getStrokeWidth('minimal', scale);
   if (horizontal) {
     const lineY = -chartH / 2 + padTop - 4;
     const line = document.createElementNS(SVG_NS, 'line');
@@ -166,7 +167,7 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
     line.setAttribute('x2', String(chartW / 2 - padRight));
     line.setAttribute('y2', String(lineY));
     line.setAttribute('stroke', axisColor);
-    line.setAttribute('stroke-width', '1');
+    line.setAttribute('stroke-width', String(axisStroke));
     innerG.appendChild(line);
   } else {
     const lineX = -chartW / 2 + padLeft - 8;
@@ -176,7 +177,7 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
     line.setAttribute('x2', String(lineX));
     line.setAttribute('y2', String(chartH / 2 - padBottom));
     line.setAttribute('stroke', axisColor);
-    line.setAttribute('stroke-width', '1');
+    line.setAttribute('stroke-width', String(axisStroke));
     innerG.appendChild(line);
   }
 
@@ -184,9 +185,9 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
   const axisLabelColor = colorWithAlpha(defaultColor, '80');
   if (xLabel) {
     const xl = document.createElementNS(SVG_NS, 'text');
-    xl.setAttribute('x', String(chartW / 2 - padRight));
+    xl.setAttribute('x', '0');
     xl.setAttribute('y', String(chartH / 2 - 4));
-    xl.setAttribute('text-anchor', 'end');
+    xl.setAttribute('text-anchor', 'middle');
     xl.setAttribute('fill', axisLabelColor);
     xl.setAttribute('font-size', String(axisFontSize));
     xl.setAttribute('font-family', TYPOGRAPHY.fontLabel);
@@ -212,8 +213,8 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
     title.setAttribute('y', String(-chartH / 2 - 8));
     title.setAttribute('text-anchor', 'middle');
     title.setAttribute('fill', defaultColor);
-    title.setAttribute('font-size', String(TYPOGRAPHY.fontSizeTitle));
-    title.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightTitle));
+    title.setAttribute('font-size', String(getLabelFontSize('label', scale)));
+    title.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     title.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     title.textContent = entity.label;
     innerG.appendChild(title);
