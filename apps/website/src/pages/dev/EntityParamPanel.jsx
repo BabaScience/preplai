@@ -519,6 +519,58 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
+      {entity.type === 'Comparison' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Comparison metadata (Left vs Right)</h4>
+          <div className="form-group">
+            <label className="form-label">Left (metadata.left)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.left ?? entity.metadata?.a ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  left: e.target.value || undefined,
+                })
+              }
+              placeholder="Array"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Right (metadata.right)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.right ?? entity.metadata?.b ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  right: e.target.value || undefined,
+                })
+              }
+              placeholder="LinkedList"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Label (fallback / parse source)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.label ?? entity.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  label: e.target.value,
+                })
+              }
+              placeholder="Array vs LinkedList"
+            />
+          </div>
+        </>
+      )}
+
       {entity.type === 'Concept' && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
@@ -582,7 +634,7 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
-      {CARD_TYPES.includes(entity.type) && entity.type !== 'Analogy' && (
+      {CARD_TYPES.includes(entity.type) && entity.type !== 'Analogy' && entity.type !== 'Comparison' && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
           <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Card metadata</h4>

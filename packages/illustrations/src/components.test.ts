@@ -18,6 +18,7 @@ import { renderGraph2D } from './components/graph2d.js';
 import { renderCoordinateSystem } from './components/coordinatesystem.js';
 import { renderArray } from './components/array.js';
 import { renderCallout } from './components/callout.js';
+import { renderComparison } from './components/comparison.js';
 import { SVG_NS } from './utils.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -625,5 +626,35 @@ describe('renderCallout', () => {
     expect(bodyText).toBeTruthy();
     const tspans = bodyText!.querySelectorAll('tspan');
     expect(tspans.length).toBeGreaterThan(1);
+  });
+});
+
+// ── Comparison ───────────────────────────────────────────────────
+
+describe('renderComparison', () => {
+  let parentEl: SVGSVGElement;
+  beforeEach(() => { parentEl = makeSvg(); });
+
+  it('should render two boxes with vs when left and right provided', () => {
+    const entity = makeEntity({
+      type: 'Comparison',
+      metadata: { left: 'Array', right: 'LinkedList' },
+    });
+    renderComparison(entity, parentEl);
+    const rects = parentEl.querySelectorAll('.animate-element rect');
+    expect(rects.length).toBe(2);
+    const texts = parentEl.querySelectorAll('.animate-element text');
+    const vsText = Array.from(texts).find((t) => t.textContent === 'vs');
+    expect(vsText).toBeTruthy();
+  });
+
+  it('should parse label for "X vs Y" when left/right omitted', () => {
+    const entity = makeEntity({
+      type: 'Comparison',
+      metadata: { label: 'REST vs GraphQL' },
+    });
+    renderComparison(entity, parentEl);
+    const rects = parentEl.querySelectorAll('.animate-element rect');
+    expect(rects.length).toBe(2);
   });
 });

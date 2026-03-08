@@ -49,7 +49,7 @@ Sticky-note style: rounded rect with folded top-right corner and shadow.
 - `width`: Panel width in scale units (default 180).
 - `maxLines`: Max lines (default 4). Use 0 for unlimited — note grows to show all text.
 
-## Text Card (Label, Comparison, Proof, Quote)
+## Text Card (Label, Proof, Quote)
 
 Same metadata for all:
 
@@ -65,6 +65,22 @@ Same metadata for all:
 - `width`: Panel width in scale units (default 200).
 - `maxLines`: Max lines before truncation with "..." (default 6).
 - Longer text → smaller font so all text stays visible.
+
+## Comparison
+
+Side-by-side layout: [Left] vs [Right]. Use for A vs B comparisons (e.g. Array vs LinkedList, REST vs GraphQL).
+
+```json
+{
+  "label": "Array vs LinkedList",
+  "left": "Array",
+  "right": "LinkedList"
+}
+```
+
+- `left`, `right`: **Optional.** Explicit sides. When both present, shows two boxes with "vs" between.
+- `a`, `b`: Aliases for `left`, `right`.
+- `label`: Parsed for "X vs Y" or "X | Y" when left/right omitted. Fallback: single card with full label.
 
 ## Array
 

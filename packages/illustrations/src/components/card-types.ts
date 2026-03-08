@@ -1,7 +1,8 @@
 /**
  * @preplai/illustrations — Card-like types (inherit from text-card)
  *
- * Label, Comparison, Proof, Quote share the same shape and rules.
+ * Label, Proof, Quote share the same shape and rules.
+ * Comparison has a dedicated left vs right layout (see comparison.ts).
  * Analogy and Annotation have custom implementations (two-part layout, sticky-note).
  *
  * Rules (text-card.ts): text stays inside; no overflow; clipPath enforces bounds.
@@ -19,14 +20,7 @@ export const renderLabel = createTextCardRenderer({
   minFontSize: 10,
 });
 
-export const renderComparison = createTextCardRenderer({
-  typeName: 'Comparison',
-  defaultColor: getCategoryColor('Comparison'),
-  fallbackText: 'Comparison',
-  defaultWidth: 200,
-  defaultMaxLines: 6,
-  minFontSize: 10,
-});
+export { renderComparison } from './comparison.js';
 
 export const renderProof = createTextCardRenderer({
   typeName: 'Proof',

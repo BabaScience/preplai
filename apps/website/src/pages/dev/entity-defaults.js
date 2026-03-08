@@ -126,7 +126,7 @@ export const METADATA_DEFAULTS = {
   H1: { label: 'Main Heading' },
   H2: { label: 'Section Heading' },
   H3: { label: 'Subsection Heading' },
-  Comparison: { label: 'Compare items here.', width: 200, maxLines: 6 },
+  Comparison: { left: 'Array', right: 'LinkedList', label: 'Array vs LinkedList' },
   Proof: { label: 'Proof step or statement.', width: 200, maxLines: 6 },
   Quote: { label: 'Quote or citation.', width: 200, maxLines: 6 },
   Definition: { term: 'Binary Search', definition: 'A divide-and-conquer algorithm that finds a target in a sorted array by repeatedly halving the search space.' },
