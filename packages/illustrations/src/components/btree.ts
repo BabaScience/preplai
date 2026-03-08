@@ -98,7 +98,8 @@ export function renderBTree(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     circle.setAttribute('stroke-width', String(getStrokeWidth(isHighlighted ? 'emphasized' : 'thin', scale)));
     if (isDisabled) {
       circle.setAttribute('filter', `url(#${dimFilterId})`);
-      circle.setAttribute('stroke-dasharray', '3,3');
+      const dash = Math.max(1, Math.round(3 * scale));
+      circle.setAttribute('stroke-dasharray', `${dash},${dash}`);
     } else if (isHighlighted) {
       circle.setAttribute('filter', `drop-shadow(0 0 ${4 * scale}px ${color})`);
     }

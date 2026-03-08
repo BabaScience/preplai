@@ -15,7 +15,7 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createRadialGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, getStrokeWidth } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, LABEL_DEFAULTS, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';
 import { treeLayout, treeFromFlatNodes, type BinaryTreeNode, type FlatNodeSpec } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -73,6 +73,7 @@ export function renderBinaryTree(entity: VisualEntity, parentEl: SVGElement): SV
   const layoutResult = treeLayout(tree, 0, -s / 3, dx, dy, { nodeRadius: nodeR });
   let nodes = layoutResult.nodes;
   const edges = layoutResult.edges;
+  const bottomY = nodes.length > 0 ? Math.max(...nodes.map((n) => n.y)) : s / 2;
 
   // Apply disabledIndexes/selectedIndexes (level-order) when using tree format
   const disabledSet = new Set((meta.disabledIndexes as number[]) ?? []);
@@ -110,7 +111,7 @@ export function renderBinaryTree(entity: VisualEntity, parentEl: SVGElement): SV
     line.setAttribute('x2', String(x2));
     line.setAttribute('y2', String(y2));
     line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', String(STROKE.default));
+    line.setAttribute('stroke-width', String(getStrokeWidth('minimal', scale)));
     line.setAttribute('opacity', '0.7');
     innerG.appendChild(line);
   });
@@ -128,7 +129,8 @@ export function renderBinaryTree(entity: VisualEntity, parentEl: SVGElement): SV
     circle.setAttribute('stroke-width', String(getStrokeWidth(isHighlighted ? 'emphasized' : 'thin', scale)));
     if (isDisabled) {
       circle.setAttribute('filter', `url(#${dimFilterId})`);
-      circle.setAttribute('stroke-dasharray', '3,3');
+      const dash = Math.max(1, Math.round(3 * scale));
+      circle.setAttribute('stroke-dasharray', `${dash},${dash}`);
     } else if (isHighlighted) {
       circle.setAttribute('filter', `drop-shadow(0 0 ${4 * scale}px ${color})`);
     }
@@ -140,8 +142,8 @@ export function renderBinaryTree(entity: VisualEntity, parentEl: SVGElement): SV
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('dominant-baseline', 'middle');
     text.setAttribute('fill', '#ffffff');
-    text.setAttribute('font-size', String(Math.round(TYPOGRAPHY.fontSizeValue * scale)));
-    text.setAttribute('font-weight', '600');
+    text.setAttribute('font-size', String(getLabelFontSize('value', scale)));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     if (isDisabled) {
       text.setAttribute('filter', `url(#${dimFilterId})`);
@@ -151,16 +153,16 @@ export function renderBinaryTree(entity: VisualEntity, parentEl: SVGElement): SV
   });
 
   if (entity.label) {
-    const text = document.createElementNS(SVG_NS, 'text');
-    text.setAttribute('x', '0');
-    text.setAttribute('y', String(s / 2 + 18));
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
-    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    text.textContent = entity.label;
-    innerG.appendChild(text);
+    const label = document.createElementNS(SVG_NS, 'text');
+    label.setAttribute('x', '0');
+    label.setAttribute('y', String(bottomY + nodeR + LABEL_DEFAULTS.offsetBelow));
+    label.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    label.setAttribute('fill', color);
+    label.setAttribute('font-size', String(getLabelFontSize('label', scale)));
+    label.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    label.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    label.textContent = entity.label;
+    innerG.appendChild(label);
   }
 
   applyEntranceAnimation(innerG, entity);
