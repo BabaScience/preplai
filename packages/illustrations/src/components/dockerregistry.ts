@@ -5,13 +5,24 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createRadialGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  getStrokeWidth,
+  getLabelFontSize,
+  colorWithAlpha,
+  OPACITY,
+  TYPOGRAPHY,
+  LABEL_DEFAULTS,
+} from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderDockerRegistry(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
+  const strokeDefault = getStrokeWidth('default', scale);
+  const strokeThin = getStrokeWidth('thin', scale);
   const color = entity.color ?? getCategoryColor('DockerRegistry');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-dockerreg-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -32,7 +43,7 @@ export function renderDockerRegistry(entity: VisualEntity, parentEl: SVGElement)
     el.setAttribute('ry', String(e.ry));
     el.setAttribute('fill', `url(#${gradId})`);
     el.setAttribute('stroke', color);
-    el.setAttribute('stroke-width', String(SHAPES.strokeWidth));
+    el.setAttribute('stroke-width', String(strokeDefault));
     innerG.appendChild(el);
   }
 
@@ -51,18 +62,18 @@ export function renderDockerRegistry(entity: VisualEntity, parentEl: SVGElement)
   ].join(' ');
   const tag = document.createElementNS(SVG_NS, 'path');
   tag.setAttribute('d', tagPath);
-  tag.setAttribute('fill', `${color}40`);
+  tag.setAttribute('fill', colorWithAlpha(color, OPACITY.fillHeavy));
   tag.setAttribute('stroke', color);
-  tag.setAttribute('stroke-width', String(SHAPES.strokeWidthThin));
+  tag.setAttribute('stroke-width', String(strokeThin));
   innerG.appendChild(tag);
 
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(s / 2 + 20));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(s / 2 + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;

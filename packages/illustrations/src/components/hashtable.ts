@@ -6,7 +6,14 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  getStrokeWidth,
+  getLabelFontSize,
+  TYPOGRAPHY,
+  SHAPES,
+  LABEL_DEFAULTS,
+} from '../design-tokens.js';
 import { gridLayoutFromPairs } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -23,6 +30,7 @@ export function renderHashTable(entity: VisualEntity, parentEl: SVGElement): SVG
 
   const s = getSizeParam(entity);
   const scale = s / 50;
+  const strokeWidth = getStrokeWidth('thin', scale);
   const color = entity.color ?? getCategoryColor(entity.type);
   const defs = ensureDefs(parentEl);
   const gradId = `grad-ht-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -55,10 +63,10 @@ export function renderHashTable(entity: VisualEntity, parentEl: SVGElement): SVG
     cell.setAttribute('rx', String(Math.max(1, (SHAPES.borderRadius - 2) * scale)));
     cell.setAttribute('fill', `url(#${gradId})`);
     cell.setAttribute('stroke', color);
-    cell.setAttribute('stroke-width', String(Math.max(1, SHAPES.strokeWidthThin * scale)));
+    cell.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(cell);
 
-    const fontSize = Math.max(10, Math.round(10 * scale));
+    const fontSize = getLabelFontSize('value', scale);
     const usableWidth = width - 6;
     const displayContent = truncateToFit(content, usableWidth, fontSize);
 
@@ -92,10 +100,10 @@ export function renderHashTable(entity: VisualEntity, parentEl: SVGElement): SVG
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(totalH / 2 + 18 * scale));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(totalH / 2 + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(Math.round(TYPOGRAPHY.fontSizeLabel * scale)));
+    text.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;
