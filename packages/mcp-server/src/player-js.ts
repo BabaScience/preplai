@@ -62,11 +62,11 @@ export const PLAYER_JS = `(function() {
 
   // Color palettes for entity defaults (?palette=)
   var PALETTES = {
-    default: { server:'#4ECDC4', database:'#9B59B6', cloud:'#90CAF9', user:'#4DD0E1', concept:'#00e5ff', label:'#FFFFFF', codeblock:'#4ECDC4', generic:'#4FC3F7', particles:['#4ECDC4','#9B59B6','#F1C40F','#3498DB','#E67E22'] },
-    ocean:   { server:'#3498DB', database:'#2ECC71', cloud:'#9B59B6', user:'#1ABC9C', concept:'#00bcd4', label:'#e2e8f0', codeblock:'#3498DB', generic:'#4ECDC4', particles:['#3498DB','#2ECC71','#1ABC9C','#00bcd4','#9B59B6'] },
-    sunset:  { server:'#F39C12', database:'#E74C3C', cloud:'#9B59B6', user:'#F1C40F', concept:'#ff6b6b', label:'#fef3c7', codeblock:'#F39C12', generic:'#E67E22', particles:['#F39C12','#E74C3C','#F1C40F','#ff6b6b','#9B59B6'] },
-    forest:  { server:'#2ECC71', database:'#1ABC9C', cloud:'#3498DB', user:'#16a085', concept:'#00e676', label:'#d1fae5', codeblock:'#2ECC71', generic:'#22c55e', particles:['#2ECC71','#1ABC9C','#16a085','#00e676','#3498DB'] },
-    mono:    { server:'#64748b', database:'#475569', cloud:'#334155', user:'#94a3b8', concept:'#cbd5e1', label:'#f8fafc', codeblock:'#64748b', generic:'#94a3b8', particles:['#64748b','#475569','#94a3b8','#cbd5e1','#334155'] }
+    default: { compute:'#00e676', data:'#4488ff', environment:'#00bcd4', human:'#C9A84C', structure:'#9B59B6', state:'#ff6b6b', annotation:'#ffab00', generic:'#4ECDC4', accent:'#C9A84C', particles:['#00e676','#4488ff','#C9A84C','#9B59B6','#4ECDC4'] },
+    ocean:   { compute:'#2ECC71', data:'#3498DB', environment:'#9B59B6', human:'#1ABC9C', structure:'#00bcd4', state:'#E74C3C', annotation:'#e2e8f0', generic:'#4ECDC4', accent:'#4ECDC4', particles:['#3498DB','#2ECC71','#1ABC9C','#00bcd4','#9B59B6'] },
+    sunset:  { compute:'#F39C12', data:'#E74C3C', environment:'#9B59B6', human:'#F1C40F', structure:'#ff6b6b', state:'#E74C3C', annotation:'#fef3c7', generic:'#E67E22', accent:'#E67E22', particles:['#F39C12','#E74C3C','#F1C40F','#ff6b6b','#9B59B6'] },
+    forest:  { compute:'#2ECC71', data:'#1ABC9C', environment:'#3498DB', human:'#16a085', structure:'#00e676', state:'#E74C3C', annotation:'#d1fae5', generic:'#22c55e', accent:'#27ae60', particles:['#2ECC71','#1ABC9C','#16a085','#00e676','#3498DB'] },
+    mono:    { compute:'#ECEFF1', data:'#607D8B', environment:'#78909C', human:'#B0BEC5', structure:'#455A64', state:'#90A4AE', annotation:'#FFFFFF', generic:'#CFD8DC', accent:'#90A4AE', particles:['#ECEFF1','#90A4AE','#78909C','#607D8B','#546E7A','#455A64','#37474F'] }
   };
 
   // Style: cinema (default) or minimal. Set from URL ?style= or script.style
@@ -87,13 +87,20 @@ export const PLAYER_JS = `(function() {
   function getEntityColor(entity, typeKey) {
     if (entity && entity.color) return entity.color;
     var t = typeKey || (entity && entity.type);
-    if (t === 'Server' || t === 'Service' || t === 'Lambda') return palette.server;
-    if (t === 'Database' || t === 'HashTable') return palette.database;
-    if (t === 'Cloud') return palette.cloud;
-    if (t === 'User') return palette.user;
-    if (t === 'Concept') return palette.concept;
-    if (t === 'Label' || t === 'Annotation' || t === 'Definition' || t === 'Callout' || t === 'Quote' || t === 'Badge' || t === 'H1' || t === 'H2' || t === 'H3') return palette.label;
-    if (t === 'CodeBlock') return palette.codeblock;
+    // Green: Computation / Processing
+    if (t === 'Server' || t === 'Service' || t === 'API' || t === 'APIGateway' || t === 'Lambda' || t === 'CPU' || t === 'Process' || t === 'Pipeline' || t === 'Thread' || t === 'PipelineStage' || t === 'CodeBlock' || t === 'CallStack' || t === 'SymbolTable') return palette.compute;
+    // Blue: Data / Information / Storage
+    if (t === 'Database' || t === 'Cache' || t === 'Volume' || t === 'MemoryBlock' || t === 'MemoryLayout' || t === 'MemoryMap' || t === 'CacheHierarchy' || t === 'Dict' || t === 'HashTable' || t === 'BTree' || t === 'Trie' || t === 'Heap' || t === 'Set' || t === 'Registry') return palette.data;
+    // Teal: Environment / Flow
+    if (t === 'Cloud' || t === 'Cycle' || t === 'Monitor' || t === 'Timeline' || t === 'FlowDiagram' || t === 'GraphTraversal') return palette.environment;
+    // Gold: Human / Agent / Reasoning
+    if (t === 'User' || t === 'Concept' || t === 'Decision' || t === 'Metric' || t === 'BigO' || t === 'Analogy' || t === 'Quote' || t === 'Definition' || t === 'Proof') return palette.human;
+    // Violet: Structure / Organization
+    if (t === 'Container' || t === 'Pod' || t === 'Network' || t === 'Subnet' || t === 'Cluster' || t === 'Group' || t === 'Stack' || t === 'BinaryTree' || t === 'LinkedList' || t === 'NeuralNetwork') return palette.structure;
+    // Red: State / Control
+    if (t === 'Mutex' || t === 'Semaphore' || t === 'Firewall' || t === 'FSM' || t === 'ProcessState' || t === 'DeadlockGraph' || t === 'Badge') return palette.state;
+    // Orange: Annotations / Peripherals
+    if (t === 'Label' || t === 'Callout' || t === 'Annotation' || t === 'Comparison' || t === 'GanttChart') return palette.annotation;
     return palette.generic;
   }
 

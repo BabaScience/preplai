@@ -9,7 +9,11 @@
  * stay in place (no clear/rebuild). New entities animate in, removed entities
  * animate out. Connections are always re-rendered.
  *
- * Uses jsdom-compatible DOM APIs (createElementNS, getElementById, etc.).
+ * Uses jsdom-compatible DOM APIs (createElementNS, querySelector, etc.).
+ *
+ * IMPORTANT: All entity lookups are scoped to this.entityLayer (not document)
+ * to avoid cross-instance ID collisions when multiple players exist on the
+ * same page (e.g. hero player + showcase players on the landing page).
  */
 import type { VisualScript, VisualEntity, IllustrationFrame } from '@preplai/shared';
 import {
@@ -108,6 +112,15 @@ export class SceneController {
     this.onNarratorUpdate = options.onNarratorUpdate;
     this.onFrameChange = options.onFrameChange;
     this.onFocusChange = options.onFocusChange;
+  }
+
+  /**
+   * Find an entity element by ID, scoped to this controller's entity layer.
+   * Avoids global document.getElementById collisions when multiple players
+   * exist on the same page.
+   */
+  private _findEntity(entityId: string): Element | null {
+    return this.entityLayer.querySelector(`[id="${entityId}"]`);
   }
 
   /**
@@ -246,7 +259,7 @@ export class SceneController {
   // ── Entity exit animation ──────────────────────────────────────────
 
   private _exitEntity(entityId: string, position?: { x: number; y: number }): void {
-    const el = document.getElementById(entityId);
+    const el = this._findEntity(entityId) as HTMLElement | null;
     if (!el) return;
 
     // Find the innerG (animation target)
@@ -298,7 +311,7 @@ export class SceneController {
   ): void {
     if (prevPos.x === newPos.x && prevPos.y === newPos.y) return;
 
-    const el = document.getElementById(entityId);
+    const el = this._findEntity(entityId) as HTMLElement | null;
     if (!el) return;
 
     const cx = (newPos.x / 100) * CANVAS_WIDTH;
@@ -365,7 +378,7 @@ export class SceneController {
     const hasFocus = focusedIds.size > 0;
 
     for (const entity of nonConnections) {
-      const el = document.getElementById(entity.id);
+      const el = this._findEntity(entity.id);
       if (!el) continue;
 
       if (hasFocus) {
@@ -386,7 +399,7 @@ export class SceneController {
     if (this.onFocusChange) {
       if (hasFocus) {
         const primary = focusedEntities[0];
-        const el = document.getElementById(primary.id);
+        const el = this._findEntity(primary.id);
         if (el) {
           const rect = el.getBoundingClientRect();
           this.onFocusChange({
@@ -538,7 +551,7 @@ export class SceneController {
    * Live entity patch — update a single entity's visual properties.
    */
   patchEntity(entityId: string, patch: EntityPatch): void {
-    const outerEl = document.getElementById(entityId);
+    const outerEl = this._findEntity(entityId);
     if (!outerEl) {
       console.warn(
         `[scene-controller] patchEntity: entity "${entityId}" not found in DOM`,
