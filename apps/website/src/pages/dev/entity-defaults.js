@@ -352,6 +352,20 @@ export const METADATA_DEFAULTS = {
     max: 3,
     label: 'sem',
   },
+  Mutex: {
+    locked: true,
+    owner: 'Thread-1',
+  },
+  LogicGate: {
+    gate: 'AND',
+  },
+  SymbolTable: {
+    entries: [
+      { name: 'x', type: 'int' },
+      { name: 'name', type: 'string' },
+      { name: 'sum', type: 'float' },
+    ],
+  },
   Set: {
     values: ['a', 'b', 'c', 'd'],
   },
@@ -429,6 +443,8 @@ export const ENTITY_FIELD_DEFAULTS = {
   Thread: { size: 2 },
   Timeline: { size: 2 },
   Tuple: { size: 2 },
+  LogicGate: { size: 2 },
+  SymbolTable: { size: 2 },
   CodeBlock: {
     textContent: 'function fib(n) {\n  if (n <= 1) return n;\n  return fib(n-1) + fib(n-2);\n}',
     codeLanguage: 'javascript',

@@ -121,8 +121,8 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
         </filter>
 
         <!-- ── Arrow markers (multiple colors via CSS) ──────────── -->
-        <marker id="arrowhead-default" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
-          <path d="M 0 0 L 12 4 L 0 8 L 3 4 Z" fill="rgba(255,255,255,0.7)" />
+        <marker id="arrowhead-default" markerWidth="14" markerHeight="10" refX="12" refY="5" orient="auto">
+          <path d="M 0 0 L 14 5 L 0 10 L 3 5 Z" fill="rgba(255,255,255,0.8)" />
         </marker>
 
         <!-- ── Ambient glow for accent elements ─────────────────── -->

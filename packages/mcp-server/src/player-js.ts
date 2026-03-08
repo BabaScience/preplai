@@ -2475,59 +2475,128 @@ export const PLAYER_JS = `(function() {
       pathD = 'M ' + x1 + ' ' + y1 + ' L ' + x2 + ' ' + y2;
     }
 
+    // ── Glow path (cinema: hidden initially, fades in after draw-on) ──
+    var glow = null;
     if (!isMinimal) {
-      var glow = document.createElementNS(SVG_NS, 'path');
+      glow = document.createElementNS(SVG_NS, 'path');
       glow.setAttribute('d', pathD);
       glow.setAttribute('stroke', color);
       glow.setAttribute('stroke-width', '6');
       glow.setAttribute('fill', 'none');
-      glow.setAttribute('opacity', '0.12');
+      glow.setAttribute('opacity', '0');
       glow.setAttribute('stroke-linecap', 'round');
       ag.appendChild(glow);
     }
 
-    // Main line
+    // ── Main line ──
     var line = document.createElementNS(SVG_NS, 'path');
     line.setAttribute('d', pathD);
     line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', isMinimal ? '1.5' : '2');
+    line.setAttribute('stroke-width', isMinimal ? '2' : '2.5');
     line.setAttribute('fill', 'none');
     line.setAttribute('opacity', isMinimal ? '0.85' : '0.7');
     line.setAttribute('stroke-linecap', 'round');
     line.setAttribute('marker-end', 'url(#' + markerId + ')');
 
-    if (isMinimal && entity.type === 'DataFlow') {
-      line.setAttribute('stroke-dasharray', '8,5');
-    }
-
-    if (!isMinimal) {
-    // Subtle slow flow animation on all arrows
-    line.setAttribute('stroke-dasharray', '8,0');
-    var flowAnim = document.createElementNS(SVG_NS, 'animate');
-    flowAnim.setAttribute('attributeName', 'stroke-dashoffset');
-    flowAnim.setAttribute('from', '16');
-    flowAnim.setAttribute('to', '0');
-    flowAnim.setAttribute('dur', '3s');
-    flowAnim.setAttribute('repeatCount', 'indefinite');
-    line.appendChild(flowAnim);
-
-    // DataFlow: animated dash (overrides flow anim)
-    if (entity.type === 'DataFlow') {
-      line.setAttribute('stroke-dasharray', '8,5');
-      line.setAttribute('stroke-width', '3');
-      line.setAttribute('opacity', '0.5');
-      line.removeChild(flowAnim);
-      var anim = document.createElementNS(SVG_NS, 'animate');
-      anim.setAttribute('attributeName', 'stroke-dashoffset');
-      anim.setAttribute('from', '13');
-      anim.setAttribute('to', '0');
-      anim.setAttribute('dur', '0.8s');
-      anim.setAttribute('repeatCount', 'indefinite');
-      line.appendChild(anim);
-    }
+    if (isMinimal) {
+      // Minimal: simple dash for DataFlow, no draw-on
+      if (entity.type === 'DataFlow') {
+        line.setAttribute('stroke-dasharray', '8,5');
+      }
+    } else {
+      // Cinema: draw-on setup — line hidden via stroke-dashoffset
+      var pathLen = useCurved ? dist * 1.08 : dist;
+      if (pathLen < 1) pathLen = 1;
+      line.style.strokeDasharray = pathLen + '';
+      line.style.strokeDashoffset = pathLen + '';
+      line.style.transition = 'stroke-dashoffset 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
     }
 
     ag.appendChild(line);
+
+    // ── Cinema: draw-on choreography ──
+    if (!isMinimal) {
+      var drawDelay = delay || 400;
+      var drawDurMs = 600;
+      var isDataFlow = entity.type === 'DataFlow';
+
+      // Phase 1: Trigger draw-on (line draws from source → target)
+      setTimeout(function() {
+        line.style.strokeDashoffset = '0';
+      }, drawDelay + 30);
+
+      // Phase 2: Arrival pulse at target endpoint
+      if (dist > 40) {
+        setTimeout(function() {
+          var pulse = document.createElementNS(SVG_NS, 'circle');
+          pulse.setAttribute('cx', String(x2));
+          pulse.setAttribute('cy', String(y2));
+          pulse.setAttribute('r', '3');
+          pulse.setAttribute('fill', color);
+          pulse.setAttribute('opacity', '0');
+          // Scale up via SMIL
+          var scaleAnim = document.createElementNS(SVG_NS, 'animate');
+          scaleAnim.setAttribute('attributeName', 'r');
+          scaleAnim.setAttribute('from', '3');
+          scaleAnim.setAttribute('to', '12');
+          scaleAnim.setAttribute('dur', '0.4s');
+          scaleAnim.setAttribute('begin', 'indefinite');
+          scaleAnim.setAttribute('fill', 'freeze');
+          pulse.appendChild(scaleAnim);
+          // Fade in then out
+          var opacAnim = document.createElementNS(SVG_NS, 'animate');
+          opacAnim.setAttribute('attributeName', 'opacity');
+          opacAnim.setAttribute('values', '0;0.5;0');
+          opacAnim.setAttribute('keyTimes', '0;0.25;1');
+          opacAnim.setAttribute('dur', '0.4s');
+          opacAnim.setAttribute('begin', 'indefinite');
+          opacAnim.setAttribute('fill', 'freeze');
+          pulse.appendChild(opacAnim);
+          ag.appendChild(pulse);
+          // Trigger pulse animations
+          scaleAnim.beginElement();
+          opacAnim.beginElement();
+          // Clean up
+          setTimeout(function() {
+            if (pulse.parentNode) pulse.parentNode.removeChild(pulse);
+          }, 500);
+        }, drawDelay + drawDurMs);
+      }
+
+      // Phase 3: Transition to idle flow animation
+      setTimeout(function() {
+        // Fade in glow
+        if (glow) {
+          glow.style.transition = 'opacity 0.4s ease';
+          glow.setAttribute('opacity', '0.12');
+        }
+        // Clear CSS styles, switch to SVG attributes for SMIL compatibility
+        line.style.strokeDasharray = '';
+        line.style.strokeDashoffset = '';
+        line.style.transition = '';
+        // Set flow dash pattern
+        line.setAttribute('stroke-dasharray', isDataFlow ? '8,5' : '8,0');
+        line.setAttribute('stroke-dashoffset', '0');
+        if (isDataFlow) {
+          line.setAttribute('stroke-width', '3');
+          line.setAttribute('opacity', '0.5');
+        }
+        // Add SMIL flow animation
+        var flowAnim = document.createElementNS(SVG_NS, 'animate');
+        flowAnim.setAttribute('attributeName', 'stroke-dashoffset');
+        if (isDataFlow) {
+          flowAnim.setAttribute('from', '13');
+          flowAnim.setAttribute('to', '0');
+          flowAnim.setAttribute('dur', '0.8s');
+        } else {
+          flowAnim.setAttribute('from', '16');
+          flowAnim.setAttribute('to', '0');
+          flowAnim.setAttribute('dur', '3s');
+        }
+        flowAnim.setAttribute('repeatCount', 'indefinite');
+        line.appendChild(flowAnim);
+      }, drawDelay + drawDurMs + 500);
+    }
 
     // BUG FIX 4: Arrow label with collision avoidance
     if (entity.label) {
@@ -2570,9 +2639,9 @@ export const PLAYER_JS = `(function() {
       ag.appendChild(lt);
     }
 
-    // Entrance
+    // Entrance (cinema: quick fade since draw-on handles the visual reveal; minimal: standard fade)
     ag.style.opacity = '0';
-    ag.style.animation = 'fadeIn 0.4s ease both';
+    ag.style.animation = 'fadeIn ' + (isMinimal ? '0.4' : '0.15') + 's ease both';
     ag.style.animationDelay = (delay || 400) + 'ms';
 
     parentEl.appendChild(ag);
@@ -2591,11 +2660,23 @@ export const PLAYER_JS = `(function() {
 
     if (typeof gsap !== 'undefined') {
       canvas.classList.add('frame-transitioning');
-      gsap.to(entityLayer, { opacity: 0, duration: 0.2, onComplete: function() {
-        _doRenderFrame(frame);
-        gsap.to(entityLayer, { opacity: 1, duration: 0.3 });
-        canvas.classList.remove('frame-transitioning');
-      }});
+      var tl = gsap.timeline({
+        onComplete: function() {
+          canvas.classList.remove('frame-transitioning');
+        }
+      });
+      // Phase 1: Narrator exits first (slide down + fade)
+      if (narratorText && narratorText.classList.contains('visible')) {
+        tl.to(narratorText, { y: 12, opacity: 0, duration: 0.2, ease: 'power2.in' }, 0);
+      }
+      // Phase 2: Entities + connections fade out with slight scale
+      tl.to(entityLayer, { opacity: 0, scale: 0.97, transformOrigin: '50% 50%', duration: 0.25, ease: 'power2.in' }, 0.05);
+      tl.to(connectionLayer, { opacity: 0, duration: 0.2, ease: 'power2.in' }, 0.05);
+      // Phase 3: Clear and rebuild
+      tl.call(function() { _doRenderFrame(frame); }, null, 0.3);
+      // Phase 4: Entities fade back in
+      tl.to(entityLayer, { opacity: 1, scale: 1, duration: 0.35, ease: 'power2.out' }, 0.32);
+      tl.to(connectionLayer, { opacity: 1, duration: 0.3, ease: 'power2.out' }, 0.35);
     } else {
       _doRenderFrame(frame);
     }
@@ -2644,6 +2725,60 @@ export const PLAYER_JS = `(function() {
     if (typeof gsap !== 'undefined') {
       gsap.fromTo(canvas, { opacity: 0.85 }, { opacity: 1, duration: 0.3, ease: 'power2.out' });
     }
+
+    // Apply idle micro-animations after entrance completes
+    applyIdleAnimations(nonArrows.length);
+  }
+
+  // ── Idle micro-animation mapping ────────────────────────────────────
+  var IDLE_MAP = {
+    Server: 'idle-breathe',
+    Database: 'idle-breathe',
+    Cache: 'idle-breathe-fast',
+    CPU: 'idle-breathe',
+    Queue: 'idle-bob',
+    Lambda: 'idle-float',
+    Cloud: 'idle-float-slow',
+    LoadBalancer: 'idle-breathe',
+    Container: 'idle-breathe-slow',
+    Pod: 'idle-breathe-slow',
+    Service: 'idle-breathe',
+    Firewall: 'idle-breathe',
+    Mutex: 'idle-breathe-slow',
+    Semaphore: 'idle-breathe-slow',
+    Monitor: 'idle-breathe',
+    Process: 'idle-breathe-fast',
+    Thread: 'idle-breathe-fast',
+    User: 'idle-float',
+    Concept: 'idle-float-slow',
+    BinaryTree: 'idle-breathe-slow',
+    Heap: 'idle-breathe-slow',
+    BTree: 'idle-breathe-slow',
+    Packet: 'idle-float',
+    Pipeline: 'idle-breathe',
+    NeuralNetwork: 'idle-breathe',
+    Network: 'idle-breathe',
+    Subnet: 'idle-breathe-slow',
+    LogicGate: 'idle-breathe',
+    SymbolTable: 'idle-breathe-slow'
+  };
+
+  var idleTimer = null;
+  function applyIdleAnimations(entityCount) {
+    if (idleTimer) clearTimeout(idleTimer);
+    // Wait for entrance animations to finish (stagger * count + animation duration)
+    var delay = Math.min(entityCount * 60 + 700, 2000);
+    idleTimer = setTimeout(function() {
+      var entities = entityLayer.querySelectorAll('[data-type]');
+      for (var i = 0; i < entities.length; i++) {
+        var type = entities[i].getAttribute('data-type');
+        var idleClass = IDLE_MAP[type];
+        if (idleClass) {
+          var inner = entities[i].querySelector('.animate-element');
+          if (inner) inner.classList.add(idleClass);
+        }
+      }
+    }, delay);
   }
 
   // ═══════════════════════════════════════════════════════════════════

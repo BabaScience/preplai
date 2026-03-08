@@ -4,7 +4,7 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
+import { createLinearGradient, ensureDefs, ensureGlassFilter } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -30,6 +30,7 @@ export function renderServer(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   body.setAttribute('fill', `url(#${gradId})`);
   body.setAttribute('stroke', color);
   body.setAttribute('stroke-width', String(SHAPES.strokeWidth));
+  body.setAttribute('filter', ensureGlassFilter(parentEl));
   innerG.appendChild(body);
 
   // ── Rack stripe lines (more pronounced)

@@ -11,7 +11,7 @@ export { resolveEntityRef } from './fuzzy-lookup.js';
 
 // ── DOM-dependent modules
 export { SceneController } from './scene-controller.js';
-export type { SceneControllerOptions, EntityPatch } from './scene-controller.js';
+export type { SceneControllerOptions, EntityPatch, FocusInfo } from './scene-controller.js';
 
 export { NarratorController } from './narrator.js';
 

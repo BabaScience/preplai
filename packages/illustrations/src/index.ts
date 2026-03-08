@@ -36,6 +36,7 @@ export {
   createDarkGradient,
   ensureDefs,
   ensureDropShadowFilter,
+  ensureGlassFilter,
 } from './visual-utils.js';
 
 // ── Registry & dispatcher
@@ -119,6 +120,9 @@ export { renderSemaphore } from './components/semaphore.js';
 export { renderSubnet } from './components/subnet.js';
 export { renderTuringMachine } from './components/turingmachine.js';
 export { renderCPU } from './components/cpu.js';
+export { renderLogicGate } from './components/logicgate.js';
+export { renderMutex } from './components/mutex.js';
+export { renderSymbolTable } from './components/symboltable.js';
 
 // ── Generic component factory (for extending)
 export { createGenericRenderer } from './components/generic.js';

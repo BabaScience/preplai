@@ -5,7 +5,7 @@
  * Renders: top ellipse, gradient body, bottom ellipse, side lines, horizontal stripes.
  */
 import { SVG_NS } from './utils.js';
-import { createLinearGradient, ensureDefs } from './visual-utils.js';
+import { createLinearGradient, ensureDefs, ensureGlassFilter } from './visual-utils.js';
 import { SHAPES } from './design-tokens.js';
 
 export interface CylinderConfig {
@@ -19,6 +19,8 @@ export interface CylinderConfig {
   bodyH?: number;
   /** Optional: stripe width as fraction of rx (default 0.85) */
   stripeWidthScale?: number;
+  /** Apply glass materiality filter to cylinder body */
+  glass?: boolean;
 }
 
 /**
@@ -38,6 +40,7 @@ export function renderCylinderBase(
     rx = size / 2,
     bodyH = size * 0.55,
     stripeWidthScale = 0.85,
+    glass = false,
   } = config;
   const ry = size / 6;
   const topY = -size / 3;
@@ -45,6 +48,16 @@ export function renderCylinderBase(
 
   const defs = ensureDefs(parentEl);
   createLinearGradient(gradId, color, 'vertical', defs);
+
+  // If glass materiality is enabled, wrap body shapes in a filtered sub-group
+  const bodyTarget = glass
+    ? (() => {
+        const g = document.createElementNS(SVG_NS, 'g') as SVGGElement;
+        g.setAttribute('filter', ensureGlassFilter(parentEl));
+        innerG.appendChild(g);
+        return g;
+      })()
+    : innerG;
 
   // Top ellipse (cap)
   const topEllipse = document.createElementNS(SVG_NS, 'ellipse');
@@ -55,7 +68,7 @@ export function renderCylinderBase(
   topEllipse.setAttribute('fill', `${color}25`);
   topEllipse.setAttribute('stroke', color);
   topEllipse.setAttribute('stroke-width', String(SHAPES.strokeWidth));
-  innerG.appendChild(topEllipse);
+  bodyTarget.appendChild(topEllipse);
 
   // Body fill with gradient
   const bodyFill = document.createElementNS(SVG_NS, 'rect');
@@ -65,7 +78,7 @@ export function renderCylinderBase(
   bodyFill.setAttribute('height', String(bodyH));
   bodyFill.setAttribute('fill', `url(#${gradId})`);
   bodyFill.setAttribute('stroke', 'none');
-  innerG.appendChild(bodyFill);
+  bodyTarget.appendChild(bodyFill);
 
   // Bottom ellipse (base)
   const botEllipse = document.createElementNS(SVG_NS, 'ellipse');
@@ -76,7 +89,7 @@ export function renderCylinderBase(
   botEllipse.setAttribute('fill', `${color}15`);
   botEllipse.setAttribute('stroke', color);
   botEllipse.setAttribute('stroke-width', String(SHAPES.strokeWidth));
-  innerG.appendChild(botEllipse);
+  bodyTarget.appendChild(botEllipse);
 
   // Vertical side lines
   for (const xSign of [-1, 1]) {
@@ -87,7 +100,7 @@ export function renderCylinderBase(
     line.setAttribute('y2', String(botY));
     line.setAttribute('stroke', color);
     line.setAttribute('stroke-width', String(SHAPES.strokeWidth));
-    innerG.appendChild(line);
+    bodyTarget.appendChild(line);
   }
 
   // Horizontal stripes
@@ -102,7 +115,7 @@ export function renderCylinderBase(
     stripe.setAttribute('stroke', color);
     stripe.setAttribute('stroke-width', '1.5');
     stripe.setAttribute('opacity', '0.5');
-    innerG.appendChild(stripe);
+    bodyTarget.appendChild(stripe);
   }
 }
 

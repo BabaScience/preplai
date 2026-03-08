@@ -5,17 +5,31 @@
  * manages frame state, dispatches render calls via @preplai/illustrations,
  * and handles patchEntity / clear operations.
  *
+ * P2.1 Cinematic Mode: Persistent scene — entities that exist across frames
+ * stay in place (no clear/rebuild). New entities animate in, removed entities
+ * animate out. Connections are always re-rendered.
+ *
  * Uses jsdom-compatible DOM APIs (createElementNS, getElementById, etc.).
  */
 import type { VisualScript, VisualEntity, IllustrationFrame } from '@preplai/shared';
 import {
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
   ENTITY_COUNT_WARN_THRESHOLD,
   ENTITY_COUNT_ERROR_THRESHOLD,
+  INTER_ENTITY_STAGGER_MS,
 } from '@preplai/shared';
 import { renderEntity } from '@preplai/illustrations';
 import { applyDefaults, assignEntranceDelays } from './apply-defaults.js';
 
 // ── Types ────────────────────────────────────────────────────────────
+
+export interface FocusInfo {
+  entityId: string;
+  /** Screen-space position (CSS pixels) of the focused entity center */
+  screenX: number;
+  screenY: number;
+}
 
 export interface SceneControllerOptions {
   entityLayer: SVGGElement;
@@ -24,6 +38,8 @@ export interface SceneControllerOptions {
   onNarratorUpdate?: (text: string) => void;
   /** Callback when a frame is rendered (for postMessage bridge) */
   onFrameChange?: (frameIndex: number) => void;
+  /** Callback when entity focus changes (for spatial narrator) */
+  onFocusChange?: (focus: FocusInfo | null) => void;
 }
 
 export interface EntityPatch {
@@ -41,6 +57,28 @@ function isConnectionType(type: string): boolean {
   return CONNECTION_TYPES.has(type);
 }
 
+// ── Exit animation duration ──────────────────────────────────────────
+
+const EXIT_DURATION_MS = 300;
+
+// ── ViewBox animation ────────────────────────────────────────────────
+
+interface ViewBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+const VIEWBOX_PADDING = 0.12; // 12% padding around entity bounding box
+const VIEWBOX_MIN_W = 600; // don't zoom in tighter than this
+const VIEWBOX_ANIM_MS = 600;
+
+/** Ease-in-out quad */
+function easeInOutQuad(t: number): number {
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════
 // SceneController
@@ -55,12 +93,21 @@ export class SceneController {
   private connectionLayer: SVGGElement;
   private onNarratorUpdate?: (text: string) => void;
   private onFrameChange?: (frameIndex: number) => void;
+  private onFocusChange?: (focus: FocusInfo | null) => void;
+
+  /** Tracks which non-connection entities are currently in the DOM by ID */
+  private liveEntityIds: Set<string> = new Set();
+  /** Previous frame's non-connection entities (for diffing) */
+  private prevNonConnections: VisualEntity[] = [];
+  /** Active viewBox animation frame ID */
+  private viewBoxAnimId: number = 0;
 
   constructor(options: SceneControllerOptions) {
     this.entityLayer = options.entityLayer;
     this.connectionLayer = options.connectionLayer;
     this.onNarratorUpdate = options.onNarratorUpdate;
     this.onFrameChange = options.onFrameChange;
+    this.onFocusChange = options.onFocusChange;
   }
 
   /**
@@ -68,7 +115,7 @@ export class SceneController {
    */
   loadScript(script: VisualScript): void {
     this.currentScript = script;
-    this.renderedEntityIds.clear();
+    this._fullClear();
     this.seekToFrame(0);
   }
 
@@ -88,7 +135,13 @@ export class SceneController {
   }
 
   /**
-   * Core render function. Clears layers, renders entities, then arrows.
+   * Core render function — CINEMATIC MODE.
+   *
+   * Instead of clear + rebuild, diffs entities between frames:
+   * - Kept entities stay in DOM (position animated if changed)
+   * - New entities render with entrance animation
+   * - Removed entities get exit animation then removed from DOM
+   * - Connections always re-rendered (they depend on entity positions)
    */
   private _renderFrame(frame: IllustrationFrame): void {
     const entities = frame.entities ?? [];
@@ -99,8 +152,7 @@ export class SceneController {
       console.error(
         `[scene-controller] Frame has ${entityCount} entities. Exceeds hard limit of ${ENTITY_COUNT_ERROR_THRESHOLD}. Refusing to render.`,
       );
-      this._clearLayers();
-      this.renderedEntityIds.clear();
+      this._fullClear();
       return;
     }
 
@@ -110,38 +162,76 @@ export class SceneController {
       );
     }
 
-    // Clear layers
-    this._clearLayers();
-    this.renderedEntityIds.clear();
-
     // Separate connections from non-connection entities
     const connections = entities.filter((e: VisualEntity) => isConnectionType(e.type));
     const nonConnections = entities.filter((e: VisualEntity) => !isConnectionType(e.type));
 
-    // Assign stagger delays to non-connection entities
-    const staggered = assignEntranceDelays(nonConnections);
+    // ── Diff entities ──────────────────────────────────────────────
+    const prevIds = new Set(this.prevNonConnections.map(e => e.id));
+    const currIds = new Set(nonConnections.map(e => e.id));
 
-    // Pass 1: Render non-connection entities (populates DOM positions)
+    const added = nonConnections.filter(e => !prevIds.has(e.id) && !e.parentEntityId);
+    const removed = this.prevNonConnections.filter(e => !currIds.has(e.id) && !e.parentEntityId);
+    const kept = nonConnections.filter(e => prevIds.has(e.id) && !e.parentEntityId);
+
+    // ── Exit animation for removed entities ────────────────────────
+    for (const entity of removed) {
+      this._exitEntity(entity.id, entity.position);
+    }
+
+    // ── Update kept entities (position changes) ────────────────────
+    const prevMap = new Map(this.prevNonConnections.map(e => [e.id, e]));
+    for (const entity of kept) {
+      const prev = prevMap.get(entity.id);
+      if (prev) {
+        this._updateEntityPosition(entity.id, prev.position, entity.position);
+      }
+    }
+
+    // ── Render new entities with motivated entrance animation ─────
+    const staggered = assignEntranceDelays(added);
     for (const entity of staggered) {
-      // Skip child entities at top level — rendered by their parent
-      if (entity.parentEntityId) continue;
-
+      // Assign motivated entrance direction based on position (P2.4)
+      if (!entity.animation?.entrance) {
+        const motivated = this._motivatedEntrance(entity, kept);
+        entity.animation = { ...(entity.animation ?? {}), entrance: motivated };
+      }
       const defaulted = applyDefaults(entity);
       const el = renderEntity(defaulted, this.entityLayer);
       if (el) {
         this.renderedEntityIds.add(entity.id);
+        this.liveEntityIds.add(entity.id);
       }
     }
 
-    // Pass 2: Render connections (arrows, data flows) — needs resolved positions
-    for (const conn of connections) {
+    // ── Connections: always clear + re-render ──────────────────────
+    this.connectionLayer.innerHTML = '';
+
+    // Connection delay: only stagger if we have new entities entering
+    const hasNewEntities = added.length > 0;
+    const connectionBaseDelay = hasNewEntities
+      ? added.length * INTER_ENTITY_STAGGER_MS + 150
+      : 80; // minimal delay for connection draw-on when no new entities
+    const connectionStagger = 80;
+
+    for (let ci = 0; ci < connections.length; ci++) {
+      const conn = connections[ci];
       const defaulted = applyDefaults(conn);
-      const el = renderEntity(defaulted, this.connectionLayer, entities);
-      if (el) {
-        // Connection IDs are NOT tracked in renderedEntityIds
-        // (they are in the connectionLayer, not entityLayer)
-      }
+      defaulted.animation = {
+        ...(defaulted.animation ?? {}),
+        delay: connectionBaseDelay + ci * connectionStagger,
+      };
+      renderEntity(defaulted, this.connectionLayer, entities);
     }
+
+    // ── ViewBox camera ─────────────────────────────────────────────
+    this._animateViewBoxToEntities(nonConnections);
+
+    // ── Depth of field ──────────────────────────────────────────────
+    this._applyDepthOfField(nonConnections);
+
+    // ── Save current state for next diff ───────────────────────────
+    this.prevNonConnections = [...nonConnections];
 
     // Update narrator text
     if (frame.narrationSegment) {
@@ -152,6 +242,297 @@ export class SceneController {
       );
     }
   }
+
+  // ── Entity exit animation ──────────────────────────────────────────
+
+  private _exitEntity(entityId: string, position?: { x: number; y: number }): void {
+    const el = document.getElementById(entityId);
+    if (!el) return;
+
+    // Find the innerG (animation target)
+    const innerG = el.querySelector('.animate-element') as SVGGElement | null;
+    const target = innerG ?? el;
+
+    // Remove entrance/DoF classes that might interfere
+    const classAttr = target.getAttribute('class') ?? '';
+    target.setAttribute('class', classAttr.replace(/entrance-\S+/g, '').trim());
+    el.classList.remove('dof-focus', 'dof-bg');
+
+    // Determine directional exit transform based on position (P2.4)
+    let exitTransform = 'scale(0.85)';
+    if (position) {
+      const x = position.x;
+      const y = position.y;
+      const distLeft = x;
+      const distRight = 100 - x;
+      const distTop = y;
+      const distBottom = 100 - y;
+      const minDist = Math.min(distLeft, distRight, distTop, distBottom);
+
+      if (minDist === distLeft) exitTransform = 'translateX(-80px) scale(0.9)';
+      else if (minDist === distRight) exitTransform = 'translateX(80px) scale(0.9)';
+      else if (minDist === distTop) exitTransform = 'translateY(-50px) scale(0.9)';
+      else exitTransform = 'translateY(50px) scale(0.9)';
+    }
+
+    // Apply exit: fade out + directional slide
+    target.style.transition = `opacity ${EXIT_DURATION_MS}ms ease, transform ${EXIT_DURATION_MS}ms ease`;
+    target.style.opacity = '0';
+    target.style.transform = exitTransform;
+
+    // Remove from DOM after animation
+    setTimeout(() => {
+      el.remove();
+    }, EXIT_DURATION_MS);
+
+    this.renderedEntityIds.delete(entityId);
+    this.liveEntityIds.delete(entityId);
+  }
+
+  // ── Entity position update ─────────────────────────────────────────
+
+  private _updateEntityPosition(
+    entityId: string,
+    prevPos: { x: number; y: number },
+    newPos: { x: number; y: number },
+  ): void {
+    if (prevPos.x === newPos.x && prevPos.y === newPos.y) return;
+
+    const el = document.getElementById(entityId);
+    if (!el) return;
+
+    const cx = (newPos.x / 100) * CANVAS_WIDTH;
+    const cy = (newPos.y / 100) * CANVAS_HEIGHT;
+
+    // Animate position via CSS transition on the outerG's transform
+    el.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+    el.setAttribute('transform', `translate(${cx}, ${cy})`);
+
+    // Clean up transition after it completes
+    setTimeout(() => {
+      el.style.transition = '';
+    }, 550);
+  }
+
+  // ── Motivated entrance direction (P2.4) ──────────────────────────────
+
+  /**
+   * Determine the best entrance animation class based on entity position.
+   * Entities near edges fly in from that edge. Entities near existing entities
+   * grow from a point. Center entities use the default fadeInUp.
+   */
+  private _motivatedEntrance(entity: VisualEntity, keptEntities: VisualEntity[]): string {
+    const x = entity.position.x; // 0–100
+    const y = entity.position.y; // 0–100
+
+    // Check if this entity is near an existing (kept) entity → grow from point
+    for (const kept of keptEntities) {
+      const dx = Math.abs(x - kept.position.x);
+      const dy = Math.abs(y - kept.position.y);
+      if (dx < 12 && dy < 12) {
+        return 'entrance-growFromPoint';
+      }
+    }
+
+    // Edge proximity thresholds (percentage of canvas)
+    const EDGE_THRESHOLD = 22;
+
+    // Find distances to each edge
+    const distLeft = x;
+    const distRight = 100 - x;
+    const distTop = y;
+    const distBottom = 100 - y;
+
+    const minDist = Math.min(distLeft, distRight, distTop, distBottom);
+
+    // Only use directional entrance if close enough to an edge
+    if (minDist < EDGE_THRESHOLD) {
+      if (minDist === distLeft) return 'entrance-flyInFromLeft';
+      if (minDist === distRight) return 'entrance-flyInFromRight';
+      if (minDist === distTop) return 'entrance-flyInFromTop';
+      if (minDist === distBottom) return 'entrance-flyInFromBottom';
+    }
+
+    // Center/default: gentle rise
+    return 'entrance-fadeInUp';
+  }
+
+  // ── Depth of field ───────────────────────────────────────────────────
+
+  private _applyDepthOfField(nonConnections: VisualEntity[]): void {
+    const focusedEntities = nonConnections.filter(e => e.highlight);
+    const focusedIds = new Set(focusedEntities.map(e => e.id));
+    const hasFocus = focusedIds.size > 0;
+
+    for (const entity of nonConnections) {
+      const el = document.getElementById(entity.id);
+      if (!el) continue;
+
+      if (hasFocus) {
+        if (focusedIds.has(entity.id)) {
+          el.classList.add('dof-focus');
+          el.classList.remove('dof-bg');
+        } else {
+          el.classList.add('dof-bg');
+          el.classList.remove('dof-focus');
+        }
+      } else {
+        // No focus — remove all DoF classes (full clarity)
+        el.classList.remove('dof-focus', 'dof-bg');
+      }
+    }
+
+    // Emit focus change for spatial narrator
+    if (this.onFocusChange) {
+      if (hasFocus) {
+        const primary = focusedEntities[0];
+        const el = document.getElementById(primary.id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          this.onFocusChange({
+            entityId: primary.id,
+            screenX: rect.left + rect.width / 2,
+            screenY: rect.top,
+          });
+        }
+      } else {
+        this.onFocusChange(null);
+      }
+    }
+  }
+
+  // ── ViewBox camera animation ───────────────────────────────────────
+
+  private _animateViewBoxToEntities(nonConnections: VisualEntity[]): void {
+    const svg = this.entityLayer.ownerSVGElement;
+    if (!svg || nonConnections.length === 0) return;
+
+    // Calculate bounding box of current entities (in canvas pixels)
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const e of nonConnections) {
+      const cx = (e.position.x / 100) * CANVAS_WIDTH;
+      const cy = (e.position.y / 100) * CANVAS_HEIGHT;
+      // Approximate entity radius based on size
+      const r = (e.size ?? 1) * 40;
+      minX = Math.min(minX, cx - r);
+      minY = Math.min(minY, cy - r);
+      maxX = Math.max(maxX, cx + r);
+      maxY = Math.max(maxY, cy + r);
+    }
+
+    // Add padding
+    const rawW = maxX - minX;
+    const rawH = maxY - minY;
+    const padX = rawW * VIEWBOX_PADDING;
+    const padY = rawH * VIEWBOX_PADDING;
+    let vbX = minX - padX;
+    let vbY = minY - padY;
+    let vbW = rawW + padX * 2;
+    let vbH = rawH + padY * 2;
+
+    // Enforce minimum zoom (don't zoom in too tight)
+    if (vbW < VIEWBOX_MIN_W) {
+      const cx = vbX + vbW / 2;
+      vbW = VIEWBOX_MIN_W;
+      vbX = cx - vbW / 2;
+    }
+
+    // Maintain 16:9 aspect ratio
+    const targetAspect = CANVAS_WIDTH / CANVAS_HEIGHT;
+    const currentAspect = vbW / vbH;
+    if (currentAspect > targetAspect) {
+      // Too wide — expand height
+      const newH = vbW / targetAspect;
+      vbY -= (newH - vbH) / 2;
+      vbH = newH;
+    } else {
+      // Too tall — expand width
+      const newW = vbH * targetAspect;
+      vbX -= (newW - vbW) / 2;
+      vbW = newW;
+    }
+
+    // Clamp to canvas bounds (don't show outside the canvas)
+    if (vbX < 0) vbX = 0;
+    if (vbY < 0) vbY = 0;
+    if (vbX + vbW > CANVAS_WIDTH) {
+      // If entities demand more width than canvas, show full width
+      if (vbW >= CANVAS_WIDTH) {
+        vbX = 0;
+        vbW = CANVAS_WIDTH;
+      } else {
+        vbX = CANVAS_WIDTH - vbW;
+      }
+    }
+    if (vbY + vbH > CANVAS_HEIGHT) {
+      if (vbH >= CANVAS_HEIGHT) {
+        vbY = 0;
+        vbH = CANVAS_HEIGHT;
+      } else {
+        vbY = CANVAS_HEIGHT - vbH;
+      }
+    }
+
+    // If the resulting viewBox is essentially the full canvas, just use full canvas
+    // (avoids micro-zooms that look jittery)
+    if (vbW > CANVAS_WIDTH * 0.85 && vbH > CANVAS_HEIGHT * 0.85) {
+      vbX = 0;
+      vbY = 0;
+      vbW = CANVAS_WIDTH;
+      vbH = CANVAS_HEIGHT;
+    }
+
+    const target: ViewBox = { x: vbX, y: vbY, w: vbW, h: vbH };
+    this._animateViewBox(svg, target);
+  }
+
+  private _animateViewBox(svg: SVGSVGElement, target: ViewBox): void {
+    // Cancel any in-flight animation
+    if (this.viewBoxAnimId) {
+      cancelAnimationFrame(this.viewBoxAnimId);
+      this.viewBoxAnimId = 0;
+    }
+
+    // Read current viewBox
+    const vb = svg.viewBox.baseVal;
+    const start: ViewBox = { x: vb.x, y: vb.y, w: vb.width, h: vb.height };
+
+    // Skip animation if already at target (within tolerance)
+    const tol = 2;
+    if (
+      Math.abs(start.x - target.x) < tol &&
+      Math.abs(start.y - target.y) < tol &&
+      Math.abs(start.w - target.w) < tol &&
+      Math.abs(start.h - target.h) < tol
+    ) {
+      return;
+    }
+
+    const startTime = performance.now();
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const t = Math.min(1, elapsed / VIEWBOX_ANIM_MS);
+      const ease = easeInOutQuad(t);
+
+      const x = start.x + (target.x - start.x) * ease;
+      const y = start.y + (target.y - start.y) * ease;
+      const w = start.w + (target.w - start.w) * ease;
+      const h = start.h + (target.h - start.h) * ease;
+
+      svg.setAttribute('viewBox', `${x.toFixed(1)} ${y.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`);
+
+      if (t < 1) {
+        this.viewBoxAnimId = requestAnimationFrame(step);
+      } else {
+        this.viewBoxAnimId = 0;
+      }
+    };
+
+    this.viewBoxAnimId = requestAnimationFrame(step);
+  }
+
+  // ── Public API ─────────────────────────────────────────────────────
 
   /**
    * Live entity patch — update a single entity's visual properties.
@@ -192,8 +573,8 @@ export class SceneController {
 
     // Position patch — update SVG transform attribute
     if (patch.position) {
-      const cx = (patch.position.x / 100) * 1920;
-      const cy = (patch.position.y / 100) * 1080;
+      const cx = (patch.position.x / 100) * CANVAS_WIDTH;
+      const cy = (patch.position.y / 100) * CANVAS_HEIGHT;
       outerEl.setAttribute('transform', `translate(${cx}, ${cy})`);
     }
   }
@@ -202,18 +583,30 @@ export class SceneController {
    * Clear the canvas — remove all entities and reset state.
    */
   clear(): void {
-    this._clearLayers();
     this.currentScript = null;
-    this.currentFrameIdx = 0;
-    this.renderedEntityIds.clear();
+    this._fullClear();
     this.onNarratorUpdate?.('');
   }
 
   /**
-   * Clear DOM layers (entity + connection).
+   * Full clear — reset everything (used on loadScript and clear).
    */
-  private _clearLayers(): void {
+  private _fullClear(): void {
+    if (this.viewBoxAnimId) {
+      cancelAnimationFrame(this.viewBoxAnimId);
+      this.viewBoxAnimId = 0;
+    }
     this.entityLayer.innerHTML = '';
     this.connectionLayer.innerHTML = '';
+    this.renderedEntityIds.clear();
+    this.liveEntityIds.clear();
+    this.prevNonConnections = [];
+    this.currentFrameIdx = 0;
+
+    // Reset viewBox to full canvas
+    const svg = this.entityLayer.ownerSVGElement;
+    if (svg) {
+      svg.setAttribute('viewBox', `0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`);
+    }
   }
 }

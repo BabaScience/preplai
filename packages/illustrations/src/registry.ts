@@ -100,6 +100,9 @@ import { renderScatterPlot } from './components/scatterplot.js';
 import { renderSemaphore } from './components/semaphore.js';
 import { renderSubnet } from './components/subnet.js';
 import { renderTuringMachine } from './components/turingmachine.js';
+import { renderLogicGate } from './components/logicgate.js';
+import { renderMutex } from './components/mutex.js';
+import { renderSymbolTable } from './components/symboltable.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -226,7 +229,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   // ── Computer Architecture
   CPU: renderCPU,
   MemoryBlock: renderMemoryBlock,
-  LogicGate: csArchGrn,
+  LogicGate: renderLogicGate,
   Bus: renderDataFlow as any,  // Uses DataFlow for bus connections
 
   // ── Operating Systems
@@ -250,12 +253,12 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Compilers & PL
   CallStack: renderCallStack,
-  SymbolTable: infraGeneric,
+  SymbolTable: renderSymbolTable,
 
   // ── Databases
   // ── Concurrency
   Semaphore: renderSemaphore,
-  Mutex: generic('Mutex'),
+  Mutex: renderMutex,
 
   // ── Theory
   TuringMachine: renderTuringMachine,

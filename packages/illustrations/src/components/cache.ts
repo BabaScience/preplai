@@ -19,6 +19,7 @@ export function renderCache(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     color,
     gradId,
     stripeOffsets: [0.2, 0.45, 0.7],
+    glass: true,
   });
 
   // Lightning bolt (flash icon) inside

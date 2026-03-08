@@ -23,6 +23,7 @@ export function renderVolume(entity: VisualEntity, parentEl: SVGElement): SVGGEl
     rx: size / 2.2,
     bodyH,
     stripeWidthScale: 0.8,
+    glass: true,
   });
 
   if (entity.label) {
