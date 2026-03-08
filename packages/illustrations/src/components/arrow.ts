@@ -136,6 +136,8 @@ function hasOpposingArrow(
 
 /**
  * Inject an arrowhead <marker> into <defs> if it doesn't already exist.
+ * Uses orient="auto-start-reverse" so the same marker works for both marker-start and marker-end
+ * (start arrowhead points back, end arrowhead points forward).
  */
 function ensureArrowheadMarker(markerId: string, color: string, svgEl: SVGElement): void {
   if (svgEl.querySelector(`#${markerId}`)) return;
@@ -152,7 +154,7 @@ function ensureArrowheadMarker(markerId: string, color: string, svgEl: SVGElemen
   marker.setAttribute('markerHeight', '10');
   marker.setAttribute('refX', '9');
   marker.setAttribute('refY', '3');
-  marker.setAttribute('orient', 'auto');
+  marker.setAttribute('orient', 'auto-start-reverse');
 
   const polygon = document.createElementNS(SVG_NS, 'polygon');
   polygon.setAttribute('points', '0 0, 10 3, 0 6');
