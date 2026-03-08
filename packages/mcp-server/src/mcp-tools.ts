@@ -64,7 +64,7 @@ const IllustrationFrameSchema = z.object({
   endTime: z.number().describe('Frame end time in ms'),
   entities: z.array(VisualEntitySchema).describe('Array of visual entities in this frame'),
   transitions: z.array(EntityTransitionSchema).optional().describe('Animations between entity states'),
-  narrationSegment: z.string().describe('Subtitle shown to user. 2–4 sentences, informative and detailed. Match the depth of a good chat explanation. Include key context and specifics.'),
+  narrationSegment: z.string().describe('Subtitle shown to user. 2–4 sentences, informative and detailed. Match GPT/Claude richness — avoid synthetic summaries. Include key context, specifics, and examples.'),
   description: z.string().optional().describe('Internal note for this frame (not shown to user).'),
 });
 
@@ -88,7 +88,11 @@ REQUIRED — USE COMPACT FORMAT (reduces tokens significantly):
 Example (REQUIRED format — 5–7 entities per frame):
 {"sid":"<session_id>","td":5000,"f":[{"e":[{"id":"h1","type":"H1","p":[50,6],"l":"API Architecture","sz":2},{"id":"srv","type":"Server","p":[25,45],"l":"API"},{"id":"db","type":"Database","p":[50,45],"l":"DB"},{"id":"cache","type":"Cache","p":[75,45],"l":"Redis"},{"id":"a1","type":"Arrow","p":[37,45],"src":"srv","tgt":"db","l":"Queries"},{"id":"a2","type":"Arrow","p":[62,45],"src":"srv","tgt":"cache","l":"Cache"},{"id":"l1","type":"Label","p":[50,75],"l":"Read-through pattern"}],"n":"The API server queries the database for data. Frequently accessed items are cached in Redis to reduce load."}]
 
-CONTENT DENSITY (critical): Aim for 5–7 entities per frame. Avoid sparse slides with only 1–3 items — each frame should feel complete and informative. Match the level of detail you would give in a chat explanation.
+CONTENT DENSITY (critical): Aim for 5–7 entities per frame. Avoid sparse slides with only 1–3 items — each frame should feel complete and informative.
+
+CONTENT QUALITY: Match the richness and detail of GPT/Claude chat explanations — not stripped-down summaries. Avoid generic, templated, or synthetic phrasing. Use specific labels when possible (e.g. "PostgreSQL" not "DB", "SQL queries" not "Queries"). Each narration sentence should be substantive — include context, specifics, or examples.
+
+NARRATION QUALITY: Good — "Binary search works by repeatedly halving the search space. We maintain two pointers, lo and hi; each comparison eliminates half the remaining elements, giving O(log n) time." Bad — "Binary search divides the array. It's efficient."
 
 APPEND BEHAVIOR: Multiple add_scene calls APPEND frames. Use update_scene to REPLACE. Use session_id as sid. Positions 0-100 (percent).
 
@@ -359,7 +363,7 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
 
   mcp.tool(
     'add_narration',
-    'Add narration text to a specific frame in a session. The text appears as a subtitle overlay in the player. Keep narration concise (1–2 sentences per frame). Match tone to the user\'s question (technical vs beginner-friendly).',
+    'Add narration text to a specific frame in a session. The text appears as a subtitle overlay in the player. 2–4 sentences, informative and detailed. Match tone to the user\'s question (technical vs beginner-friendly).',
     {
       session_id: z.string().describe('Session ID'),
       text: z.string().describe('Narration text to display'),
