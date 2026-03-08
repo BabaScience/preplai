@@ -15,7 +15,17 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES, COLORS } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  getStrokeWidth,
+  getLabelFontSize,
+  colorWithAlpha,
+  OPACITY,
+  TYPOGRAPHY,
+  SHAPES,
+  COLORS,
+  LABEL_DEFAULTS,
+} from '../design-tokens.js';
 import { gridLayoutFromMatrix } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -49,8 +59,10 @@ export function renderConfusionMatrix(entity: VisualEntity, parentEl: SVGElement
 
   const s = getSizeParam(entity);
   const scale = s / 50;
-  const cellFontSize = Math.round(12 * scale);
-  const badgeFontSize = Math.max(8, Math.round(9 * scale));
+  const cellFontSize = getLabelFontSize('value', scale);
+  const headerFontSize = getLabelFontSize('inline', scale);
+  const badgeFontSize = getLabelFontSize('index', scale);
+  const strokeWidth = getStrokeWidth('thin', scale);
   const baseColor = entity.color ?? getCategoryColor('ConfusionMatrix');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-cm-${baseColor.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -104,17 +116,17 @@ export function renderConfusionMatrix(entity: VisualEntity, parentEl: SVGElement
     rect.setAttribute('height', String(height));
     rect.setAttribute('rx', String(SHAPES.borderRadius));
     if (cellType === 'header') {
-      rect.setAttribute('fill', `${baseColor}20`);
-      rect.setAttribute('stroke', `${baseColor}80`);
+      rect.setAttribute('fill', colorWithAlpha(baseColor, OPACITY.fillLight));
+      rect.setAttribute('stroke', colorWithAlpha(baseColor, OPACITY.strokeSoft));
     } else if (cmType) {
       const fillColor = CM_COLORS[cmType];
-      rect.setAttribute('fill', `${fillColor}25`);
+      rect.setAttribute('fill', colorWithAlpha(fillColor, OPACITY.fillMedium));
       rect.setAttribute('stroke', fillColor);
     } else {
       rect.setAttribute('fill', `url(#${gradId})`);
       rect.setAttribute('stroke', baseColor);
     }
-    rect.setAttribute('stroke-width', String(SHAPES.strokeWidthThin));
+    rect.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(rect);
 
     const text = document.createElementNS(SVG_NS, 'text');
@@ -123,7 +135,7 @@ export function renderConfusionMatrix(entity: VisualEntity, parentEl: SVGElement
     text.setAttribute('text-anchor', 'middle');
     const textColor = cellType === 'header' ? baseColor : (cmType ? CM_COLORS[cmType] : baseColor);
     text.setAttribute('fill', textColor);
-    text.setAttribute('font-size', String(cellType === 'header' ? Math.round(10 * scale) : cellFontSize));
+    text.setAttribute('font-size', String(cellType === 'header' ? headerFontSize : cellFontSize));
     text.setAttribute('font-weight', '600');
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     text.textContent = content;
@@ -145,13 +157,13 @@ export function renderConfusionMatrix(entity: VisualEntity, parentEl: SVGElement
   });
 
   if (entity.label) {
-    const totalH = rows * cellH + (rows - 1) * gap + (hasHeaders ? cellH + gap : 0) + 20;
+    const totalH = rows * cellH + (rows - 1) * gap + (hasHeaders ? cellH + gap : 0);
     const labelEl = document.createElementNS(SVG_NS, 'text');
     labelEl.setAttribute('x', '0');
-    labelEl.setAttribute('y', String(totalH / 2 + 16));
-    labelEl.setAttribute('text-anchor', 'middle');
+    labelEl.setAttribute('y', String(totalH / 2 + LABEL_DEFAULTS.offsetBelow));
+    labelEl.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     labelEl.setAttribute('fill', baseColor);
-    labelEl.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    labelEl.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     labelEl.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     labelEl.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     labelEl.textContent = entity.label;
