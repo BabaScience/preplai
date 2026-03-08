@@ -183,6 +183,7 @@ export const METADATA_DEFAULTS = {
 /** Entity-level defaults (not metadata) for types that need textContent etc. */
 export const ENTITY_FIELD_DEFAULTS = {
   Service: { label: 'Auth Service' },
+  Comparison: { label: 'Array vs LinkedList' },
   BigO: { size: 2 },
   CoordinateSystem: { size: 2 },
   BinaryTree: { size: 2.5 },

@@ -559,14 +559,18 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
               type="text"
               className="form-input"
               value={entity.metadata?.label ?? entity.label ?? ''}
-              onChange={(e) =>
-                update('metadata', {
-                  ...(entity.metadata || {}),
-                  label: e.target.value,
-                })
-              }
+              onChange={(e) => {
+                const val = e.target.value || undefined;
+                const next = JSON.parse(JSON.stringify(entity));
+                next.metadata = { ...(next.metadata || {}), label: val };
+                next.label = val ?? next.label ?? '';
+                onChange(next);
+              }}
               placeholder="Array vs LinkedList"
             />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Parsed for &quot;X vs Y&quot; or &quot;X | Y&quot; when left/right omitted. Syncs with Label above.
+            </p>
           </div>
         </>
       )}
