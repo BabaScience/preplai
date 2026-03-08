@@ -5,7 +5,16 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createDarkGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  TYPOGRAPHY,
+  COLORS,
+  SHAPES,
+  LABEL_DEFAULTS,
+  getLabelFontSize,
+  getStrokeWidth,
+  colorWithAlpha,
+} from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 type BigOCurve =
@@ -17,12 +26,12 @@ type BigOCurve =
   | 'O(2^n)';
 
 const CURVE_COLORS: Record<string, string> = {
-  'O(1)': '#4ade80',
-  'O(log n)': '#22d3ee',
-  'O(n)': '#60a5fa',
-  'O(n log n)': '#a78bfa',
-  'O(n²)': '#f472b6',
-  'O(2^n)': '#f87171',
+  'O(1)': COLORS.green,
+  'O(log n)': COLORS.teal,
+  'O(n)': COLORS.blue,
+  'O(n log n)': COLORS.violet,
+  'O(n²)': COLORS.pink,
+  'O(2^n)': COLORS.red,
 };
 
 function evalCurve(name: BigOCurve, n: number): number {
@@ -52,8 +61,8 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
 
   const s = getSizeParam(entity);
   const scale = s / 50;
-  const axisFontSize = Math.round(13 * scale);
-  const legendFontSize = Math.round(12 * scale);
+  const axisFontSize = getLabelFontSize('value', scale);
+  const legendFontSize = getLabelFontSize('inline', scale);
   const totalW = s * 4;
   const totalH = s * 3;
 
@@ -111,10 +120,10 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   bg.setAttribute('y', String(-totalH / 2));
   bg.setAttribute('width', String(totalW));
   bg.setAttribute('height', String(totalH));
-  bg.setAttribute('rx', '8');
+  bg.setAttribute('rx', String(SHAPES.borderRadiusLarge));
   bg.setAttribute('fill', `url(#${bgGradId})`);
   bg.setAttribute('stroke', color);
-  bg.setAttribute('stroke-width', '1');
+  bg.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
   innerG.appendChild(bg);
   innerG.appendChild(chartGroup);
 
@@ -127,7 +136,7 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
     gl.setAttribute('x2', String(gx));
     gl.setAttribute('y2', String(chartTop + chartH));
     gl.setAttribute('stroke', '#ffffff12');
-    gl.setAttribute('stroke-width', '1');
+    gl.setAttribute('stroke-width', String(getStrokeWidth('minimal', scale)));
     chartGroup.appendChild(gl);
   }
   for (let v = 0; v <= range[1]; v += Math.max(1, Math.ceil(range[1] / 5))) {
@@ -138,7 +147,7 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
     gl.setAttribute('x2', String(chartLeft + chartW));
     gl.setAttribute('y2', String(gy));
     gl.setAttribute('stroke', '#ffffff12');
-    gl.setAttribute('stroke-width', '1');
+    gl.setAttribute('stroke-width', String(getStrokeWidth('minimal', scale)));
     chartGroup.appendChild(gl);
   }
 
@@ -149,7 +158,7 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   xAxis.setAttribute('x2', String(chartLeft + chartW));
   xAxis.setAttribute('y2', String(mapY(0)));
   xAxis.setAttribute('stroke', '#ffffff40');
-  xAxis.setAttribute('stroke-width', '1.5');
+  xAxis.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
   chartGroup.appendChild(xAxis);
 
   const yAxis = document.createElementNS(SVG_NS, 'line');
@@ -158,16 +167,18 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   yAxis.setAttribute('x2', String(mapX(domain[0])));
   yAxis.setAttribute('y2', String(chartTop + chartH));
   yAxis.setAttribute('stroke', '#ffffff40');
-  yAxis.setAttribute('stroke-width', '1.5');
+  yAxis.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
   chartGroup.appendChild(yAxis);
 
   // Axis labels
+  const axisLabelColor = colorWithAlpha(color, '80');
   const xLabel = document.createElementNS(SVG_NS, 'text');
   xLabel.setAttribute('x', String(chartLeft + chartW - 4));
   xLabel.setAttribute('y', String(mapY(0) + 14));
   xLabel.setAttribute('text-anchor', 'end');
-  xLabel.setAttribute('fill', `${color}80`);
+  xLabel.setAttribute('fill', axisLabelColor);
   xLabel.setAttribute('font-size', String(axisFontSize));
+  xLabel.setAttribute('font-family', TYPOGRAPHY.fontLabel);
   xLabel.textContent = 'n';
   innerG.appendChild(xLabel);
 
@@ -175,8 +186,9 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   yLabel.setAttribute('x', String(chartLeft - 6));
   yLabel.setAttribute('y', String(chartTop + 4));
   yLabel.setAttribute('text-anchor', 'end');
-  yLabel.setAttribute('fill', `${color}80`);
+  yLabel.setAttribute('fill', axisLabelColor);
   yLabel.setAttribute('font-size', String(axisFontSize));
+  yLabel.setAttribute('font-family', TYPOGRAPHY.fontLabel);
   yLabel.textContent = 'Operations';
   innerG.appendChild(yLabel);
 
@@ -199,7 +211,7 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
       path.setAttribute('d', parts.join(' '));
       path.setAttribute('fill', 'none');
       path.setAttribute('stroke', curveColor);
-      path.setAttribute('stroke-width', '2.5');
+      path.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
       chartGroup.appendChild(path);
     }
   }
@@ -218,7 +230,7 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
     dot.setAttribute('x2', String(lx - 4));
     dot.setAttribute('y2', String(legendY));
     dot.setAttribute('stroke', lineColor);
-    dot.setAttribute('stroke-width', '2.5');
+    dot.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
     innerG.appendChild(dot);
 
     const txt = document.createElementNS(SVG_NS, 'text');
@@ -227,6 +239,7 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
     txt.setAttribute('text-anchor', 'start');
     txt.setAttribute('fill', lineColor);
     txt.setAttribute('font-size', String(legendFontSize));
+    txt.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     txt.textContent = curveName;
     innerG.appendChild(txt);
   });
@@ -236,9 +249,9 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
     const title = document.createElementNS(SVG_NS, 'text');
     title.setAttribute('x', '0');
     title.setAttribute('y', String(-totalH / 2 - 8));
-    title.setAttribute('text-anchor', 'middle');
+    title.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     title.setAttribute('fill', color);
-    title.setAttribute('font-size', String(TYPOGRAPHY.fontSizeTitle));
+    title.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     title.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightTitle));
     title.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     title.textContent = entity.label;
