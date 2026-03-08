@@ -5,7 +5,7 @@ import { METADATA_DEFAULTS, ENTITY_FIELD_DEFAULTS } from './entity-defaults';
 import IllustrationPreview from './IllustrationPreview';
 import EntityParamPanel from './EntityParamPanel';
 
-const EXCLUDED_TYPES = new Set(['Label', 'GraphDS', 'GraphTraversal', 'LogicGate']);
+const EXCLUDED_TYPES = new Set(['Label', 'GraphDS', 'GraphTraversal', 'LogicGate', 'Mutex', 'NumberLine', 'ProcessBlock', 'Proof', 'Register', 'Registry']);
 const ENTITY_TYPES = Object.keys(registry)
   .filter((type) => !EXCLUDED_TYPES.has(type))
   .sort();

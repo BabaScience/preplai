@@ -38,11 +38,8 @@ import { renderDefinition } from './components/definition.js';
 import { renderCallout } from './components/callout.js';
 import { renderAnalogy } from './components/analogy.js';
 import { renderAnnotation } from './components/annotation.js';
-import {
-  renderComparison,
-  renderProof,
-  renderQuote,
-} from './components/card-types.js';
+import { renderComparison } from './components/card-types.js';
+import { renderQuote } from './components/quote.js';
 import { renderH1, renderH2, renderH3 } from './components/heading.js';
 import { renderStack } from './components/stack.js';
 import { renderArray } from './components/array.js';
@@ -83,6 +80,21 @@ import { renderFreeBodyDiagram } from './components/freebodydiagram.js';
 import { renderFSM } from './components/fsm.js';
 import { renderHeap } from './components/heap.js';
 import { renderHistogram } from './components/histogram.js';
+import { renderMatrix } from './components/matrix.js';
+import { renderMemoryBlock } from './components/memoryblock.js';
+import { renderMemoryMap } from './components/memorymap.js';
+import { renderMonitor } from './components/monitor.js';
+import { renderNeuralNetwork } from './components/neuralnetwork.js';
+import { renderPacket } from './components/packet.js';
+import { renderPieChart } from './components/piechart.js';
+import { renderPipelineStage } from './components/pipelinestage.js';
+import { renderPod } from './components/pod.js';
+import { renderProcess } from './components/process.js';
+import { renderProtocolLayer } from './components/protocollayer.js';
+import { renderRecursionTree } from './components/recursiontree.js';
+import { renderScatterPlot } from './components/scatterplot.js';
+import { renderSemaphore } from './components/semaphore.js';
+import { renderSubnet } from './components/subnet.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -93,34 +105,21 @@ const generic = (type: string, shape: 'rect' | 'circle' | 'diamond' | 'hexagon' 
   createGenericRenderer(getCategoryColor(type), shape);
 
 const infraGeneric = generic('Service');
-const infraAlt = generic('Pod');
 const infraOrg = generic('Queue');  // fallback only; renderQueue used
-const infraBlu = generic('Subnet');
 const univGrn = generic('Tree');
 const univBcd = generic('Group');
 const univRed = generic('Badge');
-const mathSci = generic('Equation');
-const mathPrp = generic('Matrix');
 const physBcd = generic('Wave');
 const physPnk = generic('Vector');
 const dsGrn = generic('LinkedList');
 const dsOrg = generic('HashTable');  // fallback only; renderHashTable used
 const dsPrp = generic('BinaryTree');
-const algoRed = generic('Pointer');
-const algoPrp = generic('RecursionTree');
-const csArchOrg = generic('Register');
-const csArchPrp = generic('MemoryBlock');
 const csArchGrn = generic('LogicGate');
-const osBcd = generic('ProcessBlock');
 const osGrn = generic('Thread');
-const osPrp = generic('MemoryMap');
-const netCyan = generic('Packet');
 const netOrg = generic('ProtocolStack');
-const mlPrp = generic('NeuralNetwork');
 
 const decisionDiamond = generic('Decision', 'diamond');
 const circleCache = generic('StateNode', 'circle');
-const circleParticle = generic('Particle', 'circle');
 const circleCluster = generic('Cluster', 'circle');
 
 /**
@@ -136,25 +135,24 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Infrastructure (fully implemented)
   Container: renderContainer,
-  Pod: infraAlt,
+  Pod: renderPod,
   Network: renderNetwork,
   Device: renderDevice,
-  Process: univBcd,
+  Process: renderProcess,
   Queue: renderQueue,
   Cache: renderCache,
   LoadBalancer: renderLoadBalancer,
   Service: renderService,
   Firewall: renderFirewall,
   Lambda: renderLambda,
-  Subnet: infraBlu,
+  Subnet: renderSubnet,
   Volume: renderVolume,
-  Registry: infraAlt,
   DNSResolver: renderDNSResolver,
   Decorator: renderDecorator,
   Tmpfs: renderTmpfs,
   DockerImage: renderDockerImage,
   DockerRegistry: renderDockerRegistry,
-  Monitor: infraAlt,
+  Monitor: renderMonitor,
   Pipeline: renderPipeline,
   Decision: decisionDiamond,
   Cluster: circleCluster,
@@ -184,33 +182,30 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   // ── Math & Science (Graph2D fully implemented)
   Equation: renderEquation,
   Expression: renderExpression,
-  Matrix: mathPrp,
+  Matrix: renderMatrix,
   Graph2D: renderGraph2D,
-  NumberLine: mathSci,
   CoordinateSystem: renderCoordinateSystem,
 
   // ── Physics
   FreeBodyDiagram: renderFreeBodyDiagram,
   Wave: physBcd,
   Vector: physPnk,
-  Particle: circleParticle,
 
   // ── General Purpose
   Table: infraGeneric,
   Histogram: renderHistogram,
-  PieChart: infraGeneric,
+  PieChart: renderPieChart,
   FlowDiagram: renderFlowDiagram,
   VennDiagram: infraGeneric,
   Annotation: renderAnnotation,
   BarChart: renderBarChart,
-  ScatterPlot: infraGeneric,
+  ScatterPlot: renderScatterPlot,
 
   // ── Pedagogical (CodeBlock fully implemented)
   StepList: renderStepList,
   CodeBlock: renderCodeBlock,
   Definition: renderDefinition,
   Callout: renderCallout,
-  Proof: renderProof,
   Analogy: renderAnalogy,
 
   // ── Data Structures
@@ -228,8 +223,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Algorithm Visualization
   ArrayCell: renderArrayCell,
-  Pointer: algoRed,
-  RecursionTree: algoPrp,
+  RecursionTree: renderRecursionTree,
 
   // ── Automata & Theory
   FSM: renderFSM,
@@ -238,48 +232,43 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Computer Architecture
   CPU: renderCPU,
-  Register: csArchOrg,
-  MemoryBlock: csArchPrp,
+  MemoryBlock: renderMemoryBlock,
   LogicGate: csArchGrn,
   Bus: renderDataFlow as any,  // Uses DataFlow for bus connections
 
   // ── Operating Systems
-  ProcessBlock: osBcd,
   ProcessState: renderProcessState,
   GanttChart: renderGanttChart,
-  PageTable: osBcd,
   DeadlockGraph: renderDeadlockGraph,
-  MemoryMap: osPrp,
+  MemoryMap: renderMemoryMap,
   Thread: osGrn,
 
   // ── Architecture
   CacheHierarchy: renderCacheHierarchy,
-  PipelineStage: infraGeneric,
+  PipelineStage: renderPipelineStage,
   MemoryLayout: renderMemoryLayout,
 
   // ── Networking
-  Packet: netCyan,
+  Packet: renderPacket,
   ProtocolStack: netOrg,
 
   // ── Machine Learning
-  NeuralNetwork: mlPrp,
+  NeuralNetwork: renderNeuralNetwork,
   ConfusionMatrix: renderConfusionMatrix,
 
-  // ── Compilers & PL (AST removed; ParseTree uses generic)
+  // ── Compilers & PL
   CallStack: renderCallStack,
-  ParseTree: univGrn,
   SymbolTable: infraGeneric,
 
   // ── Databases
   QueryPlan: infraGeneric,
 
   // ── Concurrency
-  Semaphore: generic('Semaphore'),
+  Semaphore: renderSemaphore,
   Mutex: generic('Mutex'),
 
   // ── Networking extended
-  OSILayer: generic('OSILayer'),
-  ProtocolLayer: generic('ProtocolLayer'),
+  ProtocolLayer: renderProtocolLayer,
 
   // ── Theory
   TuringMachine: generic('TuringMachine'),

@@ -2329,7 +2329,7 @@ export const PLAYER_JS = `(function() {
   var SHAPE_MAP = {
     LoadBalancer: 'hexagon', Decision: 'diamond',
     Metric: 'circle', Concept: 'concept',
-    Particle: 'circle', StateNode: 'circle', Cluster: 'circle'
+    StateNode: 'circle', Cluster: 'circle'
   };
 
   function dispatchEntity(entity, parentEl, delay) {

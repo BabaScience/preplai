@@ -94,7 +94,6 @@ export const ENTITY_TYPE_ALIASES: Record<string, string> = {
   // Physics / misc
   CKT: 'Circuit',
   CYC: 'Cycle',
-  PT: 'ParseTree',
 };
 
 // ── Expand helpers ──────────────────────────────────────────────────────

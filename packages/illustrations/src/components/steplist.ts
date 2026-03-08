@@ -7,7 +7,12 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  getStrokeWidth,
+  getLabelFontSize,
+  TYPOGRAPHY,
+} from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 const DESIGN_STEP_H = 28;
@@ -59,7 +64,7 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
       conn.setAttribute('x2', String(leftX));
       conn.setAttribute('y2', String(y - numR));
       conn.setAttribute('stroke', color);
-      conn.setAttribute('stroke-width', String(STROKE.thin));
+      conn.setAttribute('stroke-width', String(getStrokeWidth('thin', 1)));
       conn.setAttribute('opacity', '0.5');
       scaleGroup.appendChild(conn);
     }
@@ -70,7 +75,7 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
     circle.setAttribute('r', String(numR));
     circle.setAttribute('fill', isCompleted ? color : `url(#${gradId})`);
     circle.setAttribute('stroke', color);
-    circle.setAttribute('stroke-width', String(isCurrent ? STROKE.selected : STROKE.default));
+    circle.setAttribute('stroke-width', String(getStrokeWidth(isCurrent ? 'selected' : 'default', 1)));
     circle.setAttribute('opacity', isCompleted ? '0.6' : '1');
     scaleGroup.appendChild(circle);
 
@@ -79,7 +84,7 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
       check.setAttribute('d', `M ${leftX - 5} ${y + 4} L ${leftX - 2} ${y} L ${leftX + 6} ${y - 4}`);
       check.setAttribute('fill', 'none');
       check.setAttribute('stroke', 'white');
-      check.setAttribute('stroke-width', String(STROKE.default));
+      check.setAttribute('stroke-width', String(getStrokeWidth('default', 1)));
       check.setAttribute('stroke-linecap', 'round');
       check.setAttribute('stroke-linejoin', 'round');
       scaleGroup.appendChild(check);
@@ -101,7 +106,7 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
     text.setAttribute('y', String(y + 4));
     text.setAttribute('text-anchor', 'start');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(Math.round(13 * scale)));
+    text.setAttribute('font-size', String(getLabelFontSize('value', scale)));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = truncateStepLabel(step);
     scaleGroup.appendChild(text);
@@ -113,7 +118,7 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
     title.setAttribute('y', String(startY - 20));
     title.setAttribute('text-anchor', 'start');
     title.setAttribute('fill', color);
-    title.setAttribute('font-size', String(TYPOGRAPHY.fontSizeTitle));
+    title.setAttribute('font-size', String(getLabelFontSize('title', scale)));
     title.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightTitle));
     title.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     title.textContent = entity.label;

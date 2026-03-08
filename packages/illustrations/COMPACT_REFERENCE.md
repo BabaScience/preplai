@@ -64,7 +64,6 @@ Token-saving reference for agents. Use short keys and aliases when building `add
 | BIGO | BigO |
 | CKT | Circuit |
 | CYC | Cycle |
-| PT | ParseTree |
 
 ## Metadata by Type
 

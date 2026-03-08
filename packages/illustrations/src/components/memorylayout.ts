@@ -7,7 +7,14 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  getStrokeWidth,
+  getLabelFontSize,
+  TYPOGRAPHY,
+  SHAPES,
+  LABEL_DEFAULTS,
+} from '../design-tokens.js';
 import { stackLayout } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -16,8 +23,9 @@ export function renderMemoryLayout(entity: VisualEntity, parentEl: SVGElement): 
 
   const s = getSizeParam(entity);
   const scale = s / 50;
-  const labelFontSize = Math.round(13 * scale);
-  const blockFontSize = Math.round(12 * scale);
+  const labelFontSize = getLabelFontSize('inline', scale);
+  const blockFontSize = getLabelFontSize('value', scale);
+  const strokeWidth = getStrokeWidth('thin', scale);
   const color = entity.color ?? getCategoryColor('MemoryLayout');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-ml-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -27,13 +35,18 @@ export function renderMemoryLayout(entity: VisualEntity, parentEl: SVGElement): 
   const stackData = (meta.stack as string[]) ?? ['main', 'foo()', 'bar()'];
   const heapData = (meta.heap as string[]) ?? ['obj1', 'arr', 'node'];
 
-  const stackItems = stackData.map(l => ({ label: l, sublabel: undefined }));
-  const heapItems = heapData.map(l => ({ label: l, sublabel: undefined }));
+  const stackItems = stackData.slice(0, 6).map((l) => ({ label: l, sublabel: undefined }));
+  const heapItems = heapData.slice(0, 6).map((l) => ({ label: l, sublabel: undefined }));
 
-  const stackBlocks = stackLayout(stackItems, { blockWidth: s * 1.2, blockHeight: 24, gap: 4 });
-  const heapBlocks = stackLayout(heapItems, { blockWidth: s * 1.2, blockHeight: 24, gap: 4 });
+  const blockH = 24 * scale;
+  const stackBlocks = stackLayout(stackItems, { blockWidth: s * 1.2, blockHeight: blockH, gap: 4 });
+  const heapBlocks = stackLayout(heapItems, { blockWidth: s * 1.2, blockHeight: blockH, gap: 4 });
 
   const offsetX = s * 0.7;
+  const bottomY = Math.max(
+    stackBlocks.length ? stackBlocks[stackBlocks.length - 1].y + blockH / 2 : 0,
+    heapBlocks.length ? heapBlocks[heapBlocks.length - 1].y + blockH / 2 : 0,
+  );
 
   // Stack (left)
   const stackLabel = document.createElementNS(SVG_NS, 'text');
@@ -56,7 +69,7 @@ export function renderMemoryLayout(entity: VisualEntity, parentEl: SVGElement): 
     rect.setAttribute('rx', String(SHAPES.borderRadius - 2));
     rect.setAttribute('fill', `url(#${gradId})`);
     rect.setAttribute('stroke', color);
-    rect.setAttribute('stroke-width', String(SHAPES.strokeWidthThin));
+    rect.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(rect);
 
     const text = document.createElementNS(SVG_NS, 'text');
@@ -91,7 +104,7 @@ export function renderMemoryLayout(entity: VisualEntity, parentEl: SVGElement): 
     rect.setAttribute('rx', String(SHAPES.borderRadius - 2));
     rect.setAttribute('fill', `url(#${gradId})`);
     rect.setAttribute('stroke', color);
-    rect.setAttribute('stroke-width', String(SHAPES.strokeWidthThin));
+    rect.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(rect);
 
     const text = document.createElementNS(SVG_NS, 'text');
@@ -108,10 +121,10 @@ export function renderMemoryLayout(entity: VisualEntity, parentEl: SVGElement): 
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(s * 0.5 + 20));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(bottomY + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;

@@ -130,6 +130,23 @@ export const METADATA_DEFAULTS = {
     stack: ['main', 'foo()', 'bar()'],
     heap: ['obj1', 'arr', 'node'],
   },
+  MemoryBlock: {
+    cells: [
+      { addr: '0x0000', value: 'main' },
+      { addr: '0x0008', value: '42' },
+      { addr: '0x0010', value: 'ptr' },
+      { addr: '0x0018', value: '0x0020' },
+    ],
+  },
+  MemoryMap: {
+    segments: [
+      { name: 'Stack', startAddr: '0xFFF0', endAddr: '0xFFFF', growDirection: 'down' },
+      { name: 'Heap', startAddr: '0x1000', endAddr: '0x2000', growDirection: 'up' },
+      { name: 'BSS', startAddr: '0x0800', endAddr: '0x1000' },
+      { name: 'Data', startAddr: '0x0600', endAddr: '0x0800' },
+      { name: 'Text', startAddr: '0x0000', endAddr: '0x0600' },
+    ],
+  },
   FreeBodyDiagram: {
     forces: [
       { label: 'F₁', angle: 0, magnitude: 1 },
@@ -229,11 +246,112 @@ export const METADATA_DEFAULTS = {
       { label: '40-50', count: 6 },
     ],
   },
+  PieChart: {
+    slices: [
+      { label: 'A', value: 30 },
+      { label: 'B', value: 25 },
+      { label: 'C', value: 20 },
+      { label: 'D', value: 15 },
+      { label: 'E', value: 10 },
+    ],
+    donut: false,
+    showPercentages: true,
+  },
   Service: { kind: 'Service', hubLabel: undefined },
   Entity: { label: 'Thing', width: 72 },
   Concept: { label: 'Recursion', width: 80, maxLines: 4 },
   Equation: { expression: 'E = mc²' },
   Expression: { expression: 'f(x) = x^2' },
+  Matrix: {
+    rows: [
+      [1, 0],
+      [0, 1],
+    ],
+  },
+  Metric: {
+    value: '99',
+    unit: 'ms',
+    trend: 'down',
+    trendValue: '12%',
+  },
+  Monitor: {
+    label: 'CPU',
+  },
+  NeuralNetwork: {
+    layers: [3, 4, 3, 2],
+    layerLabels: ['Input', 'Hidden 1', 'Hidden 2', 'Output'],
+    showWeights: false,
+  },
+  Pod: {
+    containers: ['app', 'sidecar'],
+    status: 'running',
+  },
+  PipelineStage: {
+    label: 'Build',
+    status: 'pending',
+  },
+  ProtocolLayer: {
+    label: 'Transport',
+    protocol: 'TCP',
+  },
+  Quote: {
+    label: 'The only way to do great work is to love what you do.',
+    author: '— Steve Jobs',
+    width: 200,
+    maxLines: 6,
+  },
+  Subnet: {
+    cidr: '192.168.1.0/24',
+    label: 'private',
+  },
+  Semaphore: {
+    value: 2,
+    max: 3,
+    label: 'sem',
+  },
+  Set: {
+    values: ['a', 'b', 'c', 'd'],
+  },
+  ScatterPlot: {
+    domain: [-5, 5],
+    range: [-5, 5],
+    xLabel: 'x',
+    yLabel: 'y',
+    showGrid: true,
+    points: [
+      { x: 0, y: 0 },
+      { x: 1, y: 1, label: 'P' },
+      { x: 2, y: 4, label: 'Q' },
+      { x: -1, y: 1 },
+      { x: -2, y: 4 },
+    ],
+  },
+  RecursionTree: {
+    calls: [
+      { id: 'r1', label: 'fib', args: '4', state: 'executing' },
+      { id: 'r2', label: 'fib', args: '3', state: 'executing' },
+      { id: 'r3', label: 'fib', args: '2', returnValue: '1', state: 'returned' },
+      { id: 'r4', label: 'fib', args: '1', returnValue: '1', state: 'returned' },
+      { id: 'r5', label: 'fib', args: '2', state: 'pending' },
+    ],
+    edges: [
+      { from: 'r1', to: 'r2' },
+      { from: 'r2', to: 'r3' },
+      { from: 'r2', to: 'r4' },
+      { from: 'r1', to: 'r5' },
+    ],
+  },
+  Packet: {
+    headers: [
+      { name: 'Src IP', value: '192.168.1.1', bytes: 4 },
+      { name: 'Dst IP', value: '10.0.0.5', bytes: 4 },
+      { name: 'Src Port', value: '443', bytes: 2 },
+      { name: 'Dst Port', value: '8080', bytes: 2 },
+      { name: 'Flags', value: 'ACK', bytes: 1 },
+    ],
+    payload: 'HTTP/1.1 200 OK...',
+    protocol: 'TCP',
+  },
 };
 
 /** Entity-level defaults (not metadata) for types that need textContent etc. */
@@ -247,8 +365,11 @@ export const ENTITY_FIELD_DEFAULTS = {
   Expression: { expression: 'f(x) = x^2' },
   Comparison: { label: 'Array vs LinkedList' },
   BigO: { size: 2 },
+  NeuralNetwork: { size: 2 },
   CoordinateSystem: { size: 2 },
+  ScatterPlot: { size: 2 },
   BinaryTree: { size: 2.5 },
+  RecursionTree: { size: 2 },
   Heap: { size: 2.5 },
   BTree: { size: 2.5 },
   HashTable: { size: 2 },

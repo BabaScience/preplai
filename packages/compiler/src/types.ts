@@ -70,9 +70,9 @@ export const KNOWN_ENTITY_TYPES: ReadonlySet<string> = new Set([
   'H1', 'H2', 'H3',
   // Math & Science (6)
   'Equation', 'Expression', 'Matrix', 'Graph2D',
-  'NumberLine', 'CoordinateSystem',
+  'CoordinateSystem',
   // Physics (6)
-  'FreeBodyDiagram', 'Circuit', 'Wave', 'Vector', 'Field', 'Particle',
+  'FreeBodyDiagram', 'Circuit', 'Wave', 'Vector', 'Field',
   // General Purpose (8)
   'Table', 'Histogram', 'PieChart', 'FlowDiagram', 'VennDiagram',
   'Annotation', 'BarChart', 'ScatterPlot',
@@ -81,7 +81,7 @@ export const KNOWN_ENTITY_TYPES: ReadonlySet<string> = new Set([
   // Data Structures (7)
   'Array', 'LinkedList', 'BinaryTree', 'HashTable', 'Heap', 'GraphDS', 'Trie',
   // Algorithm Visualization (3)
-  'ArrayCell', 'Pointer', 'RecursionTree',
+  'ArrayCell', 'RecursionTree',
   // Automata & Theory (3)
   'FSM', 'StateNode', 'Transition',
   // Computer Architecture (5)

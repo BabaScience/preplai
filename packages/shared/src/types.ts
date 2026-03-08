@@ -28,9 +28,9 @@ export type VisualEntityType =
   | 'Badge' | 'Quote'
   // Math & Science (6)
   | 'Equation' | 'Expression' | 'Matrix' | 'Graph2D'
-  | 'NumberLine' | 'CoordinateSystem'
+  | 'CoordinateSystem'
   // Physics (6)
-  | 'FreeBodyDiagram' | 'Circuit' | 'Wave' | 'Vector' | 'Field' | 'Particle'
+  | 'FreeBodyDiagram' | 'Circuit' | 'Wave' | 'Vector' | 'Field'
   // General Purpose (8)
   | 'Table' | 'Histogram' | 'PieChart' | 'FlowDiagram' | 'VennDiagram'
   | 'Annotation' | 'BarChart' | 'ScatterPlot'
@@ -40,7 +40,7 @@ export type VisualEntityType =
   | 'Array' | 'LinkedList' | 'BinaryTree' | 'HashTable' | 'Heap' | 'GraphDS' | 'Trie'
   | 'List' | 'Tuple' | 'Set' | 'Dict'
   // Algorithm Visualization (3)
-  | 'ArrayCell' | 'Pointer' | 'RecursionTree'
+  | 'ArrayCell' | 'RecursionTree'
   // Automata & Theory (3)
   | 'FSM' | 'StateNode' | 'Transition'
   // Computer Architecture (5)
@@ -52,17 +52,17 @@ export type VisualEntityType =
   // Machine Learning (1)
   | 'NeuralNetwork'
   // Compilers & PL (4)
-  | 'CallStack' | 'ParseTree' | 'SymbolTable'
+  | 'CallStack' | 'SymbolTable'
   // Databases (2)
   | 'BTree' | 'QueryPlan'
   // Operating Systems (4)
-  | 'ProcessState' | 'GanttChart' | 'PageTable' | 'DeadlockGraph'
+  | 'ProcessState' | 'GanttChart' | 'DeadlockGraph'
   // Architecture (3)
   | 'CacheHierarchy' | 'PipelineStage' | 'MemoryLayout'
   // Concurrency (2)
   | 'Semaphore' | 'Mutex'
   // Networking extended (2)
-  | 'OSILayer' | 'ProtocolLayer'
+  | 'ProtocolLayer'
   // Theory (2)
   | 'TuringMachine' | 'BigO'
   // Algorithms extended (2)

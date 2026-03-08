@@ -60,7 +60,7 @@ describe('registry', () => {
       'User', 'Server', 'Database', 'Container', 'Pod', 'Cloud',
       'Network', 'Device', 'Arrow', 'DataFlow', 'Process', 'Queue',
       'Cache', 'LoadBalancer', 'Service', 'Firewall',
-      'Lambda', 'Subnet', 'Volume', 'Registry', 'Monitor', 'Pipeline',
+      'Lambda', 'Subnet', 'Volume', 'Monitor', 'Pipeline',
       'Decision', 'Cluster',
       'DNSResolver', 'Decorator', 'Tmpfs',
       'DockerImage', 'DockerRegistry',
@@ -92,16 +92,16 @@ describe('registry', () => {
 
   it('should have all CS-specific types registered', () => {
     const types = [
-      'ArrayCell', 'Pointer', 'RecursionTree',
+      'ArrayCell', 'RecursionTree',
       'FSM', 'StateNode', 'Transition',
-      'CPU', 'Register', 'MemoryBlock', 'LogicGate', 'Bus',
-      'ProcessBlock', 'ProcessState', 'GanttChart', 'PageTable', 'DeadlockGraph',
+      'CPU', 'MemoryBlock', 'LogicGate', 'Bus',
+      'ProcessState', 'GanttChart', 'DeadlockGraph',
       'MemoryMap', 'Thread',
       'CacheHierarchy', 'PipelineStage', 'MemoryLayout',
       'Packet', 'ProtocolStack',
       'NeuralNetwork', 'ConfusionMatrix',
-      'CallStack', 'ParseTree', 'SymbolTable', 'QueryPlan',
-      'Semaphore', 'Mutex', 'OSILayer', 'ProtocolLayer',
+      'CallStack', 'SymbolTable', 'QueryPlan',
+      'Semaphore', 'Mutex', 'ProtocolLayer',
       'TuringMachine', 'BigO', 'SortAnimation',
     ];
     for (const type of types) {

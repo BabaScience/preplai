@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ENTITY_DEFAULTS, ENTRANCE_ANIMATION_CLASSES } from '@preplai/shared';
 
 /** Types that inherit from text-card (same metadata: label, width, maxLines) */
-const CARD_TYPES = ['Analogy', 'Annotation', 'Comparison', 'Proof', 'Quote'];
+const CARD_TYPES = ['Analogy', 'Annotation', 'Comparison', 'Quote'];
 
 /** Heading types (H1, H2, H3) — metadata: label, showUnderline */
 const HEADING_TYPES = ['H1', 'H2', 'H3'];
@@ -406,6 +406,80 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
             <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
               Design width (60–200). Omit for auto from expression length.
             </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Matrix' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Matrix metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Rows (one row per line, comma-separated numbers)</label>
+            <textarea
+              className="form-input"
+              rows={8}
+              value={(() => {
+                const rows = entity.metadata?.rows;
+                if (!Array.isArray(rows)) return '1, 0\n0, 1';
+                return rows
+                  .map((row) => (Array.isArray(row) ? row.map((v) => Number(v)).join(', ') : ''))
+                  .filter(Boolean)
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').filter(Boolean);
+                const rows = lines.map((line) =>
+                  line
+                    .split(',')
+                    .map((s) => parseFloat(s.trim()))
+                    .filter((n) => !Number.isNaN(n)),
+                ).filter((row) => row.length > 0);
+                if (rows.length > 0) {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    rows,
+                  });
+                }
+              }}
+              placeholder={'1, 0\n0, 1'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One row per line. Up to 8×8. Identity matrix default.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Row labels (comma-separated)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.rowLabels ?? []).join(', ')}
+              onChange={(e) => {
+                const rowLabels = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  rowLabels: rowLabels.length ? rowLabels : undefined,
+                });
+              }}
+              placeholder="r1, r2, r3"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Column labels (comma-separated)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.colLabels ?? []).join(', ')}
+              onChange={(e) => {
+                const colLabels = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  colLabels: colLabels.length ? colLabels : undefined,
+                });
+              }}
+              placeholder="c1, c2, c3"
+            />
           </div>
         </>
       )}
@@ -1174,6 +1248,79 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
             />
             <label htmlFor="bar-horizontal" className="form-label" style={{ marginBottom: 0 }}>
               Horizontal bars
+            </label>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'PieChart' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>PieChart metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Slices (label:value, comma-separated)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(() => {
+                const slices = entity.metadata?.slices ?? entity.metadata?.segments;
+                if (!Array.isArray(slices)) return '';
+                return slices
+                  .map((sl) => (typeof sl === 'object' && sl != null ? `${sl.label ?? ''}:${sl.value ?? 0}` : String(sl)))
+                  .join(', ');
+              })()}
+              onChange={(e) => {
+                const parts = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
+                const slices = parts.map((p) => {
+                  const colon = p.indexOf(':');
+                  if (colon >= 0) {
+                    const label = p.slice(0, colon).trim();
+                    const value = Number(p.slice(colon + 1).trim()) || 0;
+                    return { label: label || '?', value };
+                  }
+                  return { label: p, value: 0 };
+                });
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  slices: slices.length ? slices : undefined,
+                });
+              }}
+              placeholder="A:30, B:25, C:20, D:15, E:10"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Format: label:value for each slice
+            </p>
+          </div>
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <input
+              type="checkbox"
+              id="pie-donut"
+              checked={entity.metadata?.donut === true}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  donut: e.target.checked,
+                })
+              }
+            />
+            <label htmlFor="pie-donut" className="form-label" style={{ marginBottom: 0 }}>
+              Donut style (inner hole)
+            </label>
+          </div>
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <input
+              type="checkbox"
+              id="pie-percentages"
+              checked={entity.metadata?.showPercentages !== false}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  showPercentages: e.target.checked,
+                })
+              }
+            />
+            <label htmlFor="pie-percentages" className="form-label" style={{ marginBottom: 0 }}>
+              Show percentages on labels
             </label>
           </div>
         </>
@@ -2019,6 +2166,89 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
+      {entity.type === 'Pod' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Pod metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Containers (comma-separated names)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.containers ?? ['app', 'sidecar']).join(', ')}
+              onChange={(e) => {
+                const containers = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  containers: containers.length ? containers : undefined,
+                });
+              }}
+              placeholder="app, sidecar, init"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Up to 3 containers shown
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Status</label>
+            <select
+              className="form-input"
+              value={entity.metadata?.status ?? 'running'}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  status: e.target.value,
+                })
+              }
+            >
+              <option value="running">Running</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'PipelineStage' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>PipelineStage metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Stage label (metadata.label)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.label ?? entity.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  label: e.target.value || undefined,
+                })
+              }
+              placeholder="Build, Test, Deploy"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Status</label>
+            <select
+              className="form-input"
+              value={entity.metadata?.status ?? 'pending'}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  status: e.target.value,
+                })
+              }
+            >
+              <option value="pending">Pending</option>
+              <option value="running">Running</option>
+              <option value="success">Success</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+        </>
+      )}
+
       {entity.type === 'FreeBodyDiagram' && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
@@ -2291,6 +2521,884 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
             <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
               Node values. Max 6 nodes displayed. Numbers or short strings.
             </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'MemoryLayout' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>MemoryLayout metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Stack (one frame per line)</label>
+            <textarea
+              className="form-input"
+              rows={4}
+              value={(entity.metadata?.stack ?? []).join('\n')}
+              onChange={(e) => {
+                const stack = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  stack: stack.length ? stack : undefined,
+                });
+              }}
+              placeholder={'main\nfoo()\nbar()'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Heap (one object per line)</label>
+            <textarea
+              className="form-input"
+              rows={4}
+              value={(entity.metadata?.heap ?? []).join('\n')}
+              onChange={(e) => {
+                const heap = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  heap: heap.length ? heap : undefined,
+                });
+              }}
+              placeholder={'obj1\narr\nnode'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'MemoryBlock' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>MemoryBlock metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Cells (addr:value per line)</label>
+            <textarea
+              className="form-input"
+              rows={6}
+              value={(() => {
+                const cells = entity.metadata?.cells ?? [];
+                if (!Array.isArray(cells)) return '';
+                return cells
+                  .map((c) => (Array.isArray(c) ? `${c[0] ?? ''}:${c[1] ?? ''}` : `${c?.addr ?? ''}:${c?.value ?? ''}`))
+                  .filter(Boolean)
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                const cells = lines.map((line) => {
+                  const colon = line.indexOf(':');
+                  if (colon >= 0) {
+                    const addr = line.slice(0, colon).trim();
+                    const value = line.slice(colon + 1).trim();
+                    return { addr: addr || '?', value: value || '?' };
+                  }
+                  return { addr: line || '?', value: '?' };
+                });
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  cells: cells.length ? cells : undefined,
+                });
+              }}
+              placeholder={'0x0000:main\n0x0008:42\n0x0010:ptr'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One addr:value per line. Up to 10 cells.
+            </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'MemoryMap' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>MemoryMap metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Segments (name,startAddr,endAddr per line)</label>
+            <textarea
+              className="form-input"
+              rows={8}
+              value={(() => {
+                const segs = entity.metadata?.segments ?? [];
+                if (!Array.isArray(segs)) return '';
+                return segs
+                  .map((s) => {
+                    if (typeof s !== 'object' || s == null) return '';
+                    const name = s.name ?? '?';
+                    const start = s.startAddr ?? '0x0';
+                    const end = s.endAddr ?? '0x0';
+                    return `${name},${start},${end}`;
+                  })
+                  .filter(Boolean)
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                const segments = lines.map((line) => {
+                  const parts = line.split(',').map((p) => p.trim());
+                  const name = parts[0] || '?';
+                  const startAddr = parts[1] || '0x0';
+                  const endAddr = parts[2] || '0x0';
+                  return { name, startAddr, endAddr };
+                });
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  segments: segments.length ? segments : undefined,
+                });
+              }}
+              placeholder={'Stack,0xFFF0,0xFFFF\nHeap,0x1000,0x2000\nText,0x0000,0x0600'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One segment per line: name,startAddr,endAddr. Up to 8 segments.
+            </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Metric' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Metric metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Value (metadata.value)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.value ?? entity.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  value: e.target.value || undefined,
+                })
+              }
+              placeholder="99"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Unit (metadata.unit)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.unit ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  unit: e.target.value || undefined,
+                })
+              }
+              placeholder="ms, %, req/s"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Trend (metadata.trend)</label>
+            <select
+              className="form-input"
+              value={entity.metadata?.trend ?? 'flat'}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  trend: e.target.value === 'flat' ? undefined : e.target.value,
+                })
+              }
+            >
+              <option value="flat">flat</option>
+              <option value="up">up</option>
+              <option value="down">down</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Trend value (metadata.trendValue)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.trendValue ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  trendValue: e.target.value || undefined,
+                })
+              }
+              placeholder="+12%, -5%"
+            />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Monitor' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Monitor metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Screen label (metadata.label)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  label: e.target.value || undefined,
+                })
+              }
+              placeholder="CPU, Memory, API"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Optional title shown on the monitor screen
+            </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Quote' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Quote metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Quote text (metadata.label)</label>
+            <textarea
+              className="form-input"
+              rows={3}
+              value={entity.metadata?.label ?? entity.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  label: e.target.value || undefined,
+                })
+              }
+              placeholder="The quote text..."
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Author (metadata.author)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.author ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  author: e.target.value || undefined,
+                })
+              }
+              placeholder="— Albert Einstein"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Source (metadata.source, alternative to author)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.source ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  source: e.target.value || undefined,
+                })
+              }
+              placeholder="— RFC 2616"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Width (design units)</label>
+            <input
+              type="number"
+              className="form-input"
+              value={entity.metadata?.width ?? 200}
+              onChange={(e) => {
+                const n = parseInt(e.target.value, 10);
+                if (!Number.isNaN(n) && n >= 80) {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    width: n,
+                  });
+                }
+              }}
+              min={80}
+              max={400}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Max lines</label>
+            <input
+              type="number"
+              className="form-input"
+              value={entity.metadata?.maxLines ?? 6}
+              onChange={(e) => {
+                const n = parseInt(e.target.value, 10);
+                if (!Number.isNaN(n) && n >= 1 && n <= 12) {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    maxLines: n,
+                  });
+                }
+              }}
+              min={1}
+              max={12}
+            />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Subnet' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Subnet metadata</h4>
+          <div className="form-group">
+            <label className="form-label">CIDR (metadata.cidr)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.cidr ?? '192.168.1.0/24'}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  cidr: e.target.value || undefined,
+                })
+              }
+              placeholder="192.168.1.0/24"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Label (metadata.label)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  label: e.target.value || undefined,
+                })
+              }
+              placeholder="private, public, etc."
+            />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Semaphore' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Semaphore metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Value (current permits)</label>
+            <input
+              type="number"
+              className="form-input"
+              value={entity.metadata?.value ?? 2}
+              onChange={(e) => {
+                const n = parseInt(e.target.value, 10);
+                if (!Number.isNaN(n) && n >= 0) {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    value: n,
+                  });
+                }
+              }}
+              min={0}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Max (optional, for bounded semaphore)</label>
+            <input
+              type="number"
+              className="form-input"
+              value={entity.metadata?.max ?? ''}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === '') {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    max: undefined,
+                  });
+                  return;
+                }
+                const n = parseInt(v, 10);
+                if (!Number.isNaN(n) && n >= 1) {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    max: n,
+                  });
+                }
+              }}
+              min={1}
+              placeholder="Leave empty for unbounded"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Label (semaphore name)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.label ?? entity.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  label: e.target.value || undefined,
+                })
+              }
+              placeholder="mutex, pool, etc."
+            />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Set' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Set metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Values (JSON array of elements)</label>
+            <textarea
+              className="form-input"
+              rows={4}
+              value={JSON.stringify(entity.metadata?.values ?? ['a', 'b', 'c'], null, 2)}
+              onChange={(e) => {
+                try {
+                  const parsed = JSON.parse(e.target.value || '[]');
+                  if (Array.isArray(parsed)) {
+                    update('metadata', {
+                      ...(entity.metadata || {}),
+                      values: parsed.map((v) => String(v)),
+                    });
+                  }
+                } catch { /* ignore */ }
+              }}
+              placeholder='["a", "b", "c"]'
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Unique elements. Up to 8 displayed.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Highlight index (0-based, optional)</label>
+            <input
+              type="number"
+              className="form-input"
+              value={entity.metadata?.highlightIndex ?? ''}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === '') {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    highlightIndex: undefined,
+                  });
+                  return;
+                }
+                const n = parseInt(v, 10);
+                if (!Number.isNaN(n) && n >= 0) {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    highlightIndex: n,
+                  });
+                }
+              }}
+              min={0}
+              placeholder="-1 for none"
+            />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'ScatterPlot' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>ScatterPlot metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Points (JSON array of {`{x, y, label?}`})</label>
+            <textarea
+              className="form-input"
+              rows={8}
+              value={JSON.stringify(entity.metadata?.points ?? [
+                { x: 0, y: 0 },
+                { x: 1, y: 1, label: 'P' },
+                { x: 2, y: 4, label: 'Q' },
+              ], null, 2)}
+              onChange={(e) => {
+                try {
+                  const parsed = JSON.parse(e.target.value || '[]');
+                  if (Array.isArray(parsed)) {
+                    update('metadata', {
+                      ...(entity.metadata || {}),
+                      points: parsed,
+                    });
+                  }
+                } catch { /* ignore */ }
+              }}
+              placeholder="[{x, y, label?}, ...]"
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Domain (x range)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={JSON.stringify(entity.metadata?.domain ?? entity.metadata?.xRange ?? [-5, 5])}
+              onChange={(e) => {
+                try {
+                  const parsed = JSON.parse(e.target.value || '[-5, 5]');
+                  if (Array.isArray(parsed) && parsed.length === 2) {
+                    update('metadata', {
+                      ...(entity.metadata || {}),
+                      domain: parsed,
+                    });
+                  }
+                } catch { /* ignore */ }
+              }}
+              placeholder="[-5, 5]"
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Range (y range)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={JSON.stringify(entity.metadata?.range ?? entity.metadata?.yRange ?? [-5, 5])}
+              onChange={(e) => {
+                try {
+                  const parsed = JSON.parse(e.target.value || '[-5, 5]');
+                  if (Array.isArray(parsed) && parsed.length === 2) {
+                    update('metadata', {
+                      ...(entity.metadata || {}),
+                      range: parsed,
+                    });
+                  }
+                } catch { /* ignore */ }
+              }}
+              placeholder="[-5, 5]"
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">X label</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.xLabel ?? 'x'}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  xLabel: e.target.value || undefined,
+                })
+              }
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Y label</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.yLabel ?? 'y'}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  yLabel: e.target.value || undefined,
+                })
+              }
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Expression (optional fitted curve, e.g. x*x)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.expression ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  expression: e.target.value || undefined,
+                })
+              }
+              placeholder="x * x"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">
+              <input
+                type="checkbox"
+                checked={entity.metadata?.showGrid !== false}
+                onChange={(e) =>
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    showGrid: e.target.checked,
+                  })
+                }
+              />
+              {' '}Show grid
+            </label>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'RecursionTree' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>RecursionTree metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Calls (JSON array of {`{id, label, args, returnValue?, state}`})</label>
+            <textarea
+              className="form-input"
+              rows={10}
+              value={JSON.stringify(entity.metadata?.calls ?? [
+                { id: 'r1', label: 'fib', args: '4', state: 'executing' },
+                { id: 'r2', label: 'fib', args: '3', state: 'executing' },
+                { id: 'r3', label: 'fib', args: '2', returnValue: '1', state: 'returned' },
+                { id: 'r4', label: 'fib', args: '1', returnValue: '1', state: 'returned' },
+                { id: 'r5', label: 'fib', args: '2', state: 'pending' },
+              ], null, 2)}
+              onChange={(e) => {
+                try {
+                  const parsed = JSON.parse(e.target.value || '[]');
+                  if (Array.isArray(parsed)) {
+                    update('metadata', {
+                      ...(entity.metadata || {}),
+                      calls: parsed,
+                    });
+                  }
+                } catch { /* ignore */ }
+              }}
+              placeholder="[{id, label, args, returnValue?, state: 'pending'|'executing'|'returned'}, ...]"
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              state: pending (dimmed), executing (highlighted), returned (normal)
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Edges (JSON array of {`{from, to}`})</label>
+            <textarea
+              className="form-input"
+              rows={6}
+              value={JSON.stringify(entity.metadata?.edges ?? [
+                { from: 'r1', to: 'r2' },
+                { from: 'r2', to: 'r3' },
+                { from: 'r2', to: 'r4' },
+                { from: 'r1', to: 'r5' },
+              ], null, 2)}
+              onChange={(e) => {
+                try {
+                  const parsed = JSON.parse(e.target.value || '[]');
+                  if (Array.isArray(parsed)) {
+                    update('metadata', {
+                      ...(entity.metadata || {}),
+                      edges: parsed,
+                    });
+                  }
+                } catch { /* ignore */ }
+              }}
+              placeholder="[{from: 'parentId', to: 'childId'}, ...]"
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'ProtocolLayer' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>ProtocolLayer metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Label (layer name)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  label: e.target.value || undefined,
+                })
+              }
+              placeholder="Transport, Network, Application"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Protocol (sublabel)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.protocol ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  protocol: e.target.value || undefined,
+                })
+              }
+              placeholder="TCP, UDP, IP, HTTP"
+            />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Packet' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Packet metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Headers (JSON array of {`{name, value, bytes?}`})</label>
+            <textarea
+              className="form-input"
+              rows={6}
+              value={JSON.stringify(entity.metadata?.headers ?? [
+                { name: 'Src IP', value: '192.168.1.1', bytes: 4 },
+                { name: 'Dst IP', value: '10.0.0.5', bytes: 4 },
+                { name: 'Src Port', value: '443', bytes: 2 },
+                { name: 'Dst Port', value: '8080', bytes: 2 },
+                { name: 'Flags', value: 'ACK', bytes: 1 },
+              ], null, 2)}
+              onChange={(e) => {
+                try {
+                  const parsed = JSON.parse(e.target.value || '[]');
+                  if (Array.isArray(parsed)) {
+                    update('metadata', {
+                      ...(entity.metadata || {}),
+                      headers: parsed,
+                    });
+                  }
+                } catch { /* ignore */ }
+              }}
+              placeholder="[{name, value, bytes}, ...]"
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Payload (metadata.payload)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.payload ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  payload: e.target.value || undefined,
+                })
+              }
+              placeholder="HTTP/1.1 200 OK..."
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Protocol (metadata.protocol)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.protocol ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  protocol: e.target.value || undefined,
+                })
+              }
+              placeholder="TCP, UDP, IP"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Highlight section (header name or &quot;payload&quot;, optional)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.highlightSection ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  highlightSection: e.target.value || undefined,
+                })
+              }
+              placeholder="Src Port, payload, etc."
+            />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'NeuralNetwork' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>NeuralNetwork metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Layers (comma-separated neuron counts per layer)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.layers ?? [3, 4, 3, 2]).join(', ')}
+              onChange={(e) => {
+                const layers = e.target.value
+                  .split(',')
+                  .map((s) => parseInt(s.trim(), 10))
+                  .filter((n) => !Number.isNaN(n) && n >= 1);
+                if (layers.length >= 2) {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    layers,
+                  });
+                }
+              }}
+              placeholder="3, 4, 3, 2"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              e.g. 3, 4, 3, 2 = input 3, hidden 4, hidden 3, output 2
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Layer labels (comma-separated, optional)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.layerLabels ?? []).join(', ')}
+              onChange={(e) => {
+                const layerLabels = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  layerLabels: layerLabels.length ? layerLabels : undefined,
+                });
+              }}
+              placeholder="Input, Hidden 1, Hidden 2, Output"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">
+              <input
+                type="checkbox"
+                checked={entity.metadata?.showWeights === true}
+                onChange={(e) =>
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    showWeights: e.target.checked,
+                  })
+                }
+              />
+              {' '}Show weights on connections
+            </label>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Highlight neuron (layer, index — 0-based, optional)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(() => {
+                const h = entity.metadata?.highlightNeuron;
+                if (!h || typeof h !== 'object') return '';
+                return `${h.layer ?? ''}, ${h.index ?? ''}`;
+              })()}
+              onChange={(e) => {
+                const [layerStr, indexStr] = e.target.value.split(',').map((s) => s.trim());
+                const layer = layerStr === '' ? undefined : parseInt(layerStr, 10);
+                const index = indexStr === '' ? undefined : parseInt(indexStr, 10);
+                if (layer != null && !Number.isNaN(layer) && index != null && !Number.isNaN(index)) {
+                  update('metadata', {
+                    ...(entity.metadata || {}),
+                    highlightNeuron: { layer, index },
+                  });
+                } else {
+                  const next = { ...(entity.metadata || {}) };
+                  delete next.highlightNeuron;
+                  update('metadata', next);
+                }
+              }}
+              placeholder="1, 2"
+            />
           </div>
         </>
       )}

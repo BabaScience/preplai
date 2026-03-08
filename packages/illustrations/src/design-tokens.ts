@@ -196,13 +196,11 @@ export const ENTITY_COLORS: Record<string, string> = {
   Expression: COLORS.cyan,
   Matrix: COLORS.violet,
   Graph2D: COLORS.cyan,
-  NumberLine: COLORS.cyan,
   CoordinateSystem: COLORS.cyan,
   // Physics
   FreeBodyDiagram: COLORS.orange,
   Wave: COLORS.teal,
   Vector: COLORS.pink,
-  Particle: COLORS.pink,
   // General
   Table: COLORS.cyan,
   Histogram: COLORS.green,
@@ -233,7 +231,6 @@ export const ENTITY_COLORS: Record<string, string> = {
   Dict: COLORS.orange,
   // Algorithm
   ArrayCell: COLORS.cyan,
-  Pointer: COLORS.red,
   RecursionTree: COLORS.violet,
   // Automata
   FSM: COLORS.cyan,
@@ -256,7 +253,6 @@ export const ENTITY_COLORS: Record<string, string> = {
   NeuralNetwork: COLORS.violet,
   // Compilers & PL
   CallStack: COLORS.orange,
-  ParseTree: COLORS.violet,
   SymbolTable: COLORS.teal,
   // Databases
   BTree: COLORS.green,
@@ -264,7 +260,6 @@ export const ENTITY_COLORS: Record<string, string> = {
   // OS
   ProcessState: COLORS.teal,
   GanttChart: COLORS.green,
-  PageTable: COLORS.violet,
   DeadlockGraph: COLORS.red,
   // Architecture
   CacheHierarchy: COLORS.cyan,
@@ -274,7 +269,6 @@ export const ENTITY_COLORS: Record<string, string> = {
   Semaphore: COLORS.orange,
   Mutex: COLORS.red,
   // Networking extended
-  OSILayer: COLORS.cyan,
   ProtocolLayer: COLORS.teal,
   // Theory
   TuringMachine: COLORS.violet,
