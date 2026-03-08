@@ -137,8 +137,9 @@ export function resolveEntityRef(ref: string | undefined, allEntities: VisualEnt
 const ARROW_LIKE_TYPES = ['Arrow', 'BidirectArrow', 'DottedArrow', 'DataFlow'] as const;
 
 /**
- * Returns true if there is another arrow between the same two entities in the opposite direction.
- * Used to auto-apply curved rendering so opposing arrows don't overlap.
+ * Returns true if there is another arrow of the same type between the same two entities
+ * in the opposite direction. Used to auto-apply curved rendering so opposing arrows don't overlap.
+ * DataFlow only pairs with DataFlow, DottedArrow only with DottedArrow, etc.
  */
 function hasOpposingArrow(
   entity: VisualEntity,
@@ -147,7 +148,7 @@ function hasOpposingArrow(
   targetId: string,
 ): boolean {
   return allEntities.some((e) => {
-    if (e.id === entity.id || !(ARROW_LIKE_TYPES as readonly string[]).includes(e.type)) return false;
+    if (e.id === entity.id || e.type !== entity.type || !(ARROW_LIKE_TYPES as readonly string[]).includes(e.type)) return false;
     const otherSource = resolveEntityRef(e.sourceEntityId, allEntities);
     const otherTarget = resolveEntityRef(e.targetEntityId, allEntities);
     if (!otherSource || !otherTarget) return false;
@@ -226,8 +227,9 @@ export function renderArrow(
   const isBidirect = entity.type === 'BidirectArrow';
   const isDotted = entity.type === 'DottedArrow';
 
-  // When opposing arrows exist, curve them in opposite directions (one "up", one "down")
-  const curvatureSign = hasOpposing && source.id > target.id ? -1 : 1;
+  // Opposing arrows (A→B vs B→A) naturally curve in opposite directions because the
+  // line direction is reversed—the perpendicular (-dy, dx) flips. Use same curvature magnitude.
+  const curvatureSign = 1;
 
   let ctrlX = 0;
   let ctrlY = 0;
@@ -339,7 +341,7 @@ export function renderDataFlow(
   const color = entity.color ?? getCategoryColor('DataFlow');
   const hasOpposing = hasOpposingArrow(entity, allEntities, source.id, target.id);
   const useCurved = entity.metadata?.curved === true || hasOpposing;
-  const curvatureSign = hasOpposing && source.id > target.id ? -1 : 1;
+  const curvatureSign = 1;
 
   const g = document.createElementNS(SVG_NS, 'g');
   g.setAttribute('id', entity.id);

@@ -220,7 +220,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
     'create_session',
     `Create a new presentation session. Returns a session_id and a player_url.
 
-PREREQUISITE: Only call this after you have gathered the user's topic, audience, and depth preferences (see server instructions). Do not call immediately when the user says "create a presentation" without context.
+PREREQUISITE — MANDATORY: NEVER call this tool until you have asked the user at least one clarifying question. Even vague requests ("make me a simple presentation", "the simplest example possible") require you to ask first — e.g. "What topic would you like this to cover?" or "What do you want to understand better?" Gather topic, purpose, depth, and style before proceeding. Do NOT call immediately when the user says "create a presentation" without context.
 
 REQUIRED: Call get_preferences FIRST before create_session. Use the returned theme and palette to decide how to create the session. Pass style to override theme (e.g. "minimal" for algorithm viz) if desired; otherwise the user's preference is used.
 

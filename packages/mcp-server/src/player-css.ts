@@ -118,7 +118,8 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
               transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-#narrator-text.visible {
+#narrator-text.visible,
+#narrator-text.narrator-visible {
   opacity: 1;
   transform: translateY(0);
 }
@@ -227,19 +228,9 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   margin-left: 4px;
 }
 
-#narrator-overlay-toggle.narrator-hidden .narrator-toggle-on {
-  display: none;
-}
-
-#narrator-overlay-toggle.narrator-hidden .narrator-toggle-off {
-  display: block;
-}
-
-#narrator-overlay-toggle:not(.narrator-hidden) .narrator-toggle-on {
-  display: block;
-}
-
-#narrator-overlay-toggle:not(.narrator-hidden) .narrator-toggle-off {
+/* Vocal button: show only one icon at a time */
+#tts-toggle .tts-icon-on,
+#tts-toggle .tts-icon-off {
   display: none;
 }
 
@@ -258,6 +249,28 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 #tts-toggle.tts-off .tts-icon-off {
   display: block;
   opacity: 0.5;
+}
+
+/* Narrator overlay toggle: show only one icon at a time */
+#narrator-overlay-toggle .narrator-toggle-on,
+#narrator-overlay-toggle .narrator-toggle-off {
+  display: none;
+}
+
+#narrator-overlay-toggle.narrator-hidden .narrator-toggle-on {
+  display: none;
+}
+
+#narrator-overlay-toggle.narrator-hidden .narrator-toggle-off {
+  display: block;
+}
+
+#narrator-overlay-toggle:not(.narrator-hidden) .narrator-toggle-on {
+  display: block;
+}
+
+#narrator-overlay-toggle:not(.narrator-hidden) .narrator-toggle-off {
+  display: none;
 }
 
 /* ── Frame dot indicators ────────────────────────────────────────── */

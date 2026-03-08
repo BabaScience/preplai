@@ -66,12 +66,40 @@ function main(): void {
     }
   }
 
+  // ── TTS (must be defined before SceneController for closure) ───────
+  const synth = typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis : null;
+  let ttsEnabled = (() => {
+    try {
+      const stored = localStorage.getItem('preplai-tts-enabled');
+      return stored === null ? true : stored === 'true';
+    } catch {
+      return true;
+    }
+  })();
+
+  function speakNarration(text: string): void {
+    if (!synth || !ttsEnabled || !text?.trim()) return;
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text.trim());
+    u.rate = 0.95;
+    u.pitch = 1;
+    u.volume = 1;
+    synth.speak(u);
+  }
+
+  function stopTTS(): void {
+    if (synth) synth.cancel();
+  }
+
   // ── SceneController + Narrator ───────────────────────────────────
   const narrator = new NarratorController(narratorText);
   const sceneController = new SceneController({
     entityLayer,
     connectionLayer,
-    onNarratorUpdate: (text) => narrator.update(text),
+    onNarratorUpdate: (text) => {
+      narrator.update(text);
+      if (ttsEnabled && synth && text?.trim()) speakNarration(text);
+    },
     onFrameChange: () => updateFrameCounter(),
   });
 
@@ -132,6 +160,62 @@ function main(): void {
   if (prevBtn) prevBtn.addEventListener('click', goPrev);
   if (nextBtn) nextBtn.addEventListener('click', goNext);
 
+  function updateTTSToggleUI(): void {
+    const btn = document.getElementById('tts-toggle');
+    if (!btn) return;
+    if (!synth) {
+      btn.style.display = 'none';
+      return;
+    }
+    btn.style.display = '';
+    btn.setAttribute('aria-pressed', String(ttsEnabled));
+    btn.setAttribute('title', ttsEnabled ? 'Voice narration on (click to mute)' : 'Voice narration off (click to enable)');
+    btn.classList.toggle('tts-on', ttsEnabled);
+    btn.classList.toggle('tts-off', !ttsEnabled);
+  }
+
+  const ttsToggle = document.getElementById('tts-toggle');
+  if (ttsToggle) {
+    updateTTSToggleUI();
+    ttsToggle.addEventListener('click', () => {
+      ttsEnabled = !ttsEnabled;
+      try {
+        localStorage.setItem('preplai-tts-enabled', String(ttsEnabled));
+      } catch {}
+      updateTTSToggleUI();
+      if (!ttsEnabled) stopTTS();
+      else if (narratorText?.textContent?.trim()) speakNarration(narratorText.textContent);
+    });
+  }
+
+  // ── Narrator overlay visibility toggle ───────────────────────────
+  const narratorOverlay = document.getElementById('narrator-overlay');
+  const narratorOverlayToggle = document.getElementById('narrator-overlay-toggle');
+  let narratorOverlayVisible = true;
+  try {
+    const stored = localStorage.getItem('preplai-narrator-overlay-visible');
+    if (stored !== null) narratorOverlayVisible = stored === 'true';
+  } catch {}
+
+  function setNarratorOverlayVisible(visible: boolean): void {
+    narratorOverlayVisible = visible;
+    if (narratorOverlay) {
+      narratorOverlay.classList.toggle('hidden', !visible);
+    }
+    if (narratorOverlayToggle) {
+      narratorOverlayToggle.classList.toggle('narrator-hidden', !visible);
+      narratorOverlayToggle.setAttribute('aria-label', visible ? 'Hide narrator overlay' : 'Show narrator overlay');
+    }
+    try {
+      localStorage.setItem('preplai-narrator-overlay-visible', String(visible));
+    } catch {}
+  }
+  setNarratorOverlayVisible(narratorOverlayVisible);
+
+  if (narratorOverlayToggle) {
+    narratorOverlayToggle.addEventListener('click', () => setNarratorOverlayVisible(!narratorOverlayVisible));
+  }
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
       e.preventDefault();
@@ -140,6 +224,10 @@ function main(): void {
     if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
       e.preventDefault();
       goPrev();
+    }
+    if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      setNarratorOverlayVisible(!narratorOverlayVisible);
     }
   });
 
@@ -205,6 +293,7 @@ function main(): void {
       }
       if (event.type === 'narration_update') {
         narrator.update(event.text);
+        if (ttsEnabled && synth && event.text?.trim()) speakNarration(event.text);
         return;
       }
     } catch (err) {
