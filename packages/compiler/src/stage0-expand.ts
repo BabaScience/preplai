@@ -67,6 +67,7 @@ export const ENTITY_TYPE_ALIASES: Record<string, string> = {
   LST: 'List',
   TUP: 'Tuple',
   ST: 'Set',
+  SORT: 'SortAnimation',
   // Infrastructure (Service with metadata.kind for second level)
   SVC: 'Service',
   GW: 'Service',
@@ -94,6 +95,17 @@ export const ENTITY_TYPE_ALIASES: Record<string, string> = {
   // Physics / misc
   CKT: 'Circuit',
   CYC: 'Cycle',
+  VEC: 'Vector',
+  FBD: 'FreeBodyDiagram',
+  WAVE: 'Wave',
+  // Flow / diagrams
+  FD: 'FlowDiagram',
+  VENN: 'VennDiagram',
+  TBL: 'Table',
+  // OS / concurrency
+  TM: 'TuringMachine',
+  DG: 'DeadlockGraph',
+  REC: 'RecursionTree',
 };
 
 // ── Expand helpers ──────────────────────────────────────────────────────
