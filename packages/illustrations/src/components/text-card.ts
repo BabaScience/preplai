@@ -15,7 +15,7 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { TYPOGRAPHY, SHAPES, getStrokeWidth, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 /** Conservative: assume wider chars so we wrap sooner. Prevents horizontal overflow. */
@@ -71,6 +71,12 @@ export type TextCardConfig = {
   defaultMaxLines?: number;
   /** Minimum font size for readability (default: 8). */
   minFontSize?: number;
+  /** Font weight: 'label' for lighter, 'title' for emphasis (default: 'title'). */
+  fontWeight?: 'label' | 'title';
+  /** Visual variant: 'card' (default), 'pill' (capsule), 'minimal' (soft fill, no stroke). */
+  variant?: 'card' | 'pill' | 'minimal';
+  /** Compact mode: smaller padding and font (for Label). */
+  compact?: boolean;
 };
 
 /**
@@ -85,7 +91,11 @@ export function createTextCardRenderer(config: TextCardConfig) {
     defaultWidth = 56,
     defaultMaxLines = 3,
     minFontSize: configMinFont = MIN_FONT_SIZE,
+    fontWeight: weightStyle = 'title',
+    variant = 'card',
+    compact = false,
   } = config;
+  const textFontWeight = weightStyle === 'label' ? TYPOGRAPHY.fontWeightLabel : TYPOGRAPHY.fontWeightTitle;
 
   return function renderTextCard(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
     const { outerG, innerG } = buildEntityGroup(entity);
@@ -102,14 +112,15 @@ export function createTextCardRenderer(config: TextCardConfig) {
     const maxLines = Math.max(1, Math.min(6, ((meta.maxLines as number) ?? defaultMaxLines) | 0));
 
     // Layout in design units (scale=1). Uniform scale transform applied at the end.
-    const padX = 10;
-    const padY = 8;
+    const padX = compact ? 6 : 10;
+    const padY = compact ? 4 : 8;
     const w = widthUnits;
     const availableWidth = Math.max(30, w - 2 * padX);
 
     // Find largest font size that fits all text (no truncation). Longer text → smaller font.
     const effectiveMinFont = Math.max(MIN_FONT_SIZE, configMinFont);
-    let fontSize = MAX_FONT_SIZE;
+    const maxFont = compact ? 14 : MAX_FONT_SIZE;
+    let fontSize = maxFont;
     let lines: string[] = [];
     for (; fontSize >= effectiveMinFont; fontSize--) {
       const maxCharsPerLine = Math.max(10, Math.floor(availableWidth / (fontSize * CHAR_WIDTH_RATIO)));
@@ -123,18 +134,24 @@ export function createTextCardRenderer(config: TextCardConfig) {
 
     // Scale group: uniform scaling so rectangle and text scale together (no disproportionate widening)
     const scale = s / 50;
+    const strokeWidth = getStrokeWidth('minimal', 1);
     const scaleGroup = document.createElementNS(SVG_NS, 'g');
     scaleGroup.setAttribute('transform', `scale(${scale})`);
 
+    const rx = variant === 'pill' ? h / 2 : SHAPES.borderRadius;
+    const useMinimal = variant === 'minimal';
     const card = document.createElementNS(SVG_NS, 'rect');
     card.setAttribute('x', String(-w / 2));
     card.setAttribute('y', String(-h / 2));
     card.setAttribute('width', String(w));
     card.setAttribute('height', String(h));
-    card.setAttribute('rx', String(SHAPES.borderRadius));
-    card.setAttribute('fill', `url(#${gradId})`);
-    card.setAttribute('stroke', color);
-    card.setAttribute('stroke-width', '1.5');
+    card.setAttribute('rx', String(rx));
+    card.setAttribute('fill', useMinimal ? colorWithAlpha(color, OPACITY.fillLight) : `url(#${gradId})`);
+    if (!useMinimal) {
+      card.setAttribute('stroke', color);
+      card.setAttribute('stroke-width', String(strokeWidth));
+      card.setAttribute('stroke-linejoin', 'round');
+    }
     scaleGroup.appendChild(card);
 
     // Clip content to card bounds — guarantees no overflow
@@ -151,23 +168,23 @@ export function createTextCardRenderer(config: TextCardConfig) {
     clipRect.setAttribute('y', String(-h / 2));
     clipRect.setAttribute('width', String(w));
     clipRect.setAttribute('height', String(h));
-    clipRect.setAttribute('rx', String(SHAPES.borderRadius));
+    clipRect.setAttribute('rx', String(rx));
     clipEl.appendChild(clipRect);
 
     const textGroup = document.createElementNS(SVG_NS, 'text');
     textGroup.setAttribute('clip-path', `url(#${clipId})`);
     textGroup.setAttribute('x', '0');
-    textGroup.setAttribute('y', String(-h / 2 + padY + lineHeight));
     textGroup.setAttribute('text-anchor', 'middle');
     textGroup.setAttribute('fill', color);
     textGroup.setAttribute('font-size', String(fontSize));
-    textGroup.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightTitle));
+    textGroup.setAttribute('font-weight', String(textFontWeight));
     textGroup.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-
+    const textY = -(lines.length - 1) * lineHeight / 2;
+    textGroup.setAttribute('y', '0');
     lines.forEach((line, i) => {
       const tspan = document.createElementNS(SVG_NS, 'tspan');
       tspan.setAttribute('x', '0');
-      tspan.setAttribute('dy', i === 0 ? '0' : String(lineHeight));
+      tspan.setAttribute('dy', i === 0 ? String(textY) : String(lineHeight));
       tspan.textContent = line;
       textGroup.appendChild(tspan);
     });

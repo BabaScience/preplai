@@ -152,7 +152,6 @@ export const METADATA_DEFAULTS = {
     y: 'phone book',
   },
   Annotation: { label: 'Add your annotation here.', width: 200, maxLines: 6 },
-  Label: { label: 'Label text', width: 200, maxLines: 6 },
   H1: { label: 'Main Heading' },
   H2: { label: 'Section Heading' },
   H3: { label: 'Subsection Heading' },

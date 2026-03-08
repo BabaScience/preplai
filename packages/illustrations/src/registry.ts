@@ -39,7 +39,6 @@ import { renderCallout } from './components/callout.js';
 import { renderAnalogy } from './components/analogy.js';
 import { renderAnnotation } from './components/annotation.js';
 import {
-  renderLabel,
   renderComparison,
   renderProof,
   renderQuote,
@@ -169,7 +168,6 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Concept: renderConcept,
   Entity: renderEntityNode,
   Group: renderGroup,
-  Label: renderLabel,
   H1: renderH1,
   H2: renderH2,
   H3: renderH3,
@@ -222,7 +220,6 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   HashTable: renderHashTable,
   Dict: renderHashTable,
   Heap: dsBcd,
-  GraphDS: infraGeneric,
   Trie: dsGrn,
   List: renderList,
   Tuple: renderTuple,
@@ -289,7 +286,6 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Algorithms extended
   SortAnimation: generic('SortAnimation'),
-  GraphTraversal: generic('GraphTraversal'),
 };
 
 /**

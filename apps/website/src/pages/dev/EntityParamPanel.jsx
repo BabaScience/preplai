@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ENTITY_DEFAULTS, ENTRANCE_ANIMATION_CLASSES } from '@preplai/shared';
 
 /** Types that inherit from text-card (same metadata: label, width, maxLines) */
-const CARD_TYPES = ['Analogy', 'Annotation', 'Label', 'Comparison', 'Proof', 'Quote'];
+const CARD_TYPES = ['Analogy', 'Annotation', 'Comparison', 'Proof', 'Quote'];
 
 /** Heading types (H1, H2, H3) — metadata: label, showUnderline */
 const HEADING_TYPES = ['H1', 'H2', 'H3'];

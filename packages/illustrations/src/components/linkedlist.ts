@@ -7,7 +7,14 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  TYPOGRAPHY,
+  SHAPES,
+  getLabelFontSize,
+  getStrokeWidth,
+  LABEL_DEFAULTS,
+} from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 const DESIGN_NODE_W = 48;
@@ -42,6 +49,26 @@ export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SV
   const startX = -totalW / 2 + (nodeW + gap) / 2;
 
   const scale = s / 50;
+  const strokeWidth = getStrokeWidth('minimal', 1);
+  const connectorStrokeWidth = getStrokeWidth('minimal', 1) * 0.67;
+  const fontSize = getLabelFontSize('value', 1) / scale;
+
+  const markerId = `arrow-ll-${entity.id.replace(/[^a-z0-9]/gi, '')}`;
+  if (!defs.querySelector(`#${markerId}`)) {
+    const marker = document.createElementNS(SVG_NS, 'marker');
+    marker.setAttribute('id', markerId);
+    marker.setAttribute('markerWidth', '8');
+    marker.setAttribute('markerHeight', '6');
+    marker.setAttribute('refX', '7');
+    marker.setAttribute('refY', '3');
+    marker.setAttribute('orient', 'auto');
+    const poly = document.createElementNS(SVG_NS, 'polygon');
+    poly.setAttribute('points', '0 0, 8 3, 0 6');
+    poly.setAttribute('fill', color);
+    marker.appendChild(poly);
+    defs.appendChild(marker);
+  }
+
   const scaleGroup = document.createElementNS(SVG_NS, 'g');
   scaleGroup.setAttribute('transform', `scale(${scale})`);
 
@@ -56,7 +83,8 @@ export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SV
     node.setAttribute('rx', String(SHAPES.borderRadius));
     node.setAttribute('fill', `url(#${gradId})`);
     node.setAttribute('stroke', color);
-    node.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
+    node.setAttribute('stroke-width', String(strokeWidth));
+    node.setAttribute('stroke-linejoin', 'round');
     scaleGroup.appendChild(node);
 
     const displayVal = truncateNodeValue(String(val), nodeW);
@@ -65,7 +93,7 @@ export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SV
     valueText.setAttribute('y', String(4));
     valueText.setAttribute('text-anchor', 'middle');
     valueText.setAttribute('fill', color);
-    valueText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
+    valueText.setAttribute('font-size', String(fontSize));
     valueText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
     valueText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     valueText.textContent = displayVal;
@@ -78,8 +106,9 @@ export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SV
       line.setAttribute('x2', String(x + nodeW / 2 + gap));
       line.setAttribute('y2', '0');
       line.setAttribute('stroke', color);
-      line.setAttribute('stroke-width', String(SHAPES.strokeWidth));
-      line.setAttribute('opacity', '0.8');
+      line.setAttribute('stroke-width', String(connectorStrokeWidth));
+      line.setAttribute('stroke-linecap', 'round');
+      line.setAttribute('marker-end', `url(#${markerId})`);
       scaleGroup.appendChild(line);
     }
   });
@@ -87,10 +116,10 @@ export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SV
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(nodeH / 2 + 18));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(nodeH / 2 + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-size', String(getLabelFontSize('label', 1) / scale));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;

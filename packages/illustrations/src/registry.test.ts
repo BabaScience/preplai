@@ -72,7 +72,7 @@ describe('registry', () => {
 
   it('should have all universal types registered', () => {
     const types = [
-      'Concept', 'Entity', 'Group', 'Label', 'Comparison',
+      'Concept', 'Entity', 'Group', 'Comparison',
       'Timeline', 'Metric', 'Cycle', 'Stack', 'Tree', 'Badge', 'Quote',
     ];
     for (const type of types) {
@@ -83,7 +83,7 @@ describe('registry', () => {
   it('should have all data structure types registered', () => {
     const types = [
       'Array', 'LinkedList', 'BinaryTree', 'BTree', 'HashTable', 'Dict',
-      'Heap', 'GraphDS', 'Trie', 'List', 'Tuple', 'Set',
+      'Heap', 'Trie', 'List', 'Tuple', 'Set',
     ];
     for (const type of types) {
       expect(typeof registry[type], `registry['${type}'] should be a function`).toBe('function');
@@ -102,7 +102,7 @@ describe('registry', () => {
       'NeuralNetwork', 'ConfusionMatrix',
       'CallStack', 'ParseTree', 'SymbolTable', 'QueryPlan',
       'Semaphore', 'Mutex', 'OSILayer', 'ProtocolLayer',
-      'TuringMachine', 'BigO', 'SortAnimation', 'GraphTraversal',
+      'TuringMachine', 'BigO', 'SortAnimation',
     ];
     for (const type of types) {
       expect(typeof registry[type], `registry['${type}'] should be a function`).toBe('function');

@@ -1,11 +1,20 @@
 /**
  * @preplai/illustrations — List Component
- * Ordered indexed cells (like Array) + subtle "mutable" cue
+ * Ordered indexed cells (like Array) + subtle "mutable" cue (dashed stroke)
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  getStrokeWidth,
+  getLabelFontSize,
+  colorWithAlpha,
+  OPACITY,
+  TYPOGRAPHY,
+  SHAPES,
+  LABEL_DEFAULTS,
+} from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderList(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -13,8 +22,9 @@ export function renderList(entity: VisualEntity, parentEl: SVGElement): SVGGElem
 
   const s = getSizeParam(entity);
   const scale = s / 50;
-  const indexFontSize = Math.round(10 * scale);
-  const valueFontSize = Math.round(12 * scale);
+  const strokeWidth = getStrokeWidth('minimal', 1);
+  const indexFontSize = getLabelFontSize('index', 1) / scale;
+  const valueFontSize = getLabelFontSize('value', 1) / scale;
   const color = entity.color ?? getCategoryColor('List');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-list-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -29,6 +39,9 @@ export function renderList(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   const totalW = visibleValues.length * cellW;
   const startX = -totalW / 2 + cellW / 2;
 
+  const scaleGroup = document.createElementNS(SVG_NS, 'g');
+  scaleGroup.setAttribute('transform', `scale(${scale})`);
+
   visibleValues.forEach((val, i) => {
     const x = startX + i * cellW;
 
@@ -37,22 +50,23 @@ export function renderList(entity: VisualEntity, parentEl: SVGElement): SVGGElem
     cell.setAttribute('y', String(-cellH / 2));
     cell.setAttribute('width', String(cellW - 4));
     cell.setAttribute('height', String(cellH));
-    cell.setAttribute('rx', '2');
+    cell.setAttribute('rx', String(Math.max(1, SHAPES.borderRadius - 2)));
     cell.setAttribute('fill', `url(#${gradId})`);
     cell.setAttribute('stroke', color);
-    cell.setAttribute('stroke-width', '1.5');
+    cell.setAttribute('stroke-width', String(strokeWidth));
     cell.setAttribute('stroke-dasharray', '2,2');
-    innerG.appendChild(cell);
+    cell.setAttribute('stroke-linejoin', 'round');
+    scaleGroup.appendChild(cell);
 
     const indexText = document.createElementNS(SVG_NS, 'text');
     indexText.setAttribute('x', String(x));
     indexText.setAttribute('y', String(-cellH / 2 - 5));
     indexText.setAttribute('text-anchor', 'middle');
-    indexText.setAttribute('fill', `${color}99`);
+    indexText.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
     indexText.setAttribute('font-size', String(indexFontSize));
     indexText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     indexText.textContent = `[${i}]`;
-    innerG.appendChild(indexText);
+    scaleGroup.appendChild(indexText);
 
     const valueText = document.createElementNS(SVG_NS, 'text');
     valueText.setAttribute('x', String(x));
@@ -60,19 +74,21 @@ export function renderList(entity: VisualEntity, parentEl: SVGElement): SVGGElem
     valueText.setAttribute('text-anchor', 'middle');
     valueText.setAttribute('fill', color);
     valueText.setAttribute('font-size', String(valueFontSize));
-    valueText.setAttribute('font-weight', '600');
+    valueText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
     valueText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     valueText.textContent = String(val);
-    innerG.appendChild(valueText);
+    scaleGroup.appendChild(valueText);
   });
+
+  innerG.appendChild(scaleGroup);
 
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(cellH / 2 + 18));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(cellH / 2 * scale + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;
