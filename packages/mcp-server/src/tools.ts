@@ -31,7 +31,8 @@ interface SessionUrlDeps {
 
 // ── Validation helpers ────────────────────────────────────────────────
 
-function validateVisualScript(visual_script: any): string | null {
+/** Structural validation before compile. Returns error message or null if valid. */
+function validateVisualScriptStructure(visual_script: any): string | null {
   if (!visual_script || typeof visual_script !== 'object') {
     return 'visual_script must be an object with { sceneId, frames, totalDuration }';
   }
@@ -168,7 +169,7 @@ export async function handleAddScene(
   const expandedScript = expandResult.expanded as any;
 
   // Validate visual_script structure
-  const validationError = validateVisualScript(expandedScript);
+  const validationError = validateVisualScriptStructure(expandedScript);
   if (validationError) {
     return mcpValidationError(validationError);
   }
@@ -233,7 +234,7 @@ export async function handleUpdateScene(
   const expandedScript = expandResult.expanded as any;
 
   // Validate visual_script structure
-  const validationError = validateVisualScript(expandedScript);
+  const validationError = validateVisualScriptStructure(expandedScript);
   if (validationError) {
     return mcpValidationError(validationError);
   }

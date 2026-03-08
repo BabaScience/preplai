@@ -36,6 +36,7 @@ import {
   handleRemoveScene,
 } from './tools.js';
 import { withErrorBoundary } from './errors.js';
+import { verifySessionOwnership } from './session-utils.js';
 import { PLAYER_HTML_TEMPLATE } from './player-html.js';
 import {
   validateApiKey,
@@ -424,12 +425,8 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   const sceneDeps = { store, sse };
   const createDeps = { store, baseUrl: cfg.baseUrl };
 
-  function verifySessionOwnership(sessionId: string, apiKeyId: string): { ok: boolean; notFound?: boolean } {
-    const session = store.getSession(sessionId);
-    if (!session) return { ok: false, notFound: true };
-    if (session.api_key_id !== apiKeyId) return { ok: false };
-    return { ok: true };
-  }
+  const checkOwnership = (sessionId: string, apiKeyId: string) =>
+    verifySessionOwnership(store, sessionId, apiKeyId);
 
   app.post<{ Body: { title: string; aspect_ratio?: string; style?: 'cinema' | 'minimal' } }>(
     '/api/create-session',
@@ -463,7 +460,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;
 
-      const ownership = verifySessionOwnership(request.body.session_id, apiKey.id);
+      const ownership = checkOwnership(request.body.session_id, apiKey.id);
       if (!ownership.ok && !ownership.notFound) {
         reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
         return;
@@ -494,7 +491,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;
 
-      const ownership = verifySessionOwnership(request.body.session_id, apiKey.id);
+      const ownership = checkOwnership(request.body.session_id, apiKey.id);
       if (!ownership.ok && !ownership.notFound) {
         reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
         return;
@@ -518,7 +515,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;
 
-      const ownership = verifySessionOwnership(request.body.session_id, apiKey.id);
+      const ownership = checkOwnership(request.body.session_id, apiKey.id);
       if (!ownership.ok && !ownership.notFound) {
         reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
         return;
@@ -542,7 +539,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;
 
-      const ownership = verifySessionOwnership(request.body.session_id, apiKey.id);
+      const ownership = checkOwnership(request.body.session_id, apiKey.id);
       if (!ownership.ok && !ownership.notFound) {
         reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
         return;
@@ -595,7 +592,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;
 
-      const ownership = verifySessionOwnership(request.params.id, apiKey.id);
+      const ownership = checkOwnership(request.params.id, apiKey.id);
       if (!ownership.ok && !ownership.notFound) {
         reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
         return;
@@ -615,7 +612,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;
 
-      const ownership = verifySessionOwnership(request.params.sessionId, apiKey.id);
+      const ownership = checkOwnership(request.params.sessionId, apiKey.id);
       if (!ownership.ok && !ownership.notFound) {
         reply.status(403).send(authError('FORBIDDEN', 'You do not own this session.').body);
         return;

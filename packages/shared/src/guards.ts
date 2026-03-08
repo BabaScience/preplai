@@ -88,41 +88,64 @@ export function buildEntityMap(entities: VisualEntity[]): Map<string, VisualEnti
 
 /**
  * Assign staggered entrance delays to entities.
- * Modifies entities in place. Connection types are skipped.
+ * Returns a NEW array — never mutates input.
+ * When an entity has an explicit delay, the counter advances past it.
+ *
+ * @param entities - Entities to process
+ * @param baseDelayMs - Starting delay (default 0)
+ * @param staggerMs - Stagger per entity (default INTER_ENTITY_STAGGER_MS)
+ * @param skipConnections - If true, skip Arrow/DataFlow/etc (default false; caller may pre-filter)
  */
 export function assignEntranceDelays(
   entities: VisualEntity[],
   baseDelayMs = 0,
   staggerMs = INTER_ENTITY_STAGGER_MS,
-): void {
+  skipConnections = false,
+): VisualEntity[] {
   let delay = baseDelayMs;
-  for (const entity of entities) {
-    if (isConnectionType(entity.type)) continue;
-    entity.animation = entity.animation ?? {};
-    entity.animation.delay = entity.animation.delay ?? delay;
-    delay += staggerMs;
-  }
+  return entities.map((e) => {
+    if (skipConnections && isConnectionType(e.type)) {
+      return e;
+    }
+    const copy = { ...e, animation: { ...(e.animation ?? {}) } };
+    if (e.animation?.delay !== undefined && e.animation.delay !== null) {
+      copy.animation!.delay = e.animation.delay;
+      delay = Math.max(delay, e.animation.delay + staggerMs);
+    } else {
+      copy.animation!.delay = delay;
+      delay += staggerMs;
+    }
+    return copy as VisualEntity;
+  });
 }
 
 /**
  * Resolve an entity reference string (ID or label) to a VisualEntity.
- * Three-tier lookup: exact ID → exact label (case-insensitive) → substring label.
+ * Three-tier lookup: exact ID → exact label (case-insensitive) → fuzzy substring
+ * (label contains ref OR ref contains label, for agent-style refs).
  */
-export function resolveEntityRef(ref: string, allEntities: VisualEntity[]): VisualEntity | null {
-  if (!ref) return null;
+export function resolveEntityRef(
+  ref: string | null | undefined,
+  allEntities: VisualEntity[] | null | undefined,
+): VisualEntity | null {
+  if (!ref || !allEntities?.length) return null;
 
   // Tier 1: Exact ID match
-  let found = allEntities.find(e => e.id === ref);
-  if (found) return found;
+  const byId = allEntities.find((e) => e.id === ref);
+  if (byId) return byId;
 
   // Tier 2: Exact label match (case-insensitive)
   const refLower = ref.toLowerCase();
-  found = allEntities.find(e => e.label?.toLowerCase() === refLower);
-  if (found) return found;
+  const byLabel = allEntities.find((e) => e.label?.toLowerCase() === refLower);
+  if (byLabel) return byLabel;
 
-  // Tier 3: Substring match
-  found = allEntities.find(e => e.label?.toLowerCase().includes(refLower));
-  return found ?? null;
+  // Tier 3: Fuzzy substring (label contains ref, or ref contains label)
+  const fuzzy = allEntities.find((e) => {
+    const lbl = e.label?.toLowerCase();
+    if (!lbl) return false;
+    return lbl.includes(refLower) || refLower.includes(lbl);
+  });
+  return fuzzy ?? null;
 }
 
 /**

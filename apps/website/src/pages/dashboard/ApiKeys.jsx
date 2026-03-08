@@ -7,13 +7,7 @@ import Modal from '../../components/Modal';
 import Alert from '../../components/Alert';
 import Input from '../../components/Input';
 import { apiGetKeys, apiCreateKey, apiRevokeKey } from '../../lib/api';
-
-function formatDate(iso) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' });
-}
+import { formatDate } from '../../utils/format';
 
 export default function ApiKeys() {
   const [keys, setKeys] = useState([]);

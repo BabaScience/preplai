@@ -110,29 +110,7 @@ function lineRectIntersection(
   };
 }
 
-/**
- * Resolves an entity reference string (ID or label) to a VisualEntity.
- * Three-tier lookup: exact ID → exact label (case-insensitive) → substring label.
- */
-export function resolveEntityRef(ref: string | undefined, allEntities: VisualEntity[]): VisualEntity | null {
-  if (!ref) return null;
-
-  // Tier 1: Exact ID match
-  let found = allEntities.find(e => e.id === ref);
-  if (found) return found;
-
-  // Tier 2: Exact label match (case-insensitive)
-  found = allEntities.find(
-    e => e.label?.toLowerCase() === ref.toLowerCase()
-  );
-  if (found) return found;
-
-  // Tier 3: Substring match
-  found = allEntities.find(
-    e => e.label?.toLowerCase().includes(ref.toLowerCase())
-  );
-  return found ?? null;
-}
+import { resolveEntityRef } from '@preplai/shared';
 
 const ARROW_LIKE_TYPES = ['Arrow', 'BidirectArrow', 'DottedArrow', 'DataFlow'] as const;
 

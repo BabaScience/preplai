@@ -13,13 +13,7 @@ import ProgressBar from '../../components/ProgressBar';
 import Alert from '../../components/Alert';
 import { useTheme } from '../../context/ThemeContext';
 import { apiGetUsage } from '../../lib/api';
-
-function formatDate(iso) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' });
-}
+import { formatDate } from '../../utils/format';
 
 function buildChartData(daily) {
   const today = new Date();

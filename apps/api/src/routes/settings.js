@@ -1,16 +1,12 @@
 import { Router } from 'express';
-import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { User, ApiKey, UsageLog } from '../db.js';
 import { authenticate } from '../middleware/auth.js';
+import { toObjectId } from '../utils/helpers.js';
 
 const router = Router();
 
 router.use(authenticate);
-
-function toObjectId(id) {
-  return typeof id === 'string' ? new mongoose.Types.ObjectId(id) : id;
-}
 
 // GET /api/settings
 router.get('/', async (req, res) => {

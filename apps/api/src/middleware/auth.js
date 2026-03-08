@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
 import { User } from '../db.js';
+import { toObjectId } from '../utils/helpers.js';
 import { apiAuthFailuresTotal } from '../metrics.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'preplai-dev-secret-change-in-prod';
@@ -31,10 +31,6 @@ export async function authenticateAdmin(req, res, next) {
     apiAuthFailuresTotal.inc({ reason: 'invalid_token' });
     return res.status(401).json({ error: 'Invalid or expired token', code: 'INVALID_AUTH' });
   }
-}
-
-function toObjectId(id) {
-  return typeof id === 'string' ? new mongoose.Types.ObjectId(id) : id;
 }
 
 export function authenticate(req, res, next) {

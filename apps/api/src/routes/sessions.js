@@ -1,15 +1,11 @@
 import { Router } from 'express';
-import mongoose from 'mongoose';
 import { User, ApiKey, Session, VisualScript, Narration } from '../db.js';
 import { authenticate } from '../middleware/auth.js';
+import { toObjectId } from '../utils/helpers.js';
 
 const router = Router();
 
 router.use(authenticate);
-
-function toObjectId(id) {
-  return typeof id === 'string' ? new mongoose.Types.ObjectId(id) : id;
-}
 
 const PLAYER_BASE_URL = process.env.PLAYER_BASE_URL || 'http://localhost:5005';
 

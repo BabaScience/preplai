@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import mongoose from 'mongoose';
 import { TIER_LIMITS } from '@preplai/shared';
 import { ApiKey, UsageLog, Session } from '../db.js';
 import { authenticate } from '../middleware/auth.js';
+import { toObjectId } from '../utils/helpers.js';
 
 function resolveBestTier(tiers) {
   if (tiers.includes('enterprise')) return 'enterprise';
@@ -13,10 +13,6 @@ function resolveBestTier(tiers) {
 const router = Router();
 
 router.use(authenticate);
-
-function toObjectId(id) {
-  return typeof id === 'string' ? new mongoose.Types.ObjectId(id) : id;
-}
 
 function startOfMonth(d) {
   return new Date(d.getFullYear(), d.getMonth(), 1);

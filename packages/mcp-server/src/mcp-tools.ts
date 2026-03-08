@@ -22,18 +22,7 @@ import {
   handleRemoveScene,
 } from './tools.js';
 import { withErrorBoundary, mcpForbidden, mcpUnauthorized } from './errors.js';
-
-/** Verify the API key owns the session. Returns { ok, notFound } for MCP tool handlers. */
-function verifySessionOwnership(
-  store: SessionStore,
-  sessionId: string,
-  apiKeyId: string,
-): { ok: boolean; notFound?: boolean } {
-  const session = store.getSession(sessionId);
-  if (!session) return { ok: false, notFound: true };
-  if (session.api_key_id !== apiKeyId) return { ok: false };
-  return { ok: true };
-}
+import { verifySessionOwnership } from './session-utils.js';
 
 // ── Zod schemas for tool parameters ──────────────────────────────────
 

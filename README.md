@@ -13,8 +13,10 @@ preplai/
 │   ├── illustrations/  @preplai/illustrations — SVG illustration library
 │   ├── compiler/       @preplai/compiler — PML scene compiler
 │   ├── player/         @preplai/player — cinema viewer/renderer
+│   ├── db/             @preplai/db — MongoDB models
 │   └── mcp-server/     @preplai/mcp-server — Fastify API + MCP bridge (v1)
 ├── apps/               ← deployable applications
+│   ├── api/            preplai-api — REST API (auth, sessions, usage)
 │   └── website/        preplai.com — marketing site + user dashboard
 ├── architecture/       design docs (01–08 + FLOW)
 └── docs/               setup guides, deployment, design system
@@ -24,8 +26,9 @@ preplai/
 
 | Component | What it does | Deploy independently? |
 |-----------|-------------|----------------------|
-| `packages/mcp-server` | Fastify HTTP server + Claude Desktop MCP bridge | Yes — `npm run start` or `npm run start:mcp` |
-| `apps/website` | preplai.com landing page + access token dashboard | Yes — static files + Python CGI |
+| `packages/mcp-server` | Fastify HTTP server + Claude Desktop MCP bridge | Yes — `pnpm run start` or `pnpm run start:mcp` |
+| `apps/api` | REST API (auth, sessions, usage, OAuth) | Yes — Node.js / Express |
+| `apps/website` | preplai.com landing page + access token dashboard | Yes — Vite + React |
 | `packages/shared` | Shared types and schemas | Library — consumed by other packages |
 | `packages/compiler` | PML → render tree compilation | Library — consumed by mcp-server |
 | `packages/illustrations` | SVG illustration matching | Library — consumed by player |
@@ -39,19 +42,19 @@ git clone git@github.com:BabaScience/preplai.git
 cd preplai
 
 # Install all dependencies (workspaces)
-npm install
+pnpm install
 
 # Build all packages
-npm run build
+pnpm run build
 
 # Run tests
-npm test
+pnpm test
 
 # Start MCP server (HTTP)
-cd packages/mcp-server && npm start
+cd packages/mcp-server && pnpm start
 
 # Start MCP server (Claude Desktop stdio)
-cd packages/mcp-server && npm run start:mcp
+cd packages/mcp-server && pnpm run start:mcp
 ```
 
 ## Local Development Ports
@@ -114,7 +117,7 @@ See [Claude Desktop Config Guide](./docs/claude-desktop-config.md) for detailed 
 - **MCP**: @modelcontextprotocol/sdk
 - **Types**: TypeScript 5 (strict mode)
 - **Tests**: Vitest
-- **Website**: Vanilla HTML/CSS/JS + Python CGI
+- **Website**: Vite + React
 
 ## License
 

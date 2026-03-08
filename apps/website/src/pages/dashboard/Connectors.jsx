@@ -6,15 +6,9 @@ import Modal from '../../components/Modal';
 import Alert from '../../components/Alert';
 import Input from '../../components/Input';
 import { apiGetOAuthClients, apiCreateOAuthClient } from '../../lib/api';
+import { formatDate } from '../../utils/format';
 
 const CLAUDE_CALLBACK = 'https://claude.ai/api/mcp/auth_callback';
-
-function formatDate(iso) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' });
-}
 
 export default function Connectors() {
   const [clients, setClients] = useState([]);

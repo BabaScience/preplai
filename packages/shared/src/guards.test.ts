@@ -263,34 +263,34 @@ describe('assignEntranceDelays', () => {
       makeEntity({ id: 'b' }),
       makeEntity({ id: 'c' }),
     ];
-    assignEntranceDelays(entities);
-    expect(entities[0].animation!.delay).toBe(0);
-    expect(entities[1].animation!.delay).toBe(INTER_ENTITY_STAGGER_MS);
-    expect(entities[2].animation!.delay).toBe(INTER_ENTITY_STAGGER_MS * 2);
+    const result = assignEntranceDelays(entities);
+    expect(result[0].animation!.delay).toBe(0);
+    expect(result[1].animation!.delay).toBe(INTER_ENTITY_STAGGER_MS);
+    expect(result[2].animation!.delay).toBe(INTER_ENTITY_STAGGER_MS * 2);
   });
 
-  it('should skip Arrow types', () => {
+  it('should skip Arrow types when skipConnections=true', () => {
     const entities = [
       makeEntity({ id: 'a', type: 'Server' }),
       makeEntity({ id: 'b', type: 'Arrow' }),
       makeEntity({ id: 'c', type: 'Database' }),
     ];
-    assignEntranceDelays(entities);
-    expect(entities[0].animation!.delay).toBe(0);
+    const result = assignEntranceDelays(entities, 0, INTER_ENTITY_STAGGER_MS, true);
+    expect(result[0].animation!.delay).toBe(0);
     // Arrow skipped — no delay assigned
-    expect(entities[2].animation!.delay).toBe(INTER_ENTITY_STAGGER_MS);
+    expect(result[2].animation!.delay).toBe(INTER_ENTITY_STAGGER_MS);
   });
 
   it('should accept custom base delay', () => {
     const entities = [makeEntity({ id: 'a' })];
-    assignEntranceDelays(entities, 200);
-    expect(entities[0].animation!.delay).toBe(200);
+    const result = assignEntranceDelays(entities, 200);
+    expect(result[0].animation!.delay).toBe(200);
   });
 
   it('should not overwrite existing delays', () => {
     const entities = [makeEntity({ id: 'a', animation: { delay: 999 } })];
-    assignEntranceDelays(entities);
-    expect(entities[0].animation!.delay).toBe(999);
+    const result = assignEntranceDelays(entities);
+    expect(result[0].animation!.delay).toBe(999);
   });
 });
 
