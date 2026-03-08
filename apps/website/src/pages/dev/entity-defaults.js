@@ -10,6 +10,9 @@ export const METADATA_DEFAULTS = {
     disabledIndexes: [1, 3],
     selectedIndexes: [0, 2],
   },
+  Heap: {
+    nodes: [10, 8, 6, 5, 3, 2],
+  },
   BTree: {
     tree: {
       value: '[10,20]',
@@ -93,6 +96,18 @@ export const METADATA_DEFAULTS = {
     transitions: [
       { from: 'Ready', to: 'Running' },
       { from: 'Running', to: 'Blocked' },
+    ],
+  },
+  FSM: {
+    states: [
+      { id: 'q0', label: 'q0' },
+      { id: 'q1', label: 'q1' },
+      { id: 'q2', label: 'q2' },
+    ],
+    transitions: [
+      { from: 'q0', to: 'q1' },
+      { from: 'q1', to: 'q2' },
+      { from: 'q2', to: 'q0' },
     ],
   },
   GanttChart: {
@@ -205,6 +220,15 @@ export const METADATA_DEFAULTS = {
     yLabel: 'Value',
     horizontal: false,
   },
+  Histogram: {
+    bins: [
+      { label: '0-10', count: 5 },
+      { label: '10-20', count: 12 },
+      { label: '20-30', count: 8 },
+      { label: '30-40', count: 15 },
+      { label: '40-50', count: 6 },
+    ],
+  },
   Service: { kind: 'Service', hubLabel: undefined },
   Entity: { label: 'Thing', width: 72 },
   Concept: { label: 'Recursion', width: 80, maxLines: 4 },
@@ -225,6 +249,7 @@ export const ENTITY_FIELD_DEFAULTS = {
   BigO: { size: 2 },
   CoordinateSystem: { size: 2 },
   BinaryTree: { size: 2.5 },
+  Heap: { size: 2.5 },
   BTree: { size: 2.5 },
   HashTable: { size: 2 },
   Dict: { size: 2 },

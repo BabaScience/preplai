@@ -80,6 +80,9 @@ import { renderCPU } from './components/cpu.js';
 import { renderEntityNode } from './components/entity.js';
 import { renderFlowDiagram } from './components/flowdiagram.js';
 import { renderFreeBodyDiagram } from './components/freebodydiagram.js';
+import { renderFSM } from './components/fsm.js';
+import { renderHeap } from './components/heap.js';
+import { renderHistogram } from './components/histogram.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -100,10 +103,8 @@ const mathSci = generic('Equation');
 const mathPrp = generic('Matrix');
 const physBcd = generic('Wave');
 const physPnk = generic('Vector');
-const genGrn = generic('Histogram');
 const dsGrn = generic('LinkedList');
 const dsOrg = generic('HashTable');  // fallback only; renderHashTable used
-const dsBcd = generic('Heap');
 const dsPrp = generic('BinaryTree');
 const algoRed = generic('Pointer');
 const algoPrp = generic('RecursionTree');
@@ -196,7 +197,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── General Purpose
   Table: infraGeneric,
-  Histogram: genGrn,
+  Histogram: renderHistogram,
   PieChart: infraGeneric,
   FlowDiagram: renderFlowDiagram,
   VennDiagram: infraGeneric,
@@ -219,7 +220,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   BTree: renderBTree,
   HashTable: renderHashTable,
   Dict: renderHashTable,
-  Heap: dsBcd,
+  Heap: renderHeap,
   Trie: dsGrn,
   List: renderList,
   Tuple: renderTuple,
@@ -231,7 +232,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   RecursionTree: algoPrp,
 
   // ── Automata & Theory
-  FSM: infraGeneric,
+  FSM: renderFSM,
   StateNode: circleCache,
   Transition: infraGeneric,  // Special: needs source/target, handled like Arrow
 

@@ -935,6 +935,33 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
+      {entity.type === 'Heap' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Heap metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Nodes (level-order, comma-separated)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.nodes ?? []).map(String).join(', ')}
+              onChange={(e) => {
+                const raw = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
+                const nodes = raw.map((v) => (Number(v).toString() === v ? Number(v) : v));
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  nodes: nodes.length ? nodes : undefined,
+                });
+              }}
+              placeholder="10, 8, 6, 5, 3, 2"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Level-order: root, left, right, left-left, left-right, right-left… Up to 15 nodes.
+            </p>
+          </div>
+        </>
+      )}
+
       {entity.type === 'BinaryTree' && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
@@ -1020,6 +1047,47 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
               }}
               placeholder="0, 2"
             />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Histogram' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Histogram metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Bins (label:count, comma-separated)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(() => {
+                const bins = entity.metadata?.bins;
+                if (!Array.isArray(bins)) return '';
+                return bins
+                  .map((b) => (typeof b === 'object' && b != null ? `${b.label ?? ''}:${b.count ?? b.value ?? 0}` : String(b)))
+                  .join(', ');
+              })()}
+              onChange={(e) => {
+                const parts = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
+                const bins = parts.map((p) => {
+                  const colon = p.indexOf(':');
+                  if (colon >= 0) {
+                    const label = p.slice(0, colon).trim();
+                    const count = Number(p.slice(colon + 1).trim()) || 0;
+                    return { label: label || '?', count };
+                  }
+                  return { label: p, count: 0 };
+                });
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  bins: bins.length ? bins : undefined,
+                });
+              }}
+              placeholder="0-10:5, 10-20:12, 20-30:8, 30-40:15"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Format: label:count for each bin. Up to 12 bins.
+            </p>
           </div>
         </>
       )}
@@ -1178,6 +1246,89 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
               }}
               placeholder="Pred -, Pred +"
             />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'FSM' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>FSM metadata</h4>
+          <div className="form-group">
+            <label className="form-label">States (id or id:label per line)</label>
+            <textarea
+              className="form-input"
+              rows={6}
+              value={(() => {
+                const states = entity.metadata?.states ?? [];
+                if (!Array.isArray(states)) return '';
+                return states
+                  .map((s) => {
+                    if (typeof s !== 'object' || s == null) return '';
+                    const { id, label } = s;
+                    return label && label !== id ? `${id}:${label}` : (id ?? '');
+                  })
+                  .filter(Boolean)
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                const states = lines.map((line) => {
+                  const colon = line.indexOf(':');
+                  if (colon >= 0) {
+                    const id = line.slice(0, colon).trim();
+                    const label = line.slice(colon + 1).trim();
+                    return { id: id || '?', label: label || id };
+                  }
+                  return { id: line || '?', label: line || '?' };
+                });
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  states: states.length ? states : undefined,
+                });
+              }}
+              placeholder={'q0\nq1\nq2'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One state per line. id:label for custom label; id alone uses id as label. Up to 6 states.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Transitions (from:to per line)</label>
+            <textarea
+              className="form-input"
+              rows={6}
+              value={(() => {
+                const transitions = entity.metadata?.transitions ?? [];
+                if (!Array.isArray(transitions)) return '';
+                return transitions
+                  .map((t) => (typeof t === 'object' && t != null ? `${t.from ?? ''}:${t.to ?? ''}` : ''))
+                  .filter(Boolean)
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                const transitions = lines.map((line) => {
+                  const colon = line.indexOf(':');
+                  if (colon >= 0) {
+                    const from = line.slice(0, colon).trim();
+                    const to = line.slice(colon + 1).trim();
+                    return from && to ? { from, to } : null;
+                  }
+                  return null;
+                }).filter(Boolean);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  transitions: transitions.length ? transitions : undefined,
+                });
+              }}
+              placeholder={'q0:q1\nq1:q2\nq2:q0'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One transition per line. from and to must match state ids.
+            </p>
           </div>
         </>
       )}
