@@ -42,5 +42,7 @@ npm-debug.log*
 
 # Session artifacts (workspace scratch files)
 skills/
+!.cursor/skills/
+!.claude/skills/
 tool_calls/
 wide/

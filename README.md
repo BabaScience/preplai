@@ -69,6 +69,12 @@ When running services locally, each uses a distinct port:
 
 The website calls the API at `http://localhost:5000`. Set `VITE_API_URL=http://localhost:5000/api/` in `apps/website/.env` if needed.
 
+## For AI Agents (Claude Code, Cursor)
+
+- **[AGENTS.md](./AGENTS.md)** — Onboarding: mission, architecture, paths, invariants
+- **[Claude.md](./Claude.md)** — Design & illustration focus
+- **[MISSION.md](./MISSION.md)** — Mission statement
+
 ## Architecture
 
 See [`architecture/`](./architecture/) for detailed design documents:

@@ -11,6 +11,7 @@ Every illustration is a pure function `(props) → SVG string` — no static fil
 - **[ILLUSTRATIONS_AGENT_GUIDE.md](./ILLUSTRATIONS_AGENT_GUIDE.md)** — Quick reference for when to use each illustration type, with examples
 - **[METADATA_SCHEMAS.md](./METADATA_SCHEMAS.md)** — Exact metadata shapes for each entity type
 - **[ILLUSTRATION_STYLE_GUIDE.md](./ILLUSTRATION_STYLE_GUIDE.md)** — Design system and component patterns
+- **[CLAUDE_ILLUSTRATION_DEEP_DIVE.md](./CLAUDE_ILLUSTRATION_DEEP_DIVE.md)** — For Claude Code: component anatomy, checklist, deeper tasks
 
 ## Status
 

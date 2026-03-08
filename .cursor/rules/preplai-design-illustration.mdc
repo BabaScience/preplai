@@ -1,0 +1,46 @@
+---
+description: Preplai design and illustration conventions
+globs: packages/illustrations/**/*.ts, apps/website/src/pages/dev/**/*
+alwaysApply: false
+---
+
+# Preplai Design & Illustration
+
+When editing illustrations or design-related code:
+
+## Double-`<g>` Pattern (Required)
+
+Every component uses `buildEntityGroup(entity)` → `{ outerG, innerG }`:
+
+- **outerG**: `translate(cx, cy)` for position. Never animated.
+- **innerG**: All shapes and animation. Append children here only.
+
+```ts
+const { outerG, innerG } = buildEntityGroup(entity);
+// ... append to innerG ...
+applyEntranceAnimation(innerG, entity);
+parentEl.appendChild(outerG);
+return outerG;
+```
+
+## Design Tokens
+
+Import from `design-tokens.ts`. No hardcoded stroke, font-size, or colors.
+
+```ts
+import { getCategoryColor, TYPOGRAPHY, STROKE } from '../design-tokens.js';
+const color = entity.color ?? getCategoryColor('Cache');
+text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+```
+
+## GPU-Accelerated Animation Only
+
+Animate: `opacity`, `transform` (translate, scale, rotate). Never animate `x`, `y`, `width`, `height`, `fill`, `stroke`, `cx`, `cy`, `r`.
+
+## After Edits
+
+```bash
+pnpm --filter @preplai/illustrations run build
+```
+
+Test in Illustration Debug: `http://localhost:5173/dev/illustrations`
