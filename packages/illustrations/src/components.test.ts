@@ -186,7 +186,7 @@ describe('renderCloud', () => {
     const entity = makeEntity({ type: 'Cloud' });
     renderCloud(entity, parentEl);
     const ellipses = parentEl.querySelectorAll('.animate-element ellipse');
-    expect(ellipses.length).toBe(4);
+    expect(ellipses.length).toBe(5);
   });
 });
 
