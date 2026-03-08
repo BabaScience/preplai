@@ -75,6 +75,7 @@ import { renderCoordinateSystem } from './components/coordinatesystem.js';
 import { renderCycle } from './components/cycle.js';
 import { renderBigO } from './components/bigo.js';
 import { renderService } from './components/service.js';
+import { renderCPU } from './components/cpu.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -107,7 +108,6 @@ const dsBcd = generic('Heap');
 const dsPrp = generic('BinaryTree');
 const algoRed = generic('Pointer');
 const algoPrp = generic('RecursionTree');
-const csArch = generic('CPU');
 const csArchOrg = generic('Register');
 const csArchPrp = generic('MemoryBlock');
 const csArchGrn = generic('LogicGate');
@@ -243,7 +243,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Transition: infraGeneric,  // Special: needs source/target, handled like Arrow
 
   // ── Computer Architecture
-  CPU: csArch,
+  CPU: renderCPU,
   Register: csArchOrg,
   MemoryBlock: csArchPrp,
   LogicGate: csArchGrn,

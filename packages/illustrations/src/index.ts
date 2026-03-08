@@ -91,6 +91,7 @@ export { renderGanttChart } from './components/ganttchart.js';
 export { renderCacheHierarchy } from './components/cachehierarchy.js';
 export { renderMemoryLayout } from './components/memorylayout.js';
 export { renderConfusionMatrix } from './components/confusionmatrix.js';
+export { renderCPU } from './components/cpu.js';
 
 // ── Generic component factory (for extending)
 export { createGenericRenderer } from './components/generic.js';
