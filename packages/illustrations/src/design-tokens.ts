@@ -200,7 +200,6 @@ export const ENTITY_COLORS: Record<string, string> = {
   CoordinateSystem: COLORS.cyan,
   // Physics
   FreeBodyDiagram: COLORS.orange,
-  Circuit: COLORS.orange,
   Wave: COLORS.teal,
   Vector: COLORS.pink,
   Field: COLORS.violet,

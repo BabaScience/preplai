@@ -69,7 +69,6 @@ import { renderCacheHierarchy } from './components/cachehierarchy.js';
 import { renderMemoryLayout } from './components/memorylayout.js';
 import { renderConfusionMatrix } from './components/confusionmatrix.js';
 import { renderBarChart } from './components/barchart.js';
-import { renderCircuit } from './components/circuit.js';
 import { renderCoordinateSystem } from './components/coordinatesystem.js';
 import { renderCycle } from './components/cycle.js';
 import { renderBigO } from './components/bigo.js';
@@ -192,7 +191,6 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Physics
   FreeBodyDiagram: physOrg,
-  Circuit: renderCircuit,
   Wave: physBcd,
   Vector: physPnk,
   Field: physPrp,

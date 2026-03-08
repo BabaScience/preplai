@@ -155,18 +155,6 @@ export const METADATA_DEFAULTS = {
   LinkedList: {
     values: [1, 2, 3, 4],
   },
-  Circuit: {
-    components: [
-      { type: 'battery', label: 'V' },
-      { type: 'resistor', label: 'R' },
-      { type: 'capacitor', label: 'C' },
-    ],
-    connections: [
-      { from: 0, to: 1 },
-      { from: 1, to: 2 },
-      { from: 2, to: 0 },
-    ],
-  },
   BigO: {
     curves: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)'],
     domain: [0, 10],
@@ -196,7 +184,6 @@ export const METADATA_DEFAULTS = {
 export const ENTITY_FIELD_DEFAULTS = {
   Service: { label: 'Auth Service' },
   BigO: { size: 2 },
-  Circuit: { size: 2 },
   CoordinateSystem: { size: 2 },
   BinaryTree: { size: 2.5 },
   BTree: { size: 2.5 },
