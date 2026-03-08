@@ -38,8 +38,8 @@ import { renderDefinition } from './components/definition.js';
 import { renderCallout } from './components/callout.js';
 import { renderGoal } from './components/goal.js';
 import { renderAnalogy } from './components/analogy.js';
+import { renderAnnotation } from './components/annotation.js';
 import {
-  renderAnnotation,
   renderLabel,
   renderComparison,
   renderProof,

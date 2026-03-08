@@ -50,6 +50,8 @@ const TOPIC_HINTS: Record<string, string[]> = {
 
 const METADATA_HINTS: Record<string, string> = {
   Service: 'kind: "Service"|"API"|"APIGateway" (second level; hub text), hubLabel? (override)',
+  Analogy: 'x, y (X ~ Y parts) or label (parsed for "X is like Y")',
+  Annotation: 'label, width?, maxLines? (sticky-note style)',
   BinaryTree: 'tree or nodes, disabledIndexes?, selectedIndexes?',
   BTree: 'tree, branchingFactor?',
   Array: 'values or cells, disabledIndexes?, selectedIndexes?, pointerLabels?',

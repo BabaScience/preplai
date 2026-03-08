@@ -17,22 +17,54 @@ Section heading illustrations with typographic hierarchy. H1 = largest, H2 = med
 - `label`: Heading text (or use entity.label)
 - No other metadata. Size controls scale; H1/H2/H3 control font size hierarchy.
 
-## Text Card (Analogy, Annotation, Label, Comparison, Proof, Quote)
+## Analogy
 
-All these types inherit from the same text-card base. Same metadata for all:
+Two-part layout: **X | ~ | Y** for "X is like Y". Uses `metadata.x` + `metadata.y`, or parses " is like " / " like " from label.
 
 ```json
 {
-  "label": "Binary search is like a phone book. Divide and conquer on sorted array.",
+  "label": "Binary search is like a phone book",
+  "x": "Binary search",
+  "y": "phone book"
+}
+```
+
+- `x`, `y`: **Optional.** Explicit parts. When both present, shows two boxes with ~ between.
+- `label`: Full sentence. Parsed for "X is like Y" or "X like Y" when x/y omitted. Fallback: single card with label.
+- Long text wraps into multiple lines; boxes grow to fit. No truncation.
+
+## Annotation
+
+Sticky-note style: rounded rect with folded top-right corner and shadow.
+
+```json
+{
+  "label": "Add your annotation here.",
+  "width": 180,
+  "maxLines": 4
+}
+```
+
+- `label`: Text content (or use entity.label). Long text wraps normally; no ellipsis truncation.
+- `width`: Panel width in scale units (default 180).
+- `maxLines`: Max lines (default 4). Use 0 for unlimited — note grows to show all text.
+
+## Text Card (Label, Comparison, Proof, Quote)
+
+Same metadata for all:
+
+```json
+{
+  "label": "Text content",
   "width": 200,
   "maxLines": 6
 }
 ```
 
 - `label`: Text content (or use entity.label). Wraps to new lines by word; no shrinking
-- `width`: Panel width in scale units (default 200 for Analogy, Annotation, Label, Comparison, Proof, Quote).
-- `maxLines`: Max lines before truncation with "..." (default 6 for text-card types).
-- Longer text → smaller font so all text stays visible. Font size is chosen as the largest (8–24px) that fits the full text within maxLines.
+- `width`: Panel width in scale units (default 200).
+- `maxLines`: Max lines before truncation with "..." (default 6).
+- Longer text → smaller font so all text stays visible.
 
 ## Array
 

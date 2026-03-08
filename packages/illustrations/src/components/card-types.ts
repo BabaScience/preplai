@@ -1,32 +1,14 @@
 /**
  * @preplai/illustrations — Card-like types (inherit from text-card)
  *
- * Analogy, Annotation, Label, etc. share the same shape and rules.
- * Difference: only defaultColor and fallbackText (semantic, not visual).
+ * Label, Comparison, Proof, Quote share the same shape and rules.
+ * Analogy and Annotation have custom implementations (two-part layout, sticky-note).
  *
  * Rules (text-card.ts): text stays inside; no overflow; clipPath enforces bounds.
  */
 
 import { createTextCardRenderer } from './text-card.js';
 import { getCategoryColor } from '../design-tokens.js';
-
-export const renderAnalogy = createTextCardRenderer({
-  typeName: 'Analogy',
-  defaultColor: getCategoryColor('Analogy'),
-  fallbackText: 'Analogy',
-  defaultWidth: 200,
-  defaultMaxLines: 6,
-  minFontSize: 10,
-});
-
-export const renderAnnotation = createTextCardRenderer({
-  typeName: 'Annotation',
-  defaultColor: getCategoryColor('Annotation'),
-  fallbackText: 'Annotation',
-  defaultWidth: 200,
-  defaultMaxLines: 6,
-  minFontSize: 10,
-});
 
 export const renderLabel = createTextCardRenderer({
   typeName: 'Label',

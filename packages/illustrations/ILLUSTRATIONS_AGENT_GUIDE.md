@@ -47,6 +47,17 @@ This guide helps AI agents choose and configure the right illustration types whe
 - **Example:** `{ "id": "api-1", "type": "Service", "position": { "x": 40, "y": 50 }, "label": "REST API", "metadata": { "kind": "API" } }` — hub "API", name "REST API" below.
 - **Choosing:** API/endpoint → `kind: "API"`. Microservice → `kind: "Service"`. Gateway → `kind: "APIGateway"`. Custom → `hubLabel: "Lambda"`.
 
+### Analogy
+- **Purpose:** "X is like Y" — two-part layout with ~ between
+- **Visual:** Two boxes [X] ~ [Y]. Uses `metadata.x` + `metadata.y`, or parses " is like " / " like " from label
+- **Metadata:** `x`, `y` (explicit parts) or `label` (parsed)
+- **Example:** `{ "type": "Analogy", "metadata": { "x": "Binary search", "y": "phone book" } }`
+
+### Annotation
+- **Purpose:** Notes, callouts, supplementary text
+- **Visual:** Sticky-note style — rounded rect with folded top-right corner and shadow
+- **Metadata:** `label`, `width?`, `maxLines?`
+
 ### Circuit
 - **Purpose:** Electronic circuits (battery, resistor, capacitor, bulb, switch)
 - **Metadata:** `components` (array of `{type, label?}`), `connections` (array of `{from, to}` indices)
@@ -87,7 +98,7 @@ This guide helps AI agents choose and configure the right illustration types whe
 
 ### Concept
 - **Purpose:** Concept shape for key ideas, abstract terms
-- **Visual:** Rounded rectangle with gradient fill + inner dotted rectangle (like Annotation with dashed accent)
+- **Visual:** Rounded rectangle with gradient fill + inner dotted rectangle
 - **Behavior:** Label ≤12 chars → inside shape; longer → below
 - **Use for:** Short concepts; use Definition/Callout for longer text
 

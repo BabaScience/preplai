@@ -117,9 +117,9 @@ export const METADATA_DEFAULTS = {
     curved: false,
   },
   Analogy: {
-    label: 'Binary search is like a phone book. Divide and conquer on sorted array.',
-    width: 200,
-    maxLines: 6,
+    label: 'Binary search is like a phone book',
+    x: 'Binary search',
+    y: 'phone book',
   },
   Annotation: { label: 'Add your annotation here.', width: 200, maxLines: 6 },
   Label: { label: 'Label text', width: 200, maxLines: 6 },

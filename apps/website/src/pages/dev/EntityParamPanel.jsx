@@ -467,7 +467,59 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
-      {CARD_TYPES.includes(entity.type) && (
+      {entity.type === 'Analogy' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Analogy metadata (X ~ Y)</h4>
+          <div className="form-group">
+            <label className="form-label">X (metadata.x)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.x ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  x: e.target.value || undefined,
+                })
+              }
+              placeholder="Binary search"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Y (metadata.y)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.y ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  y: e.target.value || undefined,
+                })
+              }
+              placeholder="phone book"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Label (fallback / parse source)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.label ?? entity.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  label: e.target.value,
+                })
+              }
+              placeholder="Binary search is like a phone book"
+            />
+          </div>
+        </>
+      )}
+
+      {CARD_TYPES.includes(entity.type) && entity.type !== 'Analogy' && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
           <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Card metadata</h4>
@@ -483,7 +535,7 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
                   label: e.target.value,
                 })
               }
-              placeholder="Binary search is like a phone book"
+              placeholder="Text content"
             />
           </div>
           <div className="form-group">
