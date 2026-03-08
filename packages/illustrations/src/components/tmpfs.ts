@@ -5,13 +5,14 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderTmpfs(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Tmpfs');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-tmpfs-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -29,7 +30,7 @@ export function renderTmpfs(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   chip.setAttribute('rx', String(SHAPES.borderRadius));
   chip.setAttribute('fill', `url(#${gradId})`);
   chip.setAttribute('stroke', color);
-  chip.setAttribute('stroke-width', String(SHAPES.strokeWidth));
+  chip.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   innerG.appendChild(chip);
 
   // ── Small pins (bottom edge)
@@ -43,7 +44,7 @@ export function renderTmpfs(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     pin.setAttribute('x2', String(px));
     pin.setAttribute('y2', String(h / 2 + 6));
     pin.setAttribute('stroke', color);
-    pin.setAttribute('stroke-width', '1.5');
+    pin.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
     pin.setAttribute('opacity', '0.7');
     innerG.appendChild(pin);
   }
@@ -54,8 +55,8 @@ export function renderTmpfs(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   tmpText.setAttribute('y', '4');
   tmpText.setAttribute('text-anchor', 'middle');
   tmpText.setAttribute('fill', color);
-  tmpText.setAttribute('font-size', '11');
-  tmpText.setAttribute('font-weight', '600');
+  tmpText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
+  tmpText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
   tmpText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
   tmpText.textContent = '/tmp';
   innerG.appendChild(tmpText);

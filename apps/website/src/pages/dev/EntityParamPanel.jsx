@@ -10,8 +10,8 @@ const HEADING_TYPES = ['H1', 'H2', 'H3'];
 /** Connection types (Arrow, DataFlow, etc.) — need source/target + special params */
 const CONNECTION_TYPES = ['Arrow', 'DataFlow', 'Transition', 'Bus'];
 
-/** Types that use textContent (CodeBlock, Definition, Callout) */
-const TEXT_CONTENT_TYPES = ['CodeBlock', 'Definition', 'Callout'];
+/** Types that use textContent (CodeBlock, Definition). Callout uses metadata.body instead. */
+const TEXT_CONTENT_TYPES = ['CodeBlock', 'Definition'];
 
 /** Types that use codeLanguage */
 const CODE_LANGUAGE_TYPES = ['CodeBlock'];

@@ -7,7 +7,7 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 const DESIGN_NODE_W = 48;
@@ -56,7 +56,7 @@ export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SV
     node.setAttribute('rx', String(SHAPES.borderRadius));
     node.setAttribute('fill', `url(#${gradId})`);
     node.setAttribute('stroke', color);
-    node.setAttribute('stroke-width', String(SHAPES.strokeWidth));
+    node.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
     scaleGroup.appendChild(node);
 
     const displayVal = truncateNodeValue(String(val), nodeW);
@@ -65,8 +65,8 @@ export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SV
     valueText.setAttribute('y', String(4));
     valueText.setAttribute('text-anchor', 'middle');
     valueText.setAttribute('fill', color);
-    valueText.setAttribute('font-size', '12');
-    valueText.setAttribute('font-weight', '600');
+    valueText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
+    valueText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
     valueText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     valueText.textContent = displayVal;
     scaleGroup.appendChild(valueText);

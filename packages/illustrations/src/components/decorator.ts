@@ -5,13 +5,14 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderDecorator(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Decorator');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-decorator-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -31,7 +32,7 @@ export function renderDecorator(entity: VisualEntity, parentEl: SVGElement): SVG
   outerRect.setAttribute('rx', String(SHAPES.borderRadius));
   outerRect.setAttribute('fill', `${color}10`);
   outerRect.setAttribute('stroke', color);
-  outerRect.setAttribute('stroke-width', String(SHAPES.strokeWidth));
+  outerRect.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   outerRect.setAttribute('stroke-dasharray', '6,4');
   innerG.appendChild(outerRect);
 
@@ -44,7 +45,7 @@ export function renderDecorator(entity: VisualEntity, parentEl: SVGElement): SVG
   innerRect.setAttribute('rx', String(SHAPES.borderRadius - 2));
   innerRect.setAttribute('fill', `url(#${gradId})`);
   innerRect.setAttribute('stroke', color);
-  innerRect.setAttribute('stroke-width', String(SHAPES.strokeWidthThin));
+  innerRect.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
   innerG.appendChild(innerRect);
 
   // ── In arrow (left, into wrapper)
@@ -54,7 +55,7 @@ export function renderDecorator(entity: VisualEntity, parentEl: SVGElement): SVG
   inLine.setAttribute('x2', String(-outerW / 2 + 4));
   inLine.setAttribute('y2', '0');
   inLine.setAttribute('stroke', color);
-  inLine.setAttribute('stroke-width', String(SHAPES.strokeWidthThin));
+  inLine.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
   inLine.setAttribute('opacity', '0.7');
   innerG.appendChild(inLine);
 
@@ -65,7 +66,7 @@ export function renderDecorator(entity: VisualEntity, parentEl: SVGElement): SVG
   outLine.setAttribute('x2', String(outerW / 2 + 8));
   outLine.setAttribute('y2', '0');
   outLine.setAttribute('stroke', color);
-  outLine.setAttribute('stroke-width', String(SHAPES.strokeWidthThin));
+  outLine.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
   outLine.setAttribute('opacity', '0.7');
   innerG.appendChild(outLine);
 
@@ -75,8 +76,8 @@ export function renderDecorator(entity: VisualEntity, parentEl: SVGElement): SVG
   fnText.setAttribute('y', '4');
   fnText.setAttribute('text-anchor', 'middle');
   fnText.setAttribute('fill', color);
-  fnText.setAttribute('font-size', '11');
-  fnText.setAttribute('font-weight', '600');
+  fnText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
+  fnText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
   fnText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
   fnText.textContent = 'fn';
   innerG.appendChild(fnText);

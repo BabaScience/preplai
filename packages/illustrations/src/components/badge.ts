@@ -5,13 +5,14 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderBadge(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity) * 0.9;
+  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Badge');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-badge-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -31,7 +32,7 @@ export function renderBadge(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   pill.setAttribute('rx', String(h / 2));
   pill.setAttribute('fill', `url(#${gradId})`);
   pill.setAttribute('stroke', color);
-  pill.setAttribute('stroke-width', '2');
+  pill.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   innerG.appendChild(pill);
 
   const text = document.createElementNS(SVG_NS, 'text');
@@ -39,8 +40,8 @@ export function renderBadge(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   text.setAttribute('y', '5');
   text.setAttribute('text-anchor', 'middle');
   text.setAttribute('fill', color);
-  text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeBadge + 1));
-  text.setAttribute('font-weight', '600');
+  text.setAttribute('font-size', String(getLabelFontSize('value', scale)));
+  text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
   text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
   text.textContent = label;
   innerG.appendChild(text);
