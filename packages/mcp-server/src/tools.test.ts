@@ -93,7 +93,7 @@ describe('MCP Tool Handlers', () => {
         Array: expect.any(String),
       }));
       expect(data.data.positionFormat).toBe('[x,y]');
-      expect(data.data.defaultSize).toBe(2);
+      expect(data.data.defaultSize).toBe(2.5);
     });
   });
 

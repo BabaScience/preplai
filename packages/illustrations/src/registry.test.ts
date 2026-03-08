@@ -59,7 +59,7 @@ describe('registry', () => {
     const infraTypes = [
       'User', 'Server', 'Database', 'Container', 'Pod', 'Cloud',
       'Network', 'Device', 'Arrow', 'DataFlow', 'Process', 'Queue',
-      'Cache', 'LoadBalancer', 'Service', 'API', 'Firewall', 'APIGateway',
+      'Cache', 'LoadBalancer', 'Service', 'Firewall',
       'Lambda', 'Subnet', 'Volume', 'Registry', 'Monitor', 'Pipeline',
       'Decision', 'Cluster',
       'DNSResolver', 'Decorator', 'BindMount', 'Tmpfs',
@@ -100,7 +100,7 @@ describe('registry', () => {
       'CacheHierarchy', 'PipelineStage', 'MemoryLayout',
       'Packet', 'ProtocolStack',
       'NeuralNetwork', 'DecisionBoundary', 'ConfusionMatrix',
-      'AST', 'CallStack', 'ParseTree', 'SymbolTable', 'QueryPlan',
+      'CallStack', 'ParseTree', 'SymbolTable', 'QueryPlan',
       'Semaphore', 'Mutex', 'OSILayer', 'ProtocolLayer',
       'TuringMachine', 'BigO', 'SortAnimation', 'GraphTraversal',
     ];
@@ -168,8 +168,8 @@ describe('renderEntity dispatcher', () => {
     expect(result).not.toBeNull();
   });
 
-  it('should render new CS entity types (AST, CallStack, BTree, etc.)', () => {
-    const types = ['AST', 'CallStack', 'BTree', 'ProcessState', 'GanttChart', 'CacheHierarchy', 'MemoryLayout', 'ConfusionMatrix'] as const;
+  it('should render new CS entity types (CallStack, BTree, etc.)', () => {
+    const types = ['CallStack', 'BTree', 'ProcessState', 'GanttChart', 'CacheHierarchy', 'MemoryLayout', 'ConfusionMatrix'] as const;
     for (const type of types) {
       const entity = makeEntity({ id: `cs-${type}`, type, position: { x: 50, y: 50 } });
       const result = renderEntity(entity, parentEl);

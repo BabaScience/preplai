@@ -28,12 +28,12 @@ import { verifySessionOwnership } from './session-utils.js';
 
 export const VisualEntitySchema = z.object({
   id: z.string(),
-  type: z.string().describe('Entity type. See add_scene description for topic→type mapping. Dedicated: Server, Service, API, APIGateway, Database, Cache, User, Cloud, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, StepList, AST, ProcessState, GanttChart, BarChart, BigO, MemoryLayout, ConfusionMatrix, CodeBlock, Concept, Label, H1, H2, H3, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Analogy, Comparison, Proof. Connections: Arrow, DataFlow.'),
+  type: z.string().describe('Entity type. See add_scene description for topic→type mapping. Dedicated: Server, Service (use metadata.kind: API|Service|APIGateway for second level), Database, Cache, User, Cloud, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, StepList, ProcessState, GanttChart, BarChart, BigO, MemoryLayout, ConfusionMatrix, CodeBlock, Concept, Label, H1, H2, H3, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Analogy, Comparison, Proof. Connections: Arrow, DataFlow.'),
   position: z.object({
     x: z.number().describe('X position as percentage 0-100 of the 1920px canvas'),
     y: z.number().describe('Y position as percentage 0-100 of the 1080px canvas'),
   }),
-  size: z.number().optional().default(2).describe('Scale factor, default 2'),
+  size: z.number().optional().describe('Internal: omit. Single tuned default used for all entities.'),
   label: z.string().optional().describe('Text label displayed on the entity'),
   color: z.string().optional().describe('CSS color, e.g. "#4FC3F7" or "cyan"'),
   highlight: z.boolean().optional().describe('Whether to highlight/glow this entity'),
@@ -80,13 +80,13 @@ const VisualScriptSchema = z.object({
 export const ADD_SCENE_DESCRIPTION = `Add a visual scene to a presentation session. The scene is rendered as animated SVG on a 1920x1080 dark canvas. Call get_illustrations for the full type list, aliases, and topic hints.
 
 REQUIRED — USE COMPACT FORMAT (reduces tokens significantly):
-- Short keys: sid (sceneId), td (totalDuration), f (frames), e (entities), n (narrationSegment), p (position), l (label), m (metadata), src (sourceEntityId), tgt (targetEntityId), sz (size), a (animation)
+- Short keys: sid (sceneId), td (totalDuration), f (frames), e (entities), n (narrationSegment), p (position), l (label), m (metadata), src (sourceEntityId), tgt (targetEntityId), a (animation)
 - Position: [50,50] NOT {x:50,y:50}
 - Omit: color (palette used), frame id/startTime/endTime/description, entity id for non-connected entities
 - Aliases: BT, BTR, ARR, CST, CB, G2, COORD, BC, DNS, SVC, GW, SL, PS, GC, CH, ML, CKT, CYC
 
 Example (REQUIRED format — 5–7 entities per frame):
-{"sid":"<session_id>","td":5000,"f":[{"e":[{"id":"h1","type":"H1","p":[50,6],"l":"API Architecture","sz":2},{"id":"srv","type":"Server","p":[25,45],"l":"API"},{"id":"db","type":"Database","p":[50,45],"l":"DB"},{"id":"cache","type":"Cache","p":[75,45],"l":"Redis"},{"id":"a1","type":"Arrow","p":[37,45],"src":"srv","tgt":"db","l":"Queries"},{"id":"a2","type":"Arrow","p":[62,45],"src":"srv","tgt":"cache","l":"Cache"},{"id":"l1","type":"Label","p":[50,75],"l":"Read-through pattern"}],"n":"The API server queries the database for data. Frequently accessed items are cached in Redis to reduce load."}]
+{"sid":"<session_id>","td":5000,"f":[{"e":[{"id":"h1","type":"H1","p":[50,6],"l":"API Architecture"},{"id":"srv","type":"Server","p":[25,45],"l":"API"},{"id":"db","type":"Database","p":[50,45],"l":"DB"},{"id":"cache","type":"Cache","p":[75,45],"l":"Redis"},{"id":"a1","type":"Arrow","p":[37,45],"src":"srv","tgt":"db","l":"Queries"},{"id":"a2","type":"Arrow","p":[62,45],"src":"srv","tgt":"cache","l":"Cache"},{"id":"l1","type":"Label","p":[50,75],"l":"Read-through pattern"}],"n":"The API server queries the database for data. Frequently accessed items are cached in Redis to reduce load."}]
 
 CONTENT DENSITY (critical): Aim for 5–7 entities per frame. Avoid sparse slides with only 1–3 items — each frame should feel complete and informative.
 
@@ -98,12 +98,11 @@ APPEND BEHAVIOR: Multiple add_scene calls APPEND frames. Use update_scene to REP
 
 DESIGN GUIDELINES:
 - COLORS — Always omit entity.color. Player uses palette automatically.
-- Title: type H1 (main heading), H2 (section), or H3 (subsection). Use metadata.label or l. sz 2+ for H1.
+- Title: type H1 (main heading), H2 (section), or H3 (subsection). Use metadata.label or l.
 - Space entities evenly. Minimum 15% gap between entity positions.
 - Use "highlight": true to emphasize the currently discussed entity.
-- Entities are large and visually rich (drop shadows, gradient fills). Size 1 = ~110px, size 2 = ~220px.
+- Entities use a single tuned default size for readability. Omit size — do not specify sz.
 - Each entity type has a smart default entrance animation. You can override with the animation.entrance property.
-- SIZING: Use sz 2.5–3 for text-heavy entities (CodeBlock, Definition, Callout, StepList, CallStack, HashTable) so content is readable. Default sz 2 is acceptable for icons (Server, Database, Cloud); use larger for anything with substantial text.
 
 FRAME PACING: 3–5 seconds per frame for readability. Build complexity gradually — simpler frames first, add entities in later frames. Aim for 5–7 entities per frame.
 
@@ -124,9 +123,9 @@ Topic → Preferred type:
 - Side-by-side comparisons → Comparison (label or textContent)
 - Mathematical proofs → Proof (label or textContent)
 - Architecture diagrams → Server, Database, Cloud, Arrow, LoadBalancer
-- Microservices, backend services → Service (cogwheel with label in hub)
-- REST APIs, API endpoints → API (cogwheel with "API" in hub; inherits Service)
-- API gateways, routing → APIGateway (cogwheel with label in hub)
+- Microservices, backend services → Service (metadata.kind: "Service")
+- REST APIs, API endpoints → Service (metadata.kind: "API"; gear rotates)
+- API gateways, routing → Service (metadata.kind: "APIGateway")
 - Caching layers (Redis, Memcached, CDN) → Cache (database cylinder with flash icon)
 - Categorical comparisons (sales by month, counts by type, rankings) → BarChart (metadata.bars)
 - Code snippets, algorithms → CodeBlock (metadata.code or metadata.lines; entity.label = filename)
@@ -138,20 +137,20 @@ Topic → Preferred type:
 - DNS, nameservers, domain resolution → DNSResolver (server rack with globe + domain→IP flow)
 - Layered model, OSI, tech stack → Stack (metadata.layers)
 
-PREFER dedicated types (rich visuals): Server, Service, API, APIGateway, Database, Cache, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, StepList, AST, ProcessState, GanttChart, BarChart, BigO, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Timeline, Definition, Callout, Analogy, Comparison, Proof, H1, H2, H3.
+PREFER dedicated types (rich visuals): Server, Service (metadata.kind for API/Service/APIGateway), Database, Cache, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, StepList, ProcessState, GanttChart, BarChart, BigO, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Timeline, Definition, Callout, Analogy, Comparison, Proof, H1, H2, H3.
 
 AVOID generic fallbacks when possible: Entity, Group, Tree, FSM, NeuralNetwork — these render as plain rounded rects.
 
-WHEN IN DOUBT: API/endpoint → API. Microservice → Service. API gateway → APIGateway. Key-value → HashTable. Binary tree → BinaryTree. Multi-way tree → BTree. Code snippet → CodeBlock. Abstract idea → Concept. Loop/lifecycle → Cycle. Vectors/coordinates → CoordinateSystem. Function plot → Graph2D. Flow between components → Arrow or DataFlow. Indexed data → Array. Caching layer → Cache. Step-by-step procedure → StepList. "X is like Y" → Analogy.
+WHEN IN DOUBT: API/endpoint → Service with metadata.kind: "API". Microservice → Service with metadata.kind: "Service". API gateway → Service with metadata.kind: "APIGateway". Key-value → HashTable. Binary tree → BinaryTree. Multi-way tree → BTree. Code snippet → CodeBlock. Abstract idea → Concept. Loop/lifecycle → Cycle. Vectors/coordinates → CoordinateSystem. Function plot → Graph2D. Flow between components → Arrow or DataFlow. Indexed data → Array. Caching layer → Cache. Step-by-step procedure → StepList. "X is like Y" → Analogy.
 
 DEDICATED (prefer these — rich custom renderers):
-  Server (rack with LEDs), Service (cogwheel with label in hub; microservices), API (cogwheel with "API" in hub; REST endpoints), APIGateway (cogwheel with label in hub; routing), Database (cylinder), Cache (database cylinder with flash icon), User (avatar), Cloud (cumulus blob), Concept (auto-sized circle; label ≤12 chars inside, else below), Label (text with optional pill), H1/H2/H3 (section headings; metadata.label or l; H1 largest, H3 smallest), CodeBlock (dark terminal with traffic-light dots + line numbers), DNSResolver (server rack with globe + domain→IP flow), Cycle (rotating dashed circle for loops/lifecycles), Circuit (battery/resistor/capacitor/bulb/switch), CoordinateSystem (2D axes + points + vectors)
+  Server (rack with LEDs), Service (cogwheel; metadata.kind: Service|API|APIGateway for hub text; API rotates), Database (cylinder), Cache (database cylinder with flash icon), User (avatar), Cloud (cumulus blob), Concept (auto-sized circle; label ≤12 chars inside, else below), Label (text with optional pill), H1/H2/H3 (section headings; metadata.label or l; H1 largest, H3 smallest), CodeBlock (dark terminal with traffic-light dots + line numbers), DNSResolver (server rack with globe + domain→IP flow), Cycle (rotating dashed circle for loops/lifecycles), Circuit (battery/resistor/capacitor/bulb/switch), CoordinateSystem (2D axes + points + vectors)
 
 SHAPED renderers:
   LoadBalancer (hexagon), Decision (diamond), Metric (circle)
 
 CS-specific with custom renderers:
-  AST (parse tree), CallStack (stack frames), Stack (layered blocks — OSI, tech stack; metadata.layers), BTree (multi-child tree), ProcessState (state diagram), GanttChart (task bars), BarChart (axes + bars with value labels), BigO (complexity curves O(1)/O(n)/O(n²)/etc.), CacheHierarchy (L1/L2/L3 stack), MemoryLayout (stack/heap), ConfusionMatrix (TP/FP/TN/FN grid), CoordinateSystem (2D plane for vectors — use Graph2D for function plots)
+  CallStack (stack frames), Stack (layered blocks — OSI, tech stack; metadata.layers), BTree (multi-child tree), ProcessState (state diagram), GanttChart (task bars), BarChart (axes + bars with value labels), BigO (complexity curves O(1)/O(n)/O(n²)/etc.), CacheHierarchy (L1/L2/L3 stack), MemoryLayout (stack/heap), ConfusionMatrix (TP/FP/TN/FN grid), CoordinateSystem (2D plane for vectors — use Graph2D for function plots)
 
 METADATA (required for correct rendering):
 - Arrow/DataFlow: metadata.curved = true (optional) — when true, render curved; default is straight
@@ -167,7 +166,6 @@ METADATA (required for correct rendering):
 - Analogy: metadata.label (or entity.label), metadata.width?, metadata.maxLines?. Text wraps by line; overflow gets "...".
 - StepList: metadata.steps = [string, ...] (step labels; 1–2 words each, e.g. "Parse", "Validate"), metadata.currentStep = number (0-based, -1 = none), metadata.checkmarks = true (show checkmarks for completed steps). Use entity.textContent as fallback for steps (split on newline).
 - MemoryLayout: metadata.stack = [...], metadata.heap = [...]
-- AST/ParseTree: metadata.ast = {type, value?, children?}
 - BarChart: metadata.bars = [{label, value, color?}, ...] (required), metadata.xLabel?, metadata.yLabel?, metadata.horizontal? (true = horizontal bars). Use for categorical comparisons. Max 12 bars.
 - CodeBlock: metadata.code = string (split on \\n) OR metadata.lines = [string, ...]. entity.label = title bar filename. Use textContent as fallback.
 - Circuit: metadata.components = [{type, label?}, ...] (types: battery|voltage|v|cell, resistor|r, capacitor|c, bulb|lamp|light, switch|s). metadata.connections = [{from, to}, ...] (indices into components).

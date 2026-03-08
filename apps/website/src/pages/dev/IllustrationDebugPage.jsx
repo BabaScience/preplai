@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { registry } from '@preplai/illustrations';
 import { ENTITY_DEFAULTS } from '@preplai/shared';
 import { METADATA_DEFAULTS, ENTITY_FIELD_DEFAULTS } from './entity-defaults';
@@ -9,13 +9,33 @@ const ENTITY_TYPES = Object.keys(registry).sort();
 
 const CONNECTION_TYPES = new Set(['Arrow', 'DataFlow', 'Transition', 'Bus']);
 
+const STORAGE_KEY = 'preplai-illustration-debug-reviewed';
+
+function loadReviewedFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return new Set(Array.isArray(arr) ? arr : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveReviewedToStorage(checked) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...checked]));
+  } catch {
+    // ignore
+  }
+}
+
 function buildDefaultEntity(type, overrides = {}) {
   const base = {
     ...ENTITY_DEFAULTS,
     id: 'debug-1',
     type,
     position: { x: 50, y: 50 },
-    size: 1,
     label: type,
     ...ENTITY_FIELD_DEFAULTS[type],
     ...overrides,
@@ -39,17 +59,59 @@ export default function IllustrationDebugPage() {
   const [renderError, setRenderError] = useState(null);
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [search, setSearch] = useState('');
+  const [globalDefaultSize, setGlobalDefaultSize] = useState(ENTITY_DEFAULTS.size);
+  const [reviewedTypes, setReviewedTypes] = useState(() => loadReviewedFromStorage());
+  const [filterMode, setFilterMode] = useState('unchecked'); // 'unchecked' | 'checked' | 'all'
 
-  const filteredTypes = search.trim()
+  useEffect(() => {
+    saveReviewedToStorage(reviewedTypes);
+  }, [reviewedTypes]);
+
+  const searchFiltered = search.trim()
     ? ENTITY_TYPES.filter((type) =>
         type.toLowerCase().includes(search.trim().toLowerCase()),
       )
     : ENTITY_TYPES;
 
+  const filteredTypes =
+    filterMode === 'unchecked'
+      ? searchFiltered.filter((type) => !reviewedTypes.has(type))
+      : filterMode === 'checked'
+        ? searchFiltered.filter((type) => reviewedTypes.has(type))
+        : searchFiltered;
+
   const handleSelectType = useCallback((type) => {
     setSelectedType(type);
     setEntity(buildDefaultEntity(type));
     setRenderError(null);
+  }, []);
+
+  const handleToggleReviewed = useCallback((type, e) => {
+    e.stopPropagation();
+    setReviewedTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        next.delete(type);
+        return next;
+      }
+      next.add(type);
+      // When marking as reviewed and filtering unchecked, advance to next
+      if (filterMode === 'unchecked' && type === selectedType) {
+        const remaining = searchFiltered.filter((t) => !next.has(t));
+        const first = remaining[0];
+        if (first) {
+          setTimeout(() => {
+            setSelectedType(first);
+            setEntity(buildDefaultEntity(first));
+          }, 0);
+        }
+      }
+      return next;
+    });
+  }, [filterMode, selectedType, searchFiltered]);
+
+  const handleClearAllReviewed = useCallback(() => {
+    setReviewedTypes(new Set());
   }, []);
 
   const handleCopy = useCallback(() => {
@@ -84,6 +146,37 @@ export default function IllustrationDebugPage() {
         >
           Illustration Debug
         </h2>
+        <div
+          style={{
+            padding: '0 var(--space-3) var(--space-3)',
+            borderBottom: '1px solid var(--color-border)',
+            marginBottom: 'var(--space-3)',
+          }}
+        >
+          <label
+            style={{
+              display: 'block',
+              fontSize: 'var(--text-xs)',
+              fontWeight: 600,
+              color: 'var(--color-text-muted)',
+              marginBottom: 'var(--space-1)',
+            }}
+          >
+            Default size (for testing)
+          </label>
+          <input
+            type="range"
+            min={1.5}
+            max={3.5}
+            step={0.1}
+            value={globalDefaultSize}
+            onChange={(e) => setGlobalDefaultSize(Number(e.target.value))}
+            style={{ width: '100%', marginBottom: 'var(--space-1)' }}
+          />
+          <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text)' }}>
+            {globalDefaultSize.toFixed(1)}
+          </span>
+        </div>
         <input
           type="search"
           placeholder="Search illustrations..."
@@ -100,6 +193,61 @@ export default function IllustrationDebugPage() {
             color: 'var(--color-text)',
           }}
         />
+        <div
+          style={{
+            padding: '0 var(--space-3) var(--space-3)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--space-2)',
+          }}
+        >
+          <label
+            style={{
+              display: 'block',
+              fontSize: 'var(--text-xs)',
+              fontWeight: 600,
+              color: 'var(--color-text-muted)',
+              marginBottom: 'var(--space-1)',
+            }}
+          >
+            Filter
+          </label>
+          <select
+            value={filterMode}
+            onChange={(e) => setFilterMode(e.target.value)}
+            style={{
+              width: '100%',
+              padding: 'var(--space-2) var(--space-3)',
+              fontSize: 'var(--text-sm)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--color-surface-1)',
+              color: 'var(--color-text)',
+            }}
+          >
+            <option value="unchecked">Unchecked only</option>
+            <option value="checked">Checked only</option>
+            <option value="all">All</option>
+          </select>
+          {reviewedTypes.size > 0 && (
+            <button
+              type="button"
+              onClick={handleClearAllReviewed}
+              style={{
+                padding: 'var(--space-1) var(--space-2)',
+                fontSize: 'var(--text-xs)',
+                background: 'transparent',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--color-text-muted)',
+                cursor: 'pointer',
+                alignSelf: 'flex-start',
+              }}
+            >
+              Clear all checkmarks
+            </button>
+          )}
+        </div>
         <p
           style={{
             fontSize: 'var(--text-xs)',
@@ -108,15 +256,43 @@ export default function IllustrationDebugPage() {
             marginBottom: 'var(--space-3)',
           }}
         >
-          {filteredTypes.length} of {ENTITY_TYPES.length} types. Click to preview.
+          {filterMode === 'unchecked' && `${filteredTypes.length} unchecked of ${ENTITY_TYPES.length}`}
+          {filterMode === 'checked' && `${filteredTypes.length} checked of ${ENTITY_TYPES.length}`}
+          {filterMode === 'all' && `${filteredTypes.length} of ${ENTITY_TYPES.length} types`}
+          . Click to preview.
         </p>
+        {filteredTypes.length === 0 ? (
+          <p
+            style={{
+              fontSize: 'var(--text-sm)',
+              color: 'var(--color-text-muted)',
+              padding: 'var(--space-3)',
+            }}
+          >
+            {filterMode === 'unchecked' && reviewedTypes.size > 0
+              ? "All reviewed! Switch filter to 'All' or 'Checked only'."
+              : filterMode === 'checked' && reviewedTypes.size === 0
+                ? "None checked yet. Switch filter to 'Unchecked only' or 'All'."
+                : 'No matches.'}
+          </p>
+        ) : (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {filteredTypes.map((type) => (
             <li key={type}>
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => handleSelectType(type)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleSelectType(type);
+                  }
+                }}
                 style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-2)',
                   width: '100%',
                   padding: 'var(--space-2) var(--space-3)',
                   textAlign: 'left',
@@ -127,11 +303,20 @@ export default function IllustrationDebugPage() {
                   borderLeft: selectedType === type ? '3px solid var(--color-primary)' : '3px solid transparent',
                 }}
               >
-                {type}
-              </button>
+                <input
+                  type="checkbox"
+                  checked={reviewedTypes.has(type)}
+                  onChange={(e) => handleToggleReviewed(type, e)}
+                  onClick={(e) => e.stopPropagation()}
+                  title="Mark as reviewed"
+                  style={{ flexShrink: 0, cursor: 'pointer' }}
+                />
+                <span style={{ flex: 1 }}>{type}</span>
+              </div>
             </li>
           ))}
         </ul>
+        )}
       </div>
 
       {/* Center: Preview canvas */}
@@ -143,7 +328,10 @@ export default function IllustrationDebugPage() {
           minWidth: 0,
         }}
       >
-        <IllustrationPreview entity={entity} renderError={setRenderError} />
+        <IllustrationPreview
+          entity={{ ...entity, size: globalDefaultSize }}
+          renderError={setRenderError}
+        />
       </div>
 
       {/* Right: Parameter panel — all parameters live here */}

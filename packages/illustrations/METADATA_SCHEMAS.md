@@ -82,31 +82,6 @@ Chain of node boxes with values and arrow connectors. Use for: linked list visua
 - Use LinkedList for: linked list visualization, pointer traversal, insertion/deletion demos.
 - Example: `values: [1, 2, 3, 4]` or `values: ["A", "B", "C"]`
 
-## AST / ParseTree
-
-```json
-{
-  "ast": {
-    "type": "Program",
-    "value": null,
-    "children": [
-      { "type": "FunctionDecl", "value": "main" },
-      {
-        "type": "BinaryExpr",
-        "children": [
-          { "type": "Literal", "value": "1" },
-          { "type": "Literal", "value": "2" }
-        ]
-      }
-    ]
-  }
-}
-```
-
-- `ast.type`: Node type string
-- `ast.value`: Optional display value (string or number)
-- `ast.children`: Optional array of child AST nodes
-
 ## CallStack
 
 ```json
@@ -244,22 +219,31 @@ B-trees, B+ trees, multi-way trees. Use for: database indexes, file systems, dis
 - `tasks[].end`: End time
 - `maxTime`: Optional max value for axis (default: max of all end times)
 
-## Service, API, APIGateway
+## Service
 
-All three render as a **cogwheel (gear) icon** with text inside the central hub. Use for: microservices, APIs, API gateways, backend services.
+**Single cogwheel (gear) illustration.** Second level: `metadata.kind` specifies the variant (API, Service, APIGateway, or custom).
 
-**No metadata required.** Use standard entity fields: `id`, `type`, `position`, `label`, `color`, `size`.
+```json
+{
+  "kind": "API",
+  "hubLabel": "REST"
+}
+```
 
 **Fields:**
-- `label`: Shown inside the hub (short) or below the gear (longer). For **API**, the hub always shows "API"; `label` can add context below (e.g. "REST API", "GraphQL").
-- `type`: `"Service"` | `"API"` | `"APIGateway"`
+- `kind`: **Optional.** Second level — which variant. `"Service"` (default), `"API"` (gear rotates), `"APIGateway"`, or custom string. Determines hub text when `hubLabel` is omitted.
+- `hubLabel`: **Optional.** Override for hub text. When set, overrides `kind` for the center label.
+- `label`: **Standard entity field.** Shown **below** the gear — the actual name (e.g. "Auth Service", "REST API").
 
 **Agent usage:**
-- **Service:** Generic microservice, backend service, or "service" component. Hub shows `label` or `"Service"`. Use when the entity is a general service.
-- **API:** Application Programming Interface, REST endpoint, API service. Hub always shows "API". Use when the entity is specifically an API.
-- **APIGateway:** API gateway, routing layer, API management. Hub shows `label` or `"APIGateway"`. Use for gateways that route to multiple APIs.
-- Example: `{ "id": "api-1", "type": "API", "position": { "x": 40, "y": 50 }, "label": "REST API" }` — gear with "API" inside, "REST API" below.
-- Example: `{ "id": "svc-auth", "type": "Service", "position": { "x": 30, "y": 50 }, "label": "Auth Service" }` — gear with "Auth Service" in hub.
+- **Microservice:** `type: "Service"`, `metadata.kind: "Service"` (or omit), `label: "Auth Service"`.
+- **API endpoint:** `type: "Service"`, `metadata.kind: "API"`, `label: "REST API"` — gear rotates.
+- **API gateway:** `type: "Service"`, `metadata.kind: "APIGateway"`, `label: "API Gateway"`.
+- **Custom hub:** Use `metadata.hubLabel` to override (e.g. `hubLabel: "Lambda"`).
+- Example: `{ "id": "api-1", "type": "Service", "position": { "x": 40, "y": 50 }, "label": "REST API", "metadata": { "kind": "API" } }` — hub "API", name "REST API" below.
+- Example: `{ "id": "svc-auth", "type": "Service", "position": { "x": 30, "y": 50 }, "label": "Auth Service" }` — hub "Service", name "Auth Service" below.
+
+**Compiler aliases:** `API`, `APIGateway`, `GW` expand to `type: "Service"` with the corresponding `metadata.kind`.
 
 ## Cache
 

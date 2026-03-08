@@ -67,9 +67,11 @@ export const ENTITY_TYPE_ALIASES: Record<string, string> = {
   LST: 'List',
   TUP: 'Tuple',
   ST: 'Set',
-  // Infrastructure
+  // Infrastructure (Service with metadata.kind for second level)
   SVC: 'Service',
-  GW: 'APIGateway',
+  GW: 'Service',
+  API: 'Service',
+  APIGateway: 'Service',
   LB: 'LoadBalancer',
   DNS: 'DNSResolver',
   // Pedagogical / UI
@@ -92,7 +94,6 @@ export const ENTITY_TYPE_ALIASES: Record<string, string> = {
   // Physics / misc
   CKT: 'Circuit',
   CYC: 'Cycle',
-  AST: 'AST',
   PT: 'ParseTree',
 };
 
@@ -143,10 +144,19 @@ function expandEntity(raw: unknown, frameEntityIndex: number): unknown {
     }
   }
 
-  // Entity type alias
+  // Entity type alias + metadata.kind for Service second level
   const typeVal = expanded.type;
   if (typeof typeVal === 'string' && ENTITY_TYPE_ALIASES[typeVal]) {
-    expanded.type = ENTITY_TYPE_ALIASES[typeVal];
+    const resolved = ENTITY_TYPE_ALIASES[typeVal];
+    expanded.type = resolved;
+    // GW, API, APIGateway → Service with metadata.kind
+    if (resolved === 'Service' && (typeVal === 'GW' || typeVal === 'API' || typeVal === 'APIGateway')) {
+      const meta = (expanded.metadata as Record<string, unknown>) ?? {};
+      if (meta.kind === undefined) {
+        meta.kind = typeVal === 'GW' ? 'APIGateway' : typeVal === 'API' ? 'API' : 'APIGateway';
+        expanded.metadata = meta;
+      }
+    }
   }
 
   // Recursively expand animation if present

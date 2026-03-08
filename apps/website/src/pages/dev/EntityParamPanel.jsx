@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ENTITY_DEFAULTS } from '@preplai/shared';
+import { ENTITY_DEFAULTS, ENTRANCE_ANIMATION_CLASSES } from '@preplai/shared';
 
 /** Types that inherit from text-card (same metadata: label, width, maxLines) */
 const CARD_TYPES = ['Analogy', 'Annotation', 'Label', 'Comparison', 'Proof', 'Quote'];
@@ -9,6 +9,12 @@ const HEADING_TYPES = ['H1', 'H2', 'H3'];
 
 /** Connection types (Arrow, DataFlow, etc.) — need source/target + special params */
 const CONNECTION_TYPES = ['Arrow', 'DataFlow', 'Transition', 'Bus'];
+
+/** Types that use textContent (CodeBlock, Definition, Callout) */
+const TEXT_CONTENT_TYPES = ['CodeBlock', 'Definition', 'Callout'];
+
+/** Types that use codeLanguage */
+const CODE_LANGUAGE_TYPES = ['CodeBlock'];
 
 export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
   const [showJson, setShowJson] = useState(false);
@@ -162,6 +168,251 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
           Highlight
         </label>
       </div>
+
+      <div className="form-group">
+        <label className="form-label">Parent entity ID</label>
+        <input
+          type="text"
+          className="form-input"
+          value={entity.parentEntityId ?? ''}
+          onChange={(e) => update('parentEntityId', e.target.value || undefined)}
+          placeholder="Optional — for Group children"
+        />
+      </div>
+
+      {entity.type === 'Service' && (
+        <div className="form-group">
+          <label className="form-label">Kind (metadata.kind)</label>
+          <select
+            className="form-input"
+            value={entity.metadata?.kind ?? 'Service'}
+            onChange={(e) =>
+              update('metadata', {
+                ...(entity.metadata || {}),
+                kind: e.target.value,
+              })
+            }
+          >
+            <option value="Service">Service</option>
+            <option value="API">API</option>
+            <option value="APIGateway">APIGateway</option>
+          </select>
+          <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+            Second level: Service, API, or APIGateway. API has pulse animation.
+          </p>
+        </div>
+      )}
+
+      <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+      <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Animation</h4>
+      <div className="form-group">
+        <label className="form-label">Delay (ms)</label>
+        <input
+          type="number"
+          className="form-input"
+          min={0}
+          max={60000}
+          step={50}
+          value={entity.animation?.delay ?? ENTITY_DEFAULTS.animation.delay}
+          onChange={(e) => update('animation', { delay: Number(e.target.value) || 0 })}
+        />
+      </div>
+      <div className="form-group">
+        <label className="form-label">Duration (ms)</label>
+        <input
+          type="number"
+          className="form-input"
+          min={0}
+          max={10000}
+          step={50}
+          value={entity.animation?.duration ?? ENTITY_DEFAULTS.animation.duration}
+          onChange={(e) => update('animation', { duration: Number(e.target.value) || 450 })}
+        />
+      </div>
+      <div className="form-group">
+        <label className="form-label">Easing</label>
+        <input
+          type="text"
+          className="form-input"
+          value={entity.animation?.easing ?? ENTITY_DEFAULTS.animation.easing}
+          onChange={(e) => update('animation', { easing: e.target.value })}
+          placeholder="cubic-bezier(0.22, 1, 0.36, 1)"
+        />
+      </div>
+      <div className="form-group">
+        <label className="form-label">Entrance</label>
+        <select
+          className="form-input"
+          value={entity.animation?.entrance ?? ENTITY_DEFAULTS.animation.entrance}
+          onChange={(e) => update('animation', { entrance: e.target.value })}
+        >
+          {ENTRANCE_ANIMATION_CLASSES.map((c) => (
+            <option key={c} value={c}>
+              {c.replace('entrance-', '')}
+            </option>
+          ))}
+          <option value="none">none</option>
+        </select>
+      </div>
+
+      {TEXT_CONTENT_TYPES.includes(entity.type) && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Text content</h4>
+          <div className="form-group">
+            <label className="form-label">textContent</label>
+            <textarea
+              className="form-input"
+              rows={6}
+              value={entity.textContent ?? ''}
+              onChange={(e) => update('textContent', e.target.value || undefined)}
+              placeholder={entity.type === 'CodeBlock' ? 'Code string (or use metadata.code below)' : 'Longer text content'}
+              style={{ fontFamily: 'monospace', fontSize: '12px' }}
+            />
+          </div>
+        </>
+      )}
+
+      {CODE_LANGUAGE_TYPES.includes(entity.type) && (
+        <div className="form-group">
+          <label className="form-label">Code language</label>
+          <input
+            type="text"
+            className="form-input"
+            value={entity.codeLanguage ?? 'javascript'}
+            onChange={(e) => update('codeLanguage', e.target.value || undefined)}
+            placeholder="javascript, python, etc."
+          />
+        </div>
+      )}
+
+      {entity.type === 'CodeBlock' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>CodeBlock metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Code (metadata.code)</label>
+            <textarea
+              className="form-input"
+              rows={8}
+              value={entity.metadata?.code ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  code: e.target.value || undefined,
+                })
+              }
+              placeholder="function fib(n) {\n  if (n <= 1) return n;\n  return fib(n-1) + fib(n-2);\n}"
+              style={{ fontFamily: 'monospace', fontSize: '12px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Overrides textContent. Split on newlines for lines.
+            </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Service' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Service metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Hub label override (metadata.hubLabel)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.hubLabel ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  hubLabel: e.target.value || undefined,
+                })
+              }
+              placeholder="Optional override for hub text"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Overrides kind for hub text. Label below is entity.label.
+            </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Definition' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Definition metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Term (metadata.term)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.term ?? entity.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  term: e.target.value || undefined,
+                })
+              }
+              placeholder="Term (or use label)"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Definition (metadata.definition)</label>
+            <textarea
+              className="form-input"
+              rows={3}
+              value={entity.metadata?.definition ?? entity.textContent ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  definition: e.target.value || undefined,
+                })
+              }
+              placeholder="Definition text (or use textContent)"
+            />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Callout' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Callout metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Type (metadata.calloutType)</label>
+            <select
+              className="form-input"
+              value={entity.metadata?.calloutType ?? 'note'}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  calloutType: e.target.value,
+                })
+              }
+            >
+              <option value="tip">tip</option>
+              <option value="warning">warning</option>
+              <option value="note">note</option>
+              <option value="important">important</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Body (metadata.body)</label>
+            <textarea
+              className="form-input"
+              rows={3}
+              value={entity.metadata?.body ?? entity.textContent ?? entity.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  body: e.target.value || undefined,
+                })
+              }
+              placeholder="Callout body (or use textContent/label)"
+            />
+          </div>
+        </>
+      )}
 
       {CONNECTION_TYPES.includes(entity.type) && (
         <>

@@ -1,109 +1,83 @@
 /**
  * @preplai/illustrations — Service Component
  *
- * Cogwheel (gear) icon with text inside the central hub.
- * Base illustration for service-like entities (Service, API, APIGateway).
- *
- * @param innerText - Optional override for the text inside the gear (e.g. "API")
+ * Service endpoint icon: hexagon with { } parameter brackets inside.
+ * Suggests API/configuration/parameters rather than a sun/cogwheel.
+ * Second level: metadata.kind specifies variant (API, Service, APIGateway, or custom).
+ * - Hub text: metadata.hubLabel ?? metadata.kind ?? "Service"
+ * - Label below: entity.label (the actual name, e.g. "Auth Service", "REST API")
+ * - kind === "API": subtle pulse; otherwise static
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createRadialGradient, ensureDefs } from '../visual-utils.js';
+import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
-const GEAR_TEETH = 10;
-const INNER_HUB_RATIO = 0.42; // Inner circle as fraction of outer radius
-
-function buildGearPath(outerR: number, innerR: number): string {
-  const points: string[] = [];
-  for (let i = 0; i < GEAR_TEETH * 2; i++) {
-    const angle = (Math.PI / GEAR_TEETH) * i - Math.PI / 2; // Start from top
-    const r = i % 2 === 0 ? outerR : innerR;
-    const x = r * Math.cos(angle);
-    const y = -r * Math.sin(angle);
-    points.push(`${x.toFixed(2)},${y.toFixed(2)}`);
-  }
-  return `M ${points.join(' L ')} Z`;
+/** Resolve the "kind" of service (API, Service, APIGateway, or custom). */
+function getServiceKind(entity: VisualEntity): string {
+  return (entity.metadata?.kind as string) ?? 'Service';
 }
 
-export interface ServiceRenderOptions {
-  /** When true, the cogwheel rotates continuously (e.g. for API). */
-  rotate?: boolean;
-}
-
-export function renderService(
-  entity: VisualEntity,
-  parentEl: SVGElement,
-  innerText?: string,
-  options?: ServiceRenderOptions,
-): SVGGElement {
+export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
-  const rotate = options?.rotate ?? false;
+  const kind = getServiceKind(entity);
+  const pulse = kind === 'API';
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Service');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-service-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createRadialGradient(gradId, color, defs);
+  createLinearGradient(gradId, color, 'vertical', defs);
 
-  const outerR = s * 0.48;
-  const innerR = outerR * (1 - INNER_HUB_RATIO);
+  // ── Hexagon (service endpoint shape; distinct from LoadBalancer's Y-fork)
+  const hexPoints = [0, 1, 2, 3, 4, 5]
+    .map((i) => {
+      const angle = (Math.PI / 3) * i - Math.PI / 6;
+      return `${(Math.cos(angle) * s * 0.5).toFixed(1)},${(Math.sin(angle) * s * 0.5).toFixed(1)}`;
+    })
+    .join(' ');
 
-  // Content group: gear + hub + text (optionally wrapped for rotation)
   const contentG = document.createElementNS(SVG_NS, 'g');
-  if (rotate) {
+  if (pulse) {
     contentG.setAttribute('transform-origin', '0 0');
-    const animate = document.createElementNS(SVG_NS, 'animateTransform');
-    animate.setAttribute('attributeName', 'transform');
-    animate.setAttribute('type', 'rotate');
-    animate.setAttribute('from', '0 0 0');
-    animate.setAttribute('to', '360 0 0');
-    animate.setAttribute('dur', '12s');
+    const animate = document.createElementNS(SVG_NS, 'animate');
+    animate.setAttribute('attributeName', 'opacity');
+    animate.setAttribute('values', '1;0.85;1');
+    animate.setAttribute('dur', '2s');
     animate.setAttribute('repeatCount', 'indefinite');
     contentG.appendChild(animate);
   }
 
-  // ── Cogwheel outer shape
-  const gearPath = buildGearPath(outerR, innerR);
-  const gear = document.createElementNS(SVG_NS, 'path');
-  gear.setAttribute('d', gearPath);
-  gear.setAttribute('fill', `url(#${gradId})`);
-  gear.setAttribute('stroke', color);
-  gear.setAttribute('stroke-width', String(SHAPES.strokeWidth));
-  gear.setAttribute('stroke-linejoin', 'round');
-  contentG.appendChild(gear);
+  const polygon = document.createElementNS(SVG_NS, 'polygon');
+  polygon.setAttribute('points', hexPoints);
+  polygon.setAttribute('fill', `url(#${gradId})`);
+  polygon.setAttribute('stroke', color);
+  polygon.setAttribute('stroke-width', String(SHAPES.strokeWidth));
+  polygon.setAttribute('stroke-linejoin', 'round');
+  contentG.appendChild(polygon);
 
-  // ── Inner circle (hub)
-  const hubR = s * 0.22;
-  const hub = document.createElementNS(SVG_NS, 'circle');
-  hub.setAttribute('cx', '0');
-  hub.setAttribute('cy', '0');
-  hub.setAttribute('r', String(hubR));
-  hub.setAttribute('fill', `url(#${gradId})`);
-  hub.setAttribute('stroke', color);
-  hub.setAttribute('stroke-width', String(SHAPES.strokeWidth));
-  contentG.appendChild(hub);
+  // ── { Service } parameter-style text inside (suggests API/endpoint/configuration)
+  const hubText = (entity.metadata?.hubLabel as string) ?? kind;
+  const paramText = `{ ${hubText} }`;
+  const paramFontSize = Math.min(11, Math.floor(s * 0.32));
+  const param = document.createElementNS(SVG_NS, 'text');
+  param.setAttribute('x', '0');
+  param.setAttribute('y', '4');
+  param.setAttribute('text-anchor', 'middle');
+  param.setAttribute('fill', color);
+  param.setAttribute('font-size', String(paramFontSize));
+  param.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+  param.setAttribute('font-family', TYPOGRAPHY.fontCode);
+  param.setAttribute('opacity', '0.95');
+  param.textContent = paramText;
+  contentG.appendChild(param);
 
   innerG.appendChild(contentG);
 
-  // ── Text inside hub (outside rotating group so it stays fixed when gear rotates)
-  const displayText = innerText ?? entity.label ?? entity.type;
-  if (displayText) {
-    const text = document.createElementNS(SVG_NS, 'text');
-    text.setAttribute('x', '0');
-    text.setAttribute('y', '4');
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(Math.min(12, Math.floor(hubR * 1.2))));
-    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    text.textContent = displayText;
-    innerG.appendChild(text);
-  }
-
-  // ── Optional label below (for longer descriptions)
-  if (entity.label && displayText !== entity.label) {
+  // ── Label below: the actual name of the service (e.g. "Auth Service", "User Service")
+  const serviceName = entity.label ?? (entity.metadata?.label as string);
+  if (serviceName) {
     const label = document.createElementNS(SVG_NS, 'text');
     label.setAttribute('x', '0');
     label.setAttribute('y', String(s / 2 + 18));
@@ -112,7 +86,7 @@ export function renderService(
     label.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     label.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     label.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    label.textContent = entity.label;
+    label.textContent = serviceName;
     innerG.appendChild(label);
   }
 

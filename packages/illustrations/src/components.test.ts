@@ -275,12 +275,12 @@ describe('renderArrow', () => {
     });
     renderArrow(arrow, allEntities, parentEl);
     const line = parentEl.querySelector('line')!;
-    // Arrows connect at entity edges, not centers. With default size 2, entities are larger.
-    // Source exit (right edge): ~504, target entry (left edge): ~1416
+    // Arrows connect at entity edges, not centers. With default size 2.5, entities are larger.
+    // Source exit (right edge): ~534, target entry (left edge): ~1386
     expect(Number(line.getAttribute('x1'))).toBeGreaterThan(384);
-    expect(Number(line.getAttribute('x1'))).toBeLessThanOrEqual(520);
+    expect(Number(line.getAttribute('x1'))).toBeLessThanOrEqual(560);
     expect(Number(line.getAttribute('x2'))).toBeLessThan(1536);
-    expect(Number(line.getAttribute('x2'))).toBeGreaterThanOrEqual(1400);
+    expect(Number(line.getAttribute('x2'))).toBeGreaterThanOrEqual(1380);
   });
 
   it('should return null when source is not resolvable', () => {

@@ -13,8 +13,8 @@ import { ENTITY_DEFAULTS } from '@preplai/shared';
 const TOPIC_HINTS: Record<string, string[]> = {
   'cloud, saas, aws, gcp': ['Cloud'],
   'service, microservice, backend': ['Service'],
-  'api, rest api, endpoint': ['API'],
-  'api gateway, routing': ['APIGateway'],
+  'api, rest api, endpoint': ['Service'],
+  'api gateway, routing': ['Service'],
   'dns, nameserver, domain resolution': ['DNSResolver'],
   'key concept, glossary term': ['Concept'],
   'code snippet, algorithm': ['CodeBlock'],
@@ -43,12 +43,13 @@ const TOPIC_HINTS: Record<string, string[]> = {
   'binary search on sorted array': ['Array'],
   'l1 l2 l3 cache hierarchy': ['CacheHierarchy'],
   'memory layout, stack heap': ['MemoryLayout'],
-  'infrastructure diagram': ['Server', 'Database', 'Cloud', 'Service', 'API', 'APIGateway', 'DNSResolver', 'Arrow', 'DataFlow'],
+  'infrastructure diagram': ['Server', 'Database', 'Cloud', 'Service', 'DNSResolver', 'Arrow', 'DataFlow'],
 };
 
 // ── Metadata hints by type (from COMPACT_REFERENCE) ─────────────────────────
 
 const METADATA_HINTS: Record<string, string> = {
+  Service: 'kind: "Service"|"API"|"APIGateway" (second level; hub text), hubLabel? (override)',
   BinaryTree: 'tree or nodes, disabledIndexes?, selectedIndexes?',
   BTree: 'tree, branchingFactor?',
   Array: 'values or cells, disabledIndexes?, selectedIndexes?, pointerLabels?',
@@ -67,7 +68,6 @@ const METADATA_HINTS: Record<string, string> = {
   HashTable: 'pairs',
   CacheHierarchy: 'levels',
   MemoryLayout: 'stack, heap',
-  AST: 'ast',
 };
 
 // ── Public API ─────────────────────────────────────────────────────────────

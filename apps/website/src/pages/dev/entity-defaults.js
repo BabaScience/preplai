@@ -129,6 +129,8 @@ export const METADATA_DEFAULTS = {
   Comparison: { label: 'Compare items here.', width: 200, maxLines: 6 },
   Proof: { label: 'Proof step or statement.', width: 200, maxLines: 6 },
   Quote: { label: 'Quote or citation.', width: 200, maxLines: 6 },
+  Definition: { term: 'Binary Search', definition: 'A divide-and-conquer algorithm that finds a target in a sorted array by repeatedly halving the search space.' },
+  Callout: { calloutType: 'note', body: 'Callout body text goes here.' },
   Goal: { label: 'By the end of this lesson you will understand the key concepts.' },
   Stack: {
     layers: [
@@ -180,26 +182,12 @@ export const METADATA_DEFAULTS = {
     yLabel: 'Value',
     horizontal: false,
   },
-  AST: {
-    ast: {
-      type: 'Program',
-      value: null,
-      children: [
-        { type: 'FunctionDecl', value: 'main' },
-        {
-          type: 'BinaryExpr',
-          children: [
-            { type: 'Literal', value: '1' },
-            { type: 'Literal', value: '2' },
-          ],
-        },
-      ],
-    },
-  },
+  Service: { kind: 'Service', hubLabel: undefined },
 };
 
 /** Entity-level defaults (not metadata) for types that need textContent etc. */
 export const ENTITY_FIELD_DEFAULTS = {
+  Service: { label: 'Auth Service' },
   BigO: { size: 2 },
   Circuit: { size: 2 },
   CoordinateSystem: { size: 2 },

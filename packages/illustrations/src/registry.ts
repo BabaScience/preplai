@@ -62,7 +62,6 @@ import { renderTuple } from './components/tuple.js';
 import { renderSet } from './components/set.js';
 import { renderDockerImage } from './components/dockerimage.js';
 import { renderDockerRegistry } from './components/dockerregistry.js';
-import { renderAST } from './components/ast.js';
 import { renderCallStack } from './components/callstack.js';
 import { renderBTree } from './components/btree.js';
 import { renderProcessState } from './components/processstate.js';
@@ -76,8 +75,6 @@ import { renderCoordinateSystem } from './components/coordinatesystem.js';
 import { renderCycle } from './components/cycle.js';
 import { renderBigO } from './components/bigo.js';
 import { renderService } from './components/service.js';
-import { renderAPI } from './components/api.js';
-import { renderAPIGateway } from './components/apigateway.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -149,9 +146,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Cache: renderCache,
   LoadBalancer: renderLoadBalancer,
   Service: renderService,
-  API: renderAPI,
   Firewall: infraRed,
-  APIGateway: renderAPIGateway,
   Lambda: renderLambda,
   Subnet: infraBlu,
   Volume: renderVolume,
@@ -279,10 +274,9 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   DecisionBoundary: mlCyan,
   ConfusionMatrix: renderConfusionMatrix,
 
-  // ── Compilers & PL
-  AST: renderAST,
+  // ── Compilers & PL (AST removed; ParseTree uses generic)
   CallStack: renderCallStack,
-  ParseTree: renderAST,
+  ParseTree: univGrn,
   SymbolTable: infraGeneric,
 
   // ── Databases

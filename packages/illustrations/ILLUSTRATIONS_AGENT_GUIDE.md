@@ -2,7 +2,7 @@
 
 This guide helps AI agents choose and configure the right illustration types when generating educational content. Reference [METADATA_SCHEMAS.md](./METADATA_SCHEMAS.md) for exact metadata shapes.
 
-**Size:** `size` is a uniform scale across all entity types. 2 = default, 1 = half, 3 = 1.5x, 4 = double — same visibility for Concept, BinaryTree, Server, Graph2D, etc. For readability, use sz 2.5–3 for text-heavy entities (CodeBlock, Definition, Callout, StepList, CallStack, HashTable) so content is visible on screen.
+**Size:** Omit `size` — a single tuned default is used for all entity types. Do not specify sz.
 
 ---
 
@@ -11,9 +11,9 @@ This guide helps AI agents choose and configure the right illustration types whe
 | User intent / topic | Use this type | Notes |
 |--------------------|---------------|-------|
 | Cloud, SaaS, AWS/GCP | **Cloud** | Cumulus cloud icon |
-| Service, microservice, backend | **Service** | Cogwheel with label in hub |
-| API, REST API, API endpoint | **API** | Cogwheel with "API" in hub (inherits Service) |
-| API gateway, routing layer | **APIGateway** | Same cogwheel as Service; label in hub |
+| Service, microservice, backend | **Service** | Cogwheel; metadata.kind: "Service" |
+| API, REST API, API endpoint | **Service** | Cogwheel; metadata.kind: "API" (rotates) |
+| API gateway, routing layer | **Service** | Cogwheel; metadata.kind: "APIGateway" |
 | DNS, nameserver, domain→IP | **DNSResolver** | Server rack + globe + resolution flow |
 | Key concept, glossary term | **Concept** | Rectangle with dotted inner border; label ≤12 chars inside, else below |
 | Code snippet, algorithm | **CodeBlock** | `metadata.code` or `metadata.lines` |
@@ -38,15 +38,14 @@ This guide helps AI agents choose and configure the right illustration types whe
 
 ## Recently Added / Updated Illustrations
 
-### Service, API, APIGateway
-- **Purpose:** Service-like entities — microservices, APIs, API gateways. All render as a **cogwheel (gear) icon** with text inside the central hub.
-- **Visual:** Gear with 10 teeth, inner circle, optional label below. Clean, minimal.
-- **Service:** `label` or `type` shown inside the hub. Use for: microservices, backend services, generic "service" components.
-- **API:** Always shows "API" inside the hub. Use for: REST APIs, API endpoints, application programming interfaces. Inherits from Service.
-- **APIGateway:** Same cogwheel as Service; `label` or `type` in hub. Use for: API gateways, routing layers, API management.
-- **Metadata:** None required. Standard entity fields: `id`, `type`, `position`, `label`, `color`, `size`.
-- **Example:** `{ "id": "api-1", "type": "API", "position": { "x": 40, "y": 50 }, "label": "REST API" }` — shows "API" in the gear; "REST API" below if `label` differs.
-- **Choosing:** Use **API** when the entity is specifically an API/endpoint. Use **Service** for generic services or microservices. Use **APIGateway** for gateways/routing.
+### Service
+- **Purpose:** Service-like entities — microservices, APIs, API gateways. **One cogwheel** for all; second level: `metadata.kind`.
+- **Visual:** Gear with 10 teeth, inner circle. Hub text (center) + name below (`entity.label`).
+- **Second level:** `metadata.kind`: `"Service"` | `"API"` | `"APIGateway"` | custom. Hub text = `metadata.hubLabel ?? kind`. API rotates; others static.
+- **Name below:** Always `entity.label` (e.g. "Auth Service", "REST API").
+- **Metadata:** `kind` (required for second level), optional `hubLabel` to override hub text.
+- **Example:** `{ "id": "api-1", "type": "Service", "position": { "x": 40, "y": 50 }, "label": "REST API", "metadata": { "kind": "API" } }` — hub "API", name "REST API" below.
+- **Choosing:** API/endpoint → `kind: "API"`. Microservice → `kind: "Service"`. Gateway → `kind: "APIGateway"`. Custom → `hubLabel: "Lambda"`.
 
 ### Circuit
 - **Purpose:** Electronic circuits (battery, resistor, capacitor, bulb, switch)
@@ -127,9 +126,9 @@ This guide helps AI agents choose and configure the right illustration types whe
 
 | If you need… | Use | Not |
 |--------------|-----|-----|
-| API, REST endpoint, API service | API | Service, Server |
-| Generic service, microservice | Service | API, Server |
-| API gateway, routing layer | APIGateway | API, Service |
+| API, REST endpoint, API service | Service (kind: API) | Server |
+| Generic service, microservice | Service (kind: Service) | Server |
+| API gateway, routing layer | Service (kind: APIGateway) | Server |
 | Physical server, rack, host | Server | Service, API |
 | Vectors, coordinate geometry | CoordinateSystem | Graph2D |
 | Function plot, scatter, ROC | Graph2D | CoordinateSystem |

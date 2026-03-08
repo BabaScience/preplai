@@ -87,7 +87,7 @@ export const PLAYER_JS = `(function() {
   function getEntityColor(entity, typeKey) {
     if (entity && entity.color) return entity.color;
     var t = typeKey || (entity && entity.type);
-    if (t === 'Server' || t === 'Service' || t === 'API' || t === 'APIGateway' || t === 'Lambda') return palette.server;
+    if (t === 'Server' || t === 'Service' || t === 'Lambda') return palette.server;
     if (t === 'Database' || t === 'HashTable') return palette.database;
     if (t === 'Cloud') return palette.cloud;
     if (t === 'User') return palette.user;
@@ -388,8 +388,6 @@ export const PLAYER_JS = `(function() {
     switch (type) {
       case 'Server':
       case 'Service':
-      case 'API':
-      case 'APIGateway':
       case 'Lambda':
       case 'Database':
       case 'HashTable':
@@ -2337,7 +2335,7 @@ export const PLAYER_JS = `(function() {
   function dispatchEntity(entity, parentEl, delay) {
     var t = entity.type || 'Entity';
 
-    if (t === 'Server' || t === 'Service' || t === 'API' || t === 'APIGateway' || t === 'Lambda')
+    if (t === 'Server' || t === 'Service' || t === 'Lambda')
       return renderServer(entity, parentEl, delay);
     if (t === 'Database' || t === 'HashTable')
       return renderDatabase(entity, parentEl, delay);

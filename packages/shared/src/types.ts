@@ -13,7 +13,7 @@ export type VisualEntityType =
   | 'Cloud' | 'Network' | 'Device' | 'Arrow' | 'DataFlow'
   | 'Process' | 'Queue' | 'Cache' | 'LoadBalancer' | 'Service'
   // Extended Infrastructure (10)
-  | 'Firewall' | 'APIGateway' | 'Lambda' | 'Subnet' | 'Volume'
+  | 'Firewall' | 'Lambda' | 'Subnet' | 'Volume'
   | 'Registry' | 'Monitor' | 'Pipeline' | 'Decision' | 'Cluster'
   // Docker & Storage (6)
   | 'DNSResolver' | 'Decorator' | 'BindMount' | 'Tmpfs'
@@ -52,7 +52,7 @@ export type VisualEntityType =
   // Machine Learning (2)
   | 'NeuralNetwork' | 'DecisionBoundary'
   // Compilers & PL (4)
-  | 'AST' | 'CallStack' | 'ParseTree' | 'SymbolTable'
+  | 'CallStack' | 'ParseTree' | 'SymbolTable'
   // Databases (2)
   | 'BTree' | 'QueryPlan'
   // Operating Systems (4)

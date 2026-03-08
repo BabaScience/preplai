@@ -35,7 +35,7 @@ export const SESSION_TTL_MAX_SECONDS = 86_400 as const;
 // ── Entity Defaults ───────────────────────────────────────────────────
 
 export const ENTITY_DEFAULTS = {
-  size: 2.0,
+  size: 2.5,
   color: '#4A90D9',
   highlight: false,
   animation: {

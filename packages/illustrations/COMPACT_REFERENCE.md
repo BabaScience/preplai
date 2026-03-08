@@ -19,7 +19,6 @@ Token-saving reference for agents. Use short keys and aliases when building `add
 | Entity | `m` | `metadata` |
 | Entity | `l` | `label` |
 | Entity | `c` | `color` |
-| Entity | `sz` | `size` |
 | Entity | `src` | `sourceEntityId` |
 | Entity | `tgt` | `targetEntityId` |
 | Entity | `par` | `parentEntityId` |
@@ -65,7 +64,6 @@ Token-saving reference for agents. Use short keys and aliases when building `add
 | BIGO | BigO |
 | CKT | Circuit |
 | CYC | Cycle |
-| AST | AST |
 | PT | ParseTree |
 
 ## Metadata by Type
@@ -90,12 +88,7 @@ Token-saving reference for agents. Use short keys and aliases when building `add
 | HashTable | HT | pairs | `{pairs:[["k1","v1"]]}` |
 | CacheHierarchy | CH | levels | `{levels:[{name:"L1",size:"32KB"}]}` |
 | MemoryLayout | ML | stack, heap | `{stack:["main"], heap:["obj"]}` |
-| AST | AST | ast | `{ast:{type:"Program", children:[]}}` |
 
 ## No Metadata (use entity fields only)
 
-Server, Database, User, Cloud, Service, API, APIGateway, Cache, Concept, Cycle, DNSResolver, Label, H1, H2, H3, Arrow, DataFlow — use `id`, `type`, `position`, `label` (or `metadata.label`), `color`, `size`.
-
-## Size for readability
-
-Use `sz` 2.5–3 for text-heavy types (CodeBlock, Definition, Callout, StepList, CallStack, HashTable) so content is readable. Default sz 2 is fine for icons (Server, Database, Cloud).
+Server, Database, User, Cloud, Service, API, APIGateway, Cache, Concept, Cycle, DNSResolver, Label, H1, H2, H3, Arrow, DataFlow — use `id`, `type`, `position`, `label` (or `metadata.label`), `color`. Omit size — a single tuned default is used for all entities.

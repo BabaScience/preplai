@@ -78,9 +78,7 @@ export const ENTITY_COLORS: Record<string, string> = {
   Cache: COLORS.green,
   LoadBalancer: COLORS.cyan,
   Service: COLORS.cyan,
-  API: COLORS.cyan,
   Firewall: COLORS.red,
-  APIGateway: COLORS.cyan,
   Lambda: COLORS.orange,
   Subnet: COLORS.blue,
   Volume: COLORS.violet,
@@ -179,7 +177,6 @@ export const ENTITY_COLORS: Record<string, string> = {
   NeuralNetwork: COLORS.violet,
   DecisionBoundary: COLORS.cyan,
   // Compilers & PL
-  AST: COLORS.violet,
   CallStack: COLORS.orange,
   ParseTree: COLORS.violet,
   SymbolTable: COLORS.teal,
