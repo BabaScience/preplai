@@ -6,11 +6,12 @@
  * Metadata (agent: see METADATA_SCHEMAS.md):
  *   tree: { value, children? } — value = node label (e.g. "[10,20]" key range)
  *   branchingFactor?: number — default 3
+ *   Per-node: enabled?, selected? — dim disabled, glow selected
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createRadialGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, getStrokeWidth, getLabelFontSize, LABEL_DEFAULTS } from '../design-tokens.js';
 import { treeLayout, type MultiChildTreeNode } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -46,12 +47,31 @@ export function renderBTree(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   };
 
   const scale = s / 50;
-  const nodeR = 14 * scale;
-  // Large dx/dy to spread nodes and create long edges (B-tree needs room for many children)
-  const dx = s * 2.5;
-  const dy = s * 1.2;
+  const nodeR = 12 * scale;
+  const dx = s * 2.2;
+  const dy = s * 1.0;
 
   const { nodes, edges } = treeLayout(tree, 0, -s / 3, dx, dy, { nodeRadius: nodeR });
+
+  const bottomY = nodes.length > 0 ? Math.max(...nodes.map((n) => n.y)) : s / 2;
+
+  const dimFilterId = `btree-dim-${entity.id}`;
+  if (nodes.some((n) => n.enabled === false)) {
+    let filterEl = defs.querySelector(`#${dimFilterId}`) as SVGFilterElement | null;
+    if (!filterEl) {
+      filterEl = document.createElementNS(SVG_NS, 'filter');
+      filterEl.setAttribute('id', dimFilterId);
+      filterEl.setAttribute('x', '-20%');
+      filterEl.setAttribute('y', '-20%');
+      filterEl.setAttribute('width', '140%');
+      filterEl.setAttribute('height', '140%');
+      const feColorMatrix = document.createElementNS(SVG_NS, 'feColorMatrix');
+      feColorMatrix.setAttribute('type', 'matrix');
+      feColorMatrix.setAttribute('values', '0.4 0 0 0 0  0 0.4 0 0 0  0 0 0.4 0 0  0 0 0 1 0');
+      filterEl.appendChild(feColorMatrix);
+      defs.appendChild(filterEl);
+    }
+  }
 
   edges.forEach(({ x1, y1, x2, y2 }) => {
     const line = document.createElementNS(SVG_NS, 'line');
@@ -60,19 +80,28 @@ export function renderBTree(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     line.setAttribute('x2', String(x2));
     line.setAttribute('y2', String(y2));
     line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', '2');
+    line.setAttribute('stroke-width', String(getStrokeWidth('minimal', scale)));
     line.setAttribute('opacity', '0.7');
     innerG.appendChild(line);
   });
 
-  nodes.forEach(({ x, y, value }) => {
+  nodes.forEach(({ x, y, value, enabled, selected }) => {
+    const isDisabled = enabled === false;
+    const isHighlighted = selected === true;
+
     const circle = document.createElementNS(SVG_NS, 'circle');
     circle.setAttribute('cx', String(x));
     circle.setAttribute('cy', String(y));
     circle.setAttribute('r', String(nodeR));
     circle.setAttribute('fill', `url(#${gradId})`);
     circle.setAttribute('stroke', color);
-    circle.setAttribute('stroke-width', String(Math.max(1, 1.2 * scale)));
+    circle.setAttribute('stroke-width', String(getStrokeWidth(isHighlighted ? 'emphasized' : 'thin', scale)));
+    if (isDisabled) {
+      circle.setAttribute('filter', `url(#${dimFilterId})`);
+      circle.setAttribute('stroke-dasharray', '3,3');
+    } else if (isHighlighted) {
+      circle.setAttribute('filter', `drop-shadow(0 0 ${4 * scale}px ${color})`);
+    }
     innerG.appendChild(circle);
 
     const text = document.createElementNS(SVG_NS, 'text');
@@ -81,24 +110,27 @@ export function renderBTree(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('dominant-baseline', 'middle');
     text.setAttribute('fill', '#ffffff');
-    text.setAttribute('font-size', String(Math.round(11 * scale)));
-    text.setAttribute('font-weight', '600');
+    text.setAttribute('font-size', String(getLabelFontSize('value', scale)));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
+    if (isDisabled) {
+      text.setAttribute('filter', `url(#${dimFilterId})`);
+    }
     text.textContent = String(value).slice(0, 12);
     innerG.appendChild(text);
   });
 
   if (entity.label) {
-    const text = document.createElementNS(SVG_NS, 'text');
-    text.setAttribute('x', '0');
-    text.setAttribute('y', String(s / 2 + 18));
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
-    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    text.textContent = entity.label;
-    innerG.appendChild(text);
+    const label = document.createElementNS(SVG_NS, 'text');
+    label.setAttribute('x', '0');
+    label.setAttribute('y', String(bottomY + nodeR + LABEL_DEFAULTS.offsetBelow));
+    label.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    label.setAttribute('fill', color);
+    label.setAttribute('font-size', String(TYPOGRAPHY.fontSizeDefault));
+    label.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    label.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    label.textContent = entity.label;
+    innerG.appendChild(label);
   }
 
   applyEntranceAnimation(innerG, entity);

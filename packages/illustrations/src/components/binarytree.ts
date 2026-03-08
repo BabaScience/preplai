@@ -140,7 +140,7 @@ export function renderBinaryTree(entity: VisualEntity, parentEl: SVGElement): SV
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('dominant-baseline', 'middle');
     text.setAttribute('fill', '#ffffff');
-    text.setAttribute('font-size', String(Math.round(11 * scale)));
+    text.setAttribute('font-size', String(Math.round(TYPOGRAPHY.fontSizeValue * scale)));
     text.setAttribute('font-weight', '600');
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     if (isDisabled) {
