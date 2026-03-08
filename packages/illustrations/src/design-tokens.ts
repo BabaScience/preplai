@@ -255,7 +255,6 @@ export const ENTITY_COLORS: Record<string, string> = {
   ProtocolStack: COLORS.orange,
   // ML
   NeuralNetwork: COLORS.violet,
-  DecisionBoundary: COLORS.cyan,
   // Compilers & PL
   CallStack: COLORS.orange,
   ParseTree: COLORS.violet,

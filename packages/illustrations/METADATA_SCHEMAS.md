@@ -271,6 +271,34 @@ B-trees, B+ trees, multi-way trees. Use for: database indexes, file systems, dis
 - `states[].type`: Optional "ready" | "running" | "blocked"
 - `transitions`: Array of { from, to } state name pairs
 
+## DeadlockGraph
+
+Resource allocation / wait-for graph. Nodes (processes or resources) with directed edges. A cycle indicates deadlock.
+
+```json
+{
+  "nodes": [
+    { "id": "P1", "label": "P1" },
+    { "id": "R1", "label": "R1" },
+    { "id": "P2", "label": "P2" },
+    { "id": "R2", "label": "R2" }
+  ],
+  "edges": [
+    { "from": "P1", "to": "R1" },
+    { "from": "R1", "to": "P2" },
+    { "from": "P2", "to": "R2" },
+    { "from": "R2", "to": "P1" }
+  ]
+}
+```
+
+- `nodes`: Array of { id, label? }. id used for edges; label shown in node.
+- `edges`: Array of { from, to }. from and to are node ids. Directed "waits for" relationship.
+
+**Agent usage:**
+- Use DeadlockGraph for: OS concurrency, deadlock detection, resource allocation graphs.
+- A cycle in the edge graph indicates deadlock.
+
 ## GanttChart
 
 ```json

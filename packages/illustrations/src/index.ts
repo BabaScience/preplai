@@ -86,6 +86,7 @@ export { renderCallStack } from './components/callstack.js';
 export { renderStack } from './components/stack.js';
 export { renderBTree } from './components/btree.js';
 export { renderProcessState } from './components/processstate.js';
+export { renderDeadlockGraph } from './components/deadlockgraph.js';
 export { renderGanttChart } from './components/ganttchart.js';
 export { renderCacheHierarchy } from './components/cachehierarchy.js';
 export { renderMemoryLayout } from './components/memorylayout.js';

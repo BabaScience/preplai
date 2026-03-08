@@ -49,8 +49,8 @@ export type VisualEntityType =
   | 'ProcessBlock' | 'MemoryMap' | 'Thread'
   // Networking (2)
   | 'Packet' | 'ProtocolStack'
-  // Machine Learning (2)
-  | 'NeuralNetwork' | 'DecisionBoundary'
+  // Machine Learning (1)
+  | 'NeuralNetwork'
   // Compilers & PL (4)
   | 'CallStack' | 'ParseTree' | 'SymbolTable'
   // Databases (2)

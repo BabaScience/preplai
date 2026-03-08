@@ -70,6 +70,20 @@ export const METADATA_DEFAULTS = {
       { name: 'handleQuery()', locals: 'sql' },
     ],
   },
+  DeadlockGraph: {
+    nodes: [
+      { id: 'P1', label: 'P1' },
+      { id: 'R1', label: 'R1' },
+      { id: 'P2', label: 'P2' },
+      { id: 'R2', label: 'R2' },
+    ],
+    edges: [
+      { from: 'P1', to: 'R1' },
+      { from: 'R1', to: 'P2' },
+      { from: 'P2', to: 'R2' },
+      { from: 'R2', to: 'P1' },
+    ],
+  },
   ProcessState: {
     states: [
       { name: 'Ready', type: 'ready' },
@@ -183,6 +197,7 @@ export const METADATA_DEFAULTS = {
 /** Entity-level defaults (not metadata) for types that need textContent etc. */
 export const ENTITY_FIELD_DEFAULTS = {
   Service: { label: 'Auth Service' },
+  Decision: { label: '?' },
   Comparison: { label: 'Array vs LinkedList' },
   BigO: { size: 2 },
   CoordinateSystem: { size: 2 },

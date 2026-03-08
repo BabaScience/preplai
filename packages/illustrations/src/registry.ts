@@ -64,6 +64,7 @@ import { renderDockerRegistry } from './components/dockerregistry.js';
 import { renderCallStack } from './components/callstack.js';
 import { renderBTree } from './components/btree.js';
 import { renderProcessState } from './components/processstate.js';
+import { renderDeadlockGraph } from './components/deadlockgraph.js';
 import { renderGanttChart } from './components/ganttchart.js';
 import { renderCacheHierarchy } from './components/cachehierarchy.js';
 import { renderMemoryLayout } from './components/memorylayout.js';
@@ -115,7 +116,6 @@ const osPrp = generic('MemoryMap');
 const netCyan = generic('Packet');
 const netOrg = generic('ProtocolStack');
 const mlPrp = generic('NeuralNetwork');
-const mlCyan = generic('DecisionBoundary');
 
 const decisionDiamond = generic('Decision', 'diamond');
 const circleCache = generic('StateNode', 'circle');
@@ -250,7 +250,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   ProcessState: renderProcessState,
   GanttChart: renderGanttChart,
   PageTable: osBcd,
-  DeadlockGraph: infraRed,
+  DeadlockGraph: renderDeadlockGraph,
   MemoryMap: osPrp,
   Thread: osGrn,
 
@@ -265,7 +265,6 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Machine Learning
   NeuralNetwork: mlPrp,
-  DecisionBoundary: mlCyan,
   ConfusionMatrix: renderConfusionMatrix,
 
   // ── Compilers & PL (AST removed; ParseTree uses generic)

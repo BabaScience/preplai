@@ -90,8 +90,8 @@ export const KNOWN_ENTITY_TYPES: ReadonlySet<string> = new Set([
   'ProcessBlock', 'MemoryMap', 'Thread',
   // Networking (2)
   'Packet', 'ProtocolStack',
-  // Machine Learning (2)
-  'NeuralNetwork', 'DecisionBoundary',
+  // Machine Learning (1)
+  'NeuralNetwork',
 ]);
 
 // ── Type-specific Size Defaults (base pixel dimensions at size=1.0) ────

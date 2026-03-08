@@ -99,7 +99,7 @@ describe('registry', () => {
       'MemoryMap', 'Thread',
       'CacheHierarchy', 'PipelineStage', 'MemoryLayout',
       'Packet', 'ProtocolStack',
-      'NeuralNetwork', 'DecisionBoundary', 'ConfusionMatrix',
+      'NeuralNetwork', 'ConfusionMatrix',
       'CallStack', 'ParseTree', 'SymbolTable', 'QueryPlan',
       'Semaphore', 'Mutex', 'OSILayer', 'ProtocolLayer',
       'TuringMachine', 'BigO', 'SortAnimation', 'GraphTraversal',

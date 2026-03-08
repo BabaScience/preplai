@@ -337,6 +337,33 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
+      {entity.type === 'Decision' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Decision metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Visual style (metadata.visualStyle)</label>
+            <select
+              className="form-input"
+              value={entity.metadata?.visualStyle ?? 'default'}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  visualStyle: e.target.value === 'default' ? undefined : e.target.value,
+                })
+              }
+            >
+              <option value="default">default</option>
+              <option value="minimal">minimal (no type badge)</option>
+              <option value="emphasized">emphasized (thicker stroke)</option>
+            </select>
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              minimal hides the &quot;Decision&quot; badge; emphasized uses a thicker stroke.
+            </p>
+          </div>
+        </>
+      )}
+
       {entity.type === 'Definition' && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
@@ -1024,6 +1051,89 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
               }}
               placeholder="Pred -, Pred +"
             />
+          </div>
+        </>
+      )}
+
+      {entity.type === 'DeadlockGraph' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>DeadlockGraph metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Nodes (id or id:label per line)</label>
+            <textarea
+              className="form-input"
+              rows={6}
+              value={(() => {
+                const nodes = entity.metadata?.nodes ?? [];
+                if (!Array.isArray(nodes)) return '';
+                return nodes
+                  .map((n) => {
+                    if (typeof n !== 'object' || n == null) return '';
+                    const { id, label } = n;
+                    return label && label !== id ? `${id}:${label}` : (id ?? '');
+                  })
+                  .filter(Boolean)
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                const nodes = lines.map((line) => {
+                  const colon = line.indexOf(':');
+                  if (colon >= 0) {
+                    const id = line.slice(0, colon).trim();
+                    const label = line.slice(colon + 1).trim();
+                    return { id: id || '?', label: label || id };
+                  }
+                  return { id: line || '?', label: line || '?' };
+                });
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  nodes: nodes.length ? nodes : undefined,
+                });
+              }}
+              placeholder={'P1\nR1\nP2\nR2'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One node per line. id:label for custom label; id alone uses id as label.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Edges (from:to per line)</label>
+            <textarea
+              className="form-input"
+              rows={6}
+              value={(() => {
+                const edges = entity.metadata?.edges ?? [];
+                if (!Array.isArray(edges)) return '';
+                return edges
+                  .map((e) => (typeof e === 'object' && e != null ? `${e.from ?? ''}:${e.to ?? ''}` : ''))
+                  .filter(Boolean)
+                  .join('\n');
+              })()}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                const edges = lines.map((line) => {
+                  const colon = line.indexOf(':');
+                  if (colon >= 0) {
+                    const from = line.slice(0, colon).trim();
+                    const to = line.slice(colon + 1).trim();
+                    return from && to ? { from, to } : null;
+                  }
+                  return null;
+                }).filter(Boolean);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  edges: edges.length ? edges : undefined,
+                });
+              }}
+              placeholder={'P1:R1\nR1:P2\nP2:R2\nR2:P1'}
+              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One edge per line. from and to must match node ids. A cycle indicates deadlock.
+            </p>
           </div>
         </>
       )}
