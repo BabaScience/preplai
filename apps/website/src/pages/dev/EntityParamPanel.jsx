@@ -519,6 +519,69 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
+      {entity.type === 'Concept' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Concept metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Label (metadata.label)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.label ?? entity.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  label: e.target.value,
+                })
+              }
+              placeholder="Recursion, API, Cache..."
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Concept text. Wraps inside shape; no truncation.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Width (metadata.width)</label>
+            <input
+              type="number"
+              className="form-input"
+              min={50}
+              max={150}
+              value={entity.metadata?.width ?? 80}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  width: Math.max(50, Math.min(150, Number(e.target.value) || 80)),
+                })
+              }
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Rectangle width in design units (default 80).
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Max lines</label>
+            <input
+              type="number"
+              className="form-input"
+              min={1}
+              max={6}
+              value={entity.metadata?.maxLines ?? 4}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  maxLines: Math.max(1, Math.min(6, Number(e.target.value) || 4)),
+                })
+              }
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Max lines for wrapped text (default 4).
+            </p>
+          </div>
+        </>
+      )}
+
       {CARD_TYPES.includes(entity.type) && entity.type !== 'Analogy' && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />

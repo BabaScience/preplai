@@ -190,6 +190,7 @@ export const METADATA_DEFAULTS = {
     horizontal: false,
   },
   Service: { kind: 'Service', hubLabel: undefined },
+  Concept: { label: 'Recursion', width: 80, maxLines: 4 },
 };
 
 /** Entity-level defaults (not metadata) for types that need textContent etc. */
