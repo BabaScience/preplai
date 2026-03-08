@@ -191,13 +191,19 @@ export const METADATA_DEFAULTS = {
     horizontal: false,
   },
   Service: { kind: 'Service', hubLabel: undefined },
+  Entity: { label: 'Thing', width: 72 },
   Concept: { label: 'Recursion', width: 80, maxLines: 4 },
+  Equation: { expression: 'E = mc²' },
+  Expression: { expression: 'f(x) = x^2' },
 };
 
 /** Entity-level defaults (not metadata) for types that need textContent etc. */
 export const ENTITY_FIELD_DEFAULTS = {
+  Entity: { label: 'Thing' },
   Service: { label: 'Auth Service' },
   Decision: { label: '?' },
+  Equation: { expression: 'E = mc²' },
+  Expression: { expression: 'f(x) = x^2' },
   Comparison: { label: 'Array vs LinkedList' },
   BigO: { size: 2 },
   CoordinateSystem: { size: 2 },

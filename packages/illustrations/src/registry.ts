@@ -72,9 +72,13 @@ import { renderConfusionMatrix } from './components/confusionmatrix.js';
 import { renderBarChart } from './components/barchart.js';
 import { renderCoordinateSystem } from './components/coordinatesystem.js';
 import { renderCycle } from './components/cycle.js';
+import { renderEquation } from './components/equation.js';
+import { renderExpression } from './components/expression.js';
 import { renderBigO } from './components/bigo.js';
 import { renderService } from './components/service.js';
+import { renderFirewall } from './components/firewall.js';
 import { renderCPU } from './components/cpu.js';
+import { renderEntityNode } from './components/entity.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
@@ -87,9 +91,7 @@ const generic = (type: string, shape: 'rect' | 'circle' | 'diamond' | 'hexagon' 
 const infraGeneric = generic('Service');
 const infraAlt = generic('Pod');
 const infraOrg = generic('Queue');  // fallback only; renderQueue used
-const infraRed = generic('Firewall');
 const infraBlu = generic('Subnet');
-const univCyan = generic('Entity');
 const univGrn = generic('Tree');
 const univBcd = generic('Group');
 const univRed = generic('Badge');
@@ -98,7 +100,6 @@ const mathPrp = generic('Matrix');
 const physOrg = generic('FreeBodyDiagram');
 const physBcd = generic('Wave');
 const physPnk = generic('Vector');
-const physPrp = generic('Field');
 const genGrn = generic('Histogram');
 const genBcd = generic('FlowDiagram');
 const dsGrn = generic('LinkedList');
@@ -143,7 +144,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Cache: renderCache,
   LoadBalancer: renderLoadBalancer,
   Service: renderService,
-  Firewall: infraRed,
+  Firewall: renderFirewall,
   Lambda: renderLambda,
   Subnet: infraBlu,
   Volume: renderVolume,
@@ -166,7 +167,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Universal
   Concept: renderConcept,
-  Entity: univCyan,
+  Entity: renderEntityNode,
   Group: renderGroup,
   Label: renderLabel,
   H1: renderH1,
@@ -182,8 +183,8 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Quote: renderQuote,
 
   // ── Math & Science (Graph2D fully implemented)
-  Equation: mathSci,
-  Expression: mathSci,
+  Equation: renderEquation,
+  Expression: renderExpression,
   Matrix: mathPrp,
   Graph2D: renderGraph2D,
   NumberLine: mathSci,
@@ -193,7 +194,6 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   FreeBodyDiagram: physOrg,
   Wave: physBcd,
   Vector: physPnk,
-  Field: physPrp,
   Particle: circleParticle,
 
   // ── General Purpose

@@ -343,6 +343,21 @@ Resource allocation / wait-for graph. Nodes (processes or resources) with direct
 
 **Compiler aliases:** `API`, `APIGateway`, `GW` expand to `type: "Service"` with the corresponding `metadata.kind`.
 
+## Firewall
+
+Vertical brick wall — a barrier between networks. Use for: security boundaries, network firewalls, WAF.
+
+```json
+{
+  "label": "WAF"
+}
+```
+
+- `label`: **Optional.** Name shown below the shield (e.g. "WAF", "Perimeter Firewall").
+
+**Agent usage:**
+- Use Firewall for: security perimeters, network segmentation, WAF, IDS/IPS.
+
 ## Cache
 
 Cache renders as a **database cylinder with a lightning bolt (flash) icon** inside. Use for Redis, Memcached, CDN, or any in-memory cache in architecture diagrams.
@@ -441,6 +456,23 @@ Code editor visual: dark panel with traffic-light dots, line numbers, and monosp
 - `entity.label` becomes the title bar filename (e.g. "fib.js"). Keep short; long names truncate.
 - Long lines truncate with "..."; max ~80 chars per line. Keep snippets concise.
 
+## Entity
+
+Generic node: rounded rect with gradient fill and centered label. Use for: placeholders, generic nodes when no specific type fits.
+
+```json
+{
+  "label": "Thing",
+  "width": 72
+}
+```
+
+- `label`: **Optional.** Text inside the box. Uses `metadata.label` or `entity.label`. Default "Entity".
+- `width`: **Optional.** Design width (default 72).
+
+**Agent usage:**
+- Use Entity for: generic placeholders, "something" in a diagram, when Concept/Service/etc. don't fit.
+
 ## Concept
 
 Concept shape: rounded rectangle with gradient fill, inner dotted rectangle accent, and centered label. Use for: key ideas, abstract concepts, glossary terms, mental models.
@@ -458,6 +490,44 @@ Concept shape: rounded rectangle with gradient fill, inner dotted rectangle acce
 **Agent usage:**
 - Use Concept for: single-word or short-phrase concepts (e.g. "Recursion", "Cache", "API").
 - For longer explanations, use Definition, Callout, or Analogy instead.
+
+## Equation
+
+Rounded rect with centered equation text. Uses monospace font for math expressions. Use for: formulas, algebraic expressions, E = mc², x² + y² = r².
+
+```json
+{
+  "expression": "E = mc²",
+  "width": 120
+}
+```
+
+- `expression`: **Optional.** Equation text. When present, shown in the box; `entity.label` can be a caption below. When omitted, uses `entity.label`.
+- `width`: **Optional.** Design width in scale units (default auto from expression length).
+- **Notation:** `^2`→², `^3`→³, `^n`→ⁿ; `_0`→₀, `_1`→₁, etc. (e.g. `x^2 + y^2 = r^2`, `a_0`).
+
+**Agent usage:**
+- Use Equation for: math formulas, physics equations, algebraic expressions.
+- Keep expressions concise; long text truncates with "…".
+
+## Expression
+
+Inline math expression: compact box, lighter than Equation. Use for: f(x) = x², short formulas in flow.
+
+```json
+{
+  "expression": "f(x) = x^2",
+  "width": 90
+}
+```
+
+- `expression`: **Optional.** Expression text. When omitted, uses `entity.label`.
+- `width`: **Optional.** Design width (default auto).
+- **Notation:** Same as Equation — `^2`→², `_0`→₀, etc.
+
+**Agent usage:**
+- Use Expression for: inline formulas, function definitions, compact math.
+- Use Equation for: display equations, prominent formulas.
 
 ## CoordinateSystem
 

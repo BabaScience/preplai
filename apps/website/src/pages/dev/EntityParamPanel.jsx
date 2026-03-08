@@ -364,6 +364,95 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
+      {entity.type === 'Equation' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Equation metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Expression (metadata.expression)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.expression ?? entity.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  expression: e.target.value || undefined,
+                })
+              }
+              placeholder="x^2 + y^2 = r^2"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Use ^2→², ^3→³, _0→₀, etc. (e.g. x^2 + y^2 = r^2). Long text truncates.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Width (metadata.width)</label>
+            <input
+              type="number"
+              className="form-input"
+              min={60}
+              max={200}
+              value={entity.metadata?.width ?? ''}
+              onChange={(e) => {
+                const v = e.target.value === '' ? undefined : Number(e.target.value);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  width: v,
+                });
+              }}
+              placeholder="auto"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Design width (60–200). Omit for auto from expression length.
+            </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Expression' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Expression metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Expression (metadata.expression)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.expression ?? entity.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  expression: e.target.value || undefined,
+                })
+              }
+              placeholder="f(x) = x^2"
+            />
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Use ^2→², _0→₀, etc. Inline style, smaller than Equation.
+            </p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Width (metadata.width)</label>
+            <input
+              type="number"
+              className="form-input"
+              min={50}
+              max={150}
+              value={entity.metadata?.width ?? ''}
+              onChange={(e) => {
+                const v = e.target.value === '' ? undefined : Number(e.target.value);
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  width: v,
+                });
+              }}
+              placeholder="auto"
+            />
+          </div>
+        </>
+      )}
+
       {entity.type === 'Definition' && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
@@ -598,6 +687,44 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
             <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
               Parsed for &quot;X vs Y&quot; or &quot;X | Y&quot; when left/right omitted. Syncs with Label above.
             </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'Entity' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Entity metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Label (metadata.label)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.label ?? entity.label ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  label: e.target.value || undefined,
+                })
+              }
+              placeholder="Thing, Node..."
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Width (metadata.width)</label>
+            <input
+              type="number"
+              className="form-input"
+              min={50}
+              max={120}
+              value={entity.metadata?.width ?? 72}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  width: Math.max(50, Math.min(120, Number(e.target.value) || 72)),
+                })
+              }
+            />
           </div>
         </>
       )}

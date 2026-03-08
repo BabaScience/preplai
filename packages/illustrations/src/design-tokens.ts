@@ -202,7 +202,6 @@ export const ENTITY_COLORS: Record<string, string> = {
   FreeBodyDiagram: COLORS.orange,
   Wave: COLORS.teal,
   Vector: COLORS.pink,
-  Field: COLORS.violet,
   Particle: COLORS.pink,
   // General
   Table: COLORS.cyan,
