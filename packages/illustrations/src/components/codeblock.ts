@@ -10,6 +10,7 @@
  * Metadata:
  *   code: string — split on \n for lines (or use lines directly)
  *   lines: string[] — one per line, overrides code if both present
+ *   tabSize: number — spaces per tab stop (default 2). Tabs advance to next tab stop.
  * entity.label: title bar filename (truncates if long)
  */
 
@@ -27,6 +28,24 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
   const meta = entity.metadata ?? {};
   const code = (meta.code as string) ?? entity.textContent ?? '';
   const lines = (meta.lines as string[]) ?? code.split('\n');
+  const tabSize = Math.max(1, Math.min(8, ((meta.tabSize as number) ?? 2) | 0));
+
+  /** Expand tabs to spaces. Tabs advance to next tab stop (column % tabSize === 0). */
+  const expandTabs = (text: string): string => {
+    let result = '';
+    let col = 0;
+    for (const ch of text) {
+      if (ch === '\t') {
+        const spaces = tabSize - (col % tabSize);
+        result += ' '.repeat(spaces);
+        col += spaces;
+      } else {
+        result += ch;
+        col += 1;
+      }
+    }
+    return result;
+  };
 
   const totalW = s * 7 * (2 / 3); // Original s*7, scaled to two-thirds (~233 at default size)
   const totalH = s * 2;
@@ -163,7 +182,7 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
     codeLine.setAttribute('fill', color);
     codeLine.setAttribute('font-size', String(codeFontSize));
     codeLine.setAttribute('font-family', TYPOGRAPHY.fontCode);
-    codeLine.textContent = truncateLine(line);
+    codeLine.textContent = truncateLine(expandTabs(line));
     innerG.appendChild(codeLine);
   });
 

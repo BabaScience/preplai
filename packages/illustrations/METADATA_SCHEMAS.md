@@ -390,6 +390,7 @@ Code editor visual: dark panel with traffic-light dots, line numbers, and monosp
 **Fields:**
 - `code`: Raw string — split on `\n` to get lines. Use when you have a single code string.
 - `lines`: Array of strings — one per line. Overrides `code` if both present. Use for explicit line control or when code is pre-split.
+- `tabSize`: **Optional.** Spaces per tab stop (default 2). Tabs advance to the next tab stop (column-aligned), not a fixed number of spaces. Use 4 for Python-style.
 
 **Agent usage:**
 - Use CodeBlock for: showing code snippets, explaining algorithms step-by-step, syntax highlighting context.

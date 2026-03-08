@@ -241,6 +241,26 @@ describe('renderCodeBlock', () => {
     const circles = parentEl.querySelectorAll('.animate-element circle');
     expect(circles.length).toBeGreaterThanOrEqual(3);
   });
+
+  it('should expand tabs to spaces (tab-stop aligned, default tabSize 2)', () => {
+    const entity = makeEntity({
+      type: 'CodeBlock',
+      metadata: {
+        lines: ['\tconst x = 1;', ' \treturn x;', '\t\tnested;'],
+      },
+    });
+    renderCodeBlock(entity, parentEl);
+    const texts = parentEl.querySelectorAll('.animate-element text');
+    const codeTexts = Array.from(texts).filter(
+      (t) =>
+        t.textContent?.includes('const') ||
+        t.textContent?.includes('return') ||
+        t.textContent?.includes('nested'),
+    );
+    expect(codeTexts.some((t) => t.textContent?.startsWith('  const'))).toBe(true);
+    expect(codeTexts.some((t) => t.textContent?.startsWith('  return'))).toBe(true);
+    expect(codeTexts.some((t) => t.textContent?.startsWith('    nested'))).toBe(true);
+  });
 });
 
 // ── Arrow ─────────────────────────────────────────────────────────────
