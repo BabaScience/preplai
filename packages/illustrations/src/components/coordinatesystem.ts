@@ -17,7 +17,16 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createDarkGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  getStrokeWidth,
+  getLabelFontSize,
+  colorWithAlpha,
+  OPACITY,
+  TYPOGRAPHY,
+  SHAPES,
+  LABEL_DEFAULTS,
+} from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 type PointSpec = { x: number; y: number; label?: string; color?: string };
@@ -28,8 +37,9 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
 
   const s = getSizeParam(entity);
   const scale = s / 50;
-  const axisFontSize = Math.round(13 * scale);
-  const pointLabelFontSize = Math.round(12 * scale);
+  const axisFontSize = getLabelFontSize('value', scale);
+  const pointLabelFontSize = getLabelFontSize('value', scale);
+  const strokeWidth = getStrokeWidth('thin', scale);
   const totalW = s * 4;
   const totalH = s * 3;
 
@@ -63,10 +73,10 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
   bg.setAttribute('y', String(-totalH / 2));
   bg.setAttribute('width', String(totalW));
   bg.setAttribute('height', String(totalH));
-  bg.setAttribute('rx', '8');
+  bg.setAttribute('rx', String(SHAPES.borderRadiusLarge));
   bg.setAttribute('fill', `url(#${bgGradId})`);
   bg.setAttribute('stroke', color);
-  bg.setAttribute('stroke-width', '1');
+  bg.setAttribute('stroke-width', String(strokeWidth));
   innerG.appendChild(bg);
 
   // ── Grid lines
@@ -78,8 +88,8 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
       gl.setAttribute('y1', String(-totalH / 2 + pad));
       gl.setAttribute('x2', String(gx));
       gl.setAttribute('y2', String(totalH / 2 - pad));
-      gl.setAttribute('stroke', '#ffffff12');
-      gl.setAttribute('stroke-width', '1');
+      gl.setAttribute('stroke', colorWithAlpha('#ffffff', '12'));
+      gl.setAttribute('stroke-width', String(strokeWidth));
       innerG.appendChild(gl);
     }
     for (let v = Math.ceil(yRange[0] / gridSpacing) * gridSpacing; v <= yRange[1]; v += gridSpacing) {
@@ -89,8 +99,8 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
       gl.setAttribute('y1', String(gy));
       gl.setAttribute('x2', String(totalW / 2 - pad));
       gl.setAttribute('y2', String(gy));
-      gl.setAttribute('stroke', '#ffffff12');
-      gl.setAttribute('stroke-width', '1');
+      gl.setAttribute('stroke', colorWithAlpha('#ffffff', '12'));
+      gl.setAttribute('stroke-width', String(strokeWidth));
       innerG.appendChild(gl);
     }
   }
@@ -101,8 +111,8 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
   xAxis.setAttribute('y1', String(mapY(0)));
   xAxis.setAttribute('x2', String(totalW / 2 - pad));
   xAxis.setAttribute('y2', String(mapY(0)));
-  xAxis.setAttribute('stroke', '#ffffff40');
-  xAxis.setAttribute('stroke-width', '1.5');
+  xAxis.setAttribute('stroke', colorWithAlpha('#ffffff', OPACITY.strokeMuted));
+  xAxis.setAttribute('stroke-width', String(strokeWidth));
   innerG.appendChild(xAxis);
 
   const yAxis = document.createElementNS(SVG_NS, 'line');
@@ -110,8 +120,8 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
   yAxis.setAttribute('y1', String(-totalH / 2 + pad));
   yAxis.setAttribute('x2', String(mapX(0)));
   yAxis.setAttribute('y2', String(totalH / 2 - pad));
-  yAxis.setAttribute('stroke', '#ffffff40');
-  yAxis.setAttribute('stroke-width', '1.5');
+  yAxis.setAttribute('stroke', colorWithAlpha('#ffffff', OPACITY.strokeMuted));
+  yAxis.setAttribute('stroke-width', String(strokeWidth));
   innerG.appendChild(yAxis);
 
   // ── Axis labels
@@ -120,7 +130,7 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
     xl.setAttribute('x', String(totalW / 2 - pad));
     xl.setAttribute('y', String(mapY(0) - 6));
     xl.setAttribute('text-anchor', 'end');
-    xl.setAttribute('fill', `${color}80`);
+    xl.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
     xl.setAttribute('font-size', String(axisFontSize));
     xl.textContent = xLabel;
     innerG.appendChild(xl);
@@ -129,7 +139,7 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
     const yl = document.createElementNS(SVG_NS, 'text');
     yl.setAttribute('x', String(mapX(0) + 6));
     yl.setAttribute('y', String(-totalH / 2 + pad + 4));
-    yl.setAttribute('fill', `${color}80`);
+    yl.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
     yl.setAttribute('font-size', String(axisFontSize));
     yl.textContent = yLabel;
     innerG.appendChild(yl);
@@ -149,7 +159,7 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
     line.setAttribute('x2', String(ex));
     line.setAttribute('y2', String(ey));
     line.setAttribute('stroke', vecColor);
-    line.setAttribute('stroke-width', '2');
+    line.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(line);
 
     // Arrowhead
@@ -190,7 +200,7 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
     dot.setAttribute('r', '4');
     dot.setAttribute('fill', ptColor);
     dot.setAttribute('stroke', '#0b0d14');
-    dot.setAttribute('stroke-width', '1.5');
+    dot.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(dot);
 
     if (p.label) {
@@ -208,10 +218,10 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
   if (entity.label) {
     const title = document.createElementNS(SVG_NS, 'text');
     title.setAttribute('x', '0');
-    title.setAttribute('y', String(-totalH / 2 + 18));
-    title.setAttribute('text-anchor', 'middle');
+    title.setAttribute('y', String(-totalH / 2 + LABEL_DEFAULTS.offsetBelow));
+    title.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     title.setAttribute('fill', color);
-    title.setAttribute('font-size', String(TYPOGRAPHY.fontSizeTitle));
+    title.setAttribute('font-size', String(getLabelFontSize('title', scale)));
     title.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightTitle));
     title.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     title.textContent = entity.label;

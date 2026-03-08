@@ -12,13 +12,24 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  getStrokeWidth,
+  getLabelFontSize,
+  TYPOGRAPHY,
+  SHAPES,
+  LABEL_DEFAULTS,
+} from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderDNSResolver(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
+  const strokeThin = getStrokeWidth('thin', scale);
+  const strokeDefault = getStrokeWidth('default', scale);
+  const strokeEmphasized = getStrokeWidth('emphasized', scale);
   const color = entity.color ?? getCategoryColor('DNSResolver');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-dns-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -48,7 +59,7 @@ export function renderDNSResolver(entity: VisualEntity, parentEl: SVGElement): S
     line.setAttribute('y1', String(oy));
     line.setAttribute('y2', String(oy));
     line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('stroke-width', String(strokeDefault));
     line.setAttribute('opacity', '0.6');
     innerG.appendChild(line);
   }
@@ -67,7 +78,7 @@ export function renderDNSResolver(entity: VisualEntity, parentEl: SVGElement): S
       glowCircle.setAttribute('r', '5');
       glowCircle.setAttribute('fill', 'none');
       glowCircle.setAttribute('stroke', fill);
-      glowCircle.setAttribute('stroke-width', '1');
+      glowCircle.setAttribute('stroke-width', String(strokeThin));
       glowCircle.setAttribute('opacity', '0.4');
       innerG.appendChild(glowCircle);
     }
@@ -90,7 +101,7 @@ export function renderDNSResolver(entity: VisualEntity, parentEl: SVGElement): S
   globe.setAttribute('r', String(globeR));
   globe.setAttribute('fill', 'none');
   globe.setAttribute('stroke', color);
-  globe.setAttribute('stroke-width', String(SHAPES.strokeWidthThin));
+  globe.setAttribute('stroke-width', String(strokeThin));
   globe.setAttribute('opacity', '0.9');
   innerG.appendChild(globe);
 
@@ -100,7 +111,7 @@ export function renderDNSResolver(entity: VisualEntity, parentEl: SVGElement): S
   eq.setAttribute('x2', String(-w / 6 + globeR));
   eq.setAttribute('y2', String(iconY));
   eq.setAttribute('stroke', color);
-  eq.setAttribute('stroke-width', '1');
+  eq.setAttribute('stroke-width', String(strokeThin));
   eq.setAttribute('opacity', '0.6');
   innerG.appendChild(eq);
 
@@ -111,7 +122,7 @@ export function renderDNSResolver(entity: VisualEntity, parentEl: SVGElement): S
   );
   meridianPath.setAttribute('fill', 'none');
   meridianPath.setAttribute('stroke', color);
-  meridianPath.setAttribute('stroke-width', '1');
+  meridianPath.setAttribute('stroke-width', String(strokeThin));
   meridianPath.setAttribute('opacity', '0.5');
   innerG.appendChild(meridianPath);
 
@@ -124,7 +135,7 @@ export function renderDNSResolver(entity: VisualEntity, parentEl: SVGElement): S
   line.setAttribute('x2', String(ax2 - 5));
   line.setAttribute('y2', String(iconY));
   line.setAttribute('stroke', color);
-  line.setAttribute('stroke-width', '2');
+  line.setAttribute('stroke-width', String(strokeEmphasized));
   line.setAttribute('opacity', '0.8');
   innerG.appendChild(line);
 
@@ -157,10 +168,10 @@ export function renderDNSResolver(entity: VisualEntity, parentEl: SVGElement): S
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(h / 2 + 20));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(h / 2 + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeTitle));
+    text.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;
