@@ -7,7 +7,16 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  TYPOGRAPHY,
+  SHAPES,
+  LABEL_DEFAULTS,
+  getStrokeWidth,
+  getLabelFontSize,
+  colorWithAlpha,
+  OPACITY,
+} from '../design-tokens.js';
 import { stackLayout } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -29,8 +38,8 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
 
   const s = getSizeParam(entity);
   const scale = s / 50;
-  const labelFontSize = Math.round(13 * scale);
-  const sublabelFontSize = Math.round(11 * scale);
+  const labelFontSize = getLabelFontSize('value', scale);
+  const sublabelFontSize = getLabelFontSize('index', scale);
   const color = entity.color ?? getCategoryColor('CallStack');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-cs-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -50,7 +59,8 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
   }));
   const blockWidth = s * 2.8;
   const blockHeight = 28;
-  const blocks = stackLayout(items, { blockWidth, blockHeight, gap: 6 });
+  const gap = 6;
+  const blocks = stackLayout(items, { blockWidth, blockHeight, gap });
 
   blocks.forEach(({ x, y, width, height, label, sublabel }, i) => {
     const clipId = `clip-callstack-${entity.id}-${i}`;
@@ -80,7 +90,7 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
     rect.setAttribute('rx', String(SHAPES.borderRadius));
     rect.setAttribute('fill', `url(#${gradId})`);
     rect.setAttribute('stroke', color);
-    rect.setAttribute('stroke-width', String(SHAPES.strokeWidthThin));
+    rect.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
     blockG.appendChild(rect);
 
     const usableWidth = width - 16;
@@ -89,11 +99,11 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
 
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', String(x));
-    text.setAttribute('y', String(y + (displaySublabel ? -2 : 4)));
+    text.setAttribute('y', String(displaySublabel ? y - 2 : y + 4));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(labelFontSize));
-    text.setAttribute('font-weight', '600');
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     text.textContent = displayLabel;
     blockG.appendChild(text);
@@ -101,10 +111,11 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
     if (displaySublabel) {
       const sub = document.createElementNS(SVG_NS, 'text');
       sub.setAttribute('x', String(x));
-      sub.setAttribute('y', String(y + 10));
+      sub.setAttribute('y', String(y + 5));
       sub.setAttribute('text-anchor', 'middle');
-      sub.setAttribute('fill', `${color}99`);
+      sub.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
       sub.setAttribute('font-size', String(sublabelFontSize));
+      sub.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
       sub.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       sub.textContent = displaySublabel;
       blockG.appendChild(sub);
@@ -114,11 +125,11 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
   });
 
   if (entity.label) {
-    const totalH = blocks.length * blockHeight + (blocks.length - 1) * 6;
+    const totalH = blocks.length * blockHeight + (blocks.length - 1) * gap;
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(totalH / 2 + 20));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(totalH / 2 + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
