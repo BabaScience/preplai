@@ -65,7 +65,6 @@ export { renderTimeline } from './components/timeline.js';
 export { renderStepList } from './components/steplist.js';
 export { renderDefinition } from './components/definition.js';
 export { renderCallout } from './components/callout.js';
-export { renderGoal } from './components/goal.js';
 export { renderAnalogy } from './components/analogy.js';
 export { renderAnnotation } from './components/annotation.js';
 export { createTextCardRenderer } from './components/text-card.js';

@@ -104,7 +104,7 @@ export const CHAR_WIDTH_RATIO = 0.65;
 
 /**
  * Wrap body text into lines. Honours explicit newlines and word-wraps at edge.
- * Use for Callout, Definition, Goal body/definition text.
+ * Use for Callout, Definition body/definition text.
  *
  * @param text - Raw body text (may contain \n)
  * @param maxCharsPerLine - Max chars per line (from availableWidth / (fontSize * CHAR_WIDTH_RATIO))

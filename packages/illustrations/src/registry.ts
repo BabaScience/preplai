@@ -36,7 +36,6 @@ import { renderTimeline } from './components/timeline.js';
 import { renderStepList } from './components/steplist.js';
 import { renderDefinition } from './components/definition.js';
 import { renderCallout } from './components/callout.js';
-import { renderGoal } from './components/goal.js';
 import { renderAnalogy } from './components/analogy.js';
 import { renderAnnotation } from './components/annotation.js';
 import {
@@ -214,7 +213,6 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   CodeBlock: renderCodeBlock,
   Definition: renderDefinition,
   Callout: renderCallout,
-  Goal: renderGoal,
   Proof: renderProof,
   Analogy: renderAnalogy,
 

@@ -131,7 +131,6 @@ export const METADATA_DEFAULTS = {
   Quote: { label: 'Quote or citation.', width: 200, maxLines: 6 },
   Definition: { term: 'Binary Search', definition: 'A divide-and-conquer algorithm that finds a target in a sorted array by repeatedly halving the search space.' },
   Callout: { calloutType: 'note', body: 'Callout body text goes here.' },
-  Goal: { label: 'By the end of this lesson you will understand the key concepts.' },
   Stack: {
     layers: [
       { label: 'Application', sublabel: 'HTTP, DNS' },
