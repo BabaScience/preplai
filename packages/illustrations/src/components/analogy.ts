@@ -7,7 +7,7 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 function parseAnalogy(label: string): { x: string; y: string } | null {
@@ -74,10 +74,11 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
   const scale = s / 50;
   const boxW = 70;
   const baseBoxH = 28;
-  const tildaSize = 18;
+  /** Fixed 15px rendered: compensate for scaleGroup so text stays 15px like Service */
+  const valueFontSize = TYPOGRAPHY.fontSizeDefault / scale;
+  const tildaSize = valueFontSize;
   const gap = 6;
-  const lineHeight = 12;
-  const fontSize = 11;
+  const lineHeight = valueFontSize * 0.8;
   const maxCharsPerLine = 10;
 
   const scaleGroup = document.createElementNS(SVG_NS, 'g');
@@ -102,7 +103,7 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
     leftBox.setAttribute('rx', String(SHAPES.borderRadius - 2));
     leftBox.setAttribute('fill', `url(#${gradId})`);
     leftBox.setAttribute('stroke', color);
-    leftBox.setAttribute('stroke-width', '1.5');
+    leftBox.setAttribute('stroke-width', String(STROKE.thin));
     scaleGroup.appendChild(leftBox);
 
     // Right box
@@ -114,7 +115,7 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
     rightBox.setAttribute('rx', String(SHAPES.borderRadius - 2));
     rightBox.setAttribute('fill', `url(#${gradId})`);
     rightBox.setAttribute('stroke', color);
-    rightBox.setAttribute('stroke-width', '1.5');
+    rightBox.setAttribute('stroke-width', String(STROKE.thin));
     scaleGroup.appendChild(rightBox);
 
     // ~ symbol (tilda) in center
@@ -124,7 +125,7 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
     tilda.setAttribute('text-anchor', 'middle');
     tilda.setAttribute('fill', color);
     tilda.setAttribute('font-size', String(tildaSize));
-    tilda.setAttribute('font-weight', '700');
+    tilda.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
     tilda.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     tilda.textContent = '~';
     scaleGroup.appendChild(tilda);
@@ -135,7 +136,7 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
     xText.setAttribute('y', '0');
     xText.setAttribute('text-anchor', 'middle');
     xText.setAttribute('fill', color);
-    xText.setAttribute('font-size', String(fontSize));
+    xText.setAttribute('font-size', String(valueFontSize));
     xText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     xText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     const xOffset = xLines.length > 1 ? -(lineHeight * (xLines.length - 1)) / 2 : 0;
@@ -154,7 +155,7 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
     yText.setAttribute('y', '0');
     yText.setAttribute('text-anchor', 'middle');
     yText.setAttribute('fill', color);
-    yText.setAttribute('font-size', String(fontSize));
+    yText.setAttribute('font-size', String(valueFontSize));
     yText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     yText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     const yOffset = yLines.length > 1 ? -(lineHeight * (yLines.length - 1)) / 2 : 0;
@@ -169,7 +170,7 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
   } else {
     // Fallback: single card with wrapped full label
     const lines = wrapToLines(x, 18);
-    const lineHeight = 12;
+    const lineHeight = valueFontSize * 0.8;
     const w = Math.max(120, Math.min(220, Math.max(...lines.map((l) => l.length)) * 6.5));
     const h = Math.max(36, lineHeight * lines.length + 16);
     const card = document.createElementNS(SVG_NS, 'rect');
@@ -180,7 +181,7 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
     card.setAttribute('rx', String(SHAPES.borderRadius));
     card.setAttribute('fill', `url(#${gradId})`);
     card.setAttribute('stroke', color);
-    card.setAttribute('stroke-width', '1.5');
+    card.setAttribute('stroke-width', String(STROKE.thin));
     scaleGroup.appendChild(card);
 
     const text = document.createElementNS(SVG_NS, 'text');
@@ -188,7 +189,7 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
     text.setAttribute('y', '0');
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', '11');
+    text.setAttribute('font-size', String(valueFontSize));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     const textOffset = lines.length > 1 ? -(lineHeight * (lines.length - 1)) / 2 : 0;

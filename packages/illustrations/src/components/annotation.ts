@@ -6,13 +6,11 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 /** Conservative char width for wrapping. */
 const CHAR_WIDTH_RATIO = 0.65;
-const MIN_FONT = 9;
-const MAX_FONT = 14;
 
 /** Wrap text into lines. maxLines 0 = unlimited. Long words break across lines; no ellipsis truncation. */
 function wrapText(text: string, maxChars: number, maxLines: number): { lines: string[]; truncated: boolean } {
@@ -69,7 +67,7 @@ export function renderAnnotation(entity: VisualEntity, parentEl: SVGElement): SV
 
   const meta = entity.metadata ?? {};
   const label = (meta.label as string) ?? entity.label ?? 'Annotation';
-  const widthUnits = (meta.width as number) ?? 180;
+  const widthUnits = (meta.width as number) ?? 144;
   const maxLinesRaw = (meta.maxLines as number) ?? 4;
   const maxLines = maxLinesRaw === 0 ? 0 : Math.max(1, Math.min(20, maxLinesRaw | 0));
 
@@ -78,20 +76,14 @@ export function renderAnnotation(entity: VisualEntity, parentEl: SVGElement): SV
   const foldSize = 14;
   const w = widthUnits;
   const availableWidth = Math.max(40, w - 2 * padX - foldSize);
-
-  let fontSize = MAX_FONT;
-  let lines: string[] = [];
-  for (; fontSize >= MIN_FONT; fontSize--) {
-    const maxChars = Math.max(8, Math.floor(availableWidth / (fontSize * CHAR_WIDTH_RATIO)));
-    const result = wrapText(label, maxChars, maxLines);
-    lines = result.lines;
-    if (!result.truncated) break;
-  }
-
-  const lineHeight = fontSize * 1.2;
+  const scale = s / 50;
+  /** Fixed 15px rendered: compensate for scaleGroup so text stays 15px like Service */
+  const fontSize = TYPOGRAPHY.fontSizeDefault / scale;
+  const maxChars = Math.max(8, Math.floor(availableWidth / (fontSize * CHAR_WIDTH_RATIO)));
+  const { lines } = wrapText(label, maxChars, maxLines);
+  const lineHeight = fontSize * LABEL_DEFAULTS.lineHeight;
   const h = 2 * padY + lineHeight * Math.max(1, lines.length);
 
-  const scale = s / 50;
   const scaleGroup = document.createElementNS(SVG_NS, 'g');
   scaleGroup.setAttribute('transform', `scale(${scale})`);
 
@@ -129,7 +121,7 @@ export function renderAnnotation(entity: VisualEntity, parentEl: SVGElement): SV
   body.setAttribute('d', pathD);
   body.setAttribute('fill', `url(#${gradId})`);
   body.setAttribute('stroke', color);
-  body.setAttribute('stroke-width', '1.5');
+  body.setAttribute('stroke-width', String(STROKE.thin));
   body.setAttribute('stroke-linejoin', 'round');
   scaleGroup.appendChild(body);
 
@@ -139,7 +131,7 @@ export function renderAnnotation(entity: VisualEntity, parentEl: SVGElement): SV
   fold.setAttribute('d', foldPath);
   fold.setAttribute('fill', 'rgba(0,0,0,0.08)');
   fold.setAttribute('stroke', color);
-  fold.setAttribute('stroke-width', '1');
+  fold.setAttribute('stroke-width', String(STROKE.minimal));
   fold.setAttribute('stroke-linejoin', 'round');
   scaleGroup.appendChild(fold);
 

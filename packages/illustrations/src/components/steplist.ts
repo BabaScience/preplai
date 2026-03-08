@@ -7,7 +7,7 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 const DESIGN_STEP_H = 28;
@@ -59,7 +59,7 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
       conn.setAttribute('x2', String(leftX));
       conn.setAttribute('y2', String(y - numR));
       conn.setAttribute('stroke', color);
-      conn.setAttribute('stroke-width', '1.5');
+      conn.setAttribute('stroke-width', String(STROKE.thin));
       conn.setAttribute('opacity', '0.5');
       scaleGroup.appendChild(conn);
     }
@@ -70,7 +70,7 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
     circle.setAttribute('r', String(numR));
     circle.setAttribute('fill', isCompleted ? color : `url(#${gradId})`);
     circle.setAttribute('stroke', color);
-    circle.setAttribute('stroke-width', isCurrent ? '3' : '2');
+    circle.setAttribute('stroke-width', String(isCurrent ? STROKE.selected : STROKE.default));
     circle.setAttribute('opacity', isCompleted ? '0.6' : '1');
     scaleGroup.appendChild(circle);
 
@@ -79,7 +79,7 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
       check.setAttribute('d', `M ${leftX - 5} ${y + 4} L ${leftX - 2} ${y} L ${leftX + 6} ${y - 4}`);
       check.setAttribute('fill', 'none');
       check.setAttribute('stroke', 'white');
-      check.setAttribute('stroke-width', '2');
+      check.setAttribute('stroke-width', String(STROKE.default));
       check.setAttribute('stroke-linecap', 'round');
       check.setAttribute('stroke-linejoin', 'round');
       scaleGroup.appendChild(check);

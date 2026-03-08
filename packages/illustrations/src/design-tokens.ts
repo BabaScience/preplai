@@ -35,28 +35,102 @@ export function colorWithAlpha(hex: string, alpha: string): string {
   return `${hex}${alpha}`;
 }
 
-// ── Typography ────────────────────────────────────────────────────────
+// ── Typography (single source of truth for labels in illustrations) ───
 
 export const TYPOGRAPHY = {
   fontLabel: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   fontBadge: "'JetBrains Mono', 'Geist Mono', monospace",
   fontCode: "'JetBrains Mono', 'Geist Mono', monospace",
+  /** Default font size for entity labels (e.g. Service, main label below illustration) */
+  fontSizeDefault: 15,
+  /** Index/cell index (e.g. above array cells) */
+  fontSizeIndex: 9,
+  /** Cell value, inline content */
+  fontSizeValue: 11,
+  /** Pointer labels, captions, small text */
+  fontSizeInline: 10,
+  /** Badge, type indicator */
   fontSizeBadge: 11,
+  /** Main entity label below illustration */
   fontSizeLabel: 15,
+  /** Section/title */
   fontSizeTitle: 16,
+  /** Metric, large value */
   fontSizeMetric: 18,
+  /** Body text max (e.g. annotation); can shrink to fit */
+  fontSizeBodyMax: 14,
+  /** Symbol/accent (e.g. ~ in analogy) */
+  fontSizeSymbol: 18,
   fontWeightLabel: 500,
   fontWeightTitle: 600,
+  /** Emphasized (values, active) */
+  fontWeightEmphasis: 600,
+  /** Bold (symbols, strong accent) */
+  fontWeightBold: 700,
 } as const;
 
+export type LabelRole = 'default' | 'index' | 'value' | 'inline' | 'label' | 'title' | 'metric';
+
+/**
+ * Default values for entity labels below illustrations.
+ * Single source of truth for label positioning, spacing, and styling.
+ */
+export const LABEL_DEFAULTS = {
+  /** Vertical offset (px) below shape center for label */
+  offsetBelow: 18,
+  /** Line height multiplier for multi-line labels */
+  lineHeight: 1.2,
+  /** Horizontal alignment: 'middle' | 'start' | 'end' */
+  textAnchor: 'middle' as const,
+  /** Hub/param text inside shape: vertical offset from center */
+  hubOffsetY: 4,
+  /** Hub/param text: scale factor (fontSize = min(fontSizeValue, s * hubScaleFactor)) */
+  hubScaleFactor: 0.32,
+} as const;
+
+/** Get font size for a label role. Fixed at 15px for consistent label sizing across illustrations. */
+export function getLabelFontSize(role: LabelRole, _scale: number = 1): number {
+  return TYPOGRAPHY.fontSizeDefault;
+}
+
 // ── Shape tokens ──────────────────────────────────────────────────────
+
+/**
+ * Single source of truth for stroke thickness across all illustrations.
+ * Use these tokens for consistent line weight; avoid hardcoded values.
+ */
+export const STROKE = {
+  /** Default stroke for main shape outlines */
+  default: 1.5,
+  /** Secondary elements: connectors, inner lines, grid, accents */
+  thin: 1,
+  /** Emphasized elements: selected, highlighted, important */
+  emphasized: 2,
+  /** Active/current state: e.g. current pointer in array, active step */
+  selected: 2,
+  /** Minimal: fine details, icons, decorative */
+  minimal: 0.75,
+} as const;
+
+export type StrokeWeight = keyof typeof STROKE;
+
+/** Get stroke width for a given weight. Optionally scale for size-responsive components. */
+export function getStrokeWidth(
+  weight: StrokeWeight = 'default',
+  scale: number = 1,
+): number {
+  return Math.max(0.5, STROKE[weight] * scale);
+}
 
 export const SHAPES = {
   borderRadius: 6,
   borderRadiusLarge: 8,
-  strokeWidth: 2,
-  strokeWidthThin: 1.5,
-  strokeWidthHeavy: 2.5,
+  /** @deprecated Use STROKE.default */
+  strokeWidth: STROKE.default,
+  /** @deprecated Use STROKE.thin */
+  strokeWidthThin: STROKE.thin,
+  /** @deprecated Use STROKE.emphasized */
+  strokeWidthHeavy: STROKE.emphasized,
 } as const;
 
 // ── Entity type → default color mapping ────────────────────────────────

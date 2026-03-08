@@ -28,13 +28,24 @@ Use `getCategoryColor(type)` or `ENTITY_COLORS[type]` for default colors. Overri
 
 ---
 
-## Line Weight
+## Line Weight (Single Source of Truth)
+
+Use `STROKE` and `getStrokeWidth()` from design-tokens. Avoid hardcoded values.
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| SHAPES.strokeWidth | 2px | Default stroke for shapes |
-| SHAPES.strokeWidthThin | 1.5px | Secondary lines, connectors |
-| SHAPES.strokeWidthHeavy | 2.5px | Emphasized elements |
+| STROKE.default | 2px | Main shape outlines |
+| STROKE.thin | 1.5px | Secondary lines, connectors, inner elements |
+| STROKE.emphasized | 2.5px | Selected, highlighted, important |
+| STROKE.selected | 3px | Active/current state (e.g. array pointer, active step) |
+| STROKE.minimal | 1px | Fine details, icons |
+
+```ts
+import { STROKE, getStrokeWidth } from '../design-tokens.js';
+
+// Fixed: rect.setAttribute('stroke-width', String(STROKE.default));
+// Scaled: rect.setAttribute('stroke-width', String(getStrokeWidth('selected', scale)));
+```
 
 ---
 
@@ -47,16 +58,41 @@ Use `getCategoryColor(type)` or `ENTITY_COLORS[type]` for default colors. Overri
 
 ---
 
-## Typography
+## Typography (Single Source of Truth for Labels)
 
-| Token | Usage |
-|-------|-------|
-| TYPOGRAPHY.fontLabel | Entity labels, titles |
-| TYPOGRAPHY.fontBadge | Small badges, type indicators |
-| TYPOGRAPHY.fontCode | Code snippets |
-| TYPOGRAPHY.fontSizeLabel | 15px |
-| TYPOGRAPHY.fontSizeTitle | 16px |
-| TYPOGRAPHY.fontSizeBadge | 11px |
+Use `TYPOGRAPHY` and `getLabelFontSize(role, scale?)` for consistent label sizing.
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| TYPOGRAPHY.fontLabel | Inter, sans-serif | Entity labels, titles |
+| TYPOGRAPHY.fontBadge | JetBrains Mono | Cell values, badges, indices |
+| TYPOGRAPHY.fontCode | JetBrains Mono | Code snippets |
+| TYPOGRAPHY.fontSizeDefault | 15px | **Default** — entity labels (e.g. Service) |
+| TYPOGRAPHY.fontSizeIndex | 9px | Indices above cells |
+| TYPOGRAPHY.fontSizeValue | 11px | Cell values, inline content |
+| TYPOGRAPHY.fontSizeInline | 10px | Pointer labels, captions |
+| TYPOGRAPHY.fontSizeLabel | 15px | Main entity label below (= fontSizeDefault) |
+| TYPOGRAPHY.fontSizeTitle | 16px | Section/title |
+| TYPOGRAPHY.fontWeightEmphasis | 600 | Emphasized values |
+| TYPOGRAPHY.fontWeightBold | 700 | Strong accent (e.g. ~ symbol) |
+
+```ts
+import { getLabelFontSize, TYPOGRAPHY, LABEL_DEFAULTS } from '../design-tokens.js';
+
+// Scaled: text.setAttribute('font-size', String(getLabelFontSize('value', scale)));
+// Fixed: text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
+// Label below: y = s/2 + LABEL_DEFAULTS.offsetBelow, text-anchor = LABEL_DEFAULTS.textAnchor
+```
+
+### Label defaults (LABEL_DEFAULTS)
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| offsetBelow | 18px | Vertical offset below shape center |
+| lineHeight | 1.2 | Multi-line label line height |
+| textAnchor | 'middle' | Horizontal alignment |
+| hubOffsetY | 4 | Hub/param text inside shape: Y offset |
+| hubScaleFactor | 0.32 | Hub font size: min(fontSizeValue, s * factor) |
 
 ---
 

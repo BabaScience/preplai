@@ -17,7 +17,7 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, COLORS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, COLORS, colorWithAlpha, OPACITY, STROKE, getStrokeWidth, getLabelFontSize } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 type CellState = 'default' | 'active' | 'compare' | 'swap' | 'done';
@@ -150,7 +150,7 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     cell.setAttribute('rx', String(Math.max(1, 2 * scale)));
     cell.setAttribute('fill', `url(#${gradId})`);
     cell.setAttribute('stroke', cellColor);
-    cell.setAttribute('stroke-width', String(Math.max(1, (effectiveState === 'active' || effectiveState === 'compare' ? 3 : 1.5) * scale)));
+    cell.setAttribute('stroke-width', String(getStrokeWidth(effectiveState === 'active' || effectiveState === 'compare' ? 'selected' : 'thin', scale)));
     if (effectiveState === 'done' || !enabled) {
       cell.setAttribute('opacity', effectiveState === 'done' ? '0.6' : '1');
       cell.setAttribute('filter', `url(#${dimFilterId})`);
@@ -167,7 +167,7 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     indexText.setAttribute('y', String(-cellH / 2 - 6));
     indexText.setAttribute('text-anchor', 'middle');
     indexText.setAttribute('fill', effectiveState === 'done' ? `${cellColor}60` : `${cellColor}99`);
-    indexText.setAttribute('font-size', String(Math.round(9 * scale)));
+    indexText.setAttribute('font-size', String(getLabelFontSize('index', scale)));
     indexText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     if (effectiveState === 'done' || !enabled) {
       indexText.setAttribute('filter', `url(#${dimFilterId})`);
@@ -180,8 +180,8 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     valueText.setAttribute('y', String(4));
     valueText.setAttribute('text-anchor', 'middle');
     valueText.setAttribute('fill', cellColor);
-    valueText.setAttribute('font-size', String(Math.round(11 * scale)));
-    valueText.setAttribute('font-weight', '600');
+    valueText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
+    valueText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
     valueText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     if (effectiveState === 'done' || !enabled) {
       valueText.setAttribute('filter', `url(#${dimFilterId})`);
@@ -207,7 +207,7 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   if (pointerLabels.length > 0) {
     const connectorLen = 8 * scale;
     const labelY = cellH / 2 + connectorLen + 12;
-    const fontSize = Math.round(10 * scale);
+    const fontSize = getLabelFontSize('inline', scale);
 
     pointerLabels.forEach((ptr) => {
       const { index, label, value, showValue, showIndex, highlight } = ptr;
@@ -230,7 +230,7 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
       line.setAttribute('x2', String(x));
       line.setAttribute('y2', String(cellH / 2 + connectorLen));
       line.setAttribute('stroke', ptrColor);
-      line.setAttribute('stroke-width', String(Math.max(1, (highlight ? 2.5 : 1.5) * scale)));
+      line.setAttribute('stroke-width', String(getStrokeWidth(highlight ? 'emphasized' : 'thin', scale)));
       line.setAttribute('opacity', highlight ? '1' : '0.75');
       innerG.appendChild(line);
 
@@ -244,7 +244,7 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
       textEl.setAttribute('dominant-baseline', 'middle');
       textEl.setAttribute('fill', ptrColor);
       textEl.setAttribute('font-size', String(fontSize));
-      textEl.setAttribute('font-weight', highlight ? '600' : '500');
+      textEl.setAttribute('font-weight', String(highlight ? TYPOGRAPHY.fontWeightEmphasis : TYPOGRAPHY.fontWeightLabel));
       textEl.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       textEl.textContent = displayText;
 
@@ -260,7 +260,7 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
       pill.setAttribute('rx', String(pillH / 2));
       pill.setAttribute('fill', 'rgba(12, 13, 20, 0.9)');
       pill.setAttribute('stroke', `${ptrColor}80`);
-      pill.setAttribute('stroke-width', highlight ? '2' : '1');
+      pill.setAttribute('stroke-width', String(highlight ? STROKE.default : STROKE.minimal));
       labelGroup.appendChild(pill);
       labelGroup.appendChild(textEl);
       innerG.appendChild(labelGroup);
@@ -274,7 +274,7 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     text.setAttribute('y', String(labelOffsetY));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(Math.round(TYPOGRAPHY.fontSizeLabel * scale)));
+    text.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;

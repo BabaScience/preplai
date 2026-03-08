@@ -15,7 +15,7 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createRadialGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, getStrokeWidth } from '../design-tokens.js';
 import { treeLayout, treeFromFlatNodes, type BinaryTreeNode, type FlatNodeSpec } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -110,7 +110,7 @@ export function renderBinaryTree(entity: VisualEntity, parentEl: SVGElement): SV
     line.setAttribute('x2', String(x2));
     line.setAttribute('y2', String(y2));
     line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', '2');
+    line.setAttribute('stroke-width', String(STROKE.default));
     line.setAttribute('opacity', '0.7');
     innerG.appendChild(line);
   });
@@ -125,7 +125,7 @@ export function renderBinaryTree(entity: VisualEntity, parentEl: SVGElement): SV
     circle.setAttribute('r', String(nodeR));
     circle.setAttribute('fill', `url(#${gradId})`);
     circle.setAttribute('stroke', color);
-    circle.setAttribute('stroke-width', String(isHighlighted ? 2 : Math.max(1, 1.2 * scale)));
+    circle.setAttribute('stroke-width', String(getStrokeWidth(isHighlighted ? 'emphasized' : 'thin', scale)));
     if (isDisabled) {
       circle.setAttribute('filter', `url(#${dimFilterId})`);
       circle.setAttribute('stroke-dasharray', '3,3');

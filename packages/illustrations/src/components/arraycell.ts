@@ -12,7 +12,7 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, COLORS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, COLORS, colorWithAlpha, OPACITY, getStrokeWidth, getLabelFontSize } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 type CellState = 'default' | 'active' | 'compare' | 'swap' | 'done';
@@ -62,7 +62,7 @@ export function renderArrayCell(entity: VisualEntity, parentEl: SVGElement): SVG
   cell.setAttribute('rx', String(rx));
   cell.setAttribute('fill', `url(#${gradId})`);
   cell.setAttribute('stroke', color);
-  cell.setAttribute('stroke-width', String(Math.max(1, (state === 'active' || state === 'compare' ? 3 : 1.5) * scale)));
+  cell.setAttribute('stroke-width', String(getStrokeWidth(state === 'active' || state === 'compare' ? 'selected' : 'thin', scale)));
 
   if (state === 'swap') {
     cell.setAttribute('stroke-dasharray', '4,3');
@@ -82,7 +82,7 @@ export function renderArrayCell(entity: VisualEntity, parentEl: SVGElement): SVG
   indexText.setAttribute('y', String(-cellH / 2 - 6));
   indexText.setAttribute('text-anchor', 'middle');
   indexText.setAttribute('fill', colorWithAlpha(color, state === 'done' ? '60' : '99'));
-  indexText.setAttribute('font-size', String(Math.round(9 * scale)));
+  indexText.setAttribute('font-size', String(getLabelFontSize('index', scale)));
   indexText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
   indexText.textContent = String(index);
   innerG.appendChild(indexText);
@@ -93,8 +93,8 @@ export function renderArrayCell(entity: VisualEntity, parentEl: SVGElement): SVG
   valueText.setAttribute('y', String(4));
   valueText.setAttribute('text-anchor', 'middle');
   valueText.setAttribute('fill', color);
-  valueText.setAttribute('font-size', String(Math.round(11 * scale)));
-  valueText.setAttribute('font-weight', '600');
+  valueText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
+  valueText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
   valueText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
   valueText.textContent = value;
   innerG.appendChild(valueText);
@@ -105,7 +105,7 @@ export function renderArrayCell(entity: VisualEntity, parentEl: SVGElement): SVG
     labelText.setAttribute('y', String(cellH / 2 + 12 * scale + 8));
     labelText.setAttribute('text-anchor', 'middle');
     labelText.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
-    labelText.setAttribute('font-size', String(Math.round(10 * scale)));
+    labelText.setAttribute('font-size', String(getLabelFontSize('inline', scale)));
     labelText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     labelText.textContent = entity.label;
     innerG.appendChild(labelText);

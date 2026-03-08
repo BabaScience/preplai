@@ -14,7 +14,7 @@ import {
   createRadialGradient,
   ensureDefs,
 } from '../visual-utils.js';
-import { colorWithAlpha, OPACITY, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { colorWithAlpha, OPACITY, TYPOGRAPHY, SHAPES, STROKE } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 type VisualStyle = 'default' | 'minimal' | 'emphasized';
@@ -42,7 +42,7 @@ export function createGenericRenderer(
     const visualStyle = getVisualStyle(entity);
     const showBadge = visualStyle !== 'minimal';
     const strokeWidth =
-      visualStyle === 'emphasized' ? SHAPES.strokeWidthHeavy : SHAPES.strokeWidth;
+      visualStyle === 'emphasized' ? STROKE.emphasized : STROKE.default;
     const _fillAlpha = visualStyle === 'emphasized' ? OPACITY.fillMedium : OPACITY.fillLight;
 
     const defs = ensureDefs(parentEl);
@@ -67,7 +67,7 @@ export function createGenericRenderer(
         glow.setAttribute('r', String(s / 2 + 4));
         glow.setAttribute('fill', 'none');
         glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
-        glow.setAttribute('stroke-width', '2');
+        glow.setAttribute('stroke-width', String(STROKE.default));
         glow.setAttribute('stroke-dasharray', '4,4');
         innerG.insertBefore(glow, circle);
       }
@@ -125,7 +125,7 @@ export function createGenericRenderer(
         glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
         glow.setAttribute('fill', 'none');
         glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
-        glow.setAttribute('stroke-width', '2');
+        glow.setAttribute('stroke-width', String(STROKE.default));
         glow.setAttribute('stroke-dasharray', '4,4');
         innerG.insertBefore(glow, rect);
       }

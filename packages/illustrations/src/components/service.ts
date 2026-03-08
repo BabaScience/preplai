@@ -11,7 +11,7 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 /** Resolve the "kind" of service (API, Service, APIGateway, or custom). */
@@ -53,17 +53,20 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
   polygon.setAttribute('points', hexPoints);
   polygon.setAttribute('fill', `url(#${gradId})`);
   polygon.setAttribute('stroke', color);
-  polygon.setAttribute('stroke-width', String(SHAPES.strokeWidth));
+  polygon.setAttribute('stroke-width', String(STROKE.default));
   polygon.setAttribute('stroke-linejoin', 'round');
   contentG.appendChild(polygon);
 
   // ── { Service } parameter-style text inside (suggests API/endpoint/configuration)
   const hubText = (entity.metadata?.hubLabel as string) ?? kind;
   const paramText = `{ ${hubText} }`;
-  const paramFontSize = Math.min(11, Math.floor(s * 0.32));
+  const paramFontSize = Math.min(
+    TYPOGRAPHY.fontSizeValue,
+    Math.floor(s * LABEL_DEFAULTS.hubScaleFactor),
+  );
   const param = document.createElementNS(SVG_NS, 'text');
   param.setAttribute('x', '0');
-  param.setAttribute('y', '4');
+  param.setAttribute('y', String(LABEL_DEFAULTS.hubOffsetY));
   param.setAttribute('text-anchor', 'middle');
   param.setAttribute('fill', color);
   param.setAttribute('font-size', String(paramFontSize));
@@ -80,10 +83,10 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
   if (serviceName) {
     const label = document.createElementNS(SVG_NS, 'text');
     label.setAttribute('x', '0');
-    label.setAttribute('y', String(s / 2 + 18));
-    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('y', String(s / 2 + LABEL_DEFAULTS.offsetBelow));
+    label.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     label.setAttribute('fill', color);
-    label.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    label.setAttribute('font-size', String(TYPOGRAPHY.fontSizeDefault));
     label.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     label.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     label.textContent = serviceName;
