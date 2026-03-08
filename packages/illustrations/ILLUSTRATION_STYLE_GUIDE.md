@@ -145,7 +145,7 @@ The `metadata` field is optional and extensible. Documented conventions:
 
 **VM vs Container diagrams**: Compose with Group + Server, Container, and other entities. No single "VMArchitecture" component — authors place entities in frames.
 
-**Docker Flow**: Use DockerImage, DockerRegistry, Container, Volume, BindMount, Tmpfs as building blocks. Connect with Arrow/DataFlow.
+**Docker Flow**: Use DockerImage, DockerRegistry, Container, Volume, Tmpfs as building blocks. Connect with Arrow/DataFlow.
 
 ---
 

@@ -56,7 +56,6 @@ import { renderQueue } from './components/queue.js';
 import { renderDecorator } from './components/decorator.js';
 import { renderDNSResolver } from './components/dnsresolver.js';
 import { renderVolume } from './components/volume.js';
-import { renderBindMount } from './components/bindmount.js';
 import { renderTmpfs } from './components/tmpfs.js';
 import { renderList } from './components/list.js';
 import { renderTuple } from './components/tuple.js';
@@ -153,7 +152,6 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Registry: infraAlt,
   DNSResolver: renderDNSResolver,
   Decorator: renderDecorator,
-  BindMount: renderBindMount,
   Tmpfs: renderTmpfs,
   DockerImage: renderDockerImage,
   DockerRegistry: renderDockerRegistry,

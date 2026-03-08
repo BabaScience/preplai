@@ -77,7 +77,6 @@ export { renderQueue } from './components/queue.js';
 export { renderDecorator } from './components/decorator.js';
 export { renderDNSResolver } from './components/dnsresolver.js';
 export { renderVolume } from './components/volume.js';
-export { renderBindMount } from './components/bindmount.js';
 export { renderTmpfs } from './components/tmpfs.js';
 export { renderList } from './components/list.js';
 export { renderTuple } from './components/tuple.js';

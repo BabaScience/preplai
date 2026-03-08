@@ -62,7 +62,7 @@ describe('registry', () => {
       'Cache', 'LoadBalancer', 'Service', 'Firewall',
       'Lambda', 'Subnet', 'Volume', 'Registry', 'Monitor', 'Pipeline',
       'Decision', 'Cluster',
-      'DNSResolver', 'Decorator', 'BindMount', 'Tmpfs',
+      'DNSResolver', 'Decorator', 'Tmpfs',
       'DockerImage', 'DockerRegistry',
     ];
     for (const type of infraTypes) {

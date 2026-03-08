@@ -159,7 +159,6 @@ export const ENTITY_COLORS: Record<string, string> = {
   Registry: COLORS.green,
   DNSResolver: COLORS.teal,
   Decorator: COLORS.violet,
-  BindMount: COLORS.orange,
   Tmpfs: COLORS.pink,
   DockerImage: COLORS.blue,
   DockerRegistry: COLORS.green,
