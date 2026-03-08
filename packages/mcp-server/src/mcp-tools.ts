@@ -85,8 +85,10 @@ REQUIRED — USE COMPACT FORMAT (reduces tokens significantly):
 - Omit: color (palette used), frame id/startTime/endTime/description, entity id for non-connected entities
 - Aliases: BT, BTR, ARR, CST, CB, G2, COORD, BC, DNS, SVC, GW, SL, PS, GC, CH, ML, CKT, CYC
 
-Example (REQUIRED format):
-{"sid":"<session_id>","td":5000,"f":[{"e":[{"id":"title","type":"Label","p":[50,6],"l":"Title","sz":2},{"id":"srv","type":"Server","p":[30,45],"l":"API"},{"id":"db","type":"Database","p":[70,45],"l":"DB"},{"id":"a1","type":"Arrow","p":[50,45],"src":"srv","tgt":"db","l":"Queries"}],"n":"Narration text"}]
+Example (REQUIRED format — 5–7 entities per frame):
+{"sid":"<session_id>","td":5000,"f":[{"e":[{"id":"h1","type":"H1","p":[50,6],"l":"API Architecture","sz":2},{"id":"srv","type":"Server","p":[25,45],"l":"API"},{"id":"db","type":"Database","p":[50,45],"l":"DB"},{"id":"cache","type":"Cache","p":[75,45],"l":"Redis"},{"id":"a1","type":"Arrow","p":[37,45],"src":"srv","tgt":"db","l":"Queries"},{"id":"a2","type":"Arrow","p":[62,45],"src":"srv","tgt":"cache","l":"Cache"},{"id":"l1","type":"Label","p":[50,75],"l":"Read-through pattern"}],"n":"The API server queries the database for data. Frequently accessed items are cached in Redis to reduce load."}]
+
+CONTENT DENSITY (critical): Aim for 5–7 entities per frame. Avoid sparse slides with only 1–3 items — each frame should feel complete and informative. Match the level of detail you would give in a chat explanation.
 
 APPEND BEHAVIOR: Multiple add_scene calls APPEND frames. Use update_scene to REPLACE. Use session_id as sid. Positions 0-100 (percent).
 
@@ -99,9 +101,7 @@ DESIGN GUIDELINES:
 - Each entity type has a smart default entrance animation. You can override with the animation.entrance property.
 - SIZING: Use sz 2.5–3 for text-heavy entities (CodeBlock, Definition, Callout, StepList, CallStack, HashTable) so content is readable. Default sz 2 is acceptable for icons (Server, Database, Cloud); use larger for anything with substantial text.
 
-FRAME PACING: 3–5 seconds per frame for readability. Build complexity gradually — simpler frames first, add entities in later frames. Aim for 5–7 entities per frame when the topic supports it. Avoid sparse slides with only 1–3 items — each frame should feel complete and informative.
-
-CONTENT DEPTH: Match the level of detail you would give in a chat explanation. Slides should be rich and informative, not stripped-down summaries. Include enough context in labels, metadata, and narration so viewers understand without prior knowledge.
+FRAME PACING: 3–5 seconds per frame for readability. Build complexity gradually — simpler frames first, add entities in later frames. Aim for 5–7 entities per frame.
 
 ENTITY SELECTION (choose types that match the user's topic for best visuals):
 

@@ -157,7 +157,7 @@ Add narration text to a specific frame. The text appears as a subtitle overlay i
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 | `session_id` | string | Yes | Session ID |
-| `text` | string | Yes | Narration text (1–2 sentences per frame) |
+| `text` | string | Yes | Narration text (2–4 sentences per frame, informative and detailed) |
 | `frame_index` | number | No | Frame index (0-based, default 0) |
 
 ---

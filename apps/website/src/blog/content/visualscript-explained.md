@@ -49,7 +49,7 @@ Each frame has:
 - **narrationSegment** — Subtitle shown to the viewer
 - **description** — Internal note (not shown)
 
-Frames play in sequence. Typical pacing: 3–5 seconds per frame, 3–7 entities per frame.
+Frames play in sequence. Typical pacing: 3–5 seconds per frame, 3–7 entities per frame. Avoid sparse slides; each frame should feel complete.
 
 ---
 

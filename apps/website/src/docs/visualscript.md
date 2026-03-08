@@ -44,12 +44,12 @@
 | `id` | string | Unique frame ID |
 | `startTime` | number | Start time in ms |
 | `endTime` | number | End time in ms |
-| `narrationSegment` | string | Subtitle (1–2 sentences) |
+| `narrationSegment` | string | Subtitle (2–4 sentences, informative and detailed) |
 | `description` | string | Internal note (not shown) |
 | `entities` | array | Visual entities |
 | `transitions` | array | Animations between states |
 
-**Frame pacing:** 3–5 seconds per frame for readability. 3–7 entities per frame.
+**Frame pacing:** 3–5 seconds per frame for readability. 3–7 entities per frame. Avoid sparse slides (1–3 items).
 
 ## Entity Types
 
