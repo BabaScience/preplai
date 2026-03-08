@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { registry } from '@preplai/illustrations';
-import { ENTITY_DEFAULTS } from '@preplai/shared';
+import { ENTITY_DEFAULTS, isConnectionType } from '@preplai/shared';
 import { METADATA_DEFAULTS, ENTITY_FIELD_DEFAULTS } from './entity-defaults';
 import IllustrationPreview from './IllustrationPreview';
 import EntityParamPanel from './EntityParamPanel';
@@ -9,8 +9,6 @@ const EXCLUDED_TYPES = new Set(['Label', 'GraphDS', 'GraphTraversal', 'LogicGate
 const ENTITY_TYPES = Object.keys(registry)
   .filter((type) => !EXCLUDED_TYPES.has(type))
   .sort();
-
-const CONNECTION_TYPES = new Set(['Arrow', 'DataFlow', 'Bus']);
 
 const STORAGE_KEY = 'preplai-illustration-debug-reviewed';
 
@@ -44,7 +42,7 @@ function buildDefaultEntity(type, overrides = {}) {
     ...overrides,
   };
 
-  if (CONNECTION_TYPES.has(type)) {
+  if (isConnectionType(type)) {
     base.sourceEntityId = base.sourceEntityId ?? 'debug-src';
     base.targetEntityId = base.targetEntityId ?? 'debug-tgt';
   }
@@ -123,49 +121,13 @@ export default function IllustrationDebugPage() {
   }, []);
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '200px 1fr 380px',
-        height: '100vh',
-        overflow: 'hidden',
-      }}
-    >
+    <div className="dev-layout">
       {/* Left: Entity type list */}
-      <div
-        className="dev-panel dev-panel-left"
-        style={{
-          overflowY: 'auto',
-          borderRight: '1px solid var(--color-border)',
-        }}
-      >
-        <h2
-          style={{
-            fontSize: 'var(--text-base)',
-            fontWeight: 600,
-            marginBottom: 'var(--space-3)',
-            padding: 'var(--space-3)',
-          }}
-        >
-          Illustration Debug
-        </h2>
-        <div
-          style={{
-            padding: '0 var(--space-3) var(--space-3)',
-            borderBottom: '1px solid var(--color-border)',
-            marginBottom: 'var(--space-3)',
-          }}
-        >
-          <label
-            style={{
-              display: 'block',
-              fontSize: 'var(--text-xs)',
-              fontWeight: 600,
-              color: 'var(--color-text-muted)',
-              marginBottom: 'var(--space-1)',
-            }}
-          >
-            Default size (for testing)
+      <div className="dev-panel dev-panel-left dev-panel-left-inner">
+        <h2 className="dev-heading">Illustration Debug</h2>
+        <div className="dev-section">
+          <label className="dev-label">
+            Default size (overrides entity size in preview)
           </label>
           <input
             type="range"
@@ -174,59 +136,26 @@ export default function IllustrationDebugPage() {
             step={0.1}
             value={globalDefaultSize}
             onChange={(e) => setGlobalDefaultSize(Number(e.target.value))}
+            className="dev-input"
             style={{ width: '100%', marginBottom: 'var(--space-1)' }}
           />
-          <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text)' }}>
-            {globalDefaultSize.toFixed(1)}
-          </span>
+          <span className="dev-value">{globalDefaultSize.toFixed(1)}</span>
         </div>
-        <input
-          type="search"
-          placeholder="Search illustrations..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            width: '100%',
-            margin: '0 var(--space-3) var(--space-3)',
-            padding: 'var(--space-2) var(--space-3)',
-            fontSize: 'var(--text-sm)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            background: 'var(--color-surface-1)',
-            color: 'var(--color-text)',
-          }}
-        />
-        <div
-          style={{
-            padding: '0 var(--space-3) var(--space-3)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-2)',
-          }}
-        >
-          <label
-            style={{
-              display: 'block',
-              fontSize: 'var(--text-xs)',
-              fontWeight: 600,
-              color: 'var(--color-text-muted)',
-              marginBottom: 'var(--space-1)',
-            }}
-          >
-            Filter
-          </label>
+        <div className="dev-section" style={{ paddingBottom: 'var(--space-3)' }}>
+          <input
+            type="search"
+            placeholder="Search illustrations..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="dev-input"
+          />
+        </div>
+        <div className="dev-section dev-input-group" style={{ borderBottom: 'none', paddingBottom: 'var(--space-3)' }}>
+          <label className="dev-label">Filter</label>
           <select
             value={filterMode}
             onChange={(e) => setFilterMode(e.target.value)}
-            style={{
-              width: '100%',
-              padding: 'var(--space-2) var(--space-3)',
-              fontSize: 'var(--text-sm)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--color-surface-1)',
-              color: 'var(--color-text)',
-            }}
+            className="dev-input"
           >
             <option value="unchecked">Unchecked only</option>
             <option value="checked">Checked only</option>
@@ -236,42 +165,20 @@ export default function IllustrationDebugPage() {
             <button
               type="button"
               onClick={handleClearAllReviewed}
-              style={{
-                padding: 'var(--space-1) var(--space-2)',
-                fontSize: 'var(--text-xs)',
-                background: 'transparent',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--color-text-muted)',
-                cursor: 'pointer',
-                alignSelf: 'flex-start',
-              }}
+              className="dev-btn-ghost"
             >
               Clear all checkmarks
             </button>
           )}
         </div>
-        <p
-          style={{
-            fontSize: 'var(--text-xs)',
-            color: 'var(--color-text-muted)',
-            padding: '0 var(--space-3)',
-            marginBottom: 'var(--space-3)',
-          }}
-        >
+        <p className="dev-hint">
           {filterMode === 'unchecked' && `${filteredTypes.length} unchecked of ${ENTITY_TYPES.length}`}
           {filterMode === 'checked' && `${filteredTypes.length} checked of ${ENTITY_TYPES.length}`}
           {filterMode === 'all' && `${filteredTypes.length} of ${ENTITY_TYPES.length} types`}
           . Click to preview.
         </p>
         {filteredTypes.length === 0 ? (
-          <p
-            style={{
-              fontSize: 'var(--text-sm)',
-              color: 'var(--color-text-muted)',
-              padding: 'var(--space-3)',
-            }}
-          >
+          <p className="dev-empty">
             {filterMode === 'unchecked' && reviewedTypes.size > 0
               ? "All reviewed! Switch filter to 'All' or 'Checked only'."
               : filterMode === 'checked' && reviewedTypes.size === 0
@@ -279,31 +186,20 @@ export default function IllustrationDebugPage() {
                 : 'No matches.'}
           </p>
         ) : (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        <ul className="dev-type-list">
           {filteredTypes.map((type) => (
             <li key={type}>
               <div
                 role="button"
                 tabIndex={0}
+                className="dev-type-item"
+                data-selected={selectedType === type}
                 onClick={() => handleSelectType(type)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     handleSelectType(type);
                   }
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--space-2)',
-                  width: '100%',
-                  padding: 'var(--space-2) var(--space-3)',
-                  textAlign: 'left',
-                  fontSize: 'var(--text-sm)',
-                  background: selectedType === type ? 'var(--color-surface-2)' : 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  borderLeft: selectedType === type ? '3px solid var(--color-primary)' : '3px solid transparent',
                 }}
               >
                 <input
@@ -352,21 +248,7 @@ export default function IllustrationDebugPage() {
           error={renderError}
         />
         {copyFeedback && (
-          <div
-            style={{
-              position: 'fixed',
-              bottom: 'var(--space-4)',
-              right: '400px',
-              padding: 'var(--space-2) var(--space-3)',
-              background: 'var(--color-success)',
-              color: 'white',
-              borderRadius: 'var(--radius-md)',
-              fontSize: 'var(--text-sm)',
-              boxShadow: 'var(--shadow-lg)',
-            }}
-          >
-            Copied to clipboard
-          </div>
+          <div className="dev-toast">Copied to clipboard</div>
         )}
       </div>
     </div>

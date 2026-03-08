@@ -1,13 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { registry, renderEntity } from '@preplai/illustrations';
 import { applyDefaults } from '@preplai/player';
-import { CANVAS_BG_COLOR } from '@preplai/shared';
-
-const CONNECTION_TYPES = new Set(['Arrow', 'DataFlow', 'BidirectArrow', 'DottedArrow', 'Bus']);
-
-function isConnectionType(type) {
-  return CONNECTION_TYPES.has(type);
-}
+import { CANVAS_BG_COLOR, isConnectionType } from '@preplai/shared';
 
 /** Create placeholder entities for connection types (Arrow, DataFlow, etc.) */
 function createPlaceholders(connectionEntity) {

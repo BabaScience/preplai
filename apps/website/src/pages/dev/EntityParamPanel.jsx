@@ -1,14 +1,11 @@
 import { useState, useEffect } from 'react';
-import { ENTITY_DEFAULTS, ENTRANCE_ANIMATION_CLASSES } from '@preplai/shared';
+import { ENTITY_DEFAULTS, ENTRANCE_ANIMATION_CLASSES, isConnectionType } from '@preplai/shared';
 
 /** Types that inherit from text-card (same metadata: label, width, maxLines) */
 const CARD_TYPES = ['Analogy', 'Annotation', 'Comparison', 'Quote'];
 
 /** Heading types (H1, H2, H3) — metadata: label, showUnderline */
 const HEADING_TYPES = ['H1', 'H2', 'H3'];
-
-/** Connection types (Arrow, DataFlow, etc.) — need source/target + special params */
-const CONNECTION_TYPES = ['Arrow', 'DataFlow', 'Bus'];
 
 /** Types that use textContent (CodeBlock, Definition). Callout uses metadata.body instead. */
 const TEXT_CONTENT_TYPES = ['CodeBlock', 'Definition'];
@@ -19,6 +16,7 @@ const CODE_LANGUAGE_TYPES = ['CodeBlock'];
 export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
   const [showJson, setShowJson] = useState(false);
   const [jsonInput, setJsonInput] = useState('');
+  const [jsonError, setJsonError] = useState(null);
   const [btreeTreeJson, setBtreeTreeJson] = useState('');
   const [pointerLabelsText, setPointerLabelsText] = useState('');
 
@@ -37,16 +35,17 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
   };
 
   const handleJsonApply = () => {
+    setJsonError(null);
     try {
       const parsed = JSON.parse(jsonInput);
       if (parsed.id && parsed.type && parsed.position) {
         onChange(parsed);
         setShowJson(false);
       } else {
-        alert('JSON must have id, type, and position');
+        setJsonError('JSON must have id, type, and position');
       }
     } catch (e) {
-      alert('Invalid JSON: ' + e.message);
+      setJsonError('Invalid JSON: ' + e.message);
     }
   };
 
@@ -604,7 +603,7 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
         </>
       )}
 
-      {CONNECTION_TYPES.includes(entity.type) && (
+      {isConnectionType(entity.type) && (
         <>
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
           <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Connection metadata</h4>
@@ -3915,6 +3914,7 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
           style={{ width: '100%' }}
           onClick={() => {
             setJsonInput(JSON.stringify(entity, null, 2));
+            setJsonError(null);
             setShowJson(!showJson);
           }}
         >
@@ -3924,6 +3924,20 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
 
       {showJson && (
         <div style={{ marginTop: 'var(--space-3)' }}>
+          {jsonError && (
+            <div
+              style={{
+                padding: 'var(--space-2)',
+                background: 'rgba(239, 68, 68, 0.15)',
+                borderRadius: 'var(--radius-md)',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--color-error)',
+                marginBottom: 'var(--space-2)',
+              }}
+            >
+              {jsonError}
+            </div>
+          )}
           <textarea
             className="form-input"
             rows={10}
