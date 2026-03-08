@@ -142,9 +142,16 @@ export const METADATA_DEFAULTS = {
     ],
   },
   Array: {
-    values: ['a', 'b', 'c', 'd', 'e'],
-    disabledIndexes: [1, 3],
-    selectedIndexes: [0, 2],
+    values: [5, 2, 8, 1, 9, 3],
+    selectedIndexes: [2],
+    compareIndexes: [1, 2],
+    swapIndexes: [],
+    doneIndexes: [0],
+  },
+  ArrayCell: {
+    value: '42',
+    index: 3,
+    state: 'active',
   },
   LinkedList: {
     values: [1, 2, 3, 4],

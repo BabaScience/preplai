@@ -48,6 +48,7 @@ import {
 import { renderH1, renderH2, renderH3 } from './components/heading.js';
 import { renderStack } from './components/stack.js';
 import { renderArray } from './components/array.js';
+import { renderArrayCell } from './components/arraycell.js';
 import { renderLinkedList } from './components/linkedlist.js';
 import { renderBinaryTree } from './components/binarytree.js';
 import { renderHashTable } from './components/hashtable.js';
@@ -105,7 +106,6 @@ const dsGrn = generic('LinkedList');
 const dsOrg = generic('HashTable');  // fallback only; renderHashTable used
 const dsBcd = generic('Heap');
 const dsPrp = generic('BinaryTree');
-const algoGrn = generic('ArrayCell');
 const algoRed = generic('Pointer');
 const algoPrp = generic('RecursionTree');
 const csArch = generic('CPU');
@@ -235,7 +235,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Set: renderSet,
 
   // ── Algorithm Visualization
-  ArrayCell: algoGrn,
+  ArrayCell: renderArrayCell,
   Pointer: algoRed,
   RecursionTree: algoPrp,
 

@@ -1669,7 +1669,7 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Selected indexes (comma-separated, 0-based)</label>
+            <label className="form-label">Selected indexes (active, 0-based)</label>
             <input
               type="text"
               className="form-input"
@@ -1685,6 +1685,63 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
                 });
               }}
               placeholder="0, 2"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Compare indexes (gold, 0-based)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.compareIndexes ?? []).join(', ')}
+              onChange={(e) => {
+                const compareIndexes = e.target.value
+                  .split(',')
+                  .map((s) => parseInt(s.trim(), 10))
+                  .filter((n) => !Number.isNaN(n));
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  compareIndexes,
+                });
+              }}
+              placeholder="1, 2"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Swap indexes (dashed, 0-based)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.swapIndexes ?? []).join(', ')}
+              onChange={(e) => {
+                const swapIndexes = e.target.value
+                  .split(',')
+                  .map((s) => parseInt(s.trim(), 10))
+                  .filter((n) => !Number.isNaN(n));
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  swapIndexes,
+                });
+              }}
+              placeholder="1, 3"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Done indexes (dimmed, 0-based)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={(entity.metadata?.doneIndexes ?? []).join(', ')}
+              onChange={(e) => {
+                const doneIndexes = e.target.value
+                  .split(',')
+                  .map((s) => parseInt(s.trim(), 10))
+                  .filter((n) => !Number.isNaN(n));
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  doneIndexes,
+                });
+              }}
+              placeholder="0"
             />
           </div>
           <div className="form-group">
@@ -1717,6 +1774,65 @@ export default function EntityParamPanel({ entity, onChange, onCopy, error }) {
             />
             <p style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '4px' }}>
               Optional: index, label, color?, value?, showValue?, showIndex?, highlight?
+            </p>
+          </div>
+        </>
+      )}
+
+      {entity.type === 'ArrayCell' && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: 'var(--space-3) 0' }} />
+          <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>ArrayCell metadata</h4>
+          <div className="form-group">
+            <label className="form-label">Value</label>
+            <input
+              type="text"
+              className="form-input"
+              value={entity.metadata?.value ?? ''}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  value: e.target.value,
+                })
+              }
+              placeholder="42"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Index</label>
+            <input
+              type="number"
+              className="form-input"
+              value={entity.metadata?.index ?? 0}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  index: parseInt(e.target.value, 10) || 0,
+                })
+              }
+              min={0}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">State</label>
+            <select
+              className="form-input"
+              value={entity.metadata?.state ?? 'default'}
+              onChange={(e) =>
+                update('metadata', {
+                  ...(entity.metadata || {}),
+                  state: e.target.value,
+                })
+              }
+            >
+              <option value="default">default</option>
+              <option value="active">active</option>
+              <option value="compare">compare</option>
+              <option value="swap">swap</option>
+              <option value="done">done</option>
+            </select>
+            <p style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '4px' }}>
+              active = current pointer; compare = comparing; swap = swapping; done = sorted
             </p>
           </div>
         </>

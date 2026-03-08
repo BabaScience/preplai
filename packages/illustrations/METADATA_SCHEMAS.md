@@ -72,7 +72,10 @@ Same metadata for all:
 {
   "values": ["a", "b", "c", "d", "e"],
   "disabledIndexes": [1, 3],
-  "selectedIndexes": [0, 2]
+  "selectedIndexes": [0, 2],
+  "compareIndexes": [1, 2],
+  "swapIndexes": [1, 3],
+  "doneIndexes": [0]
 }
 ```
 
@@ -81,21 +84,40 @@ Or with per-cell control:
 ```json
 {
   "cells": [
-    { "value": "a", "enabled": true },
-    { "value": "b", "enabled": false },
-    { "value": "c", "enabled": true },
-    { "value": "d", "enabled": false },
+    { "value": "a", "state": "done" },
+    { "value": "b", "state": "compare" },
+    { "value": "c", "state": "compare" },
+    { "value": "d", "state": "swap" },
     { "value": "e", "enabled": true }
   ]
 }
 ```
 
 - `values`: Array of strings or numbers — agent can display any values
-- `cells`: Alternative — array of `{ value, enabled?, selected? }` for per-cell control
+- `cells`: Alternative — array of `{ value, enabled?, selected?, state? }` for per-cell control. `state`: `"default"` | `"active"` | `"compare"` | `"swap"` | `"done"`
 - `disabledIndexes`: 0-based indexes to show as disabled (dimmed, dashed border). Ignored when using `cells`
-- `selectedIndexes`: 0-based indexes to highlight (thicker stroke, glow). Used for e.g. current comparison in binary search
+- `selectedIndexes`: 0-based indexes for active/current pointer (glow). Used for e.g. binary search mid
+- `compareIndexes`: Cells being compared (gold accent, glow)
+- `swapIndexes`: Cells being swapped (dashed stroke, orange)
+- `doneIndexes`: Sorted/finalized cells (dimmed)
 - `pointerLabels`: Optional. Array of `{index, label, color?, value?, showValue?, showIndex?, highlight?}` — labels below cells with pill background. Semantic colors: low→green, mid→gold, high→red. `value` or `showValue: true` shows "label = index → value". `highlight: true` for active comparison. `showIndex: false` to omit index. Max 3–4 pointers.
 - Max 8 cells displayed
+
+## ArrayCell
+
+Single array cell for algorithm visualization (binary search, sorting, etc.). Standalone or in compositions.
+
+```json
+{
+  "value": "42",
+  "index": 3,
+  "state": "active"
+}
+```
+
+- `value`: Cell value (center). Fallback: entity.label.
+- `index`: Index label above the cell (default 0).
+- `state`: `"default"` | `"active"` | `"compare"` | `"swap"` | `"done"`. active = current pointer (glow); compare = gold accent; swap = dashed; done = dimmed.
 
 ## LinkedList
 

@@ -4,9 +4,12 @@
  *
  * Metadata:
  *   values: (string|number)[] — cell values (agent can display anything)
- *   cells: { value: string|number, enabled?: boolean, selected?: boolean }[] — rich format
+ *   cells: { value, enabled?, selected?, state? }[] — rich format; state: default|active|compare|swap|done
  *   disabledIndexes: number[] — 0-based indexes to show as disabled (dimmed)
- *   selectedIndexes: number[] — 0-based indexes to highlight (e.g. current comparison in binary search)
+ *   selectedIndexes: number[] — 0-based indexes to highlight (active/current pointer)
+ *   compareIndexes: number[] — cells being compared (gold accent)
+ *   swapIndexes: number[] — cells being swapped (dashed)
+ *   doneIndexes: number[] — sorted/finalized cells (dimmed)
  *   pointerLabels: {index, label, color?, value?, showValue?, highlight?}[] — labels below cells
  *
  * If both values and cells are provided, cells takes precedence.
@@ -14,8 +17,25 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, COLORS } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, COLORS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
+
+type CellState = 'default' | 'active' | 'compare' | 'swap' | 'done';
+
+function getStateColor(state: CellState, baseColor: string): string {
+  switch (state) {
+    case 'active':
+      return baseColor;
+    case 'compare':
+      return COLORS.gold;
+    case 'swap':
+      return COLORS.orange;
+    case 'done':
+      return colorWithAlpha(baseColor, OPACITY.strokeSoft);
+    default:
+      return baseColor;
+  }
+}
 
 type PointerLabelSpec = {
   index: number;
@@ -36,26 +56,47 @@ function getPointerColor(label: string, override?: string): string {
   return COLORS.cyan;
 }
 
-type CellSpec = { value: string | number; enabled?: boolean; selected?: boolean };
+type CellSpec = { value: string | number; enabled?: boolean; selected?: boolean; state?: CellState };
 
 function parseCells(meta: Record<string, unknown>): CellSpec[] {
-  const rawCells = meta.cells as Array<{ value: string | number; enabled?: boolean; selected?: boolean }> | undefined;
+  const rawCells = meta.cells as Array<{ value: string | number; enabled?: boolean; selected?: boolean; state?: string }> | undefined;
   if (Array.isArray(rawCells)) {
-    return rawCells.slice(0, 8).map((c) =>
-      typeof c === 'object' && c !== null && 'value' in c
-        ? { value: c.value, enabled: c.enabled !== false, selected: c.selected === true }
-        : { value: String(c), enabled: true, selected: false },
-    );
+    return rawCells.slice(0, 8).map((c) => {
+      if (typeof c === 'object' && c !== null && 'value' in c) {
+        const state = ['default', 'active', 'compare', 'swap', 'done'].includes(c.state as string)
+          ? (c.state as CellState)
+          : undefined;
+        return {
+          value: c.value,
+          enabled: c.enabled !== false,
+          selected: c.selected === true,
+          state,
+        };
+      }
+      return { value: String(c), enabled: true, selected: false, state: undefined };
+    });
   }
 
   const values = (meta.values as (string | number)[]) ?? (meta.cells as (string | number)[]) ?? [1, 2, 3, 4, 5];
   const disabledSet = new Set((meta.disabledIndexes as number[]) ?? []);
   const selectedSet = new Set((meta.selectedIndexes as number[]) ?? []);
-  return values.slice(0, 8).map((val, i) => ({
-    value: val,
-    enabled: !disabledSet.has(i),
-    selected: selectedSet.has(i),
-  }));
+  const compareSet = new Set((meta.compareIndexes as number[]) ?? []);
+  const swapSet = new Set((meta.swapIndexes as number[]) ?? []);
+  const doneSet = new Set((meta.doneIndexes as number[]) ?? []);
+
+  return values.slice(0, 8).map((val, i) => {
+    let state: CellState | undefined;
+    if (doneSet.has(i)) state = 'done';
+    else if (swapSet.has(i)) state = 'swap';
+    else if (compareSet.has(i)) state = 'compare';
+    else if (selectedSet.has(i)) state = 'active';
+    return {
+      value: val,
+      enabled: !disabledSet.has(i),
+      selected: selectedSet.has(i),
+      state,
+    };
+  });
 }
 
 export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -94,9 +135,12 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     }
   }
 
-  cells.forEach(({ value, enabled, selected }, i) => {
+  cells.forEach(({ value, enabled, selected, state: cellState }, i) => {
     const x = startX + i * cellW;
 
+    const effectiveState: CellState =
+      cellState ?? (selected ? 'active' : enabled ? 'default' : 'done');
+    const cellColor = getStateColor(effectiveState, color);
     const pad = 2 * scale;
     const cell = document.createElementNS(SVG_NS, 'rect');
     cell.setAttribute('x', String(x - cellW / 2 + pad));
@@ -105,13 +149,16 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     cell.setAttribute('height', String(cellH));
     cell.setAttribute('rx', String(Math.max(1, 2 * scale)));
     cell.setAttribute('fill', `url(#${gradId})`);
-    cell.setAttribute('stroke', color);
-    cell.setAttribute('stroke-width', String(Math.max(1, (selected ? 3 : 1.5) * scale)));
-    if (!enabled) {
+    cell.setAttribute('stroke', cellColor);
+    cell.setAttribute('stroke-width', String(Math.max(1, (effectiveState === 'active' || effectiveState === 'compare' ? 3 : 1.5) * scale)));
+    if (effectiveState === 'done' || !enabled) {
+      cell.setAttribute('opacity', effectiveState === 'done' ? '0.6' : '1');
       cell.setAttribute('filter', `url(#${dimFilterId})`);
-      cell.setAttribute('stroke-dasharray', '3,3');
-    } else if (selected) {
-      cell.setAttribute('filter', `drop-shadow(0 0 ${4 * scale}px ${color})`);
+    } else if (effectiveState === 'active' || effectiveState === 'compare') {
+      cell.setAttribute('filter', `drop-shadow(0 0 ${4 * scale}px ${cellColor})`);
+    }
+    if (effectiveState === 'swap') {
+      cell.setAttribute('stroke-dasharray', '4,3');
     }
     innerG.appendChild(cell);
 
@@ -119,10 +166,10 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     indexText.setAttribute('x', String(x));
     indexText.setAttribute('y', String(-cellH / 2 - 6));
     indexText.setAttribute('text-anchor', 'middle');
-    indexText.setAttribute('fill', `${color}99`);
+    indexText.setAttribute('fill', effectiveState === 'done' ? `${cellColor}60` : `${cellColor}99`);
     indexText.setAttribute('font-size', String(Math.round(9 * scale)));
     indexText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-    if (!enabled) {
+    if (effectiveState === 'done' || !enabled) {
       indexText.setAttribute('filter', `url(#${dimFilterId})`);
     }
     indexText.textContent = String(i);
@@ -132,11 +179,11 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     valueText.setAttribute('x', String(x));
     valueText.setAttribute('y', String(4));
     valueText.setAttribute('text-anchor', 'middle');
-    valueText.setAttribute('fill', color);
+    valueText.setAttribute('fill', cellColor);
     valueText.setAttribute('font-size', String(Math.round(11 * scale)));
     valueText.setAttribute('font-weight', '600');
     valueText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-    if (!enabled) {
+    if (effectiveState === 'done' || !enabled) {
       valueText.setAttribute('filter', `url(#${dimFilterId})`);
     }
     valueText.textContent = String(value);

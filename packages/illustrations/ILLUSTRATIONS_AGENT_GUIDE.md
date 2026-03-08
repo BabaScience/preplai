@@ -24,7 +24,8 @@ This guide helps AI agents choose and configure the right illustration types whe
 | Big O, complexity curves | **BigO** | `metadata.curves`, `metadata.domain` |
 | Categorical comparison | **BarChart** | `metadata.bars` with label/value |
 | Classification metrics | **ConfusionMatrix** | `metadata.matrix`, row/col labels |
-| Array, list indices | **Array** | `metadata.values` or `metadata.cells`; use `pointerLabels` for low/mid/high in binary search (color-coded, optional `value`/`showValue`, `highlight` for active) |
+| Array, list indices | **Array** | `metadata.values` or `metadata.cells`; `selectedIndexes` (active), `compareIndexes`, `swapIndexes`, `doneIndexes`; `pointerLabels` for low/mid/high |
+| Single array cell, algorithm step | **ArrayCell** | `metadata.value`, `metadata.index`, `metadata.state` (default\|active\|compare\|swap\|done) |
 | BST, heap, tree | **BinaryTree** | `metadata.tree` or `metadata.nodes` |
 | Stack frames | **CallStack** | `metadata.frames` |
 | Layered model, tech stack, OSI | **Stack** | `metadata.layers` |
@@ -57,6 +58,13 @@ This guide helps AI agents choose and configure the right illustration types whe
 - **Purpose:** Notes, callouts, supplementary text
 - **Visual:** Sticky-note style — rounded rect with folded top-right corner and shadow
 - **Metadata:** `label`, `width?`, `maxLines?`
+
+### ArrayCell
+- **Purpose:** Single array cell for algorithm visualization (binary search, sorting, etc.)
+- **Visual:** Rounded rect with value (center), index (above). State-based styling.
+- **Metadata:** `value`, `index`, `state` (default | active | compare | swap | done)
+- **States:** active = current pointer (glow); compare = gold; swap = dashed; done = dimmed
+- **Use for:** Standalone cells or compositions; use Array for full row of cells
 
 ### Circuit
 - **Purpose:** Electronic circuits (battery, resistor, capacitor, bulb, switch)
