@@ -3,15 +3,32 @@
  * Term + definition card with left accent bar
  */
 
-import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
+import {
+  SVG_NS,
+  buildEntityGroup,
+  applyEntranceAnimation,
+  getSizeParam,
+  wrapBodyText,
+  CHAR_WIDTH_RATIO,
+} from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  TYPOGRAPHY,
+  SHAPES,
+  getLabelFontSize,
+  getStrokeWidth,
+  colorWithAlpha,
+  OPACITY,
+  LABEL_DEFAULTS,
+} from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderDefinition(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Definition');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-def-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -32,8 +49,21 @@ export function renderDefinition(entity: VisualEntity, parentEl: SVGElement): SV
   card.setAttribute('rx', String(SHAPES.borderRadius));
   card.setAttribute('fill', `url(#${gradId})`);
   card.setAttribute('stroke', color);
-  card.setAttribute('stroke-width', '2');
+  card.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   innerG.appendChild(card);
+
+  const clipId = `clip-def-${entity.id.replace(/[^a-zA-Z0-9-]/g, '')}`;
+  const clipPathEl = document.createElementNS(SVG_NS, 'clipPath');
+  clipPathEl.setAttribute('id', clipId);
+  const clipRect = document.createElementNS(SVG_NS, 'rect');
+  clipRect.setAttribute('x', String(-w / 2));
+  clipRect.setAttribute('y', String(-h / 2));
+  clipRect.setAttribute('width', String(w));
+  clipRect.setAttribute('height', String(h));
+  clipRect.setAttribute('rx', String(SHAPES.borderRadius));
+  clipPathEl.appendChild(clipRect);
+  defs.appendChild(clipPathEl);
+  innerG.setAttribute('clip-path', `url(#${clipId})`);
 
   const accentBar = document.createElementNS(SVG_NS, 'rect');
   accentBar.setAttribute('x', String(-w / 2));
@@ -55,15 +85,29 @@ export function renderDefinition(entity: VisualEntity, parentEl: SVGElement): SV
   termText.textContent = term;
   innerG.appendChild(termText);
 
-  const defText = document.createElementNS(SVG_NS, 'text');
-  defText.setAttribute('x', String(-w / 2 + 16));
-  defText.setAttribute('y', String(-h / 2 + 44));
-  defText.setAttribute('fill', `${color}dd`);
-  defText.setAttribute('font-size', String(TYPOGRAPHY.fontSizeBadge + 1));
-  defText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-  defText.setAttribute('font-weight', '400');
-  defText.textContent = definition.length > 40 ? definition.slice(0, 40) + '…' : definition;
-  innerG.appendChild(defText);
+  const defFontSize = getLabelFontSize('value', scale);
+  const defStartX = -w / 2 + 16;
+  const defStartY = -h / 2 + 44;
+  const availableWidth = Math.max(60, w - 32);
+  const maxCharsPerLine = Math.max(8, Math.floor(availableWidth / (defFontSize * CHAR_WIDTH_RATIO)));
+  const { lines: defLines } = wrapBodyText(definition, maxCharsPerLine, 8);
+  const defLineHeight = defFontSize * LABEL_DEFAULTS.lineHeight;
+
+  const defGroup = document.createElementNS(SVG_NS, 'text');
+  defGroup.setAttribute('text-anchor', 'start');
+  defGroup.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
+  defGroup.setAttribute('font-size', String(defFontSize));
+  defGroup.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+  defGroup.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+
+  defLines.forEach((line, i) => {
+    const tspan = document.createElementNS(SVG_NS, 'tspan');
+    tspan.setAttribute('x', String(defStartX));
+    tspan.setAttribute('y', String(defStartY + i * defLineHeight));
+    tspan.textContent = line;
+    defGroup.appendChild(tspan);
+  });
+  innerG.appendChild(defGroup);
 
   applyEntranceAnimation(innerG, entity);
   parentEl.appendChild(outerG);

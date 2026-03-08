@@ -96,3 +96,93 @@ export function getSizeParam(entity: VisualEntity): number {
   const s = entity.size ?? ENTITY_DEFAULTS.size;
   return Math.min(Math.max(s * VISIBILITY_BASE, SIZE_CLAMP_MIN), SIZE_CLAMP_MAX);
 }
+
+// ── wrapBodyText ─────────────────────────────────────────────────────
+
+/** Conservative char width ratio for wrapping (wider chars → wrap sooner). */
+export const CHAR_WIDTH_RATIO = 0.65;
+
+/**
+ * Wrap body text into lines. Honours explicit newlines and word-wraps at edge.
+ * Use for Callout, Definition, Goal body/definition text.
+ *
+ * @param text - Raw body text (may contain \n)
+ * @param maxCharsPerLine - Max chars per line (from availableWidth / (fontSize * CHAR_WIDTH_RATIO))
+ * @param maxLines - Max lines before truncation
+ * @returns { lines, truncated }
+ */
+export function wrapBodyText(
+  text: string,
+  maxCharsPerLine: number,
+  maxLines: number,
+): { lines: string[]; truncated: boolean } {
+  if (!text || maxCharsPerLine < 1 || maxLines < 1) {
+    return { lines: [], truncated: false };
+  }
+  const effectiveMax = Math.max(8, maxCharsPerLine);
+  const lines: string[] = [];
+  let truncated = false;
+
+  function wordWrap(paragraph: string): void {
+    if (lines.length >= maxLines) return;
+    const words = paragraph.trim().split(/\s+/);
+    let current = '';
+    for (const w of words) {
+      const next = current ? `${current} ${w}` : w;
+      if (next.length <= effectiveMax) {
+        current = next;
+      } else {
+        if (current) {
+          lines.push(current);
+          if (lines.length >= maxLines) {
+            truncated = true;
+            return;
+          }
+          current = '';
+        }
+        if (w.length <= effectiveMax) {
+          current = w;
+        } else {
+          const chunks = w.match(new RegExp(`.{1,${effectiveMax}}`, 'g')) ?? [w];
+          for (let i = 0; i < chunks.length; i++) {
+            if (i < chunks.length - 1) {
+              lines.push(chunks[i]);
+              if (lines.length >= maxLines) {
+                truncated = true;
+                return;
+              }
+            } else {
+              current = chunks[i];
+            }
+          }
+        }
+      }
+    }
+    if (current && lines.length < maxLines) lines.push(current);
+  }
+
+  const paragraphs = text.split(/\r?\n/);
+  for (const p of paragraphs) {
+    if (lines.length >= maxLines) {
+      truncated = true;
+      break;
+    }
+    if (!p.trim()) {
+      lines.push('');
+      continue;
+    }
+    wordWrap(p);
+  }
+
+  if (truncated && lines.length > 0) {
+    const last = lines[lines.length - 1];
+    const suffix = '…';
+    if (last.length + suffix.length > effectiveMax) {
+      lines[lines.length - 1] = last.slice(0, effectiveMax - suffix.length) + suffix;
+    } else {
+      lines[lines.length - 1] = last + suffix;
+    }
+  }
+
+  return { lines, truncated };
+}

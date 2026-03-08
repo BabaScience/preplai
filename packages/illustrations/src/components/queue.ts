@@ -5,13 +5,14 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const _s = getSizeParam(entity);
+  const s = getSizeParam(entity);
+  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Queue');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-queue-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -34,7 +35,7 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   inArrow.setAttribute('x2', String(-totalW / 2 + 15));
   inArrow.setAttribute('y2', '0');
   inArrow.setAttribute('stroke', color);
-  inArrow.setAttribute('stroke-width', String(SHAPES.strokeWidth));
+  inArrow.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   inArrow.setAttribute('opacity', '0.8');
   innerG.appendChild(inArrow);
   const inHead = document.createElementNS(SVG_NS, 'polygon');
@@ -54,7 +55,7 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     cell.setAttribute('rx', '4');
     cell.setAttribute('fill', `url(#${gradId})`);
     cell.setAttribute('stroke', color);
-    cell.setAttribute('stroke-width', String(SHAPES.strokeWidthThin));
+    cell.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
     innerG.appendChild(cell);
 
     const valueText = document.createElementNS(SVG_NS, 'text');
@@ -62,8 +63,8 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     valueText.setAttribute('y', String(4));
     valueText.setAttribute('text-anchor', 'middle');
     valueText.setAttribute('fill', color);
-    valueText.setAttribute('font-size', '11');
-    valueText.setAttribute('font-weight', '600');
+    valueText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
+    valueText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
     valueText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     valueText.textContent = String(val);
     innerG.appendChild(valueText);
@@ -76,7 +77,7 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   outArrow.setAttribute('x2', String(totalW / 2));
   outArrow.setAttribute('y2', '0');
   outArrow.setAttribute('stroke', color);
-  outArrow.setAttribute('stroke-width', String(SHAPES.strokeWidth));
+  outArrow.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   outArrow.setAttribute('opacity', '0.8');
   innerG.appendChild(outArrow);
 

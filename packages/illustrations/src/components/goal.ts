@@ -4,15 +4,32 @@
  * Use for learning objectives, session goals, target outcomes.
  */
 
-import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
+import {
+  SVG_NS,
+  buildEntityGroup,
+  applyEntranceAnimation,
+  getSizeParam,
+  wrapBodyText,
+  CHAR_WIDTH_RATIO,
+} from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  TYPOGRAPHY,
+  SHAPES,
+  getLabelFontSize,
+  getStrokeWidth,
+  colorWithAlpha,
+  OPACITY,
+  LABEL_DEFAULTS,
+} from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderGoal(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Goal');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-goal-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -24,6 +41,19 @@ export function renderGoal(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   const w = s * 2;
   const h = s * 1.2;
 
+  const clipId = `clip-goal-${entity.id.replace(/[^a-zA-Z0-9-]/g, '')}`;
+  const clipPathEl = document.createElementNS(SVG_NS, 'clipPath');
+  clipPathEl.setAttribute('id', clipId);
+  const clipRect = document.createElementNS(SVG_NS, 'rect');
+  clipRect.setAttribute('x', String(-w / 2));
+  clipRect.setAttribute('y', String(-h / 2));
+  clipRect.setAttribute('width', String(w));
+  clipRect.setAttribute('height', String(h));
+  clipRect.setAttribute('rx', String(SHAPES.borderRadius));
+  clipPathEl.appendChild(clipRect);
+  defs.appendChild(clipPathEl);
+  innerG.setAttribute('clip-path', `url(#${clipId})`);
+
   const card = document.createElementNS(SVG_NS, 'rect');
   card.setAttribute('x', String(-w / 2));
   card.setAttribute('y', String(-h / 2));
@@ -32,7 +62,7 @@ export function renderGoal(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   card.setAttribute('rx', String(SHAPES.borderRadius));
   card.setAttribute('fill', `url(#${gradId})`);
   card.setAttribute('stroke', color);
-  card.setAttribute('stroke-width', '2');
+  card.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   innerG.appendChild(card);
 
   // Target/bullseye icon (concentric circles)
@@ -44,7 +74,7 @@ export function renderGoal(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   r1.setAttribute('r', '12');
   r1.setAttribute('fill', 'none');
   r1.setAttribute('stroke', color);
-  r1.setAttribute('stroke-width', '2');
+  r1.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
   iconG.appendChild(r1);
   const r2 = document.createElementNS(SVG_NS, 'circle');
   r2.setAttribute('cx', '0');
@@ -52,7 +82,7 @@ export function renderGoal(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   r2.setAttribute('r', '7');
   r2.setAttribute('fill', 'none');
   r2.setAttribute('stroke', color);
-  r2.setAttribute('stroke-width', '2');
+  r2.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
   iconG.appendChild(r2);
   const r3 = document.createElementNS(SVG_NS, 'circle');
   r3.setAttribute('cx', '0');
@@ -67,21 +97,35 @@ export function renderGoal(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   typeLabel.setAttribute('x', String(-w / 2 + 52));
   typeLabel.setAttribute('y', String(-h / 2 + 22));
   typeLabel.setAttribute('fill', color);
-  typeLabel.setAttribute('font-size', String(TYPOGRAPHY.fontSizeBadge + 1));
-  typeLabel.setAttribute('font-weight', '600');
+  typeLabel.setAttribute('font-size', String(getLabelFontSize('value', scale)));
+  typeLabel.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
   typeLabel.setAttribute('font-family', TYPOGRAPHY.fontLabel);
   typeLabel.textContent = 'Goal';
   innerG.appendChild(typeLabel);
 
   if (body) {
-    const bodyText = document.createElementNS(SVG_NS, 'text');
-    bodyText.setAttribute('x', String(-w / 2 + 20));
-    bodyText.setAttribute('y', String(-h / 2 + 44));
-    bodyText.setAttribute('fill', `${color}dd`);
-    bodyText.setAttribute('font-size', String(TYPOGRAPHY.fontSizeBadge));
-    bodyText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    bodyText.textContent = body.length > 35 ? body.slice(0, 35) + '…' : body;
-    innerG.appendChild(bodyText);
+    const bodyFontSize = getLabelFontSize('value', scale);
+    const bodyStartX = -w / 2 + 20;
+    const bodyStartY = -h / 2 + 44;
+    const availableWidth = Math.max(60, w - 40);
+    const maxCharsPerLine = Math.max(8, Math.floor(availableWidth / (bodyFontSize * CHAR_WIDTH_RATIO)));
+    const { lines } = wrapBodyText(body, maxCharsPerLine, 8);
+    const lineHeight = bodyFontSize * LABEL_DEFAULTS.lineHeight;
+
+    const bodyGroup = document.createElementNS(SVG_NS, 'text');
+    bodyGroup.setAttribute('text-anchor', 'start');
+    bodyGroup.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
+    bodyGroup.setAttribute('font-size', String(bodyFontSize));
+    bodyGroup.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+
+    lines.forEach((line, i) => {
+      const tspan = document.createElementNS(SVG_NS, 'tspan');
+      tspan.setAttribute('x', String(bodyStartX));
+      tspan.setAttribute('y', String(bodyStartY + i * lineHeight));
+      tspan.textContent = line;
+      bodyGroup.appendChild(tspan);
+    });
+    innerG.appendChild(bodyGroup);
   }
 
   applyEntranceAnimation(innerG, entity);

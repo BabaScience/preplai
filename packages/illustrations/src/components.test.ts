@@ -17,6 +17,7 @@ import { renderArrow, renderDataFlow } from './components/arrow.js';
 import { renderGraph2D } from './components/graph2d.js';
 import { renderCoordinateSystem } from './components/coordinatesystem.js';
 import { renderArray } from './components/array.js';
+import { renderCallout } from './components/callout.js';
 import { SVG_NS } from './utils.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -569,5 +570,40 @@ describe('renderArray', () => {
     const highText = Array.from(texts).find(t => t.textContent?.includes('42'));
     expect(midText).toBeTruthy();
     expect(highText).toBeTruthy();
+  });
+});
+
+// ── Callout (flexible body: newlines + wrap) ────────────────────────────────
+
+describe('renderCallout', () => {
+  let parentEl: SVGSVGElement;
+  beforeEach(() => { parentEl = makeSvg(); });
+
+  it('should render multiple tspans when body has newlines', () => {
+    const entity = makeEntity({
+      id: 'callout-1',
+      type: 'Callout',
+      metadata: { body: 'Line one\nLine two' },
+    });
+    renderCallout(entity, parentEl);
+    const bodyText = parentEl.querySelector('.animate-element text[text-anchor="start"]');
+    expect(bodyText).toBeTruthy();
+    const tspans = bodyText!.querySelectorAll('tspan');
+    expect(tspans.length).toBe(2);
+    expect(tspans[0].textContent).toBe('Line one');
+    expect(tspans[1].textContent).toBe('Line two');
+  });
+
+  it('should wrap long body text into multiple lines', () => {
+    const entity = makeEntity({
+      id: 'callout-2',
+      type: 'Callout',
+      metadata: { body: 'The quick brown fox jumps over the lazy dog and keeps running' },
+    });
+    renderCallout(entity, parentEl);
+    const bodyText = parentEl.querySelector('.animate-element text[text-anchor="start"]');
+    expect(bodyText).toBeTruthy();
+    const tspans = bodyText!.querySelectorAll('tspan');
+    expect(tspans.length).toBeGreaterThan(1);
   });
 });

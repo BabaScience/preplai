@@ -5,7 +5,13 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { buildEntityGroup, applyEntranceAnimation, getSizeParam, SVG_NS } from './utils.js';
+import {
+  buildEntityGroup,
+  applyEntranceAnimation,
+  getSizeParam,
+  SVG_NS,
+  wrapBodyText,
+} from './utils.js';
 import type { VisualEntity } from '@preplai/shared';
 
 function makeEntity(overrides: Partial<VisualEntity> = {}): VisualEntity {
@@ -161,5 +167,43 @@ describe('getSizeParam', () => {
     const px = getSizeParam(makeEntity({ size: 5.0 }));
     // 5.0 * 50 = 250, clamped to 150
     expect(px).toBe(150);
+  });
+});
+
+// ── wrapBodyText ───────────────────────────────────────────────────────
+
+describe('wrapBodyText', () => {
+  it('should honour explicit newlines', () => {
+    const { lines } = wrapBodyText('Line one\nLine two', 100, 10);
+    expect(lines).toEqual(['Line one', 'Line two']);
+  });
+
+  it('should word-wrap when text reaches edge', () => {
+    const { lines } = wrapBodyText('The quick brown fox jumps over the lazy dog', 15, 10);
+    expect(lines.length).toBeGreaterThan(1);
+    expect(lines.every((l) => l.length <= 15)).toBe(true);
+  });
+
+  it('should honour newlines and wrap within paragraphs', () => {
+    const { lines } = wrapBodyText('Short\nA much longer line that should wrap at the edge', 20, 10);
+    expect(lines[0]).toBe('Short');
+    expect(lines.slice(1).some((l) => l.length > 0)).toBe(true);
+  });
+
+  it('should truncate with ellipsis when exceeding maxLines', () => {
+    const { lines, truncated } = wrapBodyText(
+      'One two three four five six seven eight nine ten',
+      10,
+      2,
+    );
+    expect(lines.length).toBe(2);
+    expect(truncated).toBe(true);
+    expect(lines[lines.length - 1]).toContain('…');
+  });
+
+  it('should return empty when text is empty', () => {
+    const { lines, truncated } = wrapBodyText('', 20, 5);
+    expect(lines).toEqual([]);
+    expect(truncated).toBe(false);
   });
 });
