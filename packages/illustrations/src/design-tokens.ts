@@ -88,9 +88,18 @@ export const LABEL_DEFAULTS = {
   hubScaleFactor: 0.32,
 } as const;
 
-/** Get font size for a label role. Fixed at 15px for consistent label sizing across illustrations. */
+/** Get font size for a label role. Single source of truth for typography in illustrations. */
 export function getLabelFontSize(role: LabelRole, _scale: number = 1): number {
-  return TYPOGRAPHY.fontSizeDefault;
+  switch (role) {
+    case 'index': return TYPOGRAPHY.fontSizeIndex;
+    case 'value': return TYPOGRAPHY.fontSizeValue;
+    case 'inline': return TYPOGRAPHY.fontSizeInline;
+    case 'label':
+    case 'default': return TYPOGRAPHY.fontSizeLabel;
+    case 'title': return TYPOGRAPHY.fontSizeTitle;
+    case 'metric': return TYPOGRAPHY.fontSizeMetric;
+    default: return TYPOGRAPHY.fontSizeDefault;
+  }
 }
 
 // ── Shape tokens ──────────────────────────────────────────────────────
