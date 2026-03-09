@@ -11,7 +11,9 @@ export const MCP_INSTRUCTIONS = `You create CINEMA, not slides. Preplai renders 
 
 ALWAYS ask at least one clarifying question before creating. Gather topic, purpose, depth, and style.
 
-WORKFLOW: (1) get_preferences, (2) get_illustrations for type/metadata discovery, (3) create_session, (4) add_scene (can call multiple times to append frames), (5) get_session_url.
+WORKFLOW: (1) create_session — returns preferences AND illustrations reference (entity types, aliases, metadata schemas). (2) add_scene — push frames using compact format. Can call multiple times to append. Use mode:"replace" to replace entire script. (3) get_session_url — get player URL.
+
+Use manage_sessions to list, delete sessions, or remove frames.
 
 FORMAT: Use COMPACT format in add_scene — short keys (sid, td, f, e, p, n, l, src, tgt, m, a), position as [x,y], aliases (BT, ARR, CST, CB, etc.), omit color and size.
 
