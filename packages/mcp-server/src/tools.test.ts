@@ -95,6 +95,45 @@ describe('MCP Tool Handlers', () => {
       expect(data.data.positionFormat).toBe('[x,y]');
       expect(data.data.defaultSize).toBe(2.5);
     });
+
+    it('has sufficient topic hints covering infrastructure types', async () => {
+      const result = await handleGetIllustrations();
+      const data = parse(result);
+      const hints = data.data.topicHints as Record<string, string[]>;
+
+      // Should have ≥70 topic hint entries after architecture coverage additions
+      expect(Object.keys(hints).length).toBeGreaterThanOrEqual(70);
+
+      // All infrastructure types should appear in at least one topic hint
+      const allHintedTypes = new Set(Object.values(hints).flat());
+      const requiredInfraTypes = [
+        'Queue', 'LoadBalancer', 'Container', 'Pod', 'Pipeline',
+        'Monitor', 'Firewall', 'Lambda', 'Cache', 'Network',
+        'Volume', 'Subnet', 'Process', 'DockerImage', 'DockerRegistry',
+      ];
+      for (const type of requiredInfraTypes) {
+        expect(allHintedTypes).toContain(type);
+      }
+    });
+
+    it('has composite architecture hints for common patterns', async () => {
+      const result = await handleGetIllustrations();
+      const data = parse(result);
+      const hints = data.data.topicHints as Record<string, string[]>;
+
+      // Microservices architecture should map to multiple types
+      expect(hints['microservices architecture']).toEqual(
+        expect.arrayContaining(['Service', 'Queue', 'LoadBalancer', 'Database']),
+      );
+      // Event-driven architecture
+      expect(hints['event-driven architecture, eda']).toEqual(
+        expect.arrayContaining(['Service', 'Queue', 'DataFlow']),
+      );
+      // Kubernetes
+      expect(hints['kubernetes cluster, k8s cluster']).toEqual(
+        expect.arrayContaining(['Pod', 'Container', 'Network']),
+      );
+    });
   });
 
   // ── create_session ──────────────────────────────────────────────

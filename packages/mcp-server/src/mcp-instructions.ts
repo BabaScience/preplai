@@ -23,4 +23,10 @@ CINEMATIC PRINCIPLES:
 - CAMERA: ViewBox auto-frames entities. Cluster tight = zoom in. Spread wide = zoom out. Shift = pan.
 - NARRATIVE ARC: Establish (core entities) → Focus (highlight one) → Expand (add detail) → Resolve (complete picture).
 - DENSITY: 5–7 entities per frame. Each frame should feel complete.
-- QUALITY: Match chat-level richness. Specific labels ("PostgreSQL" not "DB"). Substantive narration (2–4 sentences with context and examples).`;
+- QUALITY: Match chat-level richness. Specific labels ("PostgreSQL" not "DB"). Substantive narration (2–4 sentences with context and examples).
+
+ARCHITECTURE COMPOSITIONS:
+- MULTI-TIER: Position left→right (User [15,50] → LB [30,50] → Service [50,50] → DB [70,50]) or top→down. Use Arrow for sync calls, DataFlow for async/streaming.
+- Arrow = sync request. DataFlow = async/streaming (animated dashes). DottedArrow = optional/fallback. BidirectArrow = bidirectional.
+- FLOW REVEAL: Frame 1 establish nodes. Frame 2+ add arrows one-by-one with highlight on the target, narrating each hop.
+- AGENT SELF-EXPLANATION: When explaining what you built/changed: Frame 1 = before state. Frame 2+ = each change highlighted. Final frame = after state with summary.`;
