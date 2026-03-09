@@ -26,6 +26,7 @@ const SCRIPT_KEYS: Record<string, string> = {
   f: 'frames',
   td: 'totalDuration',
   sid: 'sceneId',
+  lang: 'language',
 };
 
 const FRAME_KEYS: Record<string, string> = {
@@ -34,6 +35,7 @@ const FRAME_KEYS: Record<string, string> = {
   d: 'description',
   tr: 'transitions',
   fc: 'focusCues',
+  lang: 'language',
 };
 
 const ENTITY_KEYS: Record<string, string> = {

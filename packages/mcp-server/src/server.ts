@@ -126,6 +126,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
 
   // ── Audio Store + TTS Service ──────────────────────────────────────
   const audioStore = new AudioStore();
+  audioStore.init(); // Initialize GridFS bucket (uses mongoose.connection.db)
   let ttsService: TtsService | undefined;
 
   const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
@@ -415,7 +416,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
         return;
       }
 
-      const buffer = audioStore.get(sessionId, idx);
+      const buffer = await audioStore.get(sessionId, idx);
       if (!buffer) {
         reply.status(404).send({ error: 'Audio not found.' });
         return;
