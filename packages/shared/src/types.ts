@@ -66,7 +66,23 @@ export type VisualEntityType =
   // Algorithms extended (2)
   | 'SortAnimation' | 'GraphTraversal'
   // ML extended (1)
-  | 'ConfusionMatrix';
+  | 'ConfusionMatrix'
+  // Software Architecture: API & Web (6)
+  | 'APIEndpoint' | 'HTTPRequest' | 'HTTPResponse' | 'WebSocket' | 'GraphQLSchema' | 'Webhook'
+  // Software Architecture: Auth & Security (4)
+  | 'AuthFlow' | 'Token' | 'Certificate' | 'Secret'
+  // Software Architecture: Data & Messaging (4)
+  | 'Schema' | 'Migration' | 'Event' | 'Stream'
+  // Software Architecture: CI/CD & DevOps (6)
+  | 'GitBranch' | 'GitCommit' | 'PullRequest' | 'Build' | 'Deployment' | 'Rollback'
+  // Software Architecture: Cloud Infrastructure (4)
+  | 'CDN' | 'StorageBucket' | 'APIGateway' | 'MessageBroker'
+  // Software Architecture: Observability (4)
+  | 'LogEntry' | 'Alert' | 'Trace' | 'Dashboard'
+  // Software Architecture: Code & Architecture (6)
+  | 'Module' | 'Interface' | 'ErrorState' | 'ConfigFile' | 'Dependency' | 'CronJob'
+  // Software Architecture: Collaboration (3)
+  | 'Notification' | 'Task' | 'File';
 
 
 // ── VisualEntity ──────────────────────────────────────────────────────

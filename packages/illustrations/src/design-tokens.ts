@@ -281,6 +281,59 @@ export const ENTITY_COLORS: Record<string, string> = {
   Vector: COLORS.pink,
   Tmpfs: COLORS.pink,
 
+  // ── Software Architecture: API & Web ──────────────────────────────
+  APIEndpoint: COLORS.green,
+  HTTPRequest: COLORS.cyan,
+  HTTPResponse: COLORS.cyan,
+  WebSocket: COLORS.teal,
+  GraphQLSchema: COLORS.pink,
+  Webhook: COLORS.orange,
+
+  // ── Software Architecture: Auth & Security ───────────────────────
+  AuthFlow: COLORS.gold,
+  Token: COLORS.gold,
+  Certificate: COLORS.green,
+  Secret: COLORS.red,
+
+  // ── Software Architecture: Data & Messaging ─────────────────────
+  Schema: COLORS.emerald,
+  Migration: COLORS.emerald,
+  Event: COLORS.orange,
+  Stream: COLORS.teal,
+
+  // ── Software Architecture: CI/CD & DevOps ────────────────────────
+  GitBranch: COLORS.violet,
+  GitCommit: COLORS.violet,
+  PullRequest: COLORS.green,
+  Build: COLORS.cyan,
+  Deployment: COLORS.blue,
+  Rollback: COLORS.red,
+
+  // ── Software Architecture: Cloud Infrastructure ──────────────────
+  CDN: COLORS.teal,
+  StorageBucket: COLORS.blue,
+  APIGateway: COLORS.green,
+  MessageBroker: COLORS.orange,
+
+  // ── Software Architecture: Observability ─────────────────────────
+  LogEntry: COLORS.cyan,
+  Alert: COLORS.red,
+  Trace: COLORS.teal,
+  Dashboard: COLORS.blue,
+
+  // ── Software Architecture: Code & Architecture ───────────────────
+  Module: COLORS.violet,
+  Interface: COLORS.cyan,
+  ErrorState: COLORS.red,
+  ConfigFile: COLORS.orange,
+  Dependency: COLORS.blue,
+  CronJob: COLORS.orange,
+
+  // ── Software Architecture: Collaboration ─────────────────────────
+  Notification: COLORS.orange,
+  Task: COLORS.cyan,
+  File: COLORS.blue,
+
   // ── White: Connectors ────────────────────────────────────────────
   Arrow: '#ffffff',
   DataFlow: '#ffffff',

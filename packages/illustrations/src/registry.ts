@@ -104,6 +104,58 @@ import { renderLogicGate } from './components/logicgate.js';
 import { renderMutex } from './components/mutex.js';
 import { renderSymbolTable } from './components/symboltable.js';
 
+// ── Software Architecture: API & Web
+import { renderAPIEndpoint } from './components/api-endpoint.js';
+import { renderHTTPRequest, renderHTTPResponse } from './components/http-request.js';
+import { renderWebSocket } from './components/websocket.js';
+import { renderGraphQLSchema } from './components/graphql-schema.js';
+import { renderWebhook } from './components/webhook.js';
+
+// ── Software Architecture: Auth & Security
+import { renderAuthFlow } from './components/auth-flow.js';
+import { renderToken } from './components/token.js';
+import { renderCertificate } from './components/certificate.js';
+import { renderSecret } from './components/secret.js';
+
+// ── Software Architecture: Data & Messaging
+import { renderSchema } from './components/schema.js';
+import { renderMigration } from './components/migration.js';
+import { renderEvent } from './components/event.js';
+import { renderStream } from './components/stream.js';
+
+// ── Software Architecture: CI/CD & DevOps
+import { renderGitBranch } from './components/git-branch.js';
+import { renderGitCommit } from './components/git-commit.js';
+import { renderPullRequest } from './components/pull-request.js';
+import { renderBuild } from './components/build.js';
+import { renderDeployment } from './components/deployment.js';
+import { renderRollback } from './components/rollback.js';
+
+// ── Software Architecture: Cloud Infrastructure
+import { renderCDN } from './components/cdn.js';
+import { renderStorageBucket } from './components/storage-bucket.js';
+import { renderAPIGateway } from './components/api-gateway.js';
+import { renderMessageBroker } from './components/message-broker.js';
+
+// ── Software Architecture: Observability
+import { renderLogEntry } from './components/log-entry.js';
+import { renderAlert } from './components/alert.js';
+import { renderTrace } from './components/trace.js';
+import { renderDashboard } from './components/dashboard.js';
+
+// ── Software Architecture: Code & Architecture
+import { renderModule } from './components/module.js';
+import { renderInterface } from './components/interface.js';
+import { renderErrorState } from './components/error-state.js';
+import { renderConfigFile } from './components/config-file.js';
+import { renderDependency } from './components/dependency.js';
+import { renderCronJob } from './components/cron-job.js';
+
+// ── Software Architecture: Collaboration
+import { renderNotification } from './components/notification.js';
+import { renderTask } from './components/task.js';
+import { renderFile } from './components/file.js';
+
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
 import { getCategoryColor } from './design-tokens.js';
@@ -266,6 +318,59 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
 
   // ── Algorithms extended
   SortAnimation: renderSortAnimation,
+
+  // ── Software Architecture: API & Web
+  APIEndpoint: renderAPIEndpoint,
+  HTTPRequest: renderHTTPRequest,
+  HTTPResponse: renderHTTPResponse,
+  WebSocket: renderWebSocket,
+  GraphQLSchema: renderGraphQLSchema,
+  Webhook: renderWebhook,
+
+  // ── Software Architecture: Auth & Security
+  AuthFlow: renderAuthFlow,
+  Token: renderToken,
+  Certificate: renderCertificate,
+  Secret: renderSecret,
+
+  // ── Software Architecture: Data & Messaging
+  Schema: renderSchema,
+  Migration: renderMigration,
+  Event: renderEvent,
+  Stream: renderStream,
+
+  // ── Software Architecture: CI/CD & DevOps
+  GitBranch: renderGitBranch,
+  GitCommit: renderGitCommit,
+  PullRequest: renderPullRequest,
+  Build: renderBuild,
+  Deployment: renderDeployment,
+  Rollback: renderRollback,
+
+  // ── Software Architecture: Cloud Infrastructure
+  CDN: renderCDN,
+  StorageBucket: renderStorageBucket,
+  APIGateway: renderAPIGateway,
+  MessageBroker: renderMessageBroker,
+
+  // ── Software Architecture: Observability
+  LogEntry: renderLogEntry,
+  Alert: renderAlert,
+  Trace: renderTrace,
+  Dashboard: renderDashboard,
+
+  // ── Software Architecture: Code & Architecture
+  Module: renderModule,
+  Interface: renderInterface,
+  ErrorState: renderErrorState,
+  ConfigFile: renderConfigFile,
+  Dependency: renderDependency,
+  CronJob: renderCronJob,
+
+  // ── Software Architecture: Collaboration
+  Notification: renderNotification,
+  Task: renderTask,
+  File: renderFile,
 };
 
 /**

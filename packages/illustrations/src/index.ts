@@ -124,5 +124,57 @@ export { renderLogicGate } from './components/logicgate.js';
 export { renderMutex } from './components/mutex.js';
 export { renderSymbolTable } from './components/symboltable.js';
 
+// ── Software Architecture: API & Web
+export { renderAPIEndpoint } from './components/api-endpoint.js';
+export { renderHTTPRequest, renderHTTPResponse } from './components/http-request.js';
+export { renderWebSocket } from './components/websocket.js';
+export { renderGraphQLSchema } from './components/graphql-schema.js';
+export { renderWebhook } from './components/webhook.js';
+
+// ── Software Architecture: Auth & Security
+export { renderAuthFlow } from './components/auth-flow.js';
+export { renderToken } from './components/token.js';
+export { renderCertificate } from './components/certificate.js';
+export { renderSecret } from './components/secret.js';
+
+// ── Software Architecture: Data & Messaging
+export { renderSchema } from './components/schema.js';
+export { renderMigration } from './components/migration.js';
+export { renderEvent } from './components/event.js';
+export { renderStream } from './components/stream.js';
+
+// ── Software Architecture: CI/CD & DevOps
+export { renderGitBranch } from './components/git-branch.js';
+export { renderGitCommit } from './components/git-commit.js';
+export { renderPullRequest } from './components/pull-request.js';
+export { renderBuild } from './components/build.js';
+export { renderDeployment } from './components/deployment.js';
+export { renderRollback } from './components/rollback.js';
+
+// ── Software Architecture: Cloud Infrastructure
+export { renderCDN } from './components/cdn.js';
+export { renderStorageBucket } from './components/storage-bucket.js';
+export { renderAPIGateway } from './components/api-gateway.js';
+export { renderMessageBroker } from './components/message-broker.js';
+
+// ── Software Architecture: Observability
+export { renderLogEntry } from './components/log-entry.js';
+export { renderAlert } from './components/alert.js';
+export { renderTrace } from './components/trace.js';
+export { renderDashboard } from './components/dashboard.js';
+
+// ── Software Architecture: Code & Architecture
+export { renderModule } from './components/module.js';
+export { renderInterface } from './components/interface.js';
+export { renderErrorState } from './components/error-state.js';
+export { renderConfigFile } from './components/config-file.js';
+export { renderDependency } from './components/dependency.js';
+export { renderCronJob } from './components/cron-job.js';
+
+// ── Software Architecture: Collaboration
+export { renderNotification } from './components/notification.js';
+export { renderTask } from './components/task.js';
+export { renderFile } from './components/file.js';
+
 // ── Generic component factory (for extending)
 export { createGenericRenderer } from './components/generic.js';
