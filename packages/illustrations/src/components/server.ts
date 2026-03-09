@@ -1,11 +1,11 @@
 /**
  * @preplai/illustrations — Server Component
- * Rack server: gradient body + rack stripes + LED dots with glow + label
+ * Rack-style server: gradient body + horizontal slot dividers + status LEDs + label
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs, ensureGlassFilter } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, COLORS, STROKE } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderServer(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -17,64 +17,69 @@ export function renderServer(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   const gradId = `grad-server-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const w = size * 1.4;
-  const h = size;
+  const w = size * 1.2;
+  const h = size * 0.85;
 
-  // ── Server body with gradient (top lighter)
+  // ── Server body (wide rack shape) ──
   const body = document.createElementNS(SVG_NS, 'rect');
   body.setAttribute('x', String(-w / 2));
   body.setAttribute('y', String(-h / 2));
   body.setAttribute('width', String(w));
-  body.setAttribute('height', String(h * 0.8));
-  body.setAttribute('rx', String(SHAPES.borderRadius - 2));
+  body.setAttribute('height', String(h));
+  body.setAttribute('rx', String(SHAPES.borderRadius));
   body.setAttribute('fill', `url(#${gradId})`);
   body.setAttribute('stroke', color);
   body.setAttribute('stroke-width', String(SHAPES.strokeWidth));
   body.setAttribute('filter', ensureGlassFilter(parentEl));
   innerG.appendChild(body);
 
-  // ── Rack stripe lines (more pronounced)
-  const lineOffsets = [-size / 6, 0, size / 6];
-  for (const oy of lineOffsets) {
+  // ── Horizontal rack slot dividers (2 lines → 3 slots) ──
+  const slotPositions = [-h / 6, h / 6];
+  for (const sy of slotPositions) {
     const line = document.createElementNS(SVG_NS, 'line');
-    line.setAttribute('x1', String(-w / 2));
-    line.setAttribute('x2', String(w / 2));
-    line.setAttribute('y1', String(oy));
-    line.setAttribute('y2', String(oy));
+    line.setAttribute('x1', String(-w / 2 + 4));
+    line.setAttribute('y1', String(sy));
+    line.setAttribute('x2', String(w / 2 - 4));
+    line.setAttribute('y2', String(sy));
     line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', '1.5');
-    line.setAttribute('opacity', '0.6');
+    line.setAttribute('stroke-width', String(STROKE.minimal));
+    line.setAttribute('opacity', '0.25');
     innerG.appendChild(line);
   }
 
-  // ── LED status dots (green, amber, power) with subtle glow
-  const dotConfig = [
-    { cx: -w / 3, cy: -size / 3, fill: color, glow: true },
-    { cx: -w / 6, cy: -size / 3, fill: color, glow: true },
-    { cx: w / 6, cy: -size / 3, fill: '#28c840', glow: false },
-  ];
-  for (const { cx, cy, fill, glow } of dotConfig) {
-    if (glow) {
-      const glowCircle = document.createElementNS(SVG_NS, 'circle');
-      glowCircle.setAttribute('cx', String(cx));
-      glowCircle.setAttribute('cy', String(cy));
-      glowCircle.setAttribute('r', '5');
-      glowCircle.setAttribute('fill', 'none');
-      glowCircle.setAttribute('stroke', fill);
-      glowCircle.setAttribute('stroke-width', '1');
-      glowCircle.setAttribute('opacity', '0.4');
-      innerG.appendChild(glowCircle);
-    }
-    const dot = document.createElementNS(SVG_NS, 'circle');
-    dot.setAttribute('cx', String(cx));
-    dot.setAttribute('cy', String(cy));
-    dot.setAttribute('r', '3');
-    dot.setAttribute('fill', fill);
-    dot.setAttribute('opacity', '0.9');
-    innerG.appendChild(dot);
+  // ── Status LEDs (3 dots in the top-right — green, green, dim) ──
+  const ledStartX = w / 2 - 22;
+  const ledY = -h / 2 + h / 6 - h / 6 / 2; // center of top slot
+  const ledSpacing = 7;
+  const ledColors = [COLORS.green, COLORS.green, color];
+  const ledOpacities = ['0.9', '0.9', '0.3'];
+
+  for (let i = 0; i < 3; i++) {
+    const led = document.createElementNS(SVG_NS, 'circle');
+    led.setAttribute('cx', String(ledStartX + i * ledSpacing));
+    led.setAttribute('cy', String(ledY));
+    led.setAttribute('r', '2.5');
+    led.setAttribute('fill', ledColors[i]);
+    led.setAttribute('opacity', ledOpacities[i]);
+    innerG.appendChild(led);
   }
 
-  // ── Label
+  // ── Small ventilation pattern (3 short horizontal lines in bottom slot) ──
+  const ventY = h / 6 + h / 6 / 2; // center of bottom slot
+  const ventW = w * 0.15;
+  for (let i = -1; i <= 1; i++) {
+    const vent = document.createElementNS(SVG_NS, 'line');
+    vent.setAttribute('x1', String(-ventW / 2));
+    vent.setAttribute('y1', String(ventY + i * 4));
+    vent.setAttribute('x2', String(ventW / 2));
+    vent.setAttribute('y2', String(ventY + i * 4));
+    vent.setAttribute('stroke', color);
+    vent.setAttribute('stroke-width', String(STROKE.minimal));
+    vent.setAttribute('opacity', '0.2');
+    innerG.appendChild(vent);
+  }
+
+  // ── Label ──
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');

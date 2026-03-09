@@ -412,6 +412,168 @@ export const METADATA_DEFAULTS = {
     payload: 'HTTP/1.1 200 OK...',
     protocol: 'TCP',
   },
+  // ── Software Architecture: API & Web
+  APIEndpoint: {
+    method: 'GET',
+    route: '/api/users/:id',
+    status: 200,
+  },
+  HTTPRequest: {
+    method: 'POST',
+    url: '/api/auth/login',
+    headers: 'Content-Type: application/json\nAuthorization: Bearer ...',
+    bodyPreview: '{ "email": "user@example.com" }',
+  },
+  HTTPResponse: {
+    method: 'POST',
+    url: '/api/auth/login',
+    statusCode: 200,
+    bodyPreview: '{ "token": "eyJhbG..." }',
+  },
+  WebSocket: {
+    protocol: 'wss',
+    status: 'connected',
+  },
+  GraphQLSchema: {
+    schemaType: 'type',
+    fields: ['id: ID!', 'name: String!', 'email: String', 'posts: [Post!]!'],
+  },
+  Webhook: {
+    event: 'user.created',
+    targetUrl: 'https://api.example.com/webhooks',
+  },
+  // ── Software Architecture: Auth & Security
+  AuthFlow: {
+    flowType: 'OAuth 2.0',
+  },
+  Token: {
+    tokenType: 'jwt',
+    value: 'eyJh',
+  },
+  Certificate: {
+    domain: '*.example.com',
+    valid: true,
+  },
+  Secret: {
+    key: 'DATABASE_URL',
+  },
+  // ── Software Architecture: Data & Messaging
+  Schema: {
+    tableName: 'users',
+    columns: [
+      { name: 'id', type: 'uuid' },
+      { name: 'email', type: 'varchar' },
+      { name: 'name', type: 'varchar' },
+      { name: 'created_at', type: 'timestamp' },
+    ],
+  },
+  Migration: {
+    version: 'v003',
+    description: 'Add user roles',
+    direction: 'up',
+  },
+  Event: {
+    label: 'user.created',
+  },
+  Stream: {
+    protocol: 'Kafka',
+    throughput: '10k/s',
+  },
+  // ── Software Architecture: CI/CD & DevOps
+  GitBranch: {
+    branchName: 'feature/auth',
+  },
+  GitCommit: {
+    hash: 'a1b2c3d',
+    message: 'feat: add OAuth flow',
+  },
+  PullRequest: {
+    prNumber: 142,
+    status: 'open',
+  },
+  Build: {
+    buildNumber: '847',
+    status: 'success',
+    duration: '2m 34s',
+  },
+  Deployment: {
+    environment: 'production',
+    version: 'v2.4.1',
+    status: 'live',
+  },
+  Rollback: {
+    fromVersion: 'v2.4.1',
+    toVersion: 'v2.3.8',
+  },
+  // ── Software Architecture: Cloud Infrastructure
+  CDN: {
+    regions: 3,
+  },
+  StorageBucket: {
+    provider: 'S3',
+  },
+  APIGateway: {
+    routes: 3,
+  },
+  MessageBroker: {
+    protocol: 'AMQP',
+    queues: 3,
+  },
+  // ── Software Architecture: Observability
+  LogEntry: {
+    level: 'info',
+    timestamp: '12:34:56',
+    message: 'Request completed in 45ms',
+  },
+  Alert: {
+    severity: 'critical',
+    status: 'firing',
+  },
+  Trace: {
+    service: 'api-gateway',
+    duration: '45ms',
+    status: 'ok',
+  },
+  Dashboard: {
+    panels: 4,
+  },
+  // ── Software Architecture: Code & Architecture
+  Module: {
+    exports: 5,
+  },
+  Interface: {
+    methods: ['getUser()', 'createUser()', 'deleteUser()'],
+  },
+  ErrorState: {
+    errorType: 'TypeError',
+    message: 'Cannot read property of undefined',
+    code: 500,
+  },
+  ConfigFile: {
+    filename: '.env',
+    entries: [
+      { key: 'PORT', value: '3000' },
+      { key: 'DB_HOST', value: 'localhost' },
+      { key: 'NODE_ENV', value: 'production' },
+    ],
+  },
+  Dependency: {
+    version: '^4.18.2',
+  },
+  CronJob: {
+    schedule: '0 */6 * * *',
+  },
+  // ── Software Architecture: Collaboration
+  Notification: {
+    channel: 'push',
+  },
+  Task: {
+    status: 'in_progress',
+    priority: 'high',
+  },
+  File: {
+    extension: 'md',
+  },
 };
 
 /** Entity-level defaults (not metadata) for types that need textContent etc. */
@@ -449,4 +611,42 @@ export const ENTITY_FIELD_DEFAULTS = {
     textContent: 'function fib(n) {\n  if (n <= 1) return n;\n  return fib(n-1) + fib(n-2);\n}',
     codeLanguage: 'javascript',
   },
+  // ── Software Architecture
+  APIEndpoint: { label: 'GET /api/users' },
+  HTTPRequest: { label: 'POST /api/auth' },
+  HTTPResponse: { label: '200 OK' },
+  WebSocket: { label: 'ws://realtime' },
+  GraphQLSchema: { label: 'User' },
+  Webhook: { label: 'user.created' },
+  AuthFlow: { label: 'OAuth 2.0' },
+  Token: { label: 'JWT' },
+  Certificate: { label: '*.example.com' },
+  Secret: { label: 'DATABASE_URL' },
+  Schema: { label: 'users' },
+  Migration: { label: 'Add roles' },
+  Event: { label: 'user.created' },
+  Stream: { label: 'Events Stream' },
+  GitBranch: { label: 'feature/auth' },
+  GitCommit: { label: 'Initial commit' },
+  PullRequest: { label: 'Add auth flow' },
+  Build: { label: 'Build' },
+  Deployment: { label: 'production' },
+  Rollback: { label: 'Rollback' },
+  CDN: { label: 'CloudFront' },
+  StorageBucket: { label: 'Assets Bucket' },
+  APIGateway: { label: 'API Gateway' },
+  MessageBroker: { label: 'RabbitMQ' },
+  LogEntry: { label: 'Request completed' },
+  Alert: { label: 'High CPU Usage' },
+  Trace: { label: 'api-gateway' },
+  Dashboard: { label: 'Monitoring' },
+  Module: { label: 'auth' },
+  Interface: { label: 'IUserService' },
+  ErrorState: { label: 'TypeError' },
+  ConfigFile: { label: '.env' },
+  Dependency: { label: 'express' },
+  CronJob: { label: 'cleanup-logs' },
+  Notification: { label: 'Deploy succeeded' },
+  Task: { label: 'Implement OAuth' },
+  File: { label: 'readme.md' },
 };

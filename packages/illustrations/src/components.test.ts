@@ -70,20 +70,20 @@ describe('renderServer', () => {
     expect(innerG.querySelector('rect')).toBeTruthy();
   });
 
-  it('should contain rack stripe lines', () => {
+  it('should contain rack slot divider lines', () => {
     const entity = makeEntity({ type: 'Server' });
     renderServer(entity, parentEl);
     const innerG = parentEl.querySelector('.animate-element')!;
     const lines = innerG.querySelectorAll('line');
-    expect(lines.length).toBeGreaterThanOrEqual(3);
+    expect(lines.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('should contain LED dots', () => {
+  it('should contain status LED dots', () => {
     const entity = makeEntity({ type: 'Server' });
     renderServer(entity, parentEl);
     const innerG = parentEl.querySelector('.animate-element')!;
     const circles = innerG.querySelectorAll('circle');
-    expect(circles.length).toBeGreaterThanOrEqual(2);
+    expect(circles.length).toBeGreaterThanOrEqual(3);
   });
 
   it('should render label when provided', () => {
@@ -183,11 +183,12 @@ describe('renderCloud', () => {
     expect(result.getAttribute('data-type')).toBe('Cloud');
   });
 
-  it('should contain overlapping ellipses (cumulus cloud shape)', () => {
+  it('should contain overlapping ellipses (simplified cloud shape)', () => {
     const entity = makeEntity({ type: 'Cloud' });
     renderCloud(entity, parentEl);
     const ellipses = parentEl.querySelectorAll('.animate-element ellipse');
-    expect(ellipses.length).toBe(5);
+    // 3 cloud bumps + 1 flat base = 4 ellipses
+    expect(ellipses.length).toBe(4);
   });
 });
 
@@ -197,12 +198,13 @@ describe('renderConcept', () => {
   let parentEl: SVGSVGElement;
   beforeEach(() => { parentEl = makeSvg(); });
 
-  it('should contain outer rect and inner dotted rect', () => {
+  it('should contain outer rect and solid inner border', () => {
     const entity = makeEntity({ type: 'Concept', label: 'API' });
     renderConcept(entity, parentEl);
     const rects = parentEl.querySelectorAll('.animate-element rect');
     expect(rects.length).toBe(2);
-    expect(rects[1].getAttribute('stroke-dasharray')).toBe('4,4');
+    // Inner border is solid (no dash-array), not dashed
+    expect(rects[1].getAttribute('stroke-dasharray')).toBeNull();
   });
 
   it('should render centered label text', () => {

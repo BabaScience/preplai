@@ -97,6 +97,65 @@ const TOPIC_HINTS: Record<string, string[]> = {
   'kubernetes cluster, k8s cluster': ['Pod', 'Container', 'Network', 'LoadBalancer', 'Volume'],
   'serverless architecture': ['Lambda', 'Queue', 'Database', 'Cloud', 'Arrow'],
   'ci/cd pipeline architecture': ['Pipeline', 'PipelineStage', 'Container', 'DockerRegistry', 'Cloud'],
+
+  // ── Software Architecture: API & Web ──
+  'api endpoint, rest endpoint, route handler': ['APIEndpoint'],
+  'http request, http response, fetch, ajax': ['HTTPRequest', 'HTTPResponse'],
+  'websocket, realtime, socket, ws': ['WebSocket'],
+  'graphql, schema, query, mutation': ['GraphQLSchema'],
+  'webhook, callback url, event hook': ['Webhook'],
+
+  // ── Software Architecture: Auth & Security ──
+  'oauth, auth flow, authentication flow, sso, jwt flow': ['AuthFlow', 'Token'],
+  'jwt, token, access token, bearer': ['Token'],
+  'ssl, tls, certificate, https': ['Certificate'],
+  'env var, secret, vault, credentials': ['Secret'],
+
+  // ── Software Architecture: Data & Messaging ──
+  'database schema, table schema, erd, columns': ['Schema'],
+  'database migration, schema migration, flyway': ['Migration'],
+  'domain event, event sourcing, event payload': ['Event'],
+  'data stream, kafka topic, kinesis, event stream': ['Stream'],
+
+  // ── Software Architecture: CI/CD & DevOps ──
+  'git branch, feature branch, branching strategy': ['GitBranch'],
+  'git commit, commit history, commit hash': ['GitCommit'],
+  'pull request, pr, merge request, code review': ['PullRequest'],
+  'build, ci build, compilation, build pipeline': ['Build'],
+  'deployment, deploy, release, ship': ['Deployment'],
+  'rollback, revert, undo deployment': ['Rollback'],
+
+  // ── Software Architecture: Cloud Infrastructure ──
+  'cdn, cloudfront, edge, content delivery': ['CDN'],
+  'storage bucket, s3, blob storage, object storage': ['StorageBucket'],
+  'api gateway, kong, apigee, gateway routing': ['APIGateway'],
+  'message broker, rabbitmq, activemq, exchange': ['MessageBroker'],
+
+  // ── Software Architecture: Observability ──
+  'log entry, application log, structured log': ['LogEntry'],
+  'alert, pagerduty, opsgenie, incident': ['Alert'],
+  'distributed trace, span, jaeger, zipkin': ['Trace'],
+  'monitoring dashboard, grafana dashboard, datadog': ['Dashboard', 'Monitor'],
+
+  // ── Software Architecture: Code & Architecture ──
+  'module, package, library, npm package': ['Module'],
+  'interface, contract, abstract class, protocol': ['Interface'],
+  'error, exception, error state, failure': ['ErrorState'],
+  'config file, env file, yaml config, settings': ['ConfigFile'],
+  'dependency, package dependency, npm, pip': ['Dependency'],
+  'cron job, scheduled task, periodic job': ['CronJob'],
+
+  // ── Software Architecture: Collaboration ──
+  'notification, push notification, alert message': ['Notification'],
+  'task, ticket, issue, jira, todo': ['Task'],
+  'file, document, artifact, attachment': ['File'],
+
+  // ── Composite software architecture hints ──
+  'software architecture overview': ['Server', 'Database', 'Cache', 'Queue', 'LoadBalancer', 'APIGateway', 'Service', 'Arrow', 'DataFlow'],
+  'api architecture': ['APIEndpoint', 'APIGateway', 'Database', 'Cache', 'LoadBalancer', 'Arrow'],
+  'deployment pipeline': ['GitBranch', 'PullRequest', 'Build', 'Deployment', 'Pipeline', 'Arrow'],
+  'observability stack': ['LogEntry', 'Alert', 'Trace', 'Dashboard', 'Monitor', 'Metric'],
+  'auth system': ['AuthFlow', 'Token', 'Certificate', 'Secret', 'Service', 'Arrow'],
 };
 
 // ── Metadata hints by type (from COMPACT_REFERENCE, METADATA_SCHEMAS) ───────
@@ -217,6 +276,59 @@ const METADATA_HINTS: Record<string, string> = {
   // Misc
   Decision: 'label?',
   Cluster: 'label?',
+
+  // ── Software Architecture: API & Web ──
+  APIEndpoint: 'method?: "GET"|"POST"|"PUT"|"DELETE"|"PATCH", path?, statusCode?',
+  HTTPRequest: 'method?: "GET"|"POST"|"PUT"|"DELETE", url?, contentType?',
+  HTTPResponse: 'statusCode?, contentType?, bodyPreview?',
+  WebSocket: 'url?, protocol?',
+  GraphQLSchema: 'types?, queries?, mutations?',
+  Webhook: 'event?, url?, method?',
+
+  // ── Software Architecture: Auth & Security ──
+  AuthFlow: 'provider?, flowType?: "oauth"|"jwt"|"saml"|"basic"',
+  Token: 'tokenType?: "JWT"|"Bearer"|"API Key"|"OAuth", expiresIn?',
+  Certificate: 'issuer?, domain?, expiresAt?',
+  Secret: 'secretType?: "env"|"vault"|"ssm", key?',
+
+  // ── Software Architecture: Data & Messaging ──
+  Schema: 'columns?: [{name, type}], tableName?',
+  Migration: 'version?, direction?: "up"|"down", description?',
+  Event: 'eventType?, payload?, source?',
+  Stream: 'topic?, partitions?, consumerGroup?',
+
+  // ── Software Architecture: CI/CD & DevOps ──
+  GitBranch: 'branchName?, baseBranch?, commits?',
+  GitCommit: 'hash?, message?, author?',
+  PullRequest: 'prNumber?, status?: "open"|"merged"|"closed", reviewers?',
+  Build: 'buildNumber?, status?: "pending"|"running"|"passed"|"failed", duration?',
+  Deployment: 'environment?: "staging"|"production"|"dev", version?, status?',
+  Rollback: 'fromVersion?, toVersion?, reason?',
+
+  // ── Software Architecture: Cloud Infrastructure ──
+  CDN: 'regions?, provider?',
+  StorageBucket: 'provider?: "S3"|"GCS"|"Azure Blob", accessLevel?',
+  APIGateway: 'routes?, rateLimit?',
+  MessageBroker: 'protocol?: "AMQP"|"MQTT"|"STOMP", queues?',
+
+  // ── Software Architecture: Observability ──
+  LogEntry: 'level?: "info"|"warn"|"error"|"debug", timestamp?, message?',
+  Alert: 'severity?: "critical"|"warning"|"info", status?: "firing"|"resolved"',
+  Trace: 'service?, duration?, status?: "ok"|"error"',
+  Dashboard: 'panels?',
+
+  // ── Software Architecture: Code & Architecture ──
+  Module: 'exports?',
+  Interface: 'methods?: string[]',
+  ErrorState: 'errorType?, message?, code?',
+  ConfigFile: 'filename?, entries?: [{key, value}]',
+  Dependency: 'version?, scope?',
+  CronJob: 'schedule?, lastRun?',
+
+  // ── Software Architecture: Collaboration ──
+  Notification: 'channel?: "push"|"email"|"slack"|"sms", title?',
+  Task: 'status?: "todo"|"in_progress"|"done", priority?: "low"|"medium"|"high"',
+  File: 'extension?, size?',
 };
 
 // ── Public API ─────────────────────────────────────────────────────────────
