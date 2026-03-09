@@ -4,6 +4,18 @@
 
 ---
 
+## Product Context
+
+Preplai is the most advanced cinematic illustration engine for AI agents. We serve three MVP users:
+
+1. **CS students** — LLMs connect our MCP to *show* CS concepts (arrays animate, trees grow, data flows) instead of text walls
+2. **Programmers** — AI coding tools (Cursor, Copilot) use our MCP to *show* the architecture they built, step by step
+3. **AI agent owners** — Autonomous agents use our MCP to *present* visual reports of their actions and decisions
+
+Every design decision should make these presentations more cinematic, clear, and immersive.
+
+---
+
 ## Your Focus Areas
 
 1. **Illustration components** — Programmatic SVG in `packages/illustrations/`

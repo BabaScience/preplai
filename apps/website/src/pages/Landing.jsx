@@ -3,8 +3,8 @@ import { Cpu, Film, LinkIcon, Zap, Layers, Mic } from 'lucide-react';
 import LandingLayout from '../layouts/LandingLayout';
 import Logo from '../components/Logo';
 import HeroPlayer from '../components/HeroPlayer';
-import ShowcasePlayer from '../components/ShowcasePlayer';
-import { CS_SCRIPT, ARCH_SCRIPT, AGENT_SCRIPT } from '../components/showcase-scripts';
+import ShowcaseCarousel from '../components/ShowcaseCarousel';
+import { SHOWCASE_ITEMS } from '../components/showcase-scripts';
 
 export default function Landing() {
   return (
@@ -20,13 +20,13 @@ export default function Landing() {
         <div className="hero-cinema-inner">
           <div className="hero-cinema-text">
             <h1 className="hero-fade-in hero-fade-in-delay-1">
-              Cinema-quality<br />
-              presentations.<br />
-              <span className="hero-accent">Built for AI agents.</span>
+              Your AI<br />
+              shows its work.<br />
+              <span className="hero-accent">Not logs. Cinema.</span>
             </h1>
             <p className="hero-cinema-sub hero-fade-in hero-fade-in-delay-2">
-              The presentation API for AI agents. Claude, ChatGPT, or any MCP client — one access token,
-              ten tools. Live, animated, voice-synced. Not slides. Cinema.
+              AI agents explain, build, and execute — but you can't see what they did.
+              Preplai gives any AI the power to present visually. Animated, voice-synced, shareable. Connect via MCP in seconds.
             </p>
             <div className="hero-ctas hero-fade-in hero-fade-in-delay-3">
               <Link to="/signup" className="btn btn-primary btn-lg">Get Access Token</Link>
@@ -46,23 +46,7 @@ export default function Landing() {
         <div className="section-label">Use Cases</div>
         <h2>See it in action</h2>
         <p className="section-desc">Every demo below is a live Preplai presentation — the same engine your AI agent will use.</p>
-        <div className="showcase-grid">
-          <ShowcasePlayer
-            script={CS_SCRIPT}
-            label="Computer Science"
-            description="Data structures, algorithms, and complexity — explained visually with real-time animations."
-          />
-          <ShowcasePlayer
-            script={ARCH_SCRIPT}
-            label="System Architecture"
-            description="Microservices, event-driven patterns, and infrastructure — architecture that builds itself."
-          />
-          <ShowcasePlayer
-            script={AGENT_SCRIPT}
-            label="Agent Reasoning"
-            description="Watch AI agents think: reasoning pipelines, confidence metrics, and verified outputs."
-          />
-        </div>
+        <ShowcaseCarousel items={SHOWCASE_ITEMS} />
       </section>
 
       {/* Capabilities strip — minimal, icon-driven (P3.3) */}
@@ -109,7 +93,7 @@ export default function Landing() {
         <div className="footer-inner">
           <div className="footer-brand">
             <Logo />
-            <p>Cinema-quality presentations.<br />Built for AI agents.</p>
+            <p>Your AI shows its work.<br />Not logs. Cinema.</p>
           </div>
           <div className="footer-links">
             <Link to="/docs">Docs</Link>
