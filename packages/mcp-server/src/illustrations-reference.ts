@@ -57,7 +57,46 @@ const TOPIC_HINTS: Record<string, string[]> = {
   'table, rows, columns': ['Table'],
   'thread, concurrency': ['Thread'],
   'timeline, events': ['Timeline'],
-  'infrastructure diagram': ['Server', 'Database', 'Cloud', 'Service', 'DNSResolver', 'Arrow', 'DataFlow'],
+  'infrastructure diagram': ['Server', 'Database', 'Cloud', 'Service', 'LoadBalancer', 'Queue', 'Cache', 'Container', 'Monitor', 'Firewall', 'DNSResolver', 'Arrow', 'DataFlow'],
+
+  // ── Microservices & Messaging ──
+  'message queue, kafka, rabbitmq, sqs, pub/sub, event bus': ['Queue'],
+  'load balancer, nginx, haproxy, traffic distribution': ['LoadBalancer'],
+  'caching, redis, memcached, in-memory store': ['Cache'],
+
+  // ── Containers & Orchestration ──
+  'docker, container, containerization': ['Container', 'DockerImage'],
+  'kubernetes, k8s, orchestration, pod': ['Pod', 'Container'],
+  'docker registry, container registry, ecr, gcr': ['DockerRegistry'],
+  'persistent volume, storage, pvc, ebs': ['Volume'],
+  'subnet, network segment, vpc': ['Subnet', 'Network'],
+  'virtual network, vpc, vnet, networking': ['Network'],
+
+  // ── Serverless & FaaS ──
+  'serverless, lambda, function, faas, cloud function': ['Lambda'],
+
+  // ── CI/CD & Pipelines ──
+  'ci/cd, pipeline, deployment, github actions, jenkins': ['Pipeline', 'PipelineStage'],
+  'data pipeline, etl, data flow, streaming': ['Pipeline', 'Queue', 'DataFlow'],
+
+  // ── Observability & Monitoring ──
+  'monitoring, observability, grafana, prometheus, metrics': ['Monitor'],
+  'logging, tracing, alerting, dashboard': ['Monitor', 'Metric'],
+
+  // ── Security ──
+  'firewall, waf, security group, network security': ['Firewall'],
+  'authentication, auth, oauth, identity': ['Service', 'Firewall'],
+
+  // ── Workers & Patterns ──
+  'worker process, background job, daemon, cron': ['Process'],
+  'decorator pattern, middleware, proxy pattern': ['Decorator'],
+
+  // ── Composite architecture hints (multi-type) ──
+  'microservices architecture': ['Service', 'Queue', 'LoadBalancer', 'Database', 'Cache', 'Arrow', 'DataFlow'],
+  'event-driven architecture, eda': ['Service', 'Queue', 'DataFlow', 'Database', 'Arrow'],
+  'kubernetes cluster, k8s cluster': ['Pod', 'Container', 'Network', 'LoadBalancer', 'Volume'],
+  'serverless architecture': ['Lambda', 'Queue', 'Database', 'Cloud', 'Arrow'],
+  'ci/cd pipeline architecture': ['Pipeline', 'PipelineStage', 'Container', 'DockerRegistry', 'Cloud'],
 };
 
 // ── Metadata hints by type (from COMPACT_REFERENCE, METADATA_SCHEMAS) ───────
