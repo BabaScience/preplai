@@ -101,17 +101,23 @@
   - Landing page flow: Hero → Showcases → Capabilities → Setup → Footer
 
 ### Phase 4: Semantic Design System
-- [ ] P4.1 — Semantic color mapping
-  - Blue spectrum = data/information (Database, Cache, Memory, Volume)
-  - Green spectrum = computation/processing (Server, CPU, Lambda, Service)
-  - Gold spectrum = human/agent (User, Agent, narrator elements)
-  - Red spectrum = state/control (Mutex, Semaphore, FSM, ProcessState)
-  - Violet spectrum = structure/organization (Container, Pod, Network, Subnet)
-- [ ] P4.2 — Scale hierarchy in compositions
-  - Entity being discussed: 1.5-2x scale, centered
-  - Supporting entities: normal scale, positioned around focus
-  - Background entities: 0.8x scale, peripheral
-  - Driven by narrator/scene metadata
+- [x] P4.1 — Semantic color mapping
+  - `ENTITY_COLORS` in `design-tokens.ts` reorganized by semantic spectrum (90+ types)
+  - Blue (`#4488ff`) = data/information: Database, Cache, Volume, MemoryBlock, HashTable, BTree, Dict, Set, Heap, etc.
+  - Green (`#00e676`) = computation/processing: Server, CPU, Service, Lambda, Pipeline, Thread, CodeBlock, CallStack, SymbolTable
+  - Gold (`#C9A84C`) = human/agent: User, Concept, Decision, Metric, BigO, Analogy, Quote, Definition, Proof
+  - Red (`#ff6b6b`) = state/control: Mutex, Semaphore, Firewall, FSM, ProcessState, DeadlockGraph, Badge
+  - Violet (`#9B59B6`) = structure/organization: Container, Pod, Network, Subnet, Cluster, Stack, BinaryTree, LinkedList, NeuralNetwork
+  - Cyan, Orange, Teal, Pink for remaining categories; White for connectors
+  - Player palettes (`palettes.ts`) aligned with semantic keys: `compute`, `data`, `environment`, `human`, `structure`, `state`, `annotation`
+  - Inline player (`player-js.ts`) PALETTES + `getEntityColor()` updated to match
+- [x] P4.2 — Scale hierarchy in compositions
+  - Driven by existing `highlight: true` entity flag (same as depth-of-field)
+  - Focused entities (`.dof-focus`): `scale(1.15)` — subtle enlargement + full opacity
+  - Background entities (`.dof-bg`): `scale(0.88)` — slight shrink + opacity 0.35 + blur
+  - No focus state: all entities at `scale(1.0)` (unchanged)
+  - CSS `transform` transition added (0.5s cubic-bezier, matches opacity/filter timing)
+  - Updated in `player-css.ts` (MCP player), `components.css` (hero + showcase embeds)
 
 ---
 
@@ -129,3 +135,4 @@
 ---
 
 *Last updated: 2026-03-08*
+*Phase 4 completed: 2026-03-08*

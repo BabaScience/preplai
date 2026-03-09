@@ -142,138 +142,150 @@ export const SHAPES = {
   strokeWidthHeavy: STROKE.emphasized,
 } as const;
 
-// ── Entity type → default color mapping ────────────────────────────────
+// ── Entity type → default color mapping (Semantic Design System P4.1) ──
+//
+// Colors are organized by semantic spectrum:
+//   Blue   = data / information / storage
+//   Green  = computation / processing / execution
+//   Gold   = human / agent / reasoning
+//   Red    = state / control / synchronization
+//   Violet = structure / organization / topology
+//   Cyan   = general-purpose / math / visualization
+//   Orange = annotations / scheduling / peripherals
+//   Teal   = environment / flow / monitoring
+//   Pink   = specialized (physics, ML confusion)
+//   White  = connectors
 
 export const ENTITY_COLORS: Record<string, string> = {
-  // Infrastructure
-  User: COLORS.pink,
-  Server: COLORS.cyan,
-  Database: COLORS.violet,
-  Cloud: COLORS.teal,
-  Container: COLORS.green,
-  Pod: COLORS.green,
-  Network: COLORS.cyan,
-  Device: COLORS.orange,
-  Arrow: '#ffffff',
-  DataFlow: COLORS.violet,
-  Process: COLORS.teal,
-  Queue: COLORS.orange,
-  Cache: COLORS.green,
-  LoadBalancer: COLORS.cyan,
-  Service: COLORS.cyan,
-  Firewall: COLORS.red,
-  Lambda: COLORS.orange,
-  Subnet: COLORS.blue,
-  Volume: COLORS.violet,
-  Registry: COLORS.green,
-  DNSResolver: COLORS.teal,
-  Decorator: COLORS.violet,
-  Tmpfs: COLORS.pink,
+  // ── Blue: Data / Information / Storage ────────────────────────────
+  Database: COLORS.blue,
+  Cache: COLORS.blue,
+  Volume: COLORS.blue,
+  MemoryBlock: COLORS.blue,
+  MemoryLayout: COLORS.blue,
+  MemoryMap: COLORS.blue,
+  CacheHierarchy: COLORS.blue,
+  Dict: COLORS.blue,
+  HashTable: COLORS.blue,
+  BTree: COLORS.blue,
+  Trie: COLORS.blue,
+  Heap: COLORS.blue,
+  Set: COLORS.blue,
+  Table: COLORS.blue,
+  Registry: COLORS.blue,
   DockerImage: COLORS.blue,
-  DockerRegistry: COLORS.green,
-  Monitor: COLORS.green,
-  Pipeline: COLORS.teal,
-  Decision: COLORS.orange,
-  Cluster: COLORS.blue,
-  // Universal
-  Concept: COLORS.cyan,
-  Entity: COLORS.cyan,
-  Group: COLORS.teal,
-  Label: COLORS.orange,
-  H1: COLORS.cyan,
-  H2: COLORS.violet,
-  H3: COLORS.gold,
-  Comparison: COLORS.orange,
-  Timeline: COLORS.green,
-  Metric: COLORS.pink,
-  Cycle: COLORS.teal,
-  Stack: COLORS.violet,
+  DockerRegistry: COLORS.blue,
+  QueryPlan: COLORS.blue,
+
+  // ── Green: Computation / Processing / Execution ──────────────────
+  Server: COLORS.green,
+  CPU: COLORS.green,
+  Service: COLORS.green,
+  Lambda: COLORS.green,
+  Process: COLORS.green,
+  ProcessBlock: COLORS.green,
+  Pipeline: COLORS.green,
+  Thread: COLORS.green,
+  PipelineStage: COLORS.green,
+  CodeBlock: COLORS.green,
+  CallStack: COLORS.green,
+  SymbolTable: COLORS.green,
+
+  // ── Gold: Human / Agent / Reasoning ──────────────────────────────
+  User: COLORS.gold,
+  Concept: COLORS.gold,
+  Decision: COLORS.gold,
+  Metric: COLORS.gold,
+  BigO: COLORS.gold,
+  Analogy: COLORS.gold,
+  Quote: COLORS.gold,
+  Definition: COLORS.gold,
+  Proof: COLORS.gold,
+
+  // ── Red: State / Control / Synchronization ───────────────────────
+  Mutex: COLORS.red,
+  Semaphore: COLORS.red,
+  Firewall: COLORS.red,
+  FSM: COLORS.red,
+  ProcessState: COLORS.red,
+  DeadlockGraph: COLORS.red,
   Badge: COLORS.red,
-  Quote: COLORS.violet,
-  // Math & Science
+  StateNode: COLORS.red,
+
+  // ── Violet: Structure / Organization / Topology ──────────────────
+  Container: COLORS.violet,
+  Pod: COLORS.violet,
+  Network: COLORS.violet,
+  Subnet: COLORS.violet,
+  Cluster: COLORS.violet,
+  Group: COLORS.violet,
+  Stack: COLORS.violet,
+  BinaryTree: COLORS.violet,
+  LinkedList: COLORS.violet,
+  RecursionTree: COLORS.violet,
+  NeuralNetwork: COLORS.violet,
+  TuringMachine: COLORS.violet,
+  Tuple: COLORS.violet,
+
+  // ── Cyan: General / Math / Visualization ─────────────────────────
+  H1: COLORS.cyan,
+  H2: COLORS.cyan,
+  H3: COLORS.cyan,
+  Entity: COLORS.cyan,
+  Array: COLORS.cyan,
+  ArrayCell: COLORS.cyan,
+  List: COLORS.cyan,
+  GraphDS: COLORS.cyan,
   Equation: COLORS.cyan,
   Expression: COLORS.cyan,
-  Matrix: COLORS.violet,
+  Matrix: COLORS.cyan,
   Graph2D: COLORS.cyan,
   CoordinateSystem: COLORS.cyan,
-  // Physics
-  FreeBodyDiagram: COLORS.orange,
-  Wave: COLORS.teal,
-  Vector: COLORS.pink,
-  // General
-  Table: COLORS.cyan,
-  Histogram: COLORS.green,
-  PieChart: COLORS.cyan,
-  FlowDiagram: COLORS.teal,
-  VennDiagram: COLORS.cyan,
-  Annotation: COLORS.orange,
-  BarChart: COLORS.cyan,
-  ScatterPlot: COLORS.cyan,
-  // Pedagogical
-  StepList: COLORS.cyan,
-  CodeBlock: COLORS.violet,
-  Definition: COLORS.green,
-  Callout: COLORS.orange,
-  Proof: COLORS.violet,
-  Analogy: COLORS.cyan,
-  // Data Structures
-  Array: COLORS.cyan,
-  LinkedList: COLORS.green,
-  BinaryTree: COLORS.violet,
-  HashTable: COLORS.orange,
-  Heap: COLORS.teal,
-  GraphDS: COLORS.cyan,
-  Trie: COLORS.green,
-  List: COLORS.cyan,
-  Tuple: COLORS.violet,
-  Set: COLORS.gold,
-  Dict: COLORS.orange,
-  // Algorithm
-  ArrayCell: COLORS.cyan,
-  RecursionTree: COLORS.violet,
-  // Automata
-  FSM: COLORS.cyan,
-  StateNode: COLORS.green,
-  Transition: '#ffffff',
-  // Computer Architecture
-  CPU: COLORS.cyan,
-  Register: COLORS.orange,
-  MemoryBlock: COLORS.violet,
-  LogicGate: COLORS.green,
-  Bus: COLORS.cyan,
-  // OS
-  ProcessBlock: COLORS.teal,
-  MemoryMap: COLORS.violet,
-  Thread: COLORS.green,
-  // Networking
-  Packet: COLORS.cyan,
-  // ML
-  NeuralNetwork: COLORS.violet,
-  // Compilers & PL
-  CallStack: COLORS.orange,
-  SymbolTable: COLORS.teal,
-  // Databases
-  BTree: COLORS.green,
-  QueryPlan: COLORS.cyan,
-  // OS
-  ProcessState: COLORS.teal,
-  GanttChart: COLORS.green,
-  DeadlockGraph: COLORS.red,
-  // Architecture
-  CacheHierarchy: COLORS.cyan,
-  PipelineStage: COLORS.orange,
-  MemoryLayout: COLORS.violet,
-  // Concurrency
-  Semaphore: COLORS.orange,
-  Mutex: COLORS.red,
-  // Theory
-  TuringMachine: COLORS.violet,
-  BigO: COLORS.gold,
-  // Algorithms extended
   SortAnimation: COLORS.cyan,
-  GraphTraversal: COLORS.green,
-  // ML extended
+  StepList: COLORS.cyan,
+  LoadBalancer: COLORS.cyan,
+  DNSResolver: COLORS.cyan,
+  Bus: COLORS.cyan,
+  Packet: COLORS.cyan,
+  Queue: COLORS.cyan,
+  BarChart: COLORS.cyan,
+  Histogram: COLORS.cyan,
+  PieChart: COLORS.cyan,
+  ScatterPlot: COLORS.cyan,
+  VennDiagram: COLORS.cyan,
+
+  // ── Orange: Annotations / Scheduling / Peripherals ───────────────
+  Label: COLORS.orange,
+  Callout: COLORS.orange,
+  Annotation: COLORS.orange,
+  Comparison: COLORS.orange,
+  GanttChart: COLORS.orange,
+  LogicGate: COLORS.orange,
+  Register: COLORS.orange,
+  Device: COLORS.orange,
+  Decorator: COLORS.orange,
+  FreeBodyDiagram: COLORS.orange,
+
+  // ── Teal: Environment / Flow / Monitoring ────────────────────────
+  Cloud: COLORS.teal,
+  Cycle: COLORS.teal,
+  Wave: COLORS.teal,
+  FlowDiagram: COLORS.teal,
+  Monitor: COLORS.teal,
+  Timeline: COLORS.teal,
+  GraphTraversal: COLORS.teal,
+
+  // ── Pink: Specialized ────────────────────────────────────────────
   ConfusionMatrix: COLORS.pink,
+  Vector: COLORS.pink,
+  Tmpfs: COLORS.pink,
+
+  // ── White: Connectors ────────────────────────────────────────────
+  Arrow: '#ffffff',
+  DataFlow: '#ffffff',
+  Transition: '#ffffff',
+  BidirectArrow: '#ffffff',
+  DottedArrow: '#ffffff',
 };
 
 /** Get default color for an entity type. Falls back to cyan. */

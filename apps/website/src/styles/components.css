@@ -382,16 +382,19 @@
   transform-box: fill-box;
   transform-origin: center center;
   will-change: transform, opacity;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Entity layer transitions for DoF */
+/* Entity layer transitions for DoF (P4.2) — opacity/filter on outerG */
 .hero-player-live #hero-entity-layer > g {
   transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
               filter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hero-player-live .dof-focus { opacity: 1 !important; filter: none !important; }
+.hero-player-live .dof-focus > .animate-element { transform: scale(1.15) !important; }
 .hero-player-live .dof-bg { opacity: 0.35 !important; filter: blur(1.5px) saturate(0.5) !important; }
+.hero-player-live .dof-bg > .animate-element { transform: scale(0.88) !important; }
 
 /* ── Showcase Players (P3.2) ────────────────────────────────────── */
 
@@ -443,16 +446,19 @@
   transform-box: fill-box;
   transform-origin: center center;
   will-change: transform, opacity;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Entity layer transitions for DoF in showcase */
+/* Entity layer transitions for DoF (P4.2) in showcase — opacity/filter on outerG */
 .showcase-player-canvas g > g {
   transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
               filter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .showcase-player .dof-focus { opacity: 1 !important; filter: none !important; }
+.showcase-player .dof-focus > .animate-element { transform: scale(1.15) !important; }
 .showcase-player .dof-bg { opacity: 0.35 !important; filter: blur(1.5px) saturate(0.5) !important; }
+.showcase-player .dof-bg > .animate-element { transform: scale(0.88) !important; }
 
 .showcase-player-info {
   padding: var(--space-5) var(--space-6);

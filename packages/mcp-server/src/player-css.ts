@@ -339,6 +339,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   transform-box: fill-box;
   transform-origin: center center;
   will-change: transform, opacity;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ── Entrance @keyframes ─────────────────────────────────────────── */
@@ -547,9 +548,17 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   filter: none !important;
 }
 
+.dof-focus > .animate-element {
+  transform: scale(1.15) !important;
+}
+
 .dof-bg {
   opacity: 0.35 !important;
   filter: blur(1.5px) saturate(0.5) !important;
+}
+
+.dof-bg > .animate-element {
+  transform: scale(0.88) !important;
 }
 
 /* ── Spatial narrator (P2.3) ─────────────────────────────────────── */
