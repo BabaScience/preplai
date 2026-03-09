@@ -204,15 +204,20 @@ export async function handleAddScene(
     mergedScript = expandedScript;
   }
 
+  // Capture pre-merge frame count before store.setScript() mutates the session reference
+  const startIndex = session.script?.frames?.length ?? 0;
+
   await store.setScript(session_id, mergedScript);
 
   sse.emit(session_id, { type: 'script_update', script: mergedScript });
 
   // Fire-and-forget: generate ElevenLabs TTS audio for new frames
-  const startIndex = session.script?.frames?.length ?? 0;
-  const hasNarration = mergedScript.frames.slice(startIndex).some(
-    (f: any) => f.narrationSegment?.trim(),
-  );
+  const hasNarration = mergedScript.frames.slice(startIndex).some((f: any) => {
+    const seg = f.narrationSegment;
+    if (!seg) return false;
+    const text = typeof seg === 'string' ? seg : seg.text;
+    return text?.trim();
+  });
   const audioStatus = deps.ttsService && hasNarration ? 'generating' : 'unavailable';
   if (deps.ttsService && hasNarration) {
     deps.ttsService.generateForFrames(session_id, mergedScript.frames, startIndex);

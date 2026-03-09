@@ -12,10 +12,11 @@ import { config } from 'dotenv';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// Load .env from package root when present (dev/local). In production, env vars
+// Load .env from monorepo root when present (dev/local). In production, env vars
 // are typically set by the platform (Docker, K8s, etc.); dotenv no-ops if missing.
+// From dist/server.js: dist/ → mcp-server/ → packages/ → root
 const __dirname = dirname(fileURLToPath(import.meta.url));
-config({ path: join(__dirname, '..', '.env') });
+config({ path: join(__dirname, '..', '..', '..', '.env') });
 
 import { AsyncLocalStorage } from 'node:async_hooks';
 import Fastify, { type FastifyInstance } from 'fastify';
