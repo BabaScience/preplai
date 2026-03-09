@@ -7,6 +7,7 @@
 import { stage0Expand } from '@preplai/compiler';
 import type { SessionStore } from './session-store.js';
 import type { SseRegistry } from './sse.js';
+import type { TtsService } from './tts-service.js';
 import { getUserPlayerPrefs, buildPlayerUrlSuffix } from './auth.js';
 import { mcpOk, mcpNotFound, mcpErr, mcpValidationError, type McpToolContent } from './errors.js';
 import { getIllustrationsReference, type IllustrationsReference } from './illustrations-reference.js';
@@ -21,6 +22,7 @@ interface CreateSessionDeps {
 interface SceneDeps {
   store: SessionStore;
   sse: SseRegistry;
+  ttsService?: TtsService;
 }
 
 interface SessionUrlDeps {
@@ -206,6 +208,16 @@ export async function handleAddScene(
 
   sse.emit(session_id, { type: 'script_update', script: mergedScript });
 
+  // Fire-and-forget: generate ElevenLabs TTS audio for new frames
+  const startIndex = session.script?.frames?.length ?? 0;
+  const hasNarration = mergedScript.frames.slice(startIndex).some(
+    (f: any) => f.narrationSegment?.trim(),
+  );
+  const audioStatus = deps.ttsService && hasNarration ? 'generating' : 'unavailable';
+  if (deps.ttsService && hasNarration) {
+    deps.ttsService.generateForFrames(session_id, mergedScript.frames, startIndex);
+  }
+
   return mcpOk({
     session_id,
     frame_count: mergedScript.frames.length,
@@ -213,6 +225,7 @@ export async function handleAddScene(
     entity_count: mergedScript.frames.reduce(
       (sum: number, f: any) => sum + (f.entities?.length ?? 0), 0
     ),
+    audio_status: audioStatus,
     updated_at: new Date().toISOString(),
   });
 }
@@ -247,6 +260,15 @@ export async function handleUpdateScene(
 
   sse.emit(session_id, { type: 'script_update', script: expandedScript });
 
+  // Fire-and-forget: generate ElevenLabs TTS audio for all frames (replace mode)
+  const hasNarration = expandedScript.frames.some(
+    (f: any) => f.narrationSegment?.trim(),
+  );
+  const audioStatus = deps.ttsService && hasNarration ? 'generating' : 'unavailable';
+  if (deps.ttsService && hasNarration) {
+    deps.ttsService.generateForFrames(session_id, expandedScript.frames, 0);
+  }
+
   return mcpOk({
     session_id,
     frame_count: expandedScript.frames.length,
@@ -254,6 +276,7 @@ export async function handleUpdateScene(
     entity_count: expandedScript.frames.reduce(
       (sum: number, f: any) => sum + (f.entities?.length ?? 0), 0
     ),
+    audio_status: audioStatus,
     updated_at: new Date().toISOString(),
   });
 }
@@ -432,13 +455,18 @@ export async function handleRemoveScene(
 
 export async function handleDeleteSession(
   args: { session_id: string },
-  deps: { store: SessionStore },
+  deps: { store: SessionStore; audioStore?: import('./audio-store.js').AudioStore },
 ): Promise<McpToolContent> {
   const { session_id } = args;
-  const { store } = deps;
+  const { store, audioStore } = deps;
 
   const existed = await store.deleteSession(session_id);
   if (!existed) return mcpNotFound(session_id);
+
+  // Clean up audio buffers for this session
+  if (audioStore) {
+    audioStore.deleteSession(session_id);
+  }
 
   return mcpOk({
     session_id,

@@ -593,6 +593,54 @@ export class SceneController {
   }
 
   /**
+   * Dynamically shift focus to a specific entity during audio playback.
+   * Used by AudioEngine focus cues to drive narration-synced highlight shifts.
+   * Applies DoF classes and fires onFocusChange callback for spatial narrator.
+   *
+   * @param entityId  Entity to focus on, or null to clear all focus
+   */
+  shiftFocus(entityId: string | null): void {
+    if (!this.currentScript) return;
+    const frame = this.currentScript.frames[this.currentFrameIdx];
+    if (!frame) return;
+
+    const nonConnections = frame.entities.filter(e => !isConnectionType(e.type));
+
+    for (const entity of nonConnections) {
+      const el = this._findEntity(entity.id);
+      if (!el) continue;
+
+      if (entityId && entity.id === entityId) {
+        el.classList.add('dof-focus');
+        el.classList.remove('dof-bg');
+      } else if (entityId) {
+        el.classList.add('dof-bg');
+        el.classList.remove('dof-focus');
+      } else {
+        // No focus — clear all DoF
+        el.classList.remove('dof-focus', 'dof-bg');
+      }
+    }
+
+    // Emit focus change for spatial narrator positioning
+    if (this.onFocusChange) {
+      if (entityId) {
+        const el = this._findEntity(entityId);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          this.onFocusChange({
+            entityId,
+            screenX: rect.left + rect.width / 2,
+            screenY: rect.top,
+          });
+        }
+      } else {
+        this.onFocusChange(null);
+      }
+    }
+  }
+
+  /**
    * Clear the canvas — remove all entities and reset state.
    */
   clear(): void {

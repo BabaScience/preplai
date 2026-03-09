@@ -95,6 +95,8 @@ async function main() {
       });
       console.error('[preplai] Auto-opened player:', url);
     },
+    ttsService: ctx.ttsService,
+    audioStore: ctx.audioStore,
   });
 
   // 4. Connect via stdio

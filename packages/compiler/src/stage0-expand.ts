@@ -33,6 +33,7 @@ const FRAME_KEYS: Record<string, string> = {
   n: 'narrationSegment',
   d: 'description',
   tr: 'transitions',
+  fc: 'focusCues',
 };
 
 const ENTITY_KEYS: Record<string, string> = {
@@ -210,6 +211,15 @@ function expandFrame(
   const entitiesArr = Array.isArray(entitiesRaw) ? entitiesRaw : [];
   expanded.entities = entitiesArr.map((e, i) => expandEntity(e, i));
   delete expanded.e;
+
+  // Expand focus cues short keys (t→time, eid→entityId, w→word)
+  if (Array.isArray(expanded.focusCues)) {
+    expanded.focusCues = (expanded.focusCues as Record<string, unknown>[]).map(fc => ({
+      time: fc.t ?? fc.time,
+      entityId: fc.eid ?? fc.entityId,
+      word: fc.w ?? fc.word,
+    }));
+  }
 
   return { frame: expanded, errors };
 }

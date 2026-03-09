@@ -4,9 +4,9 @@
  * Entry point for the player when using @preplai/illustrations for rendering.
  * Connects SSE, initializes SceneController, handles frame nav and narrator.
  */
-import type { VisualScript } from '@preplai/shared';
+import type { VisualScript, FrameAudio } from '@preplai/shared';
 import type { FocusInfo } from '@preplai/player';
-import { SceneController, NarratorController, resolveSessionId, createSSEHandler } from '@preplai/player';
+import { SceneController, NarratorController, AudioEngine, resolveSessionId, createSSEHandler } from '@preplai/player';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const CW = 1920;
@@ -114,16 +114,97 @@ function main(): void {
     }
   }
 
+  // ── AudioEngine (ElevenLabs TTS) ────────────────────────────────
+  const audioMetadata = new Map<number, FrameAudio>();
+  let autoPlayEnabled = true;
+  let autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // Forward-declared — assigned after sceneController is created
+  let audioEngine: AudioEngine;
+
   const sceneController = new SceneController({
     entityLayer,
     connectionLayer,
     onNarratorUpdate: (text) => {
       narrator.update(text);
+      // Don't speak via Web Speech API if ElevenLabs audio is available for current frame
+      const frameAudio = audioMetadata.get(currentFrame);
+      if (frameAudio?.status === 'ready') {
+        // ElevenLabs audio will be played by goToFrame()
+        return;
+      }
       if (ttsEnabled && synth && text?.trim()) speakNarration(text);
     },
     onFrameChange: () => updateFrameCounter(),
     onFocusChange: positionNarratorSpatial,
   });
+
+  audioEngine = new AudioEngine({
+    onFocusCue: (cue) => {
+      sceneController.shiftFocus(cue.entityId);
+    },
+    onAudioEnd: () => {
+      // Clear focus when audio ends
+      sceneController.shiftFocus(null);
+      updatePlayPauseUI(false);
+      // Auto-advance to next frame after a short pause
+      if (autoPlayEnabled && currentScript) {
+        autoAdvanceTimer = setTimeout(() => {
+          autoAdvanceTimer = null;
+          if (currentScript && currentFrame < currentScript.frames.length - 1) {
+            goNext();
+          }
+        }, 1200);
+      }
+    },
+    onAudioError: (error) => {
+      console.warn('[PRE] Audio error:', error);
+      updatePlayPauseUI(false);
+      // Fall back to Web Speech API
+      if (error === 'autoplay_blocked') {
+        if (ttsEnabled && synth && narratorText?.textContent?.trim()) {
+          speakNarration(narratorText.textContent);
+        }
+      }
+    },
+  });
+
+  function updatePlayPauseUI(playing: boolean): void {
+    const btn = document.getElementById('play-pause-toggle');
+    if (!btn) return;
+    btn.classList.toggle('play-state', !playing);
+    btn.classList.toggle('pause-state', playing);
+    btn.setAttribute('title', playing ? 'Pause (Space)' : 'Play (Space)');
+  }
+
+  function playFrameAudio(frameIndex: number): void {
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      autoAdvanceTimer = null;
+    }
+    audioEngine.stop();
+    sceneController.shiftFocus(null);
+
+    const audio = audioMetadata.get(frameIndex);
+    if (audio?.status === 'ready' && audio.url && ttsEnabled) {
+      stopTTS(); // Stop Web Speech API
+      audioEngine.play(audio.url, audio.focusCues);
+      updatePlayPauseUI(true);
+    } else {
+      updatePlayPauseUI(false);
+    }
+  }
+
+  /** Populate audio metadata from script frames (when script already has audio data). */
+  function populateAudioFromScript(script: VisualScript): void {
+    audioMetadata.clear();
+    for (let i = 0; i < script.frames.length; i++) {
+      const frame = script.frames[i] as any;
+      if (frame?.audio?.status === 'ready') {
+        audioMetadata.set(i, frame.audio);
+      }
+    }
+  }
 
   let currentScript: VisualScript | null = null;
   let currentFrame = 0;
@@ -148,6 +229,7 @@ function main(): void {
           if (currentScript && idx >= 0 && idx < currentScript.frames.length) {
             currentFrame = idx;
             sceneController.seekToFrame(idx);
+            playFrameAudio(idx);
           }
         });
         dotsContainer.appendChild(dot);
@@ -160,7 +242,10 @@ function main(): void {
     hideEmptyState();
     currentScript = script;
     currentFrame = 0;
+    populateAudioFromScript(script);
     sceneController.loadScript(script);
+    // Play audio for the first frame if available
+    playFrameAudio(0);
   }
 
   function goNext(): void {
@@ -168,6 +253,7 @@ function main(): void {
     if (currentFrame < currentScript.frames.length - 1) {
       currentFrame++;
       sceneController.seekToFrame(currentFrame);
+      playFrameAudio(currentFrame);
     }
   }
 
@@ -176,6 +262,7 @@ function main(): void {
     if (currentFrame > 0) {
       currentFrame--;
       sceneController.seekToFrame(currentFrame);
+      playFrameAudio(currentFrame);
     }
   }
 
@@ -205,8 +292,38 @@ function main(): void {
         localStorage.setItem('preplai-tts-enabled', String(ttsEnabled));
       } catch {}
       updateTTSToggleUI();
-      if (!ttsEnabled) stopTTS();
-      else if (narratorText?.textContent?.trim()) speakNarration(narratorText.textContent);
+      audioEngine.setEnabled(ttsEnabled);
+      if (!ttsEnabled) {
+        stopTTS();
+        updatePlayPauseUI(false);
+      } else if (narratorText?.textContent?.trim()) {
+        // Try ElevenLabs first, fall back to Web Speech API
+        const audio = audioMetadata.get(currentFrame);
+        if (audio?.status === 'ready') {
+          playFrameAudio(currentFrame);
+        } else {
+          speakNarration(narratorText.textContent);
+        }
+      }
+    });
+  }
+
+  // ── Play/Pause toggle ─────────────────────────────────────────────
+  const playPauseBtn = document.getElementById('play-pause-toggle');
+  if (playPauseBtn) {
+    playPauseBtn.addEventListener('click', () => {
+      if (audioEngine.isPlaying) {
+        audioEngine.pause();
+        updatePlayPauseUI(false);
+      } else {
+        audioEngine.resume();
+        if (audioEngine.isPlaying) {
+          updatePlayPauseUI(true);
+        } else {
+          // No audio loaded — try playing current frame
+          playFrameAudio(currentFrame);
+        }
+      }
     });
   }
 
@@ -246,6 +363,21 @@ function main(): void {
     if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
       e.preventDefault();
       goPrev();
+    }
+    if (e.key === ' ') {
+      e.preventDefault();
+      if (audioEngine.isPlaying) {
+        audioEngine.pause();
+        updatePlayPauseUI(false);
+      } else {
+        audioEngine.resume();
+        if (audioEngine.isPlaying) {
+          updatePlayPauseUI(true);
+        } else {
+          // No audio loaded — try playing current frame
+          playFrameAudio(currentFrame);
+        }
+      }
     }
     if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey) {
       e.preventDefault();
@@ -313,6 +445,18 @@ function main(): void {
         applyScript(event.script);
         return;
       }
+      if (event.type === 'audio_ready') {
+        const { frameIndex, audio } = event as { frameIndex: number; audio: FrameAudio };
+        if (audio?.status === 'ready') {
+          audioMetadata.set(frameIndex, audio);
+          // If we're on this frame and nothing is playing, play it
+          if (frameIndex === currentFrame && !audioEngine.isPlaying && ttsEnabled) {
+            stopTTS(); // Stop any Web Speech API narration
+            playFrameAudio(frameIndex);
+          }
+        }
+        return;
+      }
       if (event.type === 'narration_update') {
         narrator.update(event.text);
         if (ttsEnabled && synth && event.text?.trim()) speakNarration(event.text);
@@ -350,6 +494,7 @@ function main(): void {
       if (typeof idx === 'number' && idx >= 0 && idx < currentScript.frames.length) {
         currentFrame = idx;
         sceneController.seekToFrame(idx);
+        playFrameAudio(idx);
         updateFrameCounter();
       }
     }

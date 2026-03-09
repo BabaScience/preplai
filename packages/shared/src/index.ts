@@ -11,6 +11,8 @@ export type {
   IllustrationFrame,
   EntityTransition,
   VisualScript,
+  FocusCue,
+  FrameAudio,
   Session,
   SessionState,
   SessionStatus,

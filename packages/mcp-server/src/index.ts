@@ -42,3 +42,10 @@ export {
   handleDeleteSession,
   handleRemoveScene,
 } from './tools.js';
+
+// Audio / TTS
+export { AudioStore } from './audio-store.js';
+export { TtsService } from './tts-service.js';
+export { generateSpeech, aggregateWordTimestamps } from './elevenlabs.js';
+export type { ElevenLabsConfig, TtsResult, WordTimestamp } from './elevenlabs.js';
+export { generateFocusCues, buildLabelMap } from './tts-service.js';
