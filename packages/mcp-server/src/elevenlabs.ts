@@ -49,12 +49,15 @@ interface ElevenLabsResponse {
 /**
  * Generate speech audio from text using ElevenLabs TTS API.
  * Returns the audio buffer, duration, and word-level timestamps.
+ * @param voiceIdOverride - Use a specific voice instead of config default (for per-language voices)
  */
 export async function generateSpeech(
   text: string,
   config: ElevenLabsConfig,
+  voiceIdOverride?: string,
 ): Promise<TtsResult> {
-  const url = `https://api.elevenlabs.io/v1/text-to-speech/${config.voiceId}/with-timestamps`;
+  const voiceId = voiceIdOverride ?? config.voiceId;
+  const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/with-timestamps`;
 
   const response = await fetch(url, {
     method: 'POST',

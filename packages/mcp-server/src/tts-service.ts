@@ -24,6 +24,13 @@ const MIN_WORD_LENGTH = 3;
 /** Minimum seconds between cues for the same entity */
 const MIN_CUE_GAP_S = 2.0;
 
+/** Per-language ElevenLabs voice IDs */
+const VOICE_MAP: Record<string, string> = {
+  en: 'uh5qBlKfjqFl7XXhFnJi',
+  fr: 'oziFLKtaxVDHQAh7o45V',
+  it: 'osWtKxGwfZZUMhr77HFc',
+};
+
 // ── Public API ───────────────────────────────────────────────────────
 
 export class TtsService {
@@ -38,14 +45,16 @@ export class TtsService {
    * Generate audio for frames that have narrationSegment text.
    * Runs asynchronously — does not block the caller.
    * Only processes frames at indices >= startIndex.
+   * @param scriptLanguage - Script-level language (frame.language overrides)
    */
   generateForFrames(
     sessionId: string,
     frames: IllustrationFrame[],
     startIndex: number,
+    scriptLanguage?: string,
   ): void {
     // Fire-and-forget
-    this._processFrames(sessionId, frames, startIndex).catch(err => {
+    this._processFrames(sessionId, frames, startIndex, scriptLanguage).catch(err => {
       console.error(`[TTS] Error generating audio for session ${sessionId}:`, err);
     });
   }
@@ -56,16 +65,23 @@ export class TtsService {
     sessionId: string,
     frames: IllustrationFrame[],
     startIndex: number,
+    scriptLanguage?: string,
   ): Promise<void> {
     for (let i = startIndex; i < frames.length; i++) {
       const frame = frames[i];
-      if (!frame?.narrationSegment?.trim()) continue;
+      // narrationSegment can be a string or { text: '...' } from expanded format
+      const seg = frame?.narrationSegment;
+      const narrationText = typeof seg === 'string' ? seg : (seg as any)?.text;
+      if (!narrationText?.trim()) continue;
 
       try {
-        const result = await generateSpeech(frame.narrationSegment, this.config);
+        // Resolve per-frame voice: frame language > script language > 'en'
+        const lang = (frame as any).language ?? scriptLanguage ?? 'en';
+        const voiceId = VOICE_MAP[lang] ?? VOICE_MAP.en;
+        const result = await generateSpeech(narrationText, this.config, voiceId);
 
-        // Store audio buffer
-        this.audioStore.set(sessionId, i, result.audioBuffer);
+        // Store audio buffer (async — GridFS backed)
+        await this.audioStore.set(sessionId, i, result.audioBuffer);
 
         // Generate focus cues
         const focusCues = generateFocusCues(

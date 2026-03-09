@@ -220,7 +220,7 @@ export async function handleAddScene(
   });
   const audioStatus = deps.ttsService && hasNarration ? 'generating' : 'unavailable';
   if (deps.ttsService && hasNarration) {
-    deps.ttsService.generateForFrames(session_id, mergedScript.frames, startIndex);
+    deps.ttsService.generateForFrames(session_id, mergedScript.frames, startIndex, mergedScript.language);
   }
 
   return mcpOk({
@@ -271,7 +271,7 @@ export async function handleUpdateScene(
   );
   const audioStatus = deps.ttsService && hasNarration ? 'generating' : 'unavailable';
   if (deps.ttsService && hasNarration) {
-    deps.ttsService.generateForFrames(session_id, expandedScript.frames, 0);
+    deps.ttsService.generateForFrames(session_id, expandedScript.frames, 0, expandedScript.language);
   }
 
   return mcpOk({
@@ -468,9 +468,9 @@ export async function handleDeleteSession(
   const existed = await store.deleteSession(session_id);
   if (!existed) return mcpNotFound(session_id);
 
-  // Clean up audio buffers for this session
+  // Clean up audio buffers for this session (GridFS + memory)
   if (audioStore) {
-    audioStore.deleteSession(session_id);
+    await audioStore.deleteSession(session_id);
   }
 
   return mcpOk({

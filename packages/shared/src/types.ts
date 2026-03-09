@@ -134,6 +134,8 @@ export interface IllustrationFrame {
   transitions?: EntityTransition[];
   narrationSegment: string;
   description: string;
+  /** ISO 639-1 language code for this frame's narration (overrides script-level) */
+  language?: string;
   /** Audio metadata populated by server after ElevenLabs TTS generation */
   audio?: FrameAudio;
   /** Agent-provided explicit focus cues (override auto-detect) */
@@ -160,6 +162,8 @@ export interface VisualScript {
   totalDuration: number;
   entities?: Record<string, VisualEntity>;
   style?: 'cinema' | 'minimal';
+  /** ISO 639-1 language code for narration (e.g. 'en', 'fr', 'it'). Default: 'en' */
+  language?: string;
 }
 
 
