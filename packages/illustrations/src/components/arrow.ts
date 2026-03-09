@@ -320,8 +320,8 @@ export function renderArrow(
         opacAnim.setAttribute('fill', 'freeze');
         pulse.appendChild(opacAnim);
         g.appendChild(pulse);
-        scaleAnim.beginElement();
-        opacAnim.beginElement();
+        if (typeof scaleAnim.beginElement === 'function') scaleAnim.beginElement();
+        if (typeof opacAnim.beginElement === 'function') opacAnim.beginElement();
         setTimeout(() => { if (pulse.parentNode) pulse.parentNode.removeChild(pulse); }, 500);
       }, delayMs + 600);
     }
