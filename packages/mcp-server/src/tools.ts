@@ -9,7 +9,7 @@ import type { SessionStore } from './session-store.js';
 import type { SseRegistry } from './sse.js';
 import { getUserPlayerPrefs, buildPlayerUrlSuffix } from './auth.js';
 import { mcpOk, mcpNotFound, mcpErr, mcpValidationError, type McpToolContent } from './errors.js';
-import { getIllustrationsReference } from './illustrations-reference.js';
+import { getIllustrationsReference, type IllustrationsReference } from './illustrations-reference.js';
 
 // ── Dependency injection interfaces ───────────────────────────────────
 
@@ -108,6 +108,9 @@ export async function handleCreateSession(
   const themeResolved = style ?? prefs.theme;
   const paletteResolved = prefs.palette;
 
+  // Include illustrations reference so agent discovers types + metadata in one call
+  const illustrations = getIllustrationsReference();
+
   return mcpOk({
     session_id: session.id,
     player_url: `${baseUrl}/player/${session.id}${suffix}`,
@@ -119,6 +122,7 @@ export async function handleCreateSession(
       theme: themeResolved,
       palette: paletteResolved,
     },
+    illustrations,
   });
 }
 

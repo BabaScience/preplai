@@ -1,9 +1,12 @@
 /**
  * @preplai/mcp-server — Shared MCP Tool Registration
  *
- * Registers all MCP tools on an McpServer instance. Used by both:
+ * Registers all 5 MCP tools on an McpServer instance. Used by both:
  * - stdio-bridge (StdioServerTransport for Claude Desktop)
  * - server (Streamable HTTP via fastify-mcp-server)
+ *
+ * Consolidated from 10 tools → 5 so Claude.ai always loads all tools
+ * (its Tool Search system picks 3-5 per query from the available set).
  */
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
@@ -11,8 +14,6 @@ import type { SessionStore } from './session-store.js';
 import type { SseRegistry } from './sse.js';
 import {
   handleCreateSession,
-  handleGetPreferences,
-  handleGetIllustrations,
   handleAddScene,
   handleUpdateScene,
   handleAddNarration,
@@ -24,60 +25,11 @@ import {
 import { withErrorBoundary, mcpForbidden, mcpUnauthorized } from './errors.js';
 import { verifySessionOwnership } from './session-utils.js';
 
-// ── Zod schemas for tool parameters ──────────────────────────────────
-
-export const VisualEntitySchema = z.object({
-  id: z.string(),
-  type: z.string().describe('Entity type. See add_scene description for topic→type mapping. Dedicated: Server, Service (use metadata.kind: API|Service|APIGateway for second level), Database, Cache, User, Cloud, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, StepList, ProcessState, GanttChart, BarChart, BigO, MemoryLayout, ConfusionMatrix, CodeBlock, Concept, Label, H1, H2, H3, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Analogy, Comparison, Proof. Connections: Arrow, DataFlow.'),
-  position: z.object({
-    x: z.number().describe('X position as percentage 0-100 of the 1920px canvas'),
-    y: z.number().describe('Y position as percentage 0-100 of the 1080px canvas'),
-  }),
-  size: z.number().optional().describe('Internal: omit. Single tuned default used for all entities.'),
-  label: z.string().optional().describe('Text label displayed on the entity'),
-  color: z.string().optional().describe('CSS color, e.g. "#4FC3F7" or "cyan"'),
-  highlight: z.boolean().optional().describe('Whether to highlight/glow this entity'),
-  animation: z.object({
-    delay: z.number().optional().default(0).describe('Delay in ms before animation starts'),
-    duration: z.number().optional().default(600).describe('Animation duration in ms'),
-    easing: z.string().optional().default('power2.out'),
-    entrance: z.string().optional().default('fadeInUp').describe('Entrance animation: fadeInUp, fadeIn, drawIn, scaleIn'),
-  }).optional(),
-  sourceEntityId: z.string().optional().describe('For Arrow/DataFlow: ID of the source entity'),
-  targetEntityId: z.string().optional().describe('For Arrow/DataFlow: ID of the target entity'),
-  textContent: z.string().optional().describe('For CodeBlock: the code text. For Label/Definition: longer text content'),
-  codeLanguage: z.string().optional().describe('For CodeBlock: language (javascript, python, etc.)'),
-  metadata: z.record(z.unknown()).optional().describe('Extra data for specific entity types'),
-});
-
-const EntityTransitionSchema = z.object({
-  entityId: z.string().describe('ID of entity to animate'),
-  from: z.record(z.unknown()).describe('Starting state (partial entity props)'),
-  to: z.record(z.unknown()).describe('Ending state (partial entity props)'),
-  duration: z.number().describe('Transition duration in ms'),
-  easing: z.string().optional().default('power2.inOut'),
-});
-
-const IllustrationFrameSchema = z.object({
-  id: z.string().describe('Unique frame ID, e.g. "frame-1", "title-slide"'),
-  startTime: z.number().describe('Frame start time in ms from beginning'),
-  endTime: z.number().describe('Frame end time in ms'),
-  entities: z.array(VisualEntitySchema).describe('Array of visual entities in this frame'),
-  transitions: z.array(EntityTransitionSchema).optional().describe('Animations between entity states'),
-  narrationSegment: z.string().describe('Subtitle shown to user. 2–4 sentences, informative and detailed. Match GPT/Claude richness — avoid synthetic summaries. Include key context, specifics, and examples.'),
-  description: z.string().optional().describe('Internal note for this frame (not shown to user).'),
-});
-
-const VisualScriptSchema = z.object({
-  sceneId: z.string().describe('Unique scene ID, e.g. "scene-1"'),
-  frames: z.array(IllustrationFrameSchema).min(1).describe('Array of frames (at least one)'),
-  totalDuration: z.number().describe('Total duration in ms (should be >= last frame endTime)'),
-  style: z.enum(['cinema', 'minimal']).optional().describe('Presentation style: "cinema" (default, rich gradients) or "minimal" (flat, algorithm-viz style)'),
-});
-
 // ── Rich tool descriptions ────────────────────────────────────────────
 
-export const ADD_SCENE_DESCRIPTION = `Add a visual scene to a presentation session. The scene is rendered as animated SVG on a 1920x1080 dark canvas. Call get_illustrations for the full type list, aliases, and topic hints.
+export const ADD_SCENE_DESCRIPTION = `Add or replace a visual scene in a presentation session. The scene is rendered as animated SVG on a 1920x1080 dark canvas.
+
+MODE: "append" (default) appends frames to existing scene. "replace" replaces the entire visual script.
 
 REQUIRED — USE COMPACT FORMAT (reduces tokens significantly):
 - Short keys: sid (sceneId), td (totalDuration), f (frames), e (entities), n (narrationSegment), p (position), l (label), m (metadata), src (sourceEntityId), tgt (targetEntityId), a (animation)
@@ -113,8 +65,6 @@ NARRATION QUALITY: Good — "Binary search works by repeatedly halving the searc
 
 NARRATIVE ARC: Structure frames like a film — (1) Establish the scene with core entities, (2) Focus on one part with highlight, (3) Expand with new entities, (4) Resolve with complete picture. Build complexity gradually across frames.
 
-APPEND BEHAVIOR: Multiple add_scene calls APPEND frames. Use update_scene to REPLACE. Use session_id as sid. Positions 0-100 (percent).
-
 DESIGN GUIDELINES:
 - COLORS — Always omit entity.color. Player uses palette automatically.
 - Title: type H1 (main heading), H2 (section), or H3 (subsection). Use metadata.label or l.
@@ -124,13 +74,11 @@ DESIGN GUIDELINES:
 
 FRAME PACING: 3–5 seconds per frame for readability. Build complexity gradually — simpler frames first, add entities in later frames.
 
-ENTITY TYPES & METADATA: Call get_illustrations for the full type list, topic→type mapping, aliases, and metadata schemas. Key types: Server, Database, Cache, User, Cloud, Service (metadata.kind: API|Service|APIGateway), CodeBlock, BinaryTree, Array, StepList, BigO, BarChart, Graph2D, CoordinateSystem, Circuit, ProcessState, CallStack, Stack, H1/H2/H3, Concept, Arrow, DataFlow. Avoid generic Entity/Group — use dedicated types for rich visuals.
+ENTITY TYPES & METADATA: create_session returns full illustrations reference (entityTypes, aliases, topicHints, metadataHints). Key types: Server, Database, Cache, User, Cloud, Service (metadata.kind: API|Service|APIGateway), CodeBlock, BinaryTree, Array, StepList, BigO, BarChart, Graph2D, CoordinateSystem, Circuit, ProcessState, CallStack, Stack, H1/H2/H3, Concept, Arrow, DataFlow. Avoid generic Entity/Group — use dedicated types for rich visuals.
 
 Connection types: Arrow, DataFlow (animated dashes), BidirectArrow, DottedArrow. Use metadata.curved=true for curved arrows. Connections: use src (sourceEntityId) and tgt (targetEntityId).
 
 Entrance animations: fadeInUp, fadeIn, scaleIn, drawIn, floatIn, slideInLeft, dropIn. Omit a (animation) to use smart defaults.`;
-
-export const UPDATE_SCENE_DESCRIPTION = `Replace the visual script for a session with a new one. Use this to modify an existing scene. Use the same compact format as add_scene (short keys sid, td, f, e, p, n, src, tgt; position [x,y]; aliases BT, CST, CB, etc.; omit color) to reduce tokens. Follow the same entity selection, metadata requirements, and design guidelines.`;
 
 // ── Dependencies for tool handlers ────────────────────────────────────
 
@@ -144,22 +92,24 @@ export interface McpToolDeps {
   openPlayerInBrowser?: (url: string) => void;
 }
 
-// ── Tool registration ────────────────────────────────────────────────
+// ── Tool registration (5 consolidated tools) ─────────────────────────
 
 export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
   const { store, sse, baseUrl, getApiKey, openPlayerInBrowser } = deps;
   const sceneDeps = { store, sse };
   const createDeps = { store, baseUrl };
 
+  // ── Tool 1: create_session ──────────────────────────────────────────
+  // Consolidates: create_session + get_preferences + get_illustrations
   mcp.tool(
     'create_session',
     `Create a new cinematic presentation session. Returns a session_id and a player_url.
 
 PREREQUISITE — MANDATORY: NEVER call this tool until you have asked the user at least one clarifying question. Even vague requests ("make me a simple presentation", "the simplest example possible") require you to ask first — e.g. "What topic would you like this to cover?" or "What do you want to understand better?" Gather topic, purpose, depth, and style before proceeding. Do NOT call immediately when the user says "create a presentation" without context.
 
-REQUIRED: Call get_preferences FIRST before create_session. Use the returned theme and palette to decide how to create the session. Pass style to override theme (e.g. "minimal" for algorithm viz) if desired; otherwise the user's preference is used.
+THEMES: "cinema" (rich gradients) or "minimal" (flat, algorithm-viz). PALETTES: "default", "ocean", "sunset", "forest", "mono". The user's dashboard preference is used unless you pass style. Omit entity.color in add_scene — the player uses the palette automatically. Player URL: open in browser for user to watch.
 
-THEMES: "cinema" (rich gradients, glass narrator, ambient particles — best for architecture, concepts, storytelling) or "minimal" (flat colors, clean lines — best for algorithm walkthroughs, data structures, code). PALETTES: "default", "ocean", "sunset", "forest", "mono". The user's dashboard preference is used unless you pass style. Omit entity.color in add_scene — the player uses the palette automatically. Player URL: open in browser for user to watch.
+RETURNS: session_id, player_url, preferences (theme, palette), AND illustrations reference (entityTypes, aliases, shortKeys, topicHints, metadataHints). Use the illustrations data to choose the right entity types for add_scene.
 
 CALLBACK: When running locally, the player URL is auto-opened. For remote clients, share the player_url.`,
     {
@@ -199,46 +149,15 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
     },
   );
 
-  mcp.tool(
-    'get_preferences',
-    `REQUIRED FIRST STEP when creating a new presentation. Call this BEFORE create_session. Returns the user's theme and palette only (no entity colors — omit entity.color in add_scene; the player uses the palette automatically). Use the returned data to decide style for create_session (pass style to override theme if desired). On failure: UNAUTHORIZED → check API key; INTERNAL_ERROR → retry once.`,
-    {},
-    async (_args, extra) => {
-      const apiKey = getApiKey(extra);
-      if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
-
-      const result = await withErrorBoundary(
-        () => handleGetPreferences({}, { apiKeyId: apiKey.id }),
-      )({});
-      return { content: result.content };
-    },
-  );
-
-  mcp.tool(
-    'get_illustrations',
-    'Get the full list of available illustration types, aliases, short keys, topic hints, and metadata hints. Call this when starting a new presentation to discover all entity types and which to use for the user\'s topic. Returns entityTypes, aliases (e.g. BT→BinaryTree), shortKeys (e.g. sid→sceneId), topicHints (topic→types), metadataHints (type→metadata keys), positionFormat ([x,y]), and defaultSize.',
-    {},
-    async (_args, extra) => {
-      const { trackUsage } = await import('./auth.js');
-      const apiKey = getApiKey(extra);
-      if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
-
-      const result = await withErrorBoundary(() => handleGetIllustrations())({});
-      try {
-        const data = JSON.parse(result.content[0].text);
-        if (data.success) await trackUsage(apiKey.id, 'get_illustrations');
-      } catch {}
-
-      return { content: result.content };
-    },
-  );
-
+  // ── Tool 2: add_scene ───────────────────────────────────────────────
+  // Consolidates: add_scene + update_scene (via mode param)
   mcp.tool(
     'add_scene',
     ADD_SCENE_DESCRIPTION,
     {
       session_id: z.string().describe('Session ID from create_session'),
       visual_script: z.record(z.unknown()).describe('REQUIRED compact format: sid, td, f, e, p, n, l, src, tgt; position [x,y]; omit color. Use session_id as sid.'),
+      mode: z.enum(['append', 'replace']).optional().describe('Mode: "append" (default) appends frames to existing scene. "replace" replaces the entire visual script.'),
     },
     async (args, extra) => {
       const { trackUsage, checkSceneLimit } = await import('./auth.js');
@@ -249,8 +168,12 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
       if (!ownership.ok && !ownership.notFound) {
         return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
       }
+
+      const mode = args.mode ?? 'append';
+      const handler = mode === 'replace' ? handleUpdateScene : handleAddScene;
+
       if (!ownership.ok && ownership.notFound) {
-        const result = await withErrorBoundary((a: any) => handleAddScene(a, sceneDeps))(args);
+        const result = await withErrorBoundary((a: any) => handler(a, sceneDeps))({ session_id: args.session_id, visual_script: args.visual_script });
         return { content: result.content };
       }
 
@@ -260,49 +183,102 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
       }
 
       const result = await withErrorBoundary(
-        (a: any) => handleAddScene(a, sceneDeps),
-      )(args);
+        (a: any) => handler(a, sceneDeps),
+      )({ session_id: args.session_id, visual_script: args.visual_script });
 
-      await trackUsage(apiKey.id, 'add_scene', args.session_id);
+      const toolName = mode === 'replace' ? 'update_scene' : 'add_scene';
+      await trackUsage(apiKey.id, toolName, args.session_id);
       return { content: result.content };
     },
   );
 
+  // ── Tool 3: get_session_url ─────────────────────────────────────────
   mcp.tool(
-    'update_scene',
-    UPDATE_SCENE_DESCRIPTION,
+    'get_session_url',
+    'Get the player URL for a session. Returns preferences (theme, palette). Set include_stats to true for frame count and duration. Open the player_url in a browser to view the presentation.',
     {
       session_id: z.string().describe('Session ID'),
-      visual_script: z.record(z.unknown()).describe('The replacement visual script. Same compact format as add_scene.'),
+      include_stats: z.boolean().optional().describe('Include frame count, duration, etc.'),
     },
     async (args, extra) => {
-      const { trackUsage, checkSceneLimit } = await import('./auth.js');
       const apiKey = getApiKey(extra);
-      if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
-
-      const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
-      if (!ownership.ok && !ownership.notFound) {
-        return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
-      }
-      if (!ownership.ok && ownership.notFound) {
-        const result = await withErrorBoundary((a: any) => handleUpdateScene(a, sceneDeps))(args);
-        return { content: result.content };
-      }
-
-      const sceneCheck = await checkSceneLimit(apiKey.id, apiKey.tier);
-      if (!sceneCheck.allowed) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'LIMIT_EXCEEDED', message: sceneCheck.reason, suggestion: 'Upgrade your plan or delete scenes.' } }) }] };
+      if (apiKey) {
+        const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
+        if (!ownership.ok && !ownership.notFound) {
+          return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
+        }
       }
 
       const result = await withErrorBoundary(
-        (a: any) => handleUpdateScene(a, sceneDeps),
+        (a: any) => handleGetSessionUrl(a, { store, baseUrl, apiKeyId: apiKey?.id }),
       )(args);
-
-      await trackUsage(apiKey.id, 'update_scene', args.session_id);
       return { content: result.content };
     },
   );
 
+  // ── Tool 4: manage_sessions ─────────────────────────────────────────
+  // Consolidates: list_sessions + delete_session + remove_scene
+  mcp.tool(
+    'manage_sessions',
+    `Manage presentation sessions. Actions:
+- "list": List all sessions with titles, player URLs, and frame counts. Most recent first.
+- "delete": Permanently delete a session and all its data. Cannot be undone.
+- "remove_frames": Remove frames from a session. Use frame_indices for specific frames (0-based), last_n for the last N frames, or neither to clear all frames.`,
+    {
+      action: z.enum(['list', 'delete', 'remove_frames']).describe('Action to perform'),
+      session_id: z.string().optional().describe('Session ID (required for "delete" and "remove_frames")'),
+      limit: z.number().optional().describe('Max sessions to return for "list" action (default 20, max 100)'),
+      frame_indices: z.array(z.number()).optional().describe('For "remove_frames": specific frame indices to remove (0-based)'),
+      last_n: z.number().optional().describe('For "remove_frames": remove the last N frames'),
+    },
+    async (args, extra) => {
+      const apiKey = getApiKey(extra);
+      if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
+
+      const { action, session_id, limit, frame_indices, last_n } = args;
+
+      if (action === 'list') {
+        const result = await withErrorBoundary(
+          (a: any) => handleListSessions(a, { store, baseUrl, apiKeyId: apiKey.id }),
+        )({ limit });
+        return { content: result.content };
+      }
+
+      if (action === 'delete') {
+        if (!session_id) {
+          return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'VALIDATION_ERROR', message: 'session_id is required for "delete" action.' } }) }] };
+        }
+        const ownership = verifySessionOwnership(store, session_id, apiKey.id);
+        if (!ownership.ok && !ownership.notFound) {
+          return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
+        }
+
+        const result = await withErrorBoundary(
+          (a: any) => handleDeleteSession(a, { store }),
+        )({ session_id });
+        return { content: result.content };
+      }
+
+      if (action === 'remove_frames') {
+        if (!session_id) {
+          return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'VALIDATION_ERROR', message: 'session_id is required for "remove_frames" action.' } }) }] };
+        }
+        const ownership = verifySessionOwnership(store, session_id, apiKey.id);
+        if (!ownership.ok && !ownership.notFound) {
+          return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
+        }
+
+        const result = await withErrorBoundary(
+          (a: any) => handleRemoveScene(a, sceneDeps),
+        )({ session_id, frame_indices, last_n });
+        return { content: result.content };
+      }
+
+      return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'VALIDATION_ERROR', message: `Unknown action: ${action}` } }) }] };
+    },
+  );
+
+  // ── Tool 5: add_narration ───────────────────────────────────────────
   mcp.tool(
     'add_narration',
     'Add narration text to a specific frame in a session. The text appears as a subtitle overlay in the player. 2–4 sentences, informative and detailed. Match tone to the user\'s question (technical vs beginner-friendly).',
@@ -330,92 +306,6 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
       )(args);
 
       await trackUsage(apiKey.id, 'add_narration', args.session_id);
-      return { content: result.content };
-    },
-  );
-
-  mcp.tool(
-    'get_session_url',
-    'Get the player URL for a session. Returns preferences (theme, palette). Set include_stats to true for frame count and duration. Open the player_url in a browser to view the presentation.',
-    {
-      session_id: z.string().describe('Session ID'),
-      include_stats: z.boolean().optional().describe('Include frame count, duration, etc.'),
-    },
-    async (args, extra) => {
-      const apiKey = getApiKey(extra);
-      if (apiKey) {
-        const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
-        if (!ownership.ok && !ownership.notFound) {
-          return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
-        }
-      }
-
-      const result = await withErrorBoundary(
-        (a: any) => handleGetSessionUrl(a, { store, baseUrl, apiKeyId: apiKey?.id }),
-      )(args);
-      return { content: result.content };
-    },
-  );
-
-  mcp.tool(
-    'list_sessions',
-    'List all presentation sessions. Returns session IDs, titles, player URLs, and frame counts. Most recent first.',
-    {
-      limit: z.number().optional().describe('Max sessions to return (default 20, max 100)'),
-    },
-    async (args, extra) => {
-      const apiKey = getApiKey(extra);
-      if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
-
-      const result = await withErrorBoundary(
-        (a: any) => handleListSessions(a, { store, baseUrl, apiKeyId: apiKey.id }),
-      )(args);
-      return { content: result.content };
-    },
-  );
-
-  mcp.tool(
-    'delete_session',
-    'Delete a presentation session and all its data (visual script, narrations). This cannot be undone.',
-    {
-      session_id: z.string().describe('Session ID to delete'),
-    },
-    async (args, extra) => {
-      const apiKey = getApiKey(extra);
-      if (apiKey) {
-        const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
-        if (!ownership.ok && !ownership.notFound) {
-          return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
-        }
-      }
-
-      const result = await withErrorBoundary(
-        (a: any) => handleDeleteSession(a, { store }),
-      )(args);
-      return { content: result.content };
-    },
-  );
-
-  mcp.tool(
-    'remove_scene',
-    'Remove frames from a presentation session. Specify frame_indices to remove specific frames (0-based), last_n to remove the last N frames, or neither to clear all frames.',
-    {
-      session_id: z.string().describe('Session ID'),
-      frame_indices: z.array(z.number()).optional().describe('Specific frame indices to remove (0-based)'),
-      last_n: z.number().optional().describe('Remove the last N frames'),
-    },
-    async (args, extra) => {
-      const apiKey = getApiKey(extra);
-      if (apiKey) {
-        const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
-        if (!ownership.ok && !ownership.notFound) {
-          return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
-        }
-      }
-
-      const result = await withErrorBoundary(
-        (a: any) => handleRemoveScene(a, sceneDeps),
-      )(args);
       return { content: result.content };
     },
   );

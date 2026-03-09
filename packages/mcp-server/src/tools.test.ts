@@ -115,6 +115,26 @@ describe('MCP Tool Handlers', () => {
       expect(data.data.preferences).toEqual({ theme: 'cinema', palette: 'default' });
     });
 
+    it('returns illustrations reference (consolidated from get_illustrations)', async () => {
+      const result = await handleCreateSession(
+        { title: 'Illustrations Check' },
+        { store, baseUrl }
+      );
+      const data = parse(result);
+      expect(data.success).toBe(true);
+      // Verify illustrations data is included
+      const illus = data.data.illustrations;
+      expect(illus).toBeDefined();
+      expect(illus.entityTypes).toContain('Server');
+      expect(illus.entityTypes).toContain('BinaryTree');
+      expect(illus.aliases).toEqual(expect.objectContaining({ BT: 'BinaryTree' }));
+      expect(illus.shortKeys).toEqual(expect.objectContaining({ sid: 'sceneId', f: 'frames' }));
+      expect(Object.keys(illus.topicHints).length).toBeGreaterThan(0);
+      expect(illus.metadataHints).toEqual(expect.objectContaining({ BinaryTree: expect.any(String) }));
+      expect(illus.positionFormat).toBe('[x,y]');
+      expect(illus.defaultSize).toBe(2.5);
+    });
+
     it('defaults aspect_ratio to 16:9', async () => {
       const result = await handleCreateSession(
         { title: 'No AR' },
