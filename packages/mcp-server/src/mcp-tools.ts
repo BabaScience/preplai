@@ -12,6 +12,8 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import type { SessionStore } from './session-store.js';
 import type { SseRegistry } from './sse.js';
+import type { TtsService } from './tts-service.js';
+import type { AudioStore } from './audio-store.js';
 import {
   handleCreateSession,
   handleAddScene,
@@ -90,13 +92,17 @@ export interface McpToolDeps {
   getApiKey: (extra?: unknown) => { id: string; tier: string } | null;
   /** Optional: auto-open player URL in browser (stdio bridge only) */
   openPlayerInBrowser?: (url: string) => void;
+  /** Optional: ElevenLabs TTS service for audio generation */
+  ttsService?: TtsService;
+  /** Optional: audio buffer store for cleanup on session delete */
+  audioStore?: AudioStore;
 }
 
 // ── Tool registration (5 consolidated tools) ─────────────────────────
 
 export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
-  const { store, sse, baseUrl, getApiKey, openPlayerInBrowser } = deps;
-  const sceneDeps = { store, sse };
+  const { store, sse, baseUrl, getApiKey, openPlayerInBrowser, ttsService } = deps;
+  const sceneDeps = { store, sse, ttsService };
   const createDeps = { store, baseUrl };
 
   // ── Tool 1: create_session ──────────────────────────────────────────
@@ -254,7 +260,7 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
         }
 
         const result = await withErrorBoundary(
-          (a: any) => handleDeleteSession(a, { store }),
+          (a: any) => handleDeleteSession(a, { store, audioStore: deps.audioStore }),
         )({ session_id });
         return { content: result.content };
       }

@@ -221,6 +221,33 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   pointer-events: none;
 }
 
+/* ── Play/Pause toggle ───────────────────────────────────────────── */
+
+#play-pause-toggle {
+  margin-left: 4px;
+}
+
+#play-pause-toggle .play-icon,
+#play-pause-toggle .pause-icon {
+  display: none;
+}
+
+#play-pause-toggle.play-state .play-icon {
+  display: block;
+}
+
+#play-pause-toggle.play-state .pause-icon {
+  display: none;
+}
+
+#play-pause-toggle.pause-state .play-icon {
+  display: none;
+}
+
+#play-pause-toggle.pause-state .pause-icon {
+  display: block;
+}
+
 /* ── TTS toggle ──────────────────────────────────────────────────── */
 
 #tts-toggle,

@@ -98,6 +98,32 @@ export interface VisualEntity {
 }
 
 
+// ── Focus Cue (narration-synced highlight) ────────────────────────────
+
+export interface FocusCue {
+  /** Seconds from start of frame audio when this cue fires */
+  time: number;
+  /** Entity ID to highlight */
+  entityId: string;
+  /** The word/phrase in narration that triggered this cue */
+  word?: string;
+}
+
+// ── Frame Audio (populated by server after TTS generation) ────────────
+
+export interface FrameAudio {
+  /** URL path to serve audio: /audio/:sessionId/:frameIndex.mp3 */
+  url: string;
+  /** Duration of audio in seconds */
+  duration: number;
+  /** Timed focus cues derived from word timestamps + entity matching */
+  focusCues: FocusCue[];
+  /** Generation status */
+  status: 'pending' | 'ready' | 'error';
+  /** Error message if status is 'error' */
+  errorMessage?: string;
+}
+
 // ── IllustrationFrame ─────────────────────────────────────────────────
 
 export interface IllustrationFrame {
@@ -108,6 +134,10 @@ export interface IllustrationFrame {
   transitions?: EntityTransition[];
   narrationSegment: string;
   description: string;
+  /** Audio metadata populated by server after ElevenLabs TTS generation */
+  audio?: FrameAudio;
+  /** Agent-provided explicit focus cues (override auto-detect) */
+  focusCues?: FocusCue[];
 }
 
 

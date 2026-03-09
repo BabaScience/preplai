@@ -15,6 +15,9 @@ export type { SceneControllerOptions, EntityPatch, FocusInfo } from './scene-con
 
 export { NarratorController } from './narrator.js';
 
+export { AudioEngine } from './audio-engine.js';
+export type { AudioEngineOptions } from './audio-engine.js';
+
 // ── Bridge (SSE + postMessage)
 export {
   resolveSessionId,

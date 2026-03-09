@@ -26,6 +26,9 @@ import FastifyMcpServer from 'fastify-mcp-server';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SessionStore } from './session-store.js';
 import { SseRegistry } from './sse.js';
+import { AudioStore } from './audio-store.js';
+import { TtsService } from './tts-service.js';
+import type { ElevenLabsConfig } from './elevenlabs.js';
 import {
   handleCreateSession,
   handleAddScene,
@@ -101,6 +104,8 @@ export interface ServerContext {
   app: FastifyInstance;
   store: SessionStore;
   sse: SseRegistry;
+  ttsService?: TtsService;
+  audioStore: AudioStore;
 }
 
 /**
@@ -117,6 +122,23 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
 
   // ── SSE Registry ──────────────────────────────────────────────────
   const sse = new SseRegistry();
+
+  // ── Audio Store + TTS Service ──────────────────────────────────────
+  const audioStore = new AudioStore();
+  let ttsService: TtsService | undefined;
+
+  const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
+  if (elevenLabsApiKey) {
+    const ttsConfig: ElevenLabsConfig = {
+      apiKey: elevenLabsApiKey,
+      voiceId: process.env.ELEVENLABS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb',
+      modelId: process.env.ELEVENLABS_MODEL_ID || 'eleven_turbo_v2_5',
+    };
+    ttsService = new TtsService(ttsConfig, audioStore, store, sse);
+    console.log('[preplai] ElevenLabs TTS enabled (voice: %s)', ttsConfig.voiceId);
+  } else {
+    console.log('[preplai] ElevenLabs TTS disabled — player uses Web Speech API');
+  }
 
   // ── Fastify app ───────────────────────────────────────────────────
   const app = Fastify({
@@ -197,6 +219,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
 
     if (PUBLIC_ROUTES.has(path)) return;
     if (path.startsWith('/player/')) return;
+    if (path.startsWith('/audio/')) return;
     if (path.startsWith('/session/') && (path.endsWith('/events') || path.endsWith('/script'))) return;
 
     // Accept X-Preplai-API-Key or Authorization: Bearer <key|jwt>
@@ -283,6 +306,8 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
         getApiKey: (extra?: unknown) =>
           (extra as { authInfo?: ValidatedKey })?.authInfo ?? apiKeyStore.getStore() ?? null,
         openPlayerInBrowser,
+        ttsService,
+        audioStore,
       });
       return mcp;
     },
@@ -378,6 +403,32 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       .send({ script: session.script, frame_count: session.script.frames.length });
   });
 
+  // ── Audio serving endpoint ─────────────────────────────────────────
+  app.get<{ Params: { sessionId: string; frameIndex: string } }>(
+    '/audio/:sessionId/:frameIndex.mp3',
+    async (request, reply) => {
+      const { sessionId, frameIndex } = request.params;
+      const idx = parseInt(frameIndex, 10);
+      if (isNaN(idx) || idx < 0) {
+        reply.status(400).send({ error: 'Invalid frame index.' });
+        return;
+      }
+
+      const buffer = audioStore.get(sessionId, idx);
+      if (!buffer) {
+        reply.status(404).send({ error: 'Audio not found.' });
+        return;
+      }
+
+      reply
+        .header('Content-Type', 'audio/mpeg')
+        .header('Content-Length', buffer.length)
+        .header('Cache-Control', 'public, max-age=3600')
+        .header('Access-Control-Allow-Origin', resolveCorsOrigin(request.headers.origin as string))
+        .send(buffer);
+    },
+  );
+
   // ── Player HTML route ─────────────────────────────────────────────
   app.get<{ Params: { sessionId: string }; Querystring: { style?: string } }>(
     '/player/:sessionId',
@@ -432,7 +483,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   });
 
   // ── MCP-style API routes ──────────────────────────────────────────
-  const sceneDeps = { store, sse };
+  const sceneDeps = { store, sse, ttsService };
   const createDeps = { store, baseUrl: cfg.baseUrl };
 
   const checkOwnership = (sessionId: string, apiKeyId: string) =>
@@ -608,11 +659,11 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
         return;
       }
       if (!ownership.ok && ownership.notFound) {
-        const handler = withErrorBoundary((args: any) => handleDeleteSession(args, { store }));
+        const handler = withErrorBoundary((args: any) => handleDeleteSession(args, { store, audioStore }));
         return handler({ session_id: request.params.id });
       }
 
-      const handler = withErrorBoundary((args: any) => handleDeleteSession(args, { store }));
+      const handler = withErrorBoundary((args: any) => handleDeleteSession(args, { store, audioStore }));
       return handler({ session_id: request.params.id });
     },
   );
@@ -640,7 +691,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   // Store cleanup interval for graceful shutdown
   (app as any).__cleanupInterval = cleanupInterval;
 
-  return { app, store, sse };
+  return { app, store, sse, ttsService, audioStore };
 }
 
 // ── Standalone startup & graceful shutdown ───────────────────────────
