@@ -70,39 +70,35 @@ describe('renderServer', () => {
     expect(innerG.querySelector('rect')).toBeTruthy();
   });
 
-  it('should contain terminal prompt text', () => {
+  it('should contain rack slot divider lines', () => {
     const entity = makeEntity({ type: 'Server' });
     renderServer(entity, parentEl);
     const innerG = parentEl.querySelector('.animate-element')!;
-    const prompt = innerG.querySelector('text');
-    expect(prompt).toBeTruthy();
-    expect(prompt!.textContent).toBe('>_');
+    const lines = innerG.querySelectorAll('line');
+    expect(lines.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('should contain LED dots', () => {
+  it('should contain status LED dots', () => {
     const entity = makeEntity({ type: 'Server' });
     renderServer(entity, parentEl);
     const innerG = parentEl.querySelector('.animate-element')!;
     const circles = innerG.querySelectorAll('circle');
-    expect(circles.length).toBeGreaterThanOrEqual(2);
+    expect(circles.length).toBeGreaterThanOrEqual(3);
   });
 
   it('should render label when provided', () => {
     const entity = makeEntity({ type: 'Server', label: 'Auth Service' });
     renderServer(entity, parentEl);
-    const texts = parentEl.querySelectorAll('text');
-    // First text is the >_ prompt, second is the label
-    const labelText = Array.from(texts).find(t => t.textContent === 'Auth Service');
-    expect(labelText).toBeTruthy();
+    const text = parentEl.querySelector('text');
+    expect(text).toBeTruthy();
+    expect(text!.textContent).toBe('Auth Service');
   });
 
-  it('should only have prompt text when label is absent', () => {
+  it('should NOT render label text when label is absent', () => {
     const entity = makeEntity({ type: 'Server' });
     renderServer(entity, parentEl);
-    const texts = parentEl.querySelectorAll('text');
-    // Only the >_ prompt text should exist
-    expect(texts.length).toBe(1);
-    expect(texts[0].textContent).toBe('>_');
+    const text = parentEl.querySelector('text');
+    expect(text).toBeNull();
   });
 
   it('should use custom color', () => {

@@ -1,11 +1,11 @@
 /**
  * @preplai/illustrations — Server Component
- * Tower process: gradient body + terminal prompt icon + status LED + label
+ * Rack-style server: gradient body + horizontal slot dividers + status LEDs + label
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs, ensureGlassFilter } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES, COLORS } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, COLORS, STROKE } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderServer(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -17,57 +17,67 @@ export function renderServer(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   const gradId = `grad-server-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const w = size * 0.9;
-  const h = size;
+  const w = size * 1.2;
+  const h = size * 0.85;
 
-  // ── Server body (taller, narrower — process/tower shape) ──
+  // ── Server body (wide rack shape) ──
   const body = document.createElementNS(SVG_NS, 'rect');
   body.setAttribute('x', String(-w / 2));
   body.setAttribute('y', String(-h / 2));
   body.setAttribute('width', String(w));
   body.setAttribute('height', String(h));
-  body.setAttribute('rx', String(SHAPES.borderRadiusLarge));
+  body.setAttribute('rx', String(SHAPES.borderRadius));
   body.setAttribute('fill', `url(#${gradId})`);
   body.setAttribute('stroke', color);
   body.setAttribute('stroke-width', String(SHAPES.strokeWidth));
   body.setAttribute('filter', ensureGlassFilter(parentEl));
   innerG.appendChild(body);
 
-  // ── Single status LED (top-right) ──
-  const ledX = w / 2 - 10;
-  const ledY = -h / 2 + 10;
+  // ── Horizontal rack slot dividers (2 lines → 3 slots) ──
+  const slotPositions = [-h / 6, h / 6];
+  for (const sy of slotPositions) {
+    const line = document.createElementNS(SVG_NS, 'line');
+    line.setAttribute('x1', String(-w / 2 + 4));
+    line.setAttribute('y1', String(sy));
+    line.setAttribute('x2', String(w / 2 - 4));
+    line.setAttribute('y2', String(sy));
+    line.setAttribute('stroke', color);
+    line.setAttribute('stroke-width', String(STROKE.minimal));
+    line.setAttribute('opacity', '0.25');
+    innerG.appendChild(line);
+  }
 
-  const ledGlow = document.createElementNS(SVG_NS, 'circle');
-  ledGlow.setAttribute('cx', String(ledX));
-  ledGlow.setAttribute('cy', String(ledY));
-  ledGlow.setAttribute('r', '5');
-  ledGlow.setAttribute('fill', 'none');
-  ledGlow.setAttribute('stroke', COLORS.green);
-  ledGlow.setAttribute('stroke-width', '1');
-  ledGlow.setAttribute('opacity', '0.3');
-  innerG.appendChild(ledGlow);
+  // ── Status LEDs (3 dots in the top-right — green, green, dim) ──
+  const ledStartX = w / 2 - 22;
+  const ledY = -h / 2 + h / 6 - h / 6 / 2; // center of top slot
+  const ledSpacing = 7;
+  const ledColors = [COLORS.green, COLORS.green, color];
+  const ledOpacities = ['0.9', '0.9', '0.3'];
 
-  const led = document.createElementNS(SVG_NS, 'circle');
-  led.setAttribute('cx', String(ledX));
-  led.setAttribute('cy', String(ledY));
-  led.setAttribute('r', '3');
-  led.setAttribute('fill', COLORS.green);
-  led.setAttribute('opacity', '0.9');
-  innerG.appendChild(led);
+  for (let i = 0; i < 3; i++) {
+    const led = document.createElementNS(SVG_NS, 'circle');
+    led.setAttribute('cx', String(ledStartX + i * ledSpacing));
+    led.setAttribute('cy', String(ledY));
+    led.setAttribute('r', '2.5');
+    led.setAttribute('fill', ledColors[i]);
+    led.setAttribute('opacity', ledOpacities[i]);
+    innerG.appendChild(led);
+  }
 
-  // ── Terminal prompt icon (>_) — reads as "running process" ──
-  const promptText = document.createElementNS(SVG_NS, 'text');
-  promptText.setAttribute('x', '0');
-  promptText.setAttribute('y', '4');
-  promptText.setAttribute('text-anchor', 'middle');
-  promptText.setAttribute('dominant-baseline', 'central');
-  promptText.setAttribute('fill', color);
-  promptText.setAttribute('font-size', String(size * 0.3));
-  promptText.setAttribute('font-family', TYPOGRAPHY.fontCode);
-  promptText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-  promptText.setAttribute('opacity', '0.6');
-  promptText.textContent = '>_';
-  innerG.appendChild(promptText);
+  // ── Small ventilation pattern (3 short horizontal lines in bottom slot) ──
+  const ventY = h / 6 + h / 6 / 2; // center of bottom slot
+  const ventW = w * 0.15;
+  for (let i = -1; i <= 1; i++) {
+    const vent = document.createElementNS(SVG_NS, 'line');
+    vent.setAttribute('x1', String(-ventW / 2));
+    vent.setAttribute('y1', String(ventY + i * 4));
+    vent.setAttribute('x2', String(ventW / 2));
+    vent.setAttribute('y2', String(ventY + i * 4));
+    vent.setAttribute('stroke', color);
+    vent.setAttribute('stroke-width', String(STROKE.minimal));
+    vent.setAttribute('opacity', '0.2');
+    innerG.appendChild(vent);
+  }
 
   // ── Label ──
   if (entity.label) {
