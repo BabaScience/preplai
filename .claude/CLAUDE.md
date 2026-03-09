@@ -8,7 +8,19 @@
 
 **"The agent understands. The engine shows. The user learns."**
 
-Preplai is a cinema-quality visual presentation engine exposed as an agent-native API. AI agents create live, animated, voice-synced visual experiences—not slides, cinema.
+Preplai is the most advanced cinematic illustration engine for AI agents. Any AI — ChatGPT, Claude, Cursor, autonomous agents — can present anything visually via MCP. Not slides, not PDFs — cinema.
+
+---
+
+## Who We Build For (MVP)
+
+Every code decision should serve one of these three users:
+
+1. **CS students** — Use LLMs to learn CS. Today they get text walls. Preplai gives them cinematic visual walkthroughs (arrays animate, trees grow, data flows through pipelines).
+2. **Programmers** — Use AI coding tools (Cursor, Copilot, Claude Code). They don't understand what the AI built. Preplai lets the AI *show* the architecture and logic step by step.
+3. **AI agent owners** — Run autonomous agents (OpenClaw, custom agents). They can't see what the agent did. Preplai lets agents present visual reports of their actions and decisions.
+
+When in doubt, ask: *"Does this help a student understand, a programmer see what AI built, or an agent owner see what their agent did?"*
 
 ---
 
@@ -18,7 +30,7 @@ Preplai is a cinema-quality visual presentation engine exposed as an agent-nativ
 |-----|---------|
 | [AGENTS.md](../AGENTS.md) | Full onboarding: architecture, paths, invariants |
 | [Claude.md](../Claude.md) | Design & illustration focus |
-| [MISSION.md](../MISSION.md) | Mission statement |
+| [MISSION.md](../MISSION.md) | Mission statement, target users, use cases |
 
 ---
 

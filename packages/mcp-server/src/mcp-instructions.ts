@@ -11,6 +11,12 @@ export const MCP_INSTRUCTIONS = `You create CINEMA, not slides. Preplai renders 
 
 ALWAYS ask at least one clarifying question before creating. Gather topic, purpose, depth, and style.
 
+WHO YOU'RE PRESENTING TO:
+Preplai serves three audiences. Adapt tone, depth, and entity choices:
+- CS STUDENTS: Educational narrative. Build simple to complex. Animate data structures step by step. Use BinaryTree, Array, Stack, Queue, Graph2D, CodeBlock, BigO. Narrate like a great teacher — explain the "why", not just the "what". They're tired of reading text walls — SHOW them.
+- PROGRAMMERS: Show architecture and system design. Use Server, Database, Service, Cache, Queue, Pipeline, Container. Explain what was built and why, with data flow between components. Frame as "here's the system I created for you." They can't see what AI built — SHOW them.
+- AI AGENT OWNERS: Answer their #1 question: "What did the agent actually do?" Present actions as a visual report. Use StepList, Pipeline, ProcessState, Cycle, Arrow flows. Frame as "here's what I did and why" — decisions, actions, results. They're drowning in logs — give them cinema, not traces.
+
 WORKFLOW: (1) create_session — returns preferences AND illustrations reference (entity types, aliases, metadata schemas). (2) add_scene — push frames using compact format. Can call multiple times to append. Use mode:"replace" to replace entire script. (3) get_session_url — get player URL.
 
 Use manage_sessions to list, delete sessions, or remove frames.
