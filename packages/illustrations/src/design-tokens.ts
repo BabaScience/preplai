@@ -17,6 +17,7 @@ export const COLORS = {
   red: '#ff6b6b',
   teal: '#00bcd4',
   blue: '#4488ff',
+  emerald: '#34d399',
 } as const;
 
 // ── Opacity scales (hex alpha) ────────────────────────────────────────
@@ -158,9 +159,9 @@ export const SHAPES = {
 
 export const ENTITY_COLORS: Record<string, string> = {
   // ── Blue: Data / Information / Storage ────────────────────────────
-  Database: COLORS.blue,
+  Database: COLORS.emerald,
   Cache: COLORS.blue,
-  Volume: COLORS.blue,
+  Volume: COLORS.emerald,
   MemoryBlock: COLORS.blue,
   MemoryLayout: COLORS.blue,
   MemoryMap: COLORS.blue,

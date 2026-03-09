@@ -1,11 +1,11 @@
 /**
  * @preplai/illustrations — Server Component
- * Rack server: gradient body + rack stripes + LED dots with glow + label
+ * Tower process: gradient body + terminal prompt icon + status LED + label
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs, ensureGlassFilter } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, COLORS } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderServer(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -17,64 +17,59 @@ export function renderServer(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   const gradId = `grad-server-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const w = size * 1.4;
+  const w = size * 0.9;
   const h = size;
 
-  // ── Server body with gradient (top lighter)
+  // ── Server body (taller, narrower — process/tower shape) ──
   const body = document.createElementNS(SVG_NS, 'rect');
   body.setAttribute('x', String(-w / 2));
   body.setAttribute('y', String(-h / 2));
   body.setAttribute('width', String(w));
-  body.setAttribute('height', String(h * 0.8));
-  body.setAttribute('rx', String(SHAPES.borderRadius - 2));
+  body.setAttribute('height', String(h));
+  body.setAttribute('rx', String(SHAPES.borderRadiusLarge));
   body.setAttribute('fill', `url(#${gradId})`);
   body.setAttribute('stroke', color);
   body.setAttribute('stroke-width', String(SHAPES.strokeWidth));
   body.setAttribute('filter', ensureGlassFilter(parentEl));
   innerG.appendChild(body);
 
-  // ── Rack stripe lines (more pronounced)
-  const lineOffsets = [-size / 6, 0, size / 6];
-  for (const oy of lineOffsets) {
-    const line = document.createElementNS(SVG_NS, 'line');
-    line.setAttribute('x1', String(-w / 2));
-    line.setAttribute('x2', String(w / 2));
-    line.setAttribute('y1', String(oy));
-    line.setAttribute('y2', String(oy));
-    line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', '1.5');
-    line.setAttribute('opacity', '0.6');
-    innerG.appendChild(line);
-  }
+  // ── Single status LED (top-right) ──
+  const ledX = w / 2 - 10;
+  const ledY = -h / 2 + 10;
 
-  // ── LED status dots (green, amber, power) with subtle glow
-  const dotConfig = [
-    { cx: -w / 3, cy: -size / 3, fill: color, glow: true },
-    { cx: -w / 6, cy: -size / 3, fill: color, glow: true },
-    { cx: w / 6, cy: -size / 3, fill: '#28c840', glow: false },
-  ];
-  for (const { cx, cy, fill, glow } of dotConfig) {
-    if (glow) {
-      const glowCircle = document.createElementNS(SVG_NS, 'circle');
-      glowCircle.setAttribute('cx', String(cx));
-      glowCircle.setAttribute('cy', String(cy));
-      glowCircle.setAttribute('r', '5');
-      glowCircle.setAttribute('fill', 'none');
-      glowCircle.setAttribute('stroke', fill);
-      glowCircle.setAttribute('stroke-width', '1');
-      glowCircle.setAttribute('opacity', '0.4');
-      innerG.appendChild(glowCircle);
-    }
-    const dot = document.createElementNS(SVG_NS, 'circle');
-    dot.setAttribute('cx', String(cx));
-    dot.setAttribute('cy', String(cy));
-    dot.setAttribute('r', '3');
-    dot.setAttribute('fill', fill);
-    dot.setAttribute('opacity', '0.9');
-    innerG.appendChild(dot);
-  }
+  const ledGlow = document.createElementNS(SVG_NS, 'circle');
+  ledGlow.setAttribute('cx', String(ledX));
+  ledGlow.setAttribute('cy', String(ledY));
+  ledGlow.setAttribute('r', '5');
+  ledGlow.setAttribute('fill', 'none');
+  ledGlow.setAttribute('stroke', COLORS.green);
+  ledGlow.setAttribute('stroke-width', '1');
+  ledGlow.setAttribute('opacity', '0.3');
+  innerG.appendChild(ledGlow);
 
-  // ── Label
+  const led = document.createElementNS(SVG_NS, 'circle');
+  led.setAttribute('cx', String(ledX));
+  led.setAttribute('cy', String(ledY));
+  led.setAttribute('r', '3');
+  led.setAttribute('fill', COLORS.green);
+  led.setAttribute('opacity', '0.9');
+  innerG.appendChild(led);
+
+  // ── Terminal prompt icon (>_) — reads as "running process" ──
+  const promptText = document.createElementNS(SVG_NS, 'text');
+  promptText.setAttribute('x', '0');
+  promptText.setAttribute('y', '4');
+  promptText.setAttribute('text-anchor', 'middle');
+  promptText.setAttribute('dominant-baseline', 'central');
+  promptText.setAttribute('fill', color);
+  promptText.setAttribute('font-size', String(size * 0.3));
+  promptText.setAttribute('font-family', TYPOGRAPHY.fontCode);
+  promptText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+  promptText.setAttribute('opacity', '0.6');
+  promptText.textContent = '>_';
+  innerG.appendChild(promptText);
+
+  // ── Label ──
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');

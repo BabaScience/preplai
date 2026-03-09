@@ -15,8 +15,8 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs, ensureGlowFilter } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { createLinearGradient, ensureDefs } from '../visual-utils.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 const CHAR_WIDTH_RATIO = 0.65;
@@ -90,31 +90,39 @@ export function renderConcept(entity: VisualEntity, parentEl: SVGElement): SVGGE
   const lines = wrapToLines(label, maxCharsPerLine, maxLines);
   const lineHeight = fontSize * LABEL_DEFAULTS.lineHeight;
 
-  // Outer rounded rectangle with gradient fill + glow
+  // Outer rounded rectangle with gradient fill (pill-like corners)
+  const pillRx = Math.min(12, h / 3);
   const outerRect = document.createElementNS(SVG_NS, 'rect');
   outerRect.setAttribute('x', String(-hw));
   outerRect.setAttribute('y', String(-hh));
   outerRect.setAttribute('width', String(w));
   outerRect.setAttribute('height', String(h));
-  outerRect.setAttribute('rx', String(SHAPES.borderRadius));
+  outerRect.setAttribute('rx', String(pillRx));
   outerRect.setAttribute('fill', `url(#${gradId})`);
   outerRect.setAttribute('stroke', color);
   outerRect.setAttribute('stroke-width', String(STROKE.default));
-  outerRect.setAttribute('filter', ensureGlowFilter(parentEl, color, 'pre-concept-glow'));
   scaleGroup.appendChild(outerRect);
 
-  // Inner dotted rectangle (accent)
-  const innerRect = document.createElementNS(SVG_NS, 'rect');
-  innerRect.setAttribute('x', String(-hw + INNER_INSET));
-  innerRect.setAttribute('y', String(-hh + INNER_INSET));
-  innerRect.setAttribute('width', String(w - 2 * INNER_INSET));
-  innerRect.setAttribute('height', String(h - 2 * INNER_INSET));
-  innerRect.setAttribute('rx', String(Math.max(0, SHAPES.borderRadius - 2)));
-  innerRect.setAttribute('fill', 'none');
-  innerRect.setAttribute('stroke', `${color}50`);
-  innerRect.setAttribute('stroke-width', String(STROKE.thin));
-  innerRect.setAttribute('stroke-dasharray', '4,4');
-  scaleGroup.appendChild(innerRect);
+  // Solid inner border (replaces dashed — reads as "defined concept" not "optional")
+  const innerInset = 4;
+  const innerBorder = document.createElementNS(SVG_NS, 'rect');
+  innerBorder.setAttribute('x', String(-hw + innerInset));
+  innerBorder.setAttribute('y', String(-hh + innerInset));
+  innerBorder.setAttribute('width', String(w - 2 * innerInset));
+  innerBorder.setAttribute('height', String(h - 2 * innerInset));
+  innerBorder.setAttribute('rx', String(Math.max(0, pillRx - 2)));
+  innerBorder.setAttribute('fill', 'none');
+  innerBorder.setAttribute('stroke', `${color}${OPACITY.fillLight}`);
+  innerBorder.setAttribute('stroke-width', String(STROKE.emphasized));
+  scaleGroup.appendChild(innerBorder);
+
+  // Small 4-pointed star accent (top-right — subtle "idea" indicator)
+  const starPath = document.createElementNS(SVG_NS, 'path');
+  starPath.setAttribute('d', 'M 0,-5 L 1.5,0 L 0,5 L -1.5,0 Z');
+  starPath.setAttribute('transform', `translate(${hw - 8}, ${-hh + 8})`);
+  starPath.setAttribute('fill', color);
+  starPath.setAttribute('opacity', '0.5');
+  scaleGroup.appendChild(starPath);
 
   if (lines.length > 0) {
     const textGroup = document.createElementNS(SVG_NS, 'text');

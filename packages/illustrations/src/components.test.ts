@@ -70,12 +70,13 @@ describe('renderServer', () => {
     expect(innerG.querySelector('rect')).toBeTruthy();
   });
 
-  it('should contain rack stripe lines', () => {
+  it('should contain terminal prompt text', () => {
     const entity = makeEntity({ type: 'Server' });
     renderServer(entity, parentEl);
     const innerG = parentEl.querySelector('.animate-element')!;
-    const lines = innerG.querySelectorAll('line');
-    expect(lines.length).toBeGreaterThanOrEqual(3);
+    const prompt = innerG.querySelector('text');
+    expect(prompt).toBeTruthy();
+    expect(prompt!.textContent).toBe('>_');
   });
 
   it('should contain LED dots', () => {
@@ -89,16 +90,19 @@ describe('renderServer', () => {
   it('should render label when provided', () => {
     const entity = makeEntity({ type: 'Server', label: 'Auth Service' });
     renderServer(entity, parentEl);
-    const text = parentEl.querySelector('text');
-    expect(text).toBeTruthy();
-    expect(text!.textContent).toBe('Auth Service');
+    const texts = parentEl.querySelectorAll('text');
+    // First text is the >_ prompt, second is the label
+    const labelText = Array.from(texts).find(t => t.textContent === 'Auth Service');
+    expect(labelText).toBeTruthy();
   });
 
-  it('should NOT render label text when label is absent', () => {
+  it('should only have prompt text when label is absent', () => {
     const entity = makeEntity({ type: 'Server' });
     renderServer(entity, parentEl);
-    const text = parentEl.querySelector('text');
-    expect(text).toBeNull();
+    const texts = parentEl.querySelectorAll('text');
+    // Only the >_ prompt text should exist
+    expect(texts.length).toBe(1);
+    expect(texts[0].textContent).toBe('>_');
   });
 
   it('should use custom color', () => {
@@ -183,11 +187,12 @@ describe('renderCloud', () => {
     expect(result.getAttribute('data-type')).toBe('Cloud');
   });
 
-  it('should contain overlapping ellipses (cumulus cloud shape)', () => {
+  it('should contain overlapping ellipses (simplified cloud shape)', () => {
     const entity = makeEntity({ type: 'Cloud' });
     renderCloud(entity, parentEl);
     const ellipses = parentEl.querySelectorAll('.animate-element ellipse');
-    expect(ellipses.length).toBe(5);
+    // 3 cloud bumps + 1 flat base = 4 ellipses
+    expect(ellipses.length).toBe(4);
   });
 });
 
@@ -197,12 +202,13 @@ describe('renderConcept', () => {
   let parentEl: SVGSVGElement;
   beforeEach(() => { parentEl = makeSvg(); });
 
-  it('should contain outer rect and inner dotted rect', () => {
+  it('should contain outer rect and solid inner border', () => {
     const entity = makeEntity({ type: 'Concept', label: 'API' });
     renderConcept(entity, parentEl);
     const rects = parentEl.querySelectorAll('.animate-element rect');
     expect(rects.length).toBe(2);
-    expect(rects[1].getAttribute('stroke-dasharray')).toBe('4,4');
+    // Inner border is solid (no dash-array), not dashed
+    expect(rects[1].getAttribute('stroke-dasharray')).toBeNull();
   });
 
   it('should render centered label text', () => {
