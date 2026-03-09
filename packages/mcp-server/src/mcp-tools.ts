@@ -122,87 +122,13 @@ DESIGN GUIDELINES:
 - Entities use a single tuned default size for readability. Omit size — do not specify sz.
 - Each entity type has a smart default entrance animation. You can override with the animation.entrance property.
 
-FRAME PACING: 3–5 seconds per frame for readability. Build complexity gradually — simpler frames first, add entities in later frames. Aim for 5–7 entities per frame.
+FRAME PACING: 3–5 seconds per frame for readability. Build complexity gradually — simpler frames first, add entities in later frames.
 
-ENTITY SELECTION (choose types that match the user's topic for best visuals):
+ENTITY TYPES & METADATA: Call get_illustrations for the full type list, topic→type mapping, aliases, and metadata schemas. Key types: Server, Database, Cache, User, Cloud, Service (metadata.kind: API|Service|APIGateway), CodeBlock, BinaryTree, Array, StepList, BigO, BarChart, Graph2D, CoordinateSystem, Circuit, ProcessState, CallStack, Stack, H1/H2/H3, Concept, Arrow, DataFlow. Avoid generic Entity/Group — use dedicated types for rich visuals.
 
-Topic → Preferred type:
-- Trees (BST, AVL, heaps) → BinaryTree or BTree (use metadata.tree)
-- Call stacks, recursion → CallStack (metadata.frames)
-- State machines, process lifecycle → ProcessState (metadata.states, metadata.transitions)
-- Scheduler / CPU timelines → GanttChart (metadata.tasks)
-- Memory layout (stack/heap) → MemoryLayout (metadata.stack, metadata.heap)
-- ML metrics (TP/FP/TN/FN) → ConfusionMatrix (metadata.matrix)
-- Key-value storage → HashTable (metadata.pairs) or Dict
-- Arrays, lists, indexed data → Array (metadata.values, metadata.disabledIndexes)
-- Analogies, "X is like Y" → Analogy (metadata.label, metadata.description)
-- Step-by-step tutorials, numbered procedures → StepList (metadata.steps, metadata.currentStep, metadata.checkmarks)
-- Algorithm walkthrough (binary search, sorting, etc.) → Array (metadata.pointerLabels for low/mid/high) + StepList (metadata.currentStep) + optional CodeBlock
-- Side-by-side comparisons → Comparison (label or textContent)
-- Mathematical proofs → Proof (label or textContent)
-- Architecture diagrams → Server, Database, Cloud, Arrow, LoadBalancer
-- Microservices, backend services → Service (metadata.kind: "Service")
-- REST APIs, API endpoints → Service (metadata.kind: "API"; gear rotates)
-- API gateways, routing → Service (metadata.kind: "APIGateway")
-- Caching layers (Redis, Memcached, CDN) → Cache (database cylinder with flash icon)
-- Categorical comparisons (sales by month, counts by type, rankings) → BarChart (metadata.bars)
-- Code snippets, algorithms → CodeBlock (metadata.code or metadata.lines; entity.label = filename)
-- Loops, lifecycles, retry logic → Cycle (rotating dashed circle; entity.label only)
-- Electronic circuits (Ohm's law, RC) → Circuit (metadata.components, metadata.connections)
-- Vectors, coordinate geometry, linear algebra → CoordinateSystem (metadata.points, metadata.vectors)
-- Function plots, ROC curves, scatter → Graph2D (metadata.points, metadata.expression)
-- Big O, algorithm complexity, DSA → BigO (metadata.curves, metadata.domain)
-- DNS, nameservers, domain resolution → DNSResolver (server rack with globe + domain→IP flow)
-- Layered model, OSI, tech stack → Stack (metadata.layers)
+Connection types: Arrow, DataFlow (animated dashes), BidirectArrow, DottedArrow. Use metadata.curved=true for curved arrows. Connections: use src (sourceEntityId) and tgt (targetEntityId).
 
-PREFER dedicated types (rich visuals): Server, Service (metadata.kind for API/Service/APIGateway), Database, Cache, User, Cloud, Concept, CodeBlock, BinaryTree, BTree, LinkedList, HashTable, Array, CallStack, Stack, StepList, ProcessState, GanttChart, BarChart, BigO, CacheHierarchy, MemoryLayout, ConfusionMatrix, Graph2D, CoordinateSystem, Circuit, Cycle, DNSResolver, Timeline, Definition, Callout, Analogy, Comparison, Proof, H1, H2, H3.
-
-AVOID generic fallbacks when possible: Entity, Group, FSM, NeuralNetwork — these render as plain rounded rects.
-
-WHEN IN DOUBT: API/endpoint → Service with metadata.kind: "API". Microservice → Service with metadata.kind: "Service". API gateway → Service with metadata.kind: "APIGateway". Key-value → HashTable. Binary tree → BinaryTree. Multi-way tree → BTree. Code snippet → CodeBlock. Abstract idea → Concept. Loop/lifecycle → Cycle. Vectors/coordinates → CoordinateSystem. Function plot → Graph2D. Flow between components → Arrow or DataFlow. Indexed data → Array. Caching layer → Cache. Step-by-step procedure → StepList. "X is like Y" → Analogy.
-
-DEDICATED (prefer these — rich custom renderers):
-  Server (rack with LEDs), Service (cogwheel; metadata.kind: Service|API|APIGateway for hub text; API rotates), Database (cylinder), Cache (database cylinder with flash icon), User (avatar), Cloud (cumulus blob), Concept (auto-sized circle; label ≤12 chars inside, else below), Label (text with optional pill), H1/H2/H3 (section headings; metadata.label or l; H1 largest, H3 smallest), CodeBlock (dark terminal with traffic-light dots + line numbers), DNSResolver (server rack with globe + domain→IP flow), Cycle (rotating dashed circle for loops/lifecycles), Circuit (battery/resistor/capacitor/bulb/switch), CoordinateSystem (2D axes + points + vectors)
-
-SHAPED renderers:
-  LoadBalancer (hexagon), Decision (diamond), Metric (circle)
-
-CS-specific with custom renderers:
-  CallStack (stack frames), Stack (layered blocks — OSI, tech stack; metadata.layers), BTree (multi-child tree), ProcessState (state diagram), GanttChart (task bars), BarChart (axes + bars with value labels), BigO (complexity curves O(1)/O(n)/O(n²)/etc.), CacheHierarchy (L1/L2/L3 stack), MemoryLayout (stack/heap), ConfusionMatrix (TP/FP/TN/FN grid), CoordinateSystem (2D plane for vectors — use Graph2D for function plots)
-
-METADATA (required for correct rendering):
-- Arrow/DataFlow: metadata.curved = true (optional) — when true, render curved; default is straight
-- CallStack: metadata.frames = [{name, locals?}]
-- Stack: metadata.layers = [{label, sublabel?, color?}, ...]. Use for OSI model, tech stack, layered architecture. Not for call stacks (use CallStack) or cache hierarchy (use CacheHierarchy).
-- BinaryTree: metadata.tree = {value, left?, right?} OR metadata.nodes = [level-order values]. metadata.disabledIndexes = [0-based indexes to dim], metadata.selectedIndexes = [0-based indexes to highlight]. Use for BST search, heap, tree structure. For binary search on a sorted array, use Array with pointerLabels instead.
-- BTree: metadata.tree = {value, children?}, metadata.branchingFactor?. Use for multi-way trees (B-tree, B+ tree). Node labels can be key ranges like "[10,20]".
-- GanttChart: metadata.tasks = [{name, start, end}], metadata.maxTime?
-- ProcessState: metadata.states, metadata.transitions
-- ConfusionMatrix: metadata.matrix (2D array), metadata.rowLabels?, metadata.colLabels?
-- HashTable: metadata.pairs = [[key, value], ...]
-- Array: metadata.values, metadata.disabledIndexes, metadata.selectedIndexes, metadata.pointerLabels = [{index, label, color?, value?, showValue?, showIndex?, highlight?}]. Pointers: low→green, mid→gold, high→red; showValue:true or value for "→ value"; highlight:true for active. Max 8 cells.
-- Analogy: metadata.label (or entity.label), metadata.width?, metadata.maxLines?. Text wraps by line; overflow gets "...".
-- StepList: metadata.steps = [string, ...] (step labels; 1–2 words each, e.g. "Parse", "Validate"), metadata.currentStep = number (0-based, -1 = none), metadata.checkmarks = true (show checkmarks for completed steps). Use entity.textContent as fallback for steps (split on newline).
-- MemoryLayout: metadata.stack = [...], metadata.heap = [...]
-- BarChart: metadata.bars = [{label, value, color?}, ...] (required), metadata.xLabel?, metadata.yLabel?, metadata.horizontal? (true = horizontal bars). Use for categorical comparisons. Max 12 bars.
-- CodeBlock: metadata.code = string (split on \\n) OR metadata.lines = [string, ...]. entity.label = title bar filename. Use textContent as fallback.
-- Circuit: metadata.components = [{type, label?}, ...] (types: battery|voltage|v|cell, resistor|r, capacitor|c, bulb|lamp|light, switch|s). metadata.connections = [{from, to}, ...] (indices into components).
-- CoordinateSystem: metadata.xRange, metadata.yRange (default [-5,5]), metadata.gridSpacing?, metadata.showGrid?, metadata.xLabel?, metadata.yLabel?, metadata.points = [{x, y, label?, color?}], metadata.vectors = [{dx, dy, label?, color?}]. Use for vectors/geometry; use Graph2D for function plots.
-- BigO: metadata.curves = ["O(1)", "O(log n)", "O(n)", "O(n log n)", "O(n²)", "O(2^n)"] (pick subset; default all except O(2^n)). metadata.domain = [min, max] for n (default [0, 10]). Use [0, 8] when including O(2^n). For algorithm complexity, Big O notation, DSA education.
-- Cycle, Cloud, Concept, DNSResolver: no metadata. Use entity.label, entity.position.
-- H1, H2, H3: metadata.label (or entity.label). Section headings; H1 largest, H3 smallest.
-
-Graph2D: metadata.domain = [xMin, xMax], metadata.range = [yMin, yMax] (or xRange/yRange), metadata.xLabel?, metadata.yLabel?, metadata.showGrid? (default true). Modes: (1) expression = "x * x" for y=f(x); (2) parametric=true with xExpression, yExpression, tRange for x(t),y(t); (3) curveType="roc" with points=[{x:FPR,y:TPR},...]; (4) curveType="loss" with points=[{x:epoch,y:loss},...]; (5) curveType="scatter" or omit with points=[{x,y},...]. Curves are clipped to chart area.
-
-GENERIC (use only if no dedicated type fits — render as rounded rectangles):
-  Entity, Group, FSM, NeuralNetwork, Process, Queue, Service, CPU, Register, MemoryBlock, Packet, Semaphore, Mutex, TuringMachine, SortAnimation, GraphTraversal, and more.
-
-Connection types (rendered as arrows with glow and animated flow):
-  Arrow, DataFlow (fast animated dashes), BidirectArrow, DottedArrow, Transition, Bus
-
-CURVED vs STRAIGHT: All connection types render STRAIGHT by default. Use metadata.curved = true to render curved.
-
-Entrance animations: fadeInUp, fadeIn, scaleIn, drawIn, floatIn, slideInLeft, dropIn. Omit a (animation) to use defaults.`;
+Entrance animations: fadeInUp, fadeIn, scaleIn, drawIn, floatIn, slideInLeft, dropIn. Omit a (animation) to use smart defaults.`;
 
 export const UPDATE_SCENE_DESCRIPTION = `Replace the visual script for a session with a new one. Use this to modify an existing scene. Use the same compact format as add_scene (short keys sid, td, f, e, p, n, src, tgt; position [x,y]; aliases BT, CST, CB, etc.; omit color) to reduce tokens. Follow the same entity selection, metadata requirements, and design guidelines.`;
 
