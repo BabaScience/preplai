@@ -85,8 +85,25 @@ REQUIRED — USE COMPACT FORMAT (reduces tokens significantly):
 - Omit: color (palette used), frame id/startTime/endTime/description, entity id for non-connected entities
 - Aliases: BT, BTR, ARR, CST, CB, G2, COORD, BC, DNS, SVC, GW, SL, PS, GC, CH, ML, CKT, CYC
 
-Example (REQUIRED format — 5–7 entities per frame):
-{"sid":"<session_id>","td":5000,"f":[{"e":[{"id":"h1","type":"H1","p":[50,6],"l":"API Architecture"},{"id":"srv","type":"Server","p":[25,45],"l":"API"},{"id":"db","type":"Database","p":[50,45],"l":"DB"},{"id":"cache","type":"Cache","p":[75,45],"l":"Redis"},{"id":"a1","type":"Arrow","p":[37,45],"src":"srv","tgt":"db","l":"Queries"},{"id":"a2","type":"Arrow","p":[62,45],"src":"srv","tgt":"cache","l":"Cache"},{"id":"l1","type":"Label","p":[50,75],"l":"Read-through pattern"}],"n":"The API server queries the database for data. Frequently accessed items are cached in Redis to reduce load."}]
+Example (REQUIRED format — 5–7 entities per frame, with entity persistence):
+{"sid":"<session_id>","td":10000,"f":[{"e":[{"id":"h1","type":"H1","p":[50,6],"l":"API Architecture"},{"id":"srv","type":"Server","p":[25,45],"l":"API Server"},{"id":"db","type":"Database","p":[50,45],"l":"PostgreSQL","highlight":true},{"id":"a1","type":"Arrow","p":[37,45],"src":"srv","tgt":"db","l":"SQL Queries"},{"id":"l1","type":"Label","p":[50,80],"l":"Read-through caching pattern"}],"n":"The API server queries PostgreSQL for user data. Each request hits the database directly, adding 50ms of latency per query."},{"e":[{"id":"h1","type":"H1","p":[50,6],"l":"API Architecture"},{"id":"srv","type":"Server","p":[25,45],"l":"API Server"},{"id":"db","type":"Database","p":[65,45],"l":"PostgreSQL"},{"id":"cache","type":"Cache","p":[45,45],"l":"Redis","highlight":true},{"id":"a1","type":"Arrow","p":[35,45],"src":"srv","tgt":"cache","l":"Check cache"},{"id":"a2","type":"Arrow","p":[55,45],"src":"cache","tgt":"db","l":"Cache miss"},{"id":"l1","type":"Label","p":[50,80],"l":"Cache reduces DB load by 90%"}],"n":"Adding Redis as a caching layer between the API and database. Frequently accessed data is served from memory in under 1ms, with cache misses falling through to PostgreSQL."}]}
+
+═══ CINEMATIC ENGINE — How your frames render ═══
+
+ENTITY PERSISTENCE: Same entity id across frames = entity STAYS in DOM (no rebuild). New ids animate in, removed ids slide out. This is the #1 feature — use it to build narrative continuity. Keep core entities (Server, Database, User) persistent across frames and add/remove detail entities around them.
+
+DEPTH OF FIELD: Set "highlight": true on the entity you're narrating about. The engine dims/blurs everything else (0.35 opacity, blur, 0.88x scale) and enlarges the focused entity (1.15x). Creates cinematic focus pull. Use ONE highlight per frame, matching narration.
+
+CAMERA: ViewBox auto-pans/zooms to frame your entities. Control through positioning:
+- Cluster entities tightly → camera zooms in (detail shot)
+- Spread entities wide → camera zooms out (establishing shot)
+- Shift cluster between frames → camera pans (reveal)
+
+MOTIVATED ENTRANCE (automatic): Entities near edges fly in from that edge. Entities near existing entities grow from that point. Center entities fade up. You just place entities — the engine animates intelligently.
+
+IDLE ANIMATIONS (automatic): Servers pulse LEDs, databases shimmer, neural nets glow, concepts breathe. Entities feel alive.
+
+═══ CONTENT & COMPOSITION ═══
 
 CONTENT DENSITY (critical): Aim for 5–7 entities per frame. Avoid sparse slides with only 1–3 items — each frame should feel complete and informative.
 
@@ -94,13 +111,14 @@ CONTENT QUALITY: Match the richness and detail of GPT/Claude chat explanations �
 
 NARRATION QUALITY: Good — "Binary search works by repeatedly halving the search space. We maintain two pointers, lo and hi; each comparison eliminates half the remaining elements, giving O(log n) time." Bad — "Binary search divides the array. It's efficient."
 
+NARRATIVE ARC: Structure frames like a film — (1) Establish the scene with core entities, (2) Focus on one part with highlight, (3) Expand with new entities, (4) Resolve with complete picture. Build complexity gradually across frames.
+
 APPEND BEHAVIOR: Multiple add_scene calls APPEND frames. Use update_scene to REPLACE. Use session_id as sid. Positions 0-100 (percent).
 
 DESIGN GUIDELINES:
 - COLORS — Always omit entity.color. Player uses palette automatically.
 - Title: type H1 (main heading), H2 (section), or H3 (subsection). Use metadata.label or l.
 - Space entities evenly. Minimum 15% gap between entity positions.
-- Use "highlight": true to emphasize the currently discussed entity.
 - Entities use a single tuned default size for readability. Omit size — do not specify sz.
 - Each entity type has a smart default entrance animation. You can override with the animation.entrance property.
 
@@ -209,13 +227,13 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
 
   mcp.tool(
     'create_session',
-    `Create a new presentation session. Returns a session_id and a player_url.
+    `Create a new cinematic presentation session. Returns a session_id and a player_url.
 
 PREREQUISITE — MANDATORY: NEVER call this tool until you have asked the user at least one clarifying question. Even vague requests ("make me a simple presentation", "the simplest example possible") require you to ask first — e.g. "What topic would you like this to cover?" or "What do you want to understand better?" Gather topic, purpose, depth, and style before proceeding. Do NOT call immediately when the user says "create a presentation" without context.
 
 REQUIRED: Call get_preferences FIRST before create_session. Use the returned theme and palette to decide how to create the session. Pass style to override theme (e.g. "minimal" for algorithm viz) if desired; otherwise the user's preference is used.
 
-THEMES: "cinema" (rich gradients) or "minimal" (flat, algorithm-viz). PALETTES: "default", "ocean", "sunset", "forest", "mono". The user's dashboard preference is used unless you pass style. Omit entity.color in add_scene — the player uses the palette automatically. Player URL: open in browser for user to watch.
+THEMES: "cinema" (rich gradients, glass narrator, ambient particles — best for architecture, concepts, storytelling) or "minimal" (flat colors, clean lines — best for algorithm walkthroughs, data structures, code). PALETTES: "default", "ocean", "sunset", "forest", "mono". The user's dashboard preference is used unless you pass style. Omit entity.color in add_scene — the player uses the palette automatically. Player URL: open in browser for user to watch.
 
 CALLBACK: When running locally, the player URL is auto-opened. For remote clients, share the player_url.`,
     {
