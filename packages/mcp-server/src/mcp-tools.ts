@@ -34,13 +34,15 @@ export const ADD_SCENE_DESCRIPTION = `Add or replace a visual scene in a present
 MODE: "append" (default) appends frames to existing scene. "replace" replaces the entire visual script.
 
 REQUIRED — USE COMPACT FORMAT (reduces tokens significantly):
-- Short keys: sid (sceneId), td (totalDuration), f (frames), e (entities), n (narrationSegment), p (position), l (label), m (metadata), src (sourceEntityId), tgt (targetEntityId), a (animation)
+- Short keys: sid (sceneId), td (totalDuration), f (frames), e (entities), n (narrationSegment), p (position), l (label), m (metadata), src (sourceEntityId), tgt (targetEntityId), a (animation), lang (language), hl (highlight), sz (size), c (color), fc (focusCues), tr (transitions), d (description), par (parentEntityId), tc (textContent)
 - Position: [50,50] NOT {x:50,y:50}
 - Omit: color (palette used), frame id/startTime/endTime/description, entity id for non-connected entities
 - Aliases: BT, BTR, ARR, CST, CB, G2, COORD, BC, DNS, SVC, GW, SL, PS, GC, CH, ML, CKT, CYC
 
 Example (REQUIRED format — 5–7 entities per frame, with entity persistence):
 {"sid":"<session_id>","td":10000,"f":[{"e":[{"id":"h1","type":"H1","p":[50,6],"l":"API Architecture"},{"id":"srv","type":"Server","p":[25,45],"l":"API Server"},{"id":"db","type":"Database","p":[50,45],"l":"PostgreSQL","highlight":true},{"id":"a1","type":"Arrow","p":[37,45],"src":"srv","tgt":"db","l":"SQL Queries"},{"id":"l1","type":"Label","p":[50,80],"l":"Read-through caching pattern"}],"n":"The API server queries PostgreSQL for user data. Each request hits the database directly, adding 50ms of latency per query."},{"e":[{"id":"h1","type":"H1","p":[50,6],"l":"API Architecture"},{"id":"srv","type":"Server","p":[25,45],"l":"API Server"},{"id":"db","type":"Database","p":[65,45],"l":"PostgreSQL"},{"id":"cache","type":"Cache","p":[45,45],"l":"Redis","highlight":true},{"id":"a1","type":"Arrow","p":[35,45],"src":"srv","tgt":"cache","l":"Check cache"},{"id":"a2","type":"Arrow","p":[55,45],"src":"cache","tgt":"db","l":"Cache miss"},{"id":"l1","type":"Label","p":[50,80],"l":"Cache reduces DB load by 90%"}],"n":"Adding Redis as a caching layer between the API and database. Frequently accessed data is served from memory in under 1ms, with cache misses falling through to PostgreSQL."}]}
+
+LANGUAGE & VOICE: Set lang at script level for the whole presentation, or per-frame to mix languages. Supported: "en" (default), "fr" (French), "it" (Italian). Script-level: {"sid":"...","td":10000,"lang":"fr","f":[...]}. Frame override: {"e":[...],"n":"Voici le serveur","lang":"fr"}. Frame language overrides script language. If unset, defaults to English.
 
 ═══ CINEMATIC ENGINE — How your frames render ═══
 
@@ -68,11 +70,12 @@ NARRATION QUALITY: Good — "Binary search works by repeatedly halving the searc
 NARRATIVE ARC: Structure frames like a film — (1) Establish the scene with core entities, (2) Focus on one part with highlight, (3) Expand with new entities, (4) Resolve with complete picture. Build complexity gradually across frames.
 
 DESIGN GUIDELINES:
-- COLORS — Always omit entity.color. Player uses palette automatically.
+- COLORS — Omit entity.color by default (palette auto-assigns). Use c (color) to override when a specific color is needed (e.g. "#e74c3c" for error states).
 - Title: type H1 (main heading), H2 (section), or H3 (subsection). Use metadata.label or l.
 - Space entities evenly. Minimum 15% gap between entity positions.
-- Entities use a single tuned default size for readability. Omit size — do not specify sz.
-- Each entity type has a smart default entrance animation. You can override with the animation.entrance property.
+- Entities use a tuned default size. Omit sz by default. Use sz (0.5–3.0) to scale entities when needed.
+- Each entity type has a smart default entrance animation. Override via a (animation): {entrance, delay (ms), duration (ms), easing (CSS)}. Example: "a":{"entrance":"scaleIn","delay":500,"duration":800}.
+- Focus cues: Auto-generated from narration when TTS is active. Override with fc (focusCues) per frame: [{"t":1.5,"eid":"srv","w":"server"}] to control which entity highlights at which narration moment.
 
 FRAME PACING: 3–5 seconds per frame for readability. Build complexity gradually — simpler frames first, add entities in later frames.
 
@@ -113,9 +116,11 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
 
 PREREQUISITE — MANDATORY: NEVER call this tool until you have asked the user at least one clarifying question. Even vague requests ("make me a simple presentation", "the simplest example possible") require you to ask first — e.g. "What topic would you like this to cover?" or "What do you want to understand better?" Gather topic, purpose, depth, and style before proceeding. Do NOT call immediately when the user says "create a presentation" without context.
 
-THEMES: "cinema" (rich gradients) or "minimal" (flat, algorithm-viz). PALETTES: "default", "ocean", "sunset", "forest", "mono". The user's dashboard preference is used unless you pass style. Omit entity.color in add_scene — the player uses the palette automatically. Player URL: open in browser for user to watch.
+THEMES: "cinema" (rich gradients) or "minimal" (flat, algorithm-viz). PALETTES: "default", "ocean", "sunset", "forest", "mono". The user's dashboard preference is used unless you pass style. Omit entity.color in add_scene by default — the player uses the palette automatically. Player URL: open in browser for user to watch.
 
-RETURNS: session_id, player_url, preferences (theme, palette), AND illustrations reference (entityTypes, aliases, shortKeys, topicHints, metadataHints). Use the illustrations data to choose the right entity types for add_scene.
+RETURNS: session_id, player_url, embed_url (for iframe embedding), preferences (theme, palette), AND illustrations reference (entityTypes, aliases, shortKeys, topicHints, metadataHints). Use the illustrations data to choose the right entity types for add_scene.
+
+LANGUAGE: For non-English presentations, set lang in the visual_script passed to add_scene. Supported: "en" (default), "fr", "it". TTS generates voice in the matching language.
 
 CALLBACK: When running locally, the player URL is auto-opened. For remote clients, share the player_url.`,
     {
@@ -201,7 +206,7 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
   // ── Tool 3: get_session_url ─────────────────────────────────────────
   mcp.tool(
     'get_session_url',
-    'Get the player URL for a session. Returns preferences (theme, palette). Set include_stats to true for frame count and duration. Open the player_url in a browser to view the presentation.',
+    'Get the player URL for a session. Returns player_url, embed_url (iframe), and preferences (theme, palette). Set include_stats to true for frame count and duration. Open the player_url in a browser to view the presentation.',
     {
       session_id: z.string().describe('Session ID'),
       include_stats: z.boolean().optional().describe('Include frame count, duration, etc.'),
