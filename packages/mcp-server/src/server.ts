@@ -441,7 +441,9 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   );
 
   // ── Player HTML route ─────────────────────────────────────────────
-  app.get<{ Params: { sessionId: string }; Querystring: { style?: string } }>(
+  const VALID_PALETTES = new Set(['default', 'ocean', 'sunset', 'forest', 'mono']);
+
+  app.get<{ Params: { sessionId: string }; Querystring: { style?: string; palette?: string } }>(
     '/player/:sessionId',
     async (request, reply) => {
       const { sessionId } = request.params;
@@ -451,21 +453,25 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
         return;
       }
       const style = request.query.style === 'minimal' ? 'minimal' : 'cinema';
+      const palette = VALID_PALETTES.has(request.query.palette ?? '') ? request.query.palette! : 'default';
       const eventsBase = cfg.baseUrl.replace(/\/$/, '');
       const html = PLAYER_HTML_TEMPLATE
         .replace(/\{\{SESSION_ID\}\}/g, sessionId)
         .replace(/\{\{STYLE\}\}/g, style)
+        .replace(/\{\{PALETTE\}\}/g, palette)
         .replace(/\{\{EVENTS_BASE\}\}/g, eventsBase);
       reply.type('text/html').send(html);
     },
   );
 
   // ── Test player route (no auth, no session needed) ─────────────────
-  app.get('/player/_test', async (request, reply) => {
+  app.get<{ Querystring: { palette?: string } }>('/player/_test', async (request, reply) => {
+    const palette = VALID_PALETTES.has(request.query.palette ?? '') ? request.query.palette! : 'default';
     const eventsBase = cfg.baseUrl.replace(/\/$/, '');
     const html = PLAYER_HTML_TEMPLATE
       .replace(/\{\{SESSION_ID\}\}/g, '_test')
       .replace(/\{\{STYLE\}\}/g, 'cinema')
+      .replace(/\{\{PALETTE\}\}/g, palette)
       .replace(/\{\{EVENTS_BASE\}\}/g, eventsBase);
     reply.type('text/html').send(html);
   });

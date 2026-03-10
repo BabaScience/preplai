@@ -342,7 +342,168 @@ export const ENTITY_COLORS: Record<string, string> = {
   DottedArrow: '#ffffff',
 };
 
+// ── Palette system ────────────────────────────────────────────────────
+
+export type SemanticCategory = 'compute' | 'data' | 'environment' | 'human' | 'structure' | 'state' | 'annotation' | 'generic';
+
+export interface Palette {
+  compute: string;
+  data: string;
+  environment: string;
+  human: string;
+  structure: string;
+  state: string;
+  annotation: string;
+  generic: string;
+  accent: string;
+  particles: string[];
+}
+
+export type PaletteName = 'default' | 'ocean' | 'sunset' | 'forest' | 'mono';
+
+export const PALETTES: Record<PaletteName, Palette> = {
+  default: {
+    compute: '#00e676', data: '#4488ff', environment: '#00bcd4', human: '#C9A84C',
+    structure: '#9B59B6', state: '#ff6b6b', annotation: '#ffab00', generic: '#4ECDC4',
+    accent: '#C9A84C',
+    particles: ['#00e676', '#4488ff', '#C9A84C', '#9B59B6', '#4ECDC4'],
+  },
+  ocean: {
+    compute: '#2ECC71', data: '#3498DB', environment: '#9B59B6', human: '#1ABC9C',
+    structure: '#00bcd4', state: '#E74C3C', annotation: '#e2e8f0', generic: '#4ECDC4',
+    accent: '#4ECDC4',
+    particles: ['#3498DB', '#2ECC71', '#1ABC9C', '#00bcd4', '#9B59B6'],
+  },
+  sunset: {
+    compute: '#F39C12', data: '#E74C3C', environment: '#9B59B6', human: '#F1C40F',
+    structure: '#ff6b6b', state: '#E74C3C', annotation: '#fef3c7', generic: '#E67E22',
+    accent: '#E67E22',
+    particles: ['#F39C12', '#E74C3C', '#F1C40F', '#ff6b6b', '#9B59B6'],
+  },
+  forest: {
+    compute: '#2ECC71', data: '#1ABC9C', environment: '#3498DB', human: '#16a085',
+    structure: '#00e676', state: '#E74C3C', annotation: '#d1fae5', generic: '#22c55e',
+    accent: '#27ae60',
+    particles: ['#2ECC71', '#1ABC9C', '#16a085', '#00e676', '#3498DB'],
+  },
+  mono: {
+    compute: '#ECEFF1', data: '#607D8B', environment: '#78909C', human: '#B0BEC5',
+    structure: '#455A64', state: '#90A4AE', annotation: '#FFFFFF', generic: '#CFD8DC',
+    accent: '#90A4AE',
+    particles: ['#ECEFF1', '#90A4AE', '#78909C', '#607D8B', '#546E7A', '#455A64', '#37474F'],
+  },
+};
+
+// ── Semantic category mapping (type → palette slot) ──────────────────
+
+const TYPE_TO_CATEGORY: Record<string, SemanticCategory> = {};
+
+// compute: Computation / Processing / Execution
+for (const t of [
+  'Server', 'Service', 'API', 'APIGateway', 'Lambda', 'CPU', 'Process',
+  'Pipeline', 'Thread', 'PipelineStage', 'CodeBlock', 'CallStack', 'SymbolTable',
+  'APIEndpoint', 'Certificate', 'PullRequest', 'Build',
+]) TYPE_TO_CATEGORY[t] = 'compute';
+
+// data: Data / Information / Storage
+for (const t of [
+  'Database', 'Cache', 'Volume', 'MemoryBlock', 'MemoryLayout', 'MemoryMap',
+  'CacheHierarchy', 'Dict', 'HashTable', 'BTree', 'Trie', 'Heap', 'Set',
+  'Registry', 'Table', 'DockerImage', 'DockerRegistry', 'QueryPlan',
+  'Schema', 'Migration', 'StorageBucket', 'Deployment', 'Dashboard',
+  'Dependency', 'File',
+]) TYPE_TO_CATEGORY[t] = 'data';
+
+// environment: Environment / Flow / Monitoring
+for (const t of [
+  'Cloud', 'Cycle', 'Monitor', 'Timeline', 'FlowDiagram', 'GraphTraversal',
+  'Wave', 'WebSocket', 'Stream', 'CDN', 'Trace',
+]) TYPE_TO_CATEGORY[t] = 'environment';
+
+// human: Human / Agent / Reasoning
+for (const t of [
+  'User', 'Concept', 'Decision', 'Metric', 'BigO', 'Analogy', 'Quote',
+  'Definition', 'Proof', 'AuthFlow', 'Token',
+]) TYPE_TO_CATEGORY[t] = 'human';
+
+// structure: Structure / Organization / Topology
+for (const t of [
+  'Container', 'Pod', 'Network', 'Subnet', 'Cluster', 'Group', 'Stack',
+  'BinaryTree', 'LinkedList', 'NeuralNetwork', 'RecursionTree', 'TuringMachine',
+  'Tuple', 'GitBranch', 'GitCommit', 'Module',
+]) TYPE_TO_CATEGORY[t] = 'structure';
+
+// state: State / Control / Synchronization
+for (const t of [
+  'Mutex', 'Semaphore', 'Firewall', 'FSM', 'ProcessState', 'DeadlockGraph',
+  'Badge', 'StateNode', 'Secret', 'Rollback', 'Alert', 'ErrorState',
+]) TYPE_TO_CATEGORY[t] = 'state';
+
+// annotation: Annotations / Scheduling / Peripherals
+for (const t of [
+  'Label', 'Callout', 'Annotation', 'Comparison', 'GanttChart',
+  'LogicGate', 'Register', 'Device', 'Decorator', 'FreeBodyDiagram',
+  'Webhook', 'Event', 'MessageBroker', 'ConfigFile', 'CronJob',
+  'Notification', 'Task',
+]) TYPE_TO_CATEGORY[t] = 'annotation';
+
+// generic: General-purpose / Math / Visualization
+for (const t of [
+  'H1', 'H2', 'H3', 'Entity', 'Array', 'ArrayCell', 'List', 'GraphDS',
+  'Equation', 'Expression', 'Matrix', 'Graph2D', 'CoordinateSystem',
+  'SortAnimation', 'StepList', 'LoadBalancer', 'DNSResolver', 'Bus',
+  'Packet', 'Queue', 'BarChart', 'Histogram', 'PieChart', 'ScatterPlot',
+  'VennDiagram', 'HTTPRequest', 'HTTPResponse', 'GraphQLSchema',
+  'LogEntry', 'Interface',
+]) TYPE_TO_CATEGORY[t] = 'generic';
+
+// ── Active palette state ─────────────────────────────────────────────
+
+let _activePalette: Palette | null = null;
+let _activePaletteName: PaletteName | null = null;
+
+/** Set the active palette by name. Call once at player init. */
+export function setActivePalette(name: string): void {
+  if (name === 'default' || !name) {
+    _activePalette = null;
+    _activePaletteName = null;
+    return;
+  }
+  const palette = PALETTES[name as PaletteName];
+  if (palette) {
+    _activePalette = palette;
+    _activePaletteName = name as PaletteName;
+  } else {
+    _activePalette = null;
+    _activePaletteName = null;
+  }
+}
+
+/** Get the active palette name, or null if using default. */
+export function getActivePaletteName(): PaletteName | null {
+  return _activePaletteName;
+}
+
+/** Get semantic category for an entity type. */
+export function getSemanticCategory(type: string): SemanticCategory {
+  return TYPE_TO_CATEGORY[type] ?? 'generic';
+}
+
+/** Get particle colors for the active palette (for ambient particles). */
+export function getParticleColors(): string[] {
+  if (_activePalette) return _activePalette.particles;
+  return PALETTES.default.particles;
+}
+
 /** Get default color for an entity type. Falls back to cyan. */
 export function getCategoryColor(type: string): string {
+  // Connectors always use white regardless of palette
+  if (ENTITY_COLORS[type] === '#ffffff') return '#ffffff';
+  // If a non-default palette is active, use semantic category mapping
+  if (_activePalette) {
+    const category = getSemanticCategory(type);
+    return _activePalette[category];
+  }
+  // Default: use the detailed per-type ENTITY_COLORS map
   return ENTITY_COLORS[type] ?? COLORS.cyan;
 }

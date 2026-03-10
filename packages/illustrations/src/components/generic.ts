@@ -14,7 +14,7 @@ import {
   createRadialGradient,
   ensureDefs,
 } from '../visual-utils.js';
-import { colorWithAlpha, OPACITY, TYPOGRAPHY, SHAPES, STROKE } from '../design-tokens.js';
+import { colorWithAlpha, OPACITY, TYPOGRAPHY, SHAPES, STROKE, getCategoryColor } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 type VisualStyle = 'default' | 'minimal' | 'emphasized';
@@ -38,7 +38,7 @@ export function createGenericRenderer(
     const { outerG, innerG } = buildEntityGroup(entity);
 
     const s = getSizeParam(entity);
-    const color = entity.color ?? defaultColor;
+    const color = entity.color ?? getCategoryColor(entity.type);
     const visualStyle = getVisualStyle(entity);
     const showBadge = visualStyle !== 'minimal';
     const strokeWidth =

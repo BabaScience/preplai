@@ -7,6 +7,7 @@
 import type { VisualScript, FrameAudio } from '@preplai/shared';
 import type { FocusInfo } from '@preplai/player';
 import { SceneController, NarratorController, AudioEngine, resolveSessionId, createSSEHandler } from '@preplai/player';
+import { setActivePalette, getParticleColors } from '@preplai/illustrations';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const CW = 1920;
@@ -18,6 +19,10 @@ function main(): void {
     console.error('[PRE] No data-session-id on <body>.');
     return;
   }
+
+  // ── Palette initialization (must run before any rendering) ────────
+  const paletteName = document.body.getAttribute('data-palette') || 'default';
+  setActivePalette(paletteName);
 
   const canvas = document.getElementById('canvas');
   const entityLayer = document.getElementById('entity-layer') as SVGGElement | null;
@@ -53,7 +58,7 @@ function main(): void {
   // ── Ambient particles ───────────────────────────────────────────
   const ambientLayer = document.getElementById('ambient-layer');
   if (ambientLayer) {
-    const colors = ['#4ECDC4', '#9B59B6', '#F1C40F', '#3498DB', '#E67E22'];
+    const colors = getParticleColors();
     for (let i = 0; i < 12; i++) {
       const c = document.createElementNS(SVG_NS, 'circle');
       c.setAttribute('cx', String(100 + Math.random() * (CW - 200)));
