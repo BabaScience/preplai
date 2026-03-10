@@ -9,9 +9,8 @@ global:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets: []
-        # Uncomment and set for Alertmanager:
-        # - targets: ['localhost:9093']
+        - targets: ['alertmanager:9093']
+        # Local dev (no Docker): use 'localhost:9093' instead
 
 rule_files:
   - alerts.yml
@@ -19,12 +18,12 @@ rule_files:
 scrape_configs:
   - job_name: 'preplai-api'
     static_configs:
-      - targets: ['localhost:5000']
-        # Docker: use 'api:5000' when Prometheus runs in same compose network
+      - targets: ['api:5000']
+        # Local dev (no Docker): use 'localhost:5000' instead
     metrics_path: /metrics
 
   - job_name: 'preplai-mcp'
     static_configs:
-      - targets: ['localhost:5005']
-        # Docker: use 'mcp:5005' when Prometheus runs in same compose network
+      - targets: ['mcp:5005']
+        # Local dev (no Docker): use 'localhost:5005' instead
     metrics_path: /metrics

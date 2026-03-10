@@ -11,4 +11,10 @@ const narrationSchema = new mongoose.Schema({
   createdAt: { type: Number, required: true },
 });
 
+// ── Indexes ──────────────────────────────────────────────────────────
+// Simple index for session lookups (list all narrations in a session)
+narrationSchema.index({ sessionId: 1 });
+// Compound index for direct frame access (e.g., GET /narration/:sessionId/:frameIndex)
+narrationSchema.index({ sessionId: 1, frameIndex: 1 });
+
 export const Narration = mongoose.models.Narration ?? mongoose.model('Narration', narrationSchema);

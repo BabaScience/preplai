@@ -13,9 +13,16 @@
 import type { IllustrationFrame, VisualEntity, FocusCue, FrameAudio } from '@preplai/shared';
 import { generateSpeech, type ElevenLabsConfig, type WordTimestamp } from './elevenlabs.js';
 import { generateSemanticFocusCues } from './semantic-focus.js';
+import { VisualScriptFrame } from '@preplai/db';
 import type { AudioStore } from './audio-store.js';
 import type { SessionStore } from './session-store.js';
 import type { SseRegistry } from './sse.js';
+import {
+  ttsGenerationDuration,
+  focusCueMethodTotal,
+  semanticFallbackTotal,
+  semanticFocusLlmLatency,
+} from './metrics.js';
 
 // ── Constants ────────────────────────────────────────────────────────
 
@@ -79,7 +86,12 @@ export class TtsService {
         // Resolve per-frame voice: frame language > script language > 'en'
         const lang = (frame as any).language ?? scriptLanguage ?? 'en';
         const voiceId = VOICE_MAP[lang] ?? VOICE_MAP.en;
+
+        // Track TTS generation duration
+        const ttsStart = performance.now();
         const result = await generateSpeech(narrationText, this.config, voiceId);
+        const ttsDurationSec = (performance.now() - ttsStart) / 1000;
+        ttsGenerationDuration.observe(ttsDurationSec);
 
         // Store audio buffer (async — GridFS backed)
         await this.audioStore.set(sessionId, i, result.audioBuffer);
@@ -139,7 +151,16 @@ export class TtsService {
 
     (session.script.frames[frameIndex] as any).audio = audio;
 
-    // Persist to DB (fire-and-forget, don't block the loop)
+    // Persist to DB using O(1) per-frame update (fire-and-forget)
+    const updatedFrame = session.script.frames[frameIndex];
+    VisualScriptFrame.findOneAndUpdate(
+      { sessionId, frameIndex },
+      { frameJson: JSON.stringify(updatedFrame), updatedAt: Date.now() },
+    ).catch(err => {
+      console.error(`[TTS] Failed to persist frame ${frameIndex} audio to VisualScriptFrame:`, err);
+    });
+
+    // Also update legacy format for backward compatibility
     this.sessionStore.setScript(sessionId, session.script).catch(err => {
       console.error(`[TTS] Failed to persist audio metadata for frame ${frameIndex}:`, err);
     });
@@ -164,22 +185,35 @@ export async function generateFocusCues(
 ): Promise<FocusCue[]> {
   // Agent-provided cues take priority
   if (agentCues && agentCues.length > 0) {
+    focusCueMethodTotal.inc({ method: 'agent' });
     return agentCues.map(normalizeFocusCue);
   }
 
   // Try semantic LLM-based cue generation
   if (narration) {
     try {
+      const llmStart = performance.now();
       const semanticCues = await generateSemanticFocusCues(narration, entities, wordTimestamps);
+      const llmDurationSec = (performance.now() - llmStart) / 1000;
+      semanticFocusLlmLatency.observe(llmDurationSec);
+
       if (semanticCues && semanticCues.length > 0) {
+        focusCueMethodTotal.inc({ method: 'llm' });
         return semanticCues;
       }
+      // LLM returned no cues — fall through to string matching
+      semanticFallbackTotal.inc({ reason: 'empty_response' });
     } catch (err) {
       console.warn('[TTS] Semantic focus failed, falling back to string matching:', err);
+      semanticFallbackTotal.inc({ reason: 'error' });
     }
+  } else {
+    // No narration text — can't run LLM
+    semanticFallbackTotal.inc({ reason: 'no_narration' });
   }
 
   // Fallback: string matching
+  focusCueMethodTotal.inc({ method: 'string' });
   return generateStringMatchCues(wordTimestamps, entities);
 }
 

@@ -7,6 +7,8 @@ export { ApiKey } from './models/ApiKey.js';
 export { UsageLog } from './models/UsageLog.js';
 export { Session } from './models/Session.js';
 export { VisualScript } from './models/VisualScript.js';
+export { VisualScriptHeader } from './models/VisualScriptHeader.js';
+export { VisualScriptFrame } from './models/VisualScriptFrame.js';
 export { Narration } from './models/Narration.js';
 export { McpUsageLog } from './models/McpUsageLog.js';
 export { OAuthClient } from './models/OAuthClient.js';

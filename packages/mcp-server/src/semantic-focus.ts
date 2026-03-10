@@ -10,6 +10,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { VisualEntity, FocusCue } from '@preplai/shared';
 import type { WordTimestamp } from './elevenlabs.js';
+import { semanticFallbackTotal } from './metrics.js';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -95,7 +96,10 @@ export async function generateSemanticFocusCues(
   wordTimestamps: WordTimestamp[],
 ): Promise<FocusCue[] | null> {
   const client = getClient();
-  if (!client) return null;
+  if (!client) {
+    semanticFallbackTotal.inc({ reason: 'no_api_key' });
+    return null;
+  }
 
   // Filter to non-connection entities with labels
   const CONNECTION_TYPES = new Set(['Arrow', 'DataFlow', 'BidirectArrow', 'DottedArrow']);

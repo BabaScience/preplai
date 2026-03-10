@@ -46,3 +46,49 @@ groups:
         annotations:
           summary: "MongoDB disconnected on {{ $labels.job }}"
           description: "mongodb_connection_ready_state != 1 (connected) for 2 minutes"
+
+      # ── Semantic Focus & TTS Alerts ────────────────────────────────
+
+      - alert: HighSemanticFallbackRate
+        expr: |
+          sum(rate(semantic_fallback_total[15m])) by (job) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High semantic focus fallback rate on {{ $labels.job }}"
+          description: "Semantic fallbacks > 0.1/s for 10 minutes — LLM cue generation may be failing"
+
+      - alert: HighLlmLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(semantic_focus_llm_latency_seconds_bucket[5m])) by (le, job)
+          ) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High LLM latency for semantic focus on {{ $labels.job }}"
+          description: "P95 Claude Haiku latency > 5s for 5 minutes"
+
+      - alert: HighTtsFailureRate
+        expr: |
+          sum(rate(semantic_fallback_total{reason="error"}[15m])) by (job) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High TTS/semantic error rate on {{ $labels.job }}"
+          description: "Error-type fallbacks > 0.05/s for 10 minutes"
+
+      - alert: HighTtsLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(tts_generation_duration_seconds_bucket[5m])) by (le, job)
+          ) > 15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High TTS generation latency on {{ $labels.job }}"
+          description: "P95 ElevenLabs TTS latency > 15s for 5 minutes"

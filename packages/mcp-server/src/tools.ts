@@ -204,10 +204,10 @@ export async function handleAddScene(
     mergedScript = expandedScript;
   }
 
-  // Capture pre-merge frame count before store.setScript() mutates the session reference
+  // Capture pre-merge frame count before store.appendFrames() mutates the session reference
   const startIndex = session.script?.frames?.length ?? 0;
 
-  await store.setScript(session_id, mergedScript);
+  await store.appendFrames(session_id, mergedScript, startIndex);
 
   sse.emit(session_id, { type: 'script_update', script: mergedScript });
 
@@ -261,7 +261,7 @@ export async function handleUpdateScene(
     return mcpValidationError(validationError);
   }
 
-  await store.setScript(session_id, expandedScript);
+  await store.appendFrames(session_id, expandedScript, 0);
 
   sse.emit(session_id, { type: 'script_update', script: expandedScript });
 

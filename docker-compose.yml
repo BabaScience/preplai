@@ -68,6 +68,36 @@ services:
     networks:
       - preplai-net
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: preplai-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=30d'
+    depends_on:
+      api:
+        condition: service_healthy
+      mcp:
+        condition: service_healthy
+    networks:
+      - preplai-net
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: preplai-alertmanager
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    networks:
+      - preplai-net
+
   nginx:
     image: nginx:alpine
     container_name: preplai-nginx
@@ -88,6 +118,9 @@ services:
         condition: service_started
     networks:
       - preplai-net
+
+volumes:
+  prometheus-data:
 
 networks:
   preplai-net:
