@@ -141,11 +141,20 @@ function main(): void {
 
   audioEngine = new AudioEngine({
     onFocusCue: (cue) => {
-      sceneController.shiftFocus(cue.entityId);
+      // Multi-entity focus: prefer entityIds, fall back to entityId
+      const ids = cue.entityIds?.length ? cue.entityIds : cue.entityId ? [cue.entityId] : null;
+      sceneController.shiftFocus(ids, cue.confidences);
+      // Swap narrator text to the cue's narration segment
+      if (cue.segment) {
+        narrator.update(cue.segment);
+      }
     },
     onAudioEnd: () => {
-      // Clear focus when audio ends
+      // Clear focus and restore full narration text when audio ends
       sceneController.shiftFocus(null);
+      if (currentScript?.frames?.[currentFrame]) {
+        narrator.update(currentScript.frames[currentFrame].narrationSegment);
+      }
       updatePlayPauseUI(false);
       // Auto-advance to next frame after a short pause
       if (autoPlayEnabled && currentScript) {

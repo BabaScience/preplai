@@ -119,10 +119,22 @@ export interface VisualEntity {
 export interface FocusCue {
   /** Seconds from start of frame audio when this cue fires */
   time: number;
-  /** Entity ID to highlight */
-  entityId: string;
+  /**
+   * Entity IDs to highlight (multi-entity focus).
+   * Primary entity is first in array.
+   */
+  entityIds: string[];
+  /**
+   * Per-entity confidence scores (0-1), same order as entityIds.
+   * If omitted, all entities get confidence 1.0.
+   */
+  confidences?: number[];
+  /** @deprecated Use entityIds[0]. Kept for backward compatibility. */
+  entityId?: string;
   /** The word/phrase in narration that triggered this cue */
   word?: string;
+  /** Narration text segment active while this cue is in effect */
+  segment?: string;
 }
 
 // ── Frame Audio (populated by server after TTS generation) ────────────

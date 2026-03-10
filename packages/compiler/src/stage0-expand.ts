@@ -214,13 +214,42 @@ function expandFrame(
   expanded.entities = entitiesArr.map((e, i) => expandEntity(e, i));
   delete expanded.e;
 
-  // Expand focus cues short keys (t→time, eid→entityId, w→word)
+  // Expand focus cues short keys (t→time, eid/eids→entityIds, w→word, conf→confidences)
   if (Array.isArray(expanded.focusCues)) {
-    expanded.focusCues = (expanded.focusCues as Record<string, unknown>[]).map(fc => ({
-      time: fc.t ?? fc.time,
-      entityId: fc.eid ?? fc.entityId,
-      word: fc.w ?? fc.word,
-    }));
+    expanded.focusCues = (expanded.focusCues as Record<string, unknown>[]).map(fc => {
+      // Resolve entityIds: support eids (array), eid (single), entityIds (full), entityId (single full)
+      let entityIds: string[];
+      if (Array.isArray(fc.eids)) {
+        entityIds = fc.eids as string[];
+      } else if (Array.isArray(fc.entityIds)) {
+        entityIds = fc.entityIds as string[];
+      } else if (typeof fc.eid === 'string') {
+        entityIds = [fc.eid];
+      } else if (typeof fc.entityId === 'string') {
+        entityIds = [fc.entityId];
+      } else {
+        entityIds = [];
+      }
+
+      const cue: Record<string, unknown> = {
+        time: fc.t ?? fc.time,
+        entityIds,
+        word: fc.w ?? fc.word,
+      };
+
+      // Backward compat: set entityId to first entity
+      if (entityIds.length > 0) {
+        cue.entityId = entityIds[0];
+      }
+
+      // Resolve confidences
+      const confidences = fc.conf ?? fc.confidences;
+      if (confidences !== undefined) {
+        cue.confidences = confidences;
+      }
+
+      return cue;
+    });
   }
 
   return { frame: expanded, errors };

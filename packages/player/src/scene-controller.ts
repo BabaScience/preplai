@@ -30,7 +30,9 @@ import { applyDefaults, assignEntranceDelays } from './apply-defaults.js';
 
 export interface FocusInfo {
   entityId: string;
-  /** Screen-space position (CSS pixels) of the focused entity center */
+  /** All focused entity IDs */
+  entityIds: string[];
+  /** Screen-space position (CSS pixels) of the primary focused entity center */
   screenX: number;
   screenY: number;
 }
@@ -384,14 +386,13 @@ export class SceneController {
       if (hasFocus) {
         if (focusedIds.has(entity.id)) {
           el.classList.add('dof-focus');
-          el.classList.remove('dof-bg');
+          el.classList.remove('dof-bg', 'dof-focus-secondary');
         } else {
           el.classList.add('dof-bg');
-          el.classList.remove('dof-focus');
+          el.classList.remove('dof-focus', 'dof-focus-secondary');
         }
       } else {
-        // No focus — remove all DoF classes (full clarity)
-        el.classList.remove('dof-focus', 'dof-bg');
+        el.classList.remove('dof-focus', 'dof-bg', 'dof-focus-secondary');
       }
     }
 
@@ -404,6 +405,7 @@ export class SceneController {
           const rect = el.getBoundingClientRect();
           this.onFocusChange({
             entityId: primary.id,
+            entityIds: focusedEntities.map(e => e.id),
             screenX: rect.left + rect.width / 2,
             screenY: rect.top,
           });
@@ -593,16 +595,35 @@ export class SceneController {
   }
 
   /**
-   * Dynamically shift focus to a specific entity during audio playback.
+   * Dynamically shift focus to one or more entities during audio playback.
    * Used by AudioEngine focus cues to drive narration-synced highlight shifts.
    * Applies DoF classes and fires onFocusChange callback for spatial narrator.
    *
-   * @param entityId  Entity to focus on, or null to clear all focus
+   * @param entityIds  Entity IDs to focus on (array, single string, or null to clear)
+   * @param confidences  Per-entity confidence scores (0-1), same order as entityIds
    */
-  shiftFocus(entityId: string | null): void {
+  shiftFocus(entityIds: string[] | string | null, confidences?: number[]): void {
     if (!this.currentScript) return;
     const frame = this.currentScript.frames[this.currentFrameIdx];
     if (!frame) return;
+
+    // Normalize to array
+    const focusIds: string[] | null = entityIds === null
+      ? null
+      : typeof entityIds === 'string'
+        ? [entityIds]
+        : entityIds;
+
+    const focusSet = new Set(focusIds ?? []);
+    const hasFocus = focusSet.size > 0;
+
+    // Build confidence map for graduated focus
+    const confidenceMap = new Map<string, number>();
+    if (focusIds && confidences) {
+      for (let i = 0; i < focusIds.length; i++) {
+        confidenceMap.set(focusIds[i], confidences[i] ?? 1.0);
+      }
+    }
 
     const nonConnections = frame.entities.filter(e => !isConnectionType(e.type));
 
@@ -610,26 +631,34 @@ export class SceneController {
       const el = this._findEntity(entity.id);
       if (!el) continue;
 
-      if (entityId && entity.id === entityId) {
-        el.classList.add('dof-focus');
-        el.classList.remove('dof-bg');
-      } else if (entityId) {
+      if (hasFocus && focusSet.has(entity.id)) {
+        const confidence = confidenceMap.get(entity.id) ?? 1.0;
+        el.classList.remove('dof-bg', 'dof-focus', 'dof-focus-secondary');
+
+        if (confidence >= 0.8) {
+          el.classList.add('dof-focus');
+        } else {
+          el.classList.add('dof-focus-secondary');
+        }
+      } else if (hasFocus) {
+        el.classList.remove('dof-focus', 'dof-focus-secondary');
         el.classList.add('dof-bg');
-        el.classList.remove('dof-focus');
       } else {
         // No focus — clear all DoF
-        el.classList.remove('dof-focus', 'dof-bg');
+        el.classList.remove('dof-focus', 'dof-bg', 'dof-focus-secondary');
       }
     }
 
-    // Emit focus change for spatial narrator positioning
+    // Emit focus change for spatial narrator positioning (use primary entity)
     if (this.onFocusChange) {
-      if (entityId) {
-        const el = this._findEntity(entityId);
+      if (hasFocus && focusIds && focusIds.length > 0) {
+        const primaryId = focusIds[0];
+        const el = this._findEntity(primaryId);
         if (el) {
           const rect = el.getBoundingClientRect();
           this.onFocusChange({
-            entityId,
+            entityId: primaryId,
+            entityIds: focusIds,
             screenX: rect.left + rect.width / 2,
             screenY: rect.top,
           });

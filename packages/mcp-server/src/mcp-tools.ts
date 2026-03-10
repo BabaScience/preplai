@@ -75,7 +75,7 @@ DESIGN GUIDELINES:
 - Space entities evenly. Minimum 15% gap between entity positions.
 - Entities use a tuned default size. Omit sz by default. Use sz (0.5–3.0) to scale entities when needed.
 - Each entity type has a smart default entrance animation. Override via a (animation): {entrance, delay (ms), duration (ms), easing (CSS)}. Example: "a":{"entrance":"scaleIn","delay":500,"duration":800}.
-- Focus cues: Auto-generated from narration when TTS is active. Override with fc (focusCues) per frame: [{"t":1.5,"eid":"srv","w":"server"}] to control which entity highlights at which narration moment.
+- Focus cues: Auto-generated from narration when TTS is active. Override with fc (focusCues) per frame. Single entity: [{"t":1.5,"eid":"srv","w":"server"}]. Multi-entity: [{"t":1.5,"eids":["srv","db"],"conf":[1.0,0.6],"w":"server queries database"}]. The engine supports graduated focus — higher confidence entities appear more prominent.
 
 FRAME PACING: 3–5 seconds per frame for readability. Build complexity gradually — simpler frames first, add entities in later frames.
 
