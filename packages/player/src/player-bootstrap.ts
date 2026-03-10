@@ -364,6 +364,67 @@ function main(): void {
     narratorOverlayToggle.addEventListener('click', () => setNarratorOverlayVisible(!narratorOverlayVisible));
   }
 
+  // ── Fullscreen + orientation lock ─────────────────────────────────
+  const fullscreenBtn = document.getElementById('fullscreen-toggle');
+  const rotateFullscreenBtn = document.getElementById('rotate-fullscreen-btn');
+
+  function enterFullscreen(): void {
+    const el = document.documentElement as any;
+    const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+    if (rfs) {
+      rfs.call(el).then(() => {
+        try { (screen.orientation as any).lock('landscape').catch(() => {}); } catch {}
+      }).catch(() => {});
+    }
+  }
+
+  function exitFullscreen(): void {
+    const doc = document as any;
+    const efs = doc.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen;
+    if (efs) {
+      efs.call(doc).then(() => {
+        try { screen.orientation.unlock(); } catch {}
+      }).catch(() => {});
+    }
+  }
+
+  function isFullscreen(): boolean {
+    const doc = document as any;
+    return !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement);
+  }
+
+  function toggleFullscreen(): void {
+    if (isFullscreen()) exitFullscreen();
+    else enterFullscreen();
+  }
+
+  function updateFullscreenUI(): void {
+    if (fullscreenBtn) fullscreenBtn.classList.toggle('is-fullscreen', isFullscreen());
+  }
+
+  if (fullscreenBtn) fullscreenBtn.addEventListener('click', toggleFullscreen);
+  if (rotateFullscreenBtn) rotateFullscreenBtn.addEventListener('click', enterFullscreen);
+  document.addEventListener('fullscreenchange', updateFullscreenUI);
+  document.addEventListener('webkitfullscreenchange', updateFullscreenUI);
+
+  // ── Touch swipe navigation ────────────────────────────────────────
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  document.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].clientX;
+    touchStartY = e.changedTouches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      if (dx < 0) goNext();
+      else goPrev();
+    }
+  }, { passive: true });
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
       e.preventDefault();
@@ -391,6 +452,10 @@ function main(): void {
     if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey) {
       e.preventDefault();
       setNarratorOverlayVisible(!narratorOverlayVisible);
+    }
+    if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      toggleFullscreen();
     }
   });
 
