@@ -12,6 +12,7 @@
 
 import type { IllustrationFrame, VisualEntity, FocusCue, FrameAudio } from '@preplai/shared';
 import { generateSpeech, type ElevenLabsConfig, type WordTimestamp } from './elevenlabs.js';
+import { generateSemanticFocusCues } from './semantic-focus.js';
 import type { AudioStore } from './audio-store.js';
 import type { SessionStore } from './session-store.js';
 import type { SseRegistry } from './sse.js';
@@ -83,12 +84,16 @@ export class TtsService {
         // Store audio buffer (async — GridFS backed)
         await this.audioStore.set(sessionId, i, result.audioBuffer);
 
-        // Generate focus cues
-        const focusCues = generateFocusCues(
+        // Generate focus cues (semantic LLM → string matching fallback)
+        const focusCues = await generateFocusCues(
           result.wordTimestamps,
           frame.entities,
           frame.focusCues, // agent-provided overrides
+          narrationText,
         );
+
+        // Attach narration segments to each cue using word timestamps
+        assignNarrationSegments(focusCues, result.wordTimestamps);
 
         // Build audio metadata
         const audio: FrameAudio = {
@@ -146,28 +151,63 @@ export class TtsService {
 /**
  * Generate timed focus cues from word timestamps and entity labels.
  *
- * Strategy:
- * 1. If agent provided explicit focusCues, use those directly.
- * 2. Otherwise, auto-detect by matching words in the narration to entity labels.
- *    - Case-insensitive matching
- *    - Multi-word labels split into individual words
- *    - 2-second cooldown per entity to avoid rapid re-cueing
+ * Fallback chain:
+ * 1. Agent-provided explicit focusCues → use verbatim (always wins)
+ * 2. LLM semantic analysis → multi-entity cues with confidence scores
+ * 3. String matching → zero external deps, always available
  */
-export function generateFocusCues(
+export async function generateFocusCues(
   wordTimestamps: WordTimestamp[],
   entities: VisualEntity[],
   agentCues?: FocusCue[],
-): FocusCue[] {
+  narration?: string,
+): Promise<FocusCue[]> {
   // Agent-provided cues take priority
   if (agentCues && agentCues.length > 0) {
-    return agentCues;
+    return agentCues.map(normalizeFocusCue);
   }
 
-  // Build label → entityId lookup map
+  // Try semantic LLM-based cue generation
+  if (narration) {
+    try {
+      const semanticCues = await generateSemanticFocusCues(narration, entities, wordTimestamps);
+      if (semanticCues && semanticCues.length > 0) {
+        return semanticCues;
+      }
+    } catch (err) {
+      console.warn('[TTS] Semantic focus failed, falling back to string matching:', err);
+    }
+  }
+
+  // Fallback: string matching
+  return generateStringMatchCues(wordTimestamps, entities);
+}
+
+/**
+ * Normalize a FocusCue to ensure entityIds is always populated.
+ * Handles both old (entityId: string) and new (entityIds: string[]) formats.
+ */
+export function normalizeFocusCue(cue: FocusCue): FocusCue {
+  if (cue.entityIds && cue.entityIds.length > 0) {
+    return { ...cue, entityId: cue.entityIds[0] };
+  }
+  if (cue.entityId) {
+    return { ...cue, entityIds: [cue.entityId], confidences: cue.confidences ?? [1.0] };
+  }
+  return { ...cue, entityIds: [] };
+}
+
+/**
+ * String-matching focus cue generation (fallback strategy).
+ * Matches narration words to entity labels via buildLabelMap.
+ */
+function generateStringMatchCues(
+  wordTimestamps: WordTimestamp[],
+  entities: VisualEntity[],
+): FocusCue[] {
   const labelMap = buildLabelMap(entities);
   if (labelMap.size === 0) return [];
 
-  // Match word timestamps against labels
   const cues: FocusCue[] = [];
   const lastCueTime = new Map<string, number>();
 
@@ -178,13 +218,14 @@ export function generateFocusCues(
     const entityId = labelMap.get(normalized);
     if (!entityId) continue;
 
-    // Enforce cooldown per entity
     const lastTime = lastCueTime.get(entityId) ?? -Infinity;
     if (wt.startTime - lastTime < MIN_CUE_GAP_S) continue;
 
     cues.push({
       time: wt.startTime,
+      entityIds: [entityId],
       entityId,
+      confidences: [1.0],
       word: wt.word,
     });
     lastCueTime.set(entityId, wt.startTime);
@@ -227,4 +268,40 @@ export function buildLabelMap(entities: VisualEntity[]): Map<string, string> {
   }
 
   return map;
+}
+
+// ── Narration Segment Assignment ────────────────────────────────────
+
+/**
+ * Assign narration text segments to focus cues using word timestamps.
+ *
+ * Each cue gets the words spoken from its time until the next cue's time.
+ * Words before the first cue are prepended to cue[0].
+ * Words after the last cue are appended to the last cue.
+ *
+ * Mutates cues in place (adds `segment` field).
+ */
+export function assignNarrationSegments(
+  cues: FocusCue[],
+  wordTimestamps: WordTimestamp[],
+): void {
+  if (cues.length === 0 || wordTimestamps.length === 0) return;
+
+  // Sort cues by time (should already be sorted, but be safe)
+  cues.sort((a, b) => a.time - b.time);
+
+  // For each cue, collect words from cue[i].time to cue[i+1].time
+  for (let i = 0; i < cues.length; i++) {
+    const startTime = i === 0 ? 0 : cues[i].time;
+    const endTime = i < cues.length - 1 ? cues[i + 1].time : Infinity;
+
+    const words: string[] = [];
+    for (const wt of wordTimestamps) {
+      if (wt.startTime >= startTime && wt.startTime < endTime) {
+        words.push(wt.word);
+      }
+    }
+
+    cues[i].segment = words.join(' ').trim() || undefined;
+  }
 }

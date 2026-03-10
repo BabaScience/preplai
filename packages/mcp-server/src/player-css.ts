@@ -588,6 +588,16 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   transform: scale(0.88) !important;
 }
 
+/* Secondary focus: confidence 0.4–0.79 — partially elevated */
+.dof-focus-secondary {
+  opacity: 0.85 !important;
+  filter: blur(0.5px) saturate(0.8) !important;
+}
+
+.dof-focus-secondary > .animate-element {
+  transform: scale(1.05) !important;
+}
+
 /* ── Spatial narrator (P2.3) ─────────────────────────────────────── */
 
 #narrator-overlay {
