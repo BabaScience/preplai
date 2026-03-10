@@ -218,6 +218,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   // ── Universal
   Concept: renderConcept,
   Entity: renderEntityNode,
+  Label: renderConcept,       // Label uses Concept renderer (text bubble)
   Group: renderGroup,
   H1: renderH1,
   H2: renderH2,

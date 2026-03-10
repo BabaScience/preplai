@@ -26,7 +26,8 @@ export type CompilerWarningCode =
   | 'UNRESOLVED_PARENT_REF'
   | 'FRAME_DURATION_EXTENDED'
   | 'ENTITY_BARELY_VISIBLE'
-  | 'ENTITY_COUNT_HIGH';
+  | 'ENTITY_COUNT_HIGH'
+  | 'FRAME_ENRICHED';
 
 // ── Compiler Error & Warning ──────────────────────────────────────────
 
