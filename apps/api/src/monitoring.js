@@ -16,34 +16,78 @@ function parseMetricsSummary(text) {
     http_requests_by_status: {},
     http_requests_by_path: {},
     http_request_duration_p95_ms: null,
+    // Semantic focus metrics
+    focus_cue_method: {},          // { agent: N, llm: N, string: N }
+    semantic_fallback: {},         // { no_api_key: N, error: N, empty_response: N, no_narration: N }
+    semantic_llm_latency_count: 0,
+    semantic_llm_latency_sum: 0,
+    tts_generation_count: 0,
+    tts_generation_sum: 0,
   };
 
   const lines = text.split('\n');
   for (const line of lines) {
     if (line.startsWith('#') || !line.trim()) continue;
-    const match = line.match(/^(\w+)\{([^}]*)\}\s+([\d.e+-]+)/);
-    if (!match) continue;
-    const [, name, labels, value] = match;
-    const num = parseFloat(value);
 
-    if (name === 'http_requests_total') {
-      summary.http_requests_total += num;
-      const statusMatch = labels.match(/status="([^"]+)"/);
-      const pathMatch = labels.match(/path="([^"]+)"/);
-      if (statusMatch) {
-        const s = statusMatch[1];
-        summary.http_requests_by_status[s] = (summary.http_requests_by_status[s] || 0) + num;
+    // Match labeled metrics: metric_name{labels} value
+    const match = line.match(/^(\w+)\{([^}]*)\}\s+([\d.e+-]+)/);
+    if (match) {
+      const [, name, labels, value] = match;
+      const num = parseFloat(value);
+
+      if (name === 'http_requests_total') {
+        summary.http_requests_total += num;
+        const statusMatch = labels.match(/status="([^"]+)"/);
+        const pathMatch = labels.match(/path="([^"]+)"/);
+        if (statusMatch) {
+          const s = statusMatch[1];
+          summary.http_requests_by_status[s] = (summary.http_requests_by_status[s] || 0) + num;
+        }
+        if (pathMatch) {
+          const p = pathMatch[1];
+          summary.http_requests_by_path[p] = (summary.http_requests_by_path[p] || 0) + num;
+        }
       }
-      if (pathMatch) {
-        const p = pathMatch[1];
-        summary.http_requests_by_path[p] = (summary.http_requests_by_path[p] || 0) + num;
+      if (name === 'http_request_duration_seconds_bucket' && labels.includes('le="+Inf"')) {
+        const pathMatch = labels.match(/path="([^"]+)"/);
+        if (pathMatch) {
+          summary.http_request_duration_p95_ms = num * 1000;
+        }
       }
+
+      // Semantic focus counters
+      if (name === 'focus_cue_method_total') {
+        const methodMatch = labels.match(/method="([^"]+)"/);
+        if (methodMatch) {
+          summary.focus_cue_method[methodMatch[1]] = num;
+        }
+      }
+      if (name === 'semantic_fallback_total') {
+        const reasonMatch = labels.match(/reason="([^"]+)"/);
+        if (reasonMatch) {
+          summary.semantic_fallback[reasonMatch[1]] = num;
+        }
+      }
+      continue;
     }
-    if (name === 'http_request_duration_seconds_bucket' && labels.includes('le="+Inf"')) {
-      // Use +Inf bucket as total count for histogram
-      const pathMatch = labels.match(/path="([^"]+)"/);
-      if (pathMatch) {
-        summary.http_request_duration_p95_ms = num * 1000; // placeholder; p95 would need proper calc
+
+    // Match unlabeled metrics: metric_name value
+    const simpleMatch = line.match(/^(\w+)\s+([\d.e+-]+)/);
+    if (simpleMatch) {
+      const [, name, value] = simpleMatch;
+      const num = parseFloat(value);
+
+      if (name === 'semantic_focus_llm_latency_seconds_count') {
+        summary.semantic_llm_latency_count = num;
+      }
+      if (name === 'semantic_focus_llm_latency_seconds_sum') {
+        summary.semantic_llm_latency_sum = num;
+      }
+      if (name === 'tts_generation_duration_seconds_count') {
+        summary.tts_generation_count = num;
+      }
+      if (name === 'tts_generation_duration_seconds_sum') {
+        summary.tts_generation_sum = num;
       }
     }
   }

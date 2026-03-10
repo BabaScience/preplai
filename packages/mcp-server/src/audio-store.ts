@@ -10,6 +10,7 @@
 
 import mongoose from 'mongoose';
 import { Readable } from 'node:stream';
+import { Session as SessionModel } from '@preplai/db';
 
 const BUCKET_NAME = 'audio';
 
@@ -62,7 +63,7 @@ export class AudioStore {
       // Write new file
       await new Promise<void>((resolve, reject) => {
         const uploadStream = this.bucket!.openUploadStream(fname, {
-          metadata: { sessionId, frameIndex, contentType: 'audio/mpeg' },
+          metadata: { sessionId, frameIndex, contentType: 'audio/mpeg', createdAt: Date.now() },
         });
         const readable = Readable.from(audio);
         readable.pipe(uploadStream);
@@ -143,6 +144,64 @@ export class AudioStore {
     }
 
     return deleted;
+  }
+
+  /**
+   * Remove GridFS audio files whose sessionId no longer exists in the sessions collection.
+   * Also clears corresponding entries from the in-memory cache.
+   * Returns the number of orphaned files deleted.
+   */
+  async cleanOrphanedAudio(): Promise<number> {
+    if (!this.bucket) return 0;
+
+    try {
+      const files = await this.bucket.find({}).toArray();
+      if (files.length === 0) return 0;
+
+      // Collect unique sessionIds from GridFS metadata
+      const gridSessionIds = new Set<string>();
+      for (const file of files) {
+        const sid = file.metadata?.sessionId;
+        if (sid) gridSessionIds.add(sid);
+      }
+
+      if (gridSessionIds.size === 0) return 0;
+
+      // Find which of those sessions still exist in MongoDB
+      const existingDocs = await SessionModel.find(
+        { id: { $in: Array.from(gridSessionIds) } },
+        { id: 1 },
+      ).lean();
+      const existingIds = new Set(existingDocs.map((d: any) => d.id));
+
+      // Delete files belonging to sessions that no longer exist
+      let deleted = 0;
+      for (const file of files) {
+        const sid = file.metadata?.sessionId;
+        if (sid && !existingIds.has(sid)) {
+          await this.bucket!.delete(file._id);
+          deleted++;
+        }
+      }
+
+      // Also purge memory cache entries for orphaned sessions
+      if (deleted > 0) {
+        const orphanedSids = Array.from(gridSessionIds).filter((s) => !existingIds.has(s));
+        for (const sid of orphanedSids) {
+          const prefix = `${sid}/`;
+          for (const key of this.cache.keys()) {
+            if (key.startsWith(prefix)) {
+              this.cache.delete(key);
+            }
+          }
+        }
+      }
+
+      return deleted;
+    } catch (err) {
+      console.error('[AudioStore] cleanOrphanedAudio failed:', err);
+      return 0;
+    }
   }
 
   /** Get total number of cached audio buffers (memory only). */

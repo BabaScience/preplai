@@ -166,9 +166,18 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     app.log.info({ cleaned }, 'Cleaned expired sessions');
   }
 
+  // Initial orphan audio cleanup
+  const orphaned = await audioStore.cleanOrphanedAudio();
+  if (orphaned > 0) {
+    app.log.info({ orphaned }, 'Cleaned orphaned audio files');
+  }
+
   const cleanupInterval = setInterval(async () => {
     const c = await store.cleanExpiredSessions();
     if (c > 0) app.log.info({ cleaned: c }, 'Periodic cleanup: removed expired sessions');
+
+    const o = await audioStore.cleanOrphanedAudio();
+    if (o > 0) app.log.info({ orphaned: o }, 'Periodic cleanup: removed orphaned audio files');
   }, 6 * 60 * 60 * 1000);
 
   registerMetricsHook(app);

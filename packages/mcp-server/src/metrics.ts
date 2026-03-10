@@ -48,6 +48,36 @@ export const mongodbConnectionReadyState = new Gauge({
   registers: [register],
 });
 
+// ── Semantic Focus Metrics ──────────────────────────────────────────
+
+export const semanticFocusLlmLatency = new Histogram({
+  name: 'semantic_focus_llm_latency_seconds',
+  help: 'Latency of Claude Haiku LLM calls for semantic focus cue generation',
+  buckets: [0.1, 0.25, 0.5, 1, 2, 5, 10],
+  registers: [register],
+});
+
+export const focusCueMethodTotal = new Counter({
+  name: 'focus_cue_method_total',
+  help: 'Total focus cue generation calls by method',
+  labelNames: ['method'],
+  registers: [register],
+});
+
+export const semanticFallbackTotal = new Counter({
+  name: 'semantic_fallback_total',
+  help: 'Total semantic focus fallback events by reason',
+  labelNames: ['reason'],
+  registers: [register],
+});
+
+export const ttsGenerationDuration = new Histogram({
+  name: 'tts_generation_duration_seconds',
+  help: 'Duration of ElevenLabs TTS audio generation per frame',
+  buckets: [0.5, 1, 2, 5, 10, 20, 30],
+  registers: [register],
+});
+
 /**
  * Sanitize path for metrics to avoid high cardinality.
  */

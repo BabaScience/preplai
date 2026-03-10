@@ -255,6 +255,72 @@
               ` : ''}
             </div>
           `;
+
+          // Semantic Focus Metrics
+          const focusMethods = mcpMetrics.focus_cue_method || {};
+          const totalCues = Object.values(focusMethods).reduce((a, b) => a + b, 0);
+          const fallbacks = mcpMetrics.semantic_fallback || {};
+          const totalFallbacks = Object.values(fallbacks).reduce((a, b) => a + b, 0);
+          const llmCount = mcpMetrics.semantic_llm_latency_count || 0;
+          const llmSum = mcpMetrics.semantic_llm_latency_sum || 0;
+          const llmAvg = llmCount > 0 ? (llmSum / llmCount).toFixed(2) : '—';
+          const ttsCount = mcpMetrics.tts_generation_count || 0;
+          const ttsSum = mcpMetrics.tts_generation_sum || 0;
+          const ttsAvg = ttsCount > 0 ? (ttsSum / ttsCount).toFixed(1) : '—';
+
+          // Focus Cue Generation card
+          const cueRows = Object.entries(focusMethods).map(([m, c]) =>
+            '<tr><td>' + m + '</td><td>' + c + '</td><td>' + (c / totalCues * 100).toFixed(1) + '%</td></tr>'
+          ).join('');
+          html += `
+            <div class="card">
+              <h2>Focus Cue Generation</h2>
+              <div class="kpi">${totalCues.toLocaleString()}</div>
+              <div class="meta">Total focus cue calls</div>
+              ${totalCues > 0 ? `
+                <table style="margin-top:0.75rem">
+                  <tr><th>Method</th><th>Count</th><th>%</th></tr>
+                  ${cueRows}
+                </table>
+              ` : '<div class="meta" style="margin-top:0.5rem">No cue generation yet</div>'}
+            </div>
+          `;
+
+          // Semantic Fallbacks card
+          const fallbackRows = Object.entries(fallbacks).map(([r, c]) =>
+            '<tr><td>' + r + '</td><td>' + c + '</td></tr>'
+          ).join('');
+          html += `
+            <div class="card">
+              <h2>Semantic Fallbacks</h2>
+              <div class="kpi ${totalFallbacks > 0 ? 'warn' : 'ok'}">${totalFallbacks.toLocaleString()}</div>
+              <div class="meta">Total fallback events</div>
+              ${totalFallbacks > 0 ? `
+                <table style="margin-top:0.75rem">
+                  <tr><th>Reason</th><th>Count</th></tr>
+                  ${fallbackRows}
+                </table>
+              ` : '<div class="meta" style="margin-top:0.5rem">No fallbacks — all semantic</div>'}
+            </div>
+          `;
+
+          // LLM Latency card
+          html += `
+            <div class="card">
+              <h2>LLM Latency (Haiku)</h2>
+              <div class="kpi">${llmAvg}${llmAvg !== '—' ? 's' : ''}</div>
+              <div class="meta">Avg latency (${llmCount} calls)</div>
+            </div>
+          `;
+
+          // TTS Generation card
+          html += `
+            <div class="card">
+              <h2>TTS Generation</h2>
+              <div class="kpi">${ttsAvg}${ttsAvg !== '—' ? 's' : ''}</div>
+              <div class="meta">Avg duration (${ttsCount} frames)</div>
+            </div>
+          `;
         }
       }
 
