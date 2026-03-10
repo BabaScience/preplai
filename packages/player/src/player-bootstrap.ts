@@ -371,21 +371,35 @@ function main(): void {
   function enterFullscreen(): void {
     const el = document.documentElement as any;
     const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
-    if (rfs) {
-      rfs.call(el).then(() => {
+    if (!rfs) return;
+    try {
+      const result = rfs.call(el);
+      // Standard requestFullscreen returns a Promise; webkit may return undefined
+      if (result && typeof result.then === 'function') {
+        result.then(() => {
+          try { (screen.orientation as any).lock('landscape').catch(() => {}); } catch {}
+        }).catch(() => {});
+      } else {
+        // Fallback: try orientation lock immediately for webkit
         try { (screen.orientation as any).lock('landscape').catch(() => {}); } catch {}
-      }).catch(() => {});
-    }
+      }
+    } catch {}
   }
 
   function exitFullscreen(): void {
     const doc = document as any;
     const efs = doc.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen;
-    if (efs) {
-      efs.call(doc).then(() => {
+    if (!efs) return;
+    try {
+      const result = efs.call(doc);
+      if (result && typeof result.then === 'function') {
+        result.then(() => {
+          try { screen.orientation.unlock(); } catch {}
+        }).catch(() => {});
+      } else {
         try { screen.orientation.unlock(); } catch {}
-      }).catch(() => {});
-    }
+      }
+    } catch {}
   }
 
   function isFullscreen(): boolean {
