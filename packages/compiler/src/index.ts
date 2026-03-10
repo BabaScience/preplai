@@ -21,3 +21,4 @@ export {
 } from './types.js';
 
 export { ENTITY_TYPE_ALIASES, AGENT_SHORT_KEYS, stage0Expand } from './stage0-expand.js';
+export { stage2bEnrich } from './stage2b-enrich.js';

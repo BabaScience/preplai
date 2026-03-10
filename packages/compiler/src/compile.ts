@@ -5,19 +5,21 @@
  * Pure function — no I/O, no async, no side effects.
  *
  * Pipeline:
- *   Stage 0: Expand compact input (short keys, aliases, defaults)
- *   Stage 1: Schema validation + duplicate checks   → CompilerError[] on failure
- *   Stage 2: Entity defaults application             → CompilerWarning[]
- *   Stage 3: Position clamping                       → CompilerWarning[]
- *   Stage 4: Connection & hierarchy resolution       → CompilerWarning[]
- *   Stage 5: Temporal choreography & frame timing    → CompilerWarning[]
- *   Post:    Frame transition computation
+ *   Stage 0:  Expand compact input (short keys, aliases, param stripping)
+ *   Stage 1:  Schema validation + duplicate checks   → CompilerError[] on failure
+ *   Stage 2:  Entity defaults application             → CompilerWarning[]
+ *   Stage 2b: Deterministic frame enrichment          → CompilerWarning[]
+ *   Stage 3:  Position clamping                       → CompilerWarning[]
+ *   Stage 4:  Connection & hierarchy resolution       → CompilerWarning[]
+ *   Stage 5:  Temporal choreography & frame timing    → CompilerWarning[]
+ *   Post:     Frame transition computation
  */
 
 import type { CompileResult } from './types.js';
 import { stage0Expand } from './stage0-expand.js';
 import { stage1Validate } from './stage1-validate.js';
 import { stage2ApplyDefaults } from './stage2-defaults.js';
+import { stage2bEnrich } from './stage2b-enrich.js';
 import { stage3ClampPositions } from './stage3-positions.js';
 import { stage4ResolveConnections } from './stage4-connections.js';
 import { stage5Temporal } from './stage5-temporal.js';
@@ -43,8 +45,12 @@ export function compileVisualScript(raw: unknown): CompileResult {
   const s2 = stage2ApplyDefaults(s1.script);
   allWarnings.push(...s2.warnings);
 
+  // ── Stage 2b: Deterministic Enrichment ─────────────────────────
+  const s2b = stage2bEnrich(s2.script);
+  allWarnings.push(...s2b.warnings);
+
   // ── Stage 3: Position Clamping ───────────────────────────────────
-  const s3 = stage3ClampPositions(s2.script);
+  const s3 = stage3ClampPositions(s2b.script);
   allWarnings.push(...s3.warnings);
 
   // ── Stage 4: Connection Resolution ──────────────────────────────

@@ -178,6 +178,20 @@ function expandEntity(raw: unknown, frameEntityIndex: number): unknown {
     expanded.animation = { ...(expanded.animation as object) };
   }
 
+  // ── Param stripping: engine controls these, not the agent ──────────
+  // color       → player uses getEntityColor(palette, type) from palettes.ts
+  // size        → forced to ENTITY_DEFAULTS.size (2.5) in Stage 2
+  // animation   → engine handles entrance + stagger in Stage 5
+  // parentEntityId → flat layout; agents misuse nesting
+  // textContent → CodeBlock uses metadata.code instead
+  // codeLanguage → belongs in metadata for CodeBlock
+  delete expanded.color;
+  delete expanded.size;
+  delete expanded.animation;
+  delete expanded.parentEntityId;
+  delete expanded.textContent;
+  delete expanded.codeLanguage;
+
   return expanded;
 }
 
@@ -251,6 +265,11 @@ function expandFrame(
       return cue;
     });
   }
+
+  // ── Frame-level param stripping ──────────────────────────────────
+  // focusCues: semantic-focus.ts generates better cues from narration
+  // + word timestamps post-compilation. Agent cues are always worse.
+  delete expanded.focusCues;
 
   return { frame: expanded, errors };
 }
