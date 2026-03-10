@@ -916,4 +916,112 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 [data-theme="minimal"] [data-type] .animate-element text {
   animation: none !important;
 }
+
+/* ── Fullscreen toggle icon states ─────────────────────────────── */
+
+#fullscreen-toggle .fs-exit-icon { display: none; }
+#fullscreen-toggle .fs-enter-icon { display: block; }
+#fullscreen-toggle.is-fullscreen .fs-enter-icon { display: none; }
+#fullscreen-toggle.is-fullscreen .fs-exit-icon { display: block; }
+
+/* ── Rotate hint overlay (mobile portrait only) ────────────────── */
+
+#rotate-hint {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(6, 6, 16, 0.92);
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  text-align: center;
+  padding: 24px;
+}
+
+#rotate-hint svg {
+  opacity: 0.5;
+  animation: idle-bob 3s ease-in-out infinite;
+}
+
+#rotate-hint p {
+  max-width: 260px;
+  line-height: 1.5;
+}
+
+#rotate-fullscreen-btn {
+  margin-top: 8px;
+  padding: 12px 28px;
+  background: #C9A84C;
+  color: #0c0d14;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+#rotate-fullscreen-btn:active {
+  transform: scale(0.96);
+  background: #b8963f;
+}
+
+/* Show rotate hint on mobile portrait */
+@media (max-width: 768px) and (orientation: portrait) {
+  #rotate-hint { display: flex; }
+}
+
+/* Hide rotate hint in landscape or fullscreen */
+@media (orientation: landscape) {
+  #rotate-hint { display: none !important; }
+}
+:fullscreen #rotate-hint,
+:-webkit-full-screen #rotate-hint {
+  display: none !important;
+}
+
+/* ── Mobile adjustments ────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  #frame-nav {
+    gap: 8px;
+    padding: 6px 12px;
+  }
+  #frame-nav button {
+    width: 36px;
+    height: 36px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .frame-dot {
+    width: 10px;
+    height: 10px;
+  }
+  #narrator-overlay {
+    bottom: 76px;
+    padding: 0 16px;
+  }
+  #narrator-text {
+    font-size: 15px;
+    padding: 14px 20px;
+    max-width: 100%;
+  }
+  .keyboard-hint { display: none; }
+  #progress-bar {
+    bottom: 64px;
+    width: 280px;
+  }
+}
+
+/* ── Fullscreen state ──────────────────────────────────────────── */
+
+:fullscreen .keyboard-hint,
+:-webkit-full-screen .keyboard-hint {
+  display: none;
+}
 `;
