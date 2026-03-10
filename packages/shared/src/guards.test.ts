@@ -185,9 +185,9 @@ describe('applyEntityDefaults', () => {
     expect(result.size).toBe(ENTITY_DEFAULTS.size);
   });
 
-  it('should fill in default color', () => {
+  it('should leave color undefined when not specified (renderer decides via palette)', () => {
     const result = applyEntityDefaults(makeEntity());
-    expect(result.color).toBe(ENTITY_DEFAULTS.color);
+    expect(result.color).toBeUndefined();
   });
 
   it('should fill in default highlight', () => {

@@ -34,7 +34,7 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
 
   <link rel="stylesheet" href="/player.css">
 </head>
-<body data-session-id="{{SESSION_ID}}" data-theme="{{STYLE}}" data-events-base="{{EVENTS_BASE}}">
+<body data-session-id="{{SESSION_ID}}" data-theme="{{STYLE}}" data-palette="{{PALETTE}}" data-events-base="{{EVENTS_BASE}}">
 
   <!-- Connection status indicator -->
   <div id="connection-status"></div>

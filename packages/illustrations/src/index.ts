@@ -29,7 +29,13 @@ export {
   colorWithAlpha,
   getCategoryColor,
   ENTITY_COLORS,
+  PALETTES,
+  setActivePalette,
+  getActivePaletteName,
+  getSemanticCategory,
+  getParticleColors,
 } from './design-tokens.js';
+export type { PaletteName, Palette, SemanticCategory } from './design-tokens.js';
 export {
   createLinearGradient,
   createRadialGradient,

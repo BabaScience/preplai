@@ -29,7 +29,7 @@ describe('applyDefaults', () => {
     const full = applyDefaults(e);
 
     expect(full.size).toBe(ENTITY_DEFAULTS.size);
-    expect(full.color).toBe(ENTITY_DEFAULTS.color);
+    expect(full.color).toBeUndefined();
     expect(full.highlight).toBe(ENTITY_DEFAULTS.highlight);
     expect(full.animation).toBeDefined();
     expect(full.animation!.delay).toBe(ENTITY_DEFAULTS.animation.delay);
