@@ -4,6 +4,7 @@ import Logo from '../components/Logo';
 import Alert from '../components/Alert';
 import Input from '../components/Input';
 import { useAuth } from '../context/AuthContext';
+import { trackEvent, setUserProperties } from '../lib/analytics';
 
 export default function Signup() {
   const { token, signup } = useAuth();
@@ -30,6 +31,8 @@ export default function Signup() {
     setLoading(true);
     try {
       const data = await signup(email, password);
+      trackEvent('sign_up', { method: 'email' });
+      setUserProperties({ user_email_domain: email.split('@')[1] || '' });
       if (data.emailVerificationRequired) {
         navigate(`/verify-email?email=${encodeURIComponent(email)}`);
         return;

@@ -443,6 +443,21 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   // ── Player HTML route ─────────────────────────────────────────────
   const VALID_PALETTES = new Set(['default', 'ocean', 'sunset', 'forest', 'mono']);
 
+  // GA4 inline script — injected into player template when GA_MEASUREMENT_ID is set
+  const GA_MEASUREMENT_ID = process.env.GA_MEASUREMENT_ID || '';
+  const GA_SCRIPT_BLOCK = GA_MEASUREMENT_ID
+    ? `
+  <!-- Google Analytics (GA4) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}"></script>
+  <script>
+    window.dataLayer=window.dataLayer||[];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js',new Date());
+    gtag('config','${GA_MEASUREMENT_ID}',{send_page_view:false});
+    window.__preGtag=gtag;
+  </script>`
+    : '';
+
   app.get<{ Params: { sessionId: string }; Querystring: { style?: string; palette?: string } }>(
     '/player/:sessionId',
     async (request, reply) => {
@@ -459,7 +474,8 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
         .replace(/\{\{SESSION_ID\}\}/g, sessionId)
         .replace(/\{\{STYLE\}\}/g, style)
         .replace(/\{\{PALETTE\}\}/g, palette)
-        .replace(/\{\{EVENTS_BASE\}\}/g, eventsBase);
+        .replace(/\{\{EVENTS_BASE\}\}/g, eventsBase)
+        .replace(/\{\{GA_SCRIPT\}\}/g, GA_SCRIPT_BLOCK);
       reply.type('text/html').send(html);
     },
   );
@@ -472,7 +488,8 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       .replace(/\{\{SESSION_ID\}\}/g, '_test')
       .replace(/\{\{STYLE\}\}/g, 'cinema')
       .replace(/\{\{PALETTE\}\}/g, palette)
-      .replace(/\{\{EVENTS_BASE\}\}/g, eventsBase);
+      .replace(/\{\{EVENTS_BASE\}\}/g, eventsBase)
+      .replace(/\{\{GA_SCRIPT\}\}/g, GA_SCRIPT_BLOCK);
     reply.type('text/html').send(html);
   });
 

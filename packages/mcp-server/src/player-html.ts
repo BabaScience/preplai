@@ -5,6 +5,7 @@
  * {{SESSION_ID}} is replaced at serve time.
  * {{STYLE}} is replaced with 'cinema' or 'minimal' from URL ?style= param.
  * {{EVENTS_BASE}} is the base URL for SSE (e.g. https://player.preplai.com) — used when player is in iframe.
+ * {{GA_SCRIPT}} is replaced with GA4 inline script if GA_MEASUREMENT_ID env var is set, else empty string.
  *
  * Design philosophy:
  * - Cinema-quality dark canvas with radial vignette
@@ -33,6 +34,7 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="/player.css">
+{{GA_SCRIPT}}
 </head>
 <body data-session-id="{{SESSION_ID}}" data-theme="{{STYLE}}" data-palette="{{PALETTE}}" data-events-base="{{EVENTS_BASE}}">
 
