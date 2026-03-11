@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { useSyncApiToken } from './hooks/useApi';
+import { usePageView } from './hooks/usePageView';
 import Landing from './pages/Landing';
 import Docs from './pages/Docs';
 import Blog from './pages/Blog';
@@ -29,6 +30,8 @@ function ProtectedRoute({ children }) {
 export default function App() {
   // Sync the in-memory API token when auth state changes
   useSyncApiToken();
+  // Track page views on every route change (no-ops if GA not initialized)
+  usePageView();
 
   return (
     <Routes>

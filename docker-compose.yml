@@ -48,6 +48,7 @@ services:
       ELEVENLABS_VOICE_ID: ${ELEVENLABS_VOICE_ID:-}
       ELEVENLABS_MODEL_ID: ${ELEVENLABS_MODEL_ID:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID:-}
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:5005/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
       interval: 30s
@@ -63,6 +64,7 @@ services:
       dockerfile: Dockerfile.website
       args:
         VITE_API_URL: https://api.preplai.com/api
+        VITE_GA_ID: ${VITE_GA_ID:-}
     container_name: preplai-website
     restart: unless-stopped
     networks:

@@ -4,6 +4,7 @@ import Logo from '../components/Logo';
 import Alert from '../components/Alert';
 import Input from '../components/Input';
 import { useAuth } from '../context/AuthContext';
+import { trackEvent, setUserProperties } from '../lib/analytics';
 
 export default function Login() {
   const { token, login } = useAuth();
@@ -30,6 +31,8 @@ export default function Login() {
     setLoading(true);
     try {
       await login(email, password);
+      trackEvent('login', { method: 'email' });
+      setUserProperties({ user_email_domain: email.split('@')[1] || '' });
       const returnTo = new URLSearchParams(location.search).get('return_to');
       if (returnTo && returnTo.startsWith('http')) {
         window.location.href = returnTo;

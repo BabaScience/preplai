@@ -24,6 +24,15 @@ function main(): void {
   const paletteName = document.body.getAttribute('data-palette') || 'default';
   setActivePalette(paletteName);
 
+  // ── GA4 analytics helper (uses gtag injected by server template) ──
+  const gtag = (window as any).__preGtag as ((...args: any[]) => void) | undefined;
+  const baseParams = { session_id: sessionId, palette: paletteName, style: document.body.getAttribute('data-theme') || 'cinema' };
+  function trackPlayerEvent(name: string, params: Record<string, any> = {}): void {
+    if (!gtag) return;
+    gtag('event', name, { ...baseParams, ...params });
+  }
+  trackPlayerEvent('player_loaded');
+
   const canvas = document.getElementById('canvas');
   const entityLayer = document.getElementById('entity-layer') as SVGGElement | null;
   const connectionLayer = document.getElementById('connection-layer') as SVGGElement | null;
@@ -268,6 +277,7 @@ function main(): void {
       currentFrame++;
       sceneController.seekToFrame(currentFrame);
       playFrameAudio(currentFrame);
+      trackPlayerEvent('frame_navigate', { direction: 'next', frame_index: currentFrame });
     }
   }
 
@@ -277,6 +287,7 @@ function main(): void {
       currentFrame--;
       sceneController.seekToFrame(currentFrame);
       playFrameAudio(currentFrame);
+      trackPlayerEvent('frame_navigate', { direction: 'prev', frame_index: currentFrame });
     }
   }
 
@@ -307,6 +318,7 @@ function main(): void {
       } catch {}
       updateTTSToggleUI();
       audioEngine.setEnabled(ttsEnabled);
+      trackPlayerEvent('tts_toggle', { tts_enabled: ttsEnabled });
       if (!ttsEnabled) {
         stopTTS();
         updatePlayPauseUI(false);
@@ -413,8 +425,10 @@ function main(): void {
   }
 
   function toggleFullscreen(): void {
-    if (isFullscreen()) exitFullscreen();
-    else enterFullscreen();
+    const entering = !isFullscreen();
+    if (entering) enterFullscreen();
+    else exitFullscreen();
+    trackPlayerEvent('fullscreen_toggle', { fullscreen: entering });
   }
 
   function updateFullscreenUI(): void {
