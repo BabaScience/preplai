@@ -1095,6 +1095,11 @@
   color: var(--color-primary);
   margin-bottom: var(--space-4);
 }
+.docs-sidebar-label-section {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border-subtle, rgba(255,255,255,0.08));
+}
 .docs-nav {
   display: flex;
   flex-direction: column;
@@ -1297,6 +1302,9 @@
 }
 .docs-index-header {
   margin-bottom: var(--space-12);
+}
+.docs-index-header-section {
+  margin-top: var(--space-16);
 }
 .docs-index-label {
   display: block;

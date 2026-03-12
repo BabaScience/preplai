@@ -9,34 +9,53 @@ const BASE_URL = typeof window !== 'undefined'
 
 export const DOC_META = {
   'quick-start': {
-    title: 'Quick Start — preplai Documentation',
-    description: 'Get started with preplai in 3 steps: get an access token, connect Claude, ChatGPT, or any MCP client, and create your first cinema-quality presentation.',
-    keywords: ['preplai', 'quick start', 'MCP', 'AI agents', 'Claude', 'ChatGPT', 'AI presentations', 'access token', 'setup'],
+    title: 'Quick Start — preplai',
+    description: 'Create your first animated presentation in 2 minutes. Connect Claude or ChatGPT to preplai and start making cinema-quality visuals.',
+    keywords: ['preplai', 'quick start', 'getting started', 'AI presentations', 'Claude', 'ChatGPT', 'setup'],
     schemaType: 'TechArticle',
+    section: 'get-started',
   },
-  'claude-desktop': {
-    title: 'Claude Desktop & Web — preplai Documentation',
-    description: 'Connect preplai to Claude Desktop and Claude Web (claude.ai) via hosted MCP. OAuth for claude.ai, access token for Claude Desktop.',
-    keywords: ['preplai', 'Claude Desktop', 'Claude Web', 'MCP', 'claude_desktop_config', 'hosted', 'OAuth', 'claude.ai'],
+  'connect-claude': {
+    title: 'Connect Claude — preplai',
+    description: 'Step-by-step guide to connect preplai to Claude Desktop and Claude Web (claude.ai). Copy-paste config, 1 minute setup.',
+    keywords: ['preplai', 'Claude Desktop', 'Claude Web', 'claude.ai', 'setup', 'config', 'MCP'],
     schemaType: 'TechArticle',
+    section: 'get-started',
   },
-  chatgpt: {
-    title: 'ChatGPT Integration — preplai Documentation',
-    description: 'Connect preplai to ChatGPT Web (chat.openai.com) and ChatGPT Desktop via ChatGPT Apps. Create cinema-quality presentations with MCP tools.',
-    keywords: ['preplai', 'ChatGPT', 'ChatGPT Desktop', 'ChatGPT Web', 'MCP', 'chat.openai.com', 'ChatGPT Apps', 'Connectors'],
+  'connect-chatgpt': {
+    title: 'Connect ChatGPT — preplai',
+    description: 'Step-by-step guide to connect preplai to ChatGPT Web, Desktop, and mobile. Create a connector in 2 minutes.',
+    keywords: ['preplai', 'ChatGPT', 'ChatGPT Desktop', 'ChatGPT Web', 'setup', 'connector'],
     schemaType: 'TechArticle',
+    section: 'get-started',
+  },
+  examples: {
+    title: 'Examples — preplai',
+    description: 'Example prompts for preplai presentations: CS concepts, software architecture, DevOps, data structures, and reports. Copy and paste to try.',
+    keywords: ['preplai', 'examples', 'prompts', 'binary search', 'microservices', 'CI/CD', 'presentations'],
+    schemaType: 'TechArticle',
+    section: 'get-started',
+  },
+  tips: {
+    title: 'Tips & Tricks — preplai',
+    description: 'Get better presentations with themes, color palettes, and prompt writing tips. Cinema vs minimal, prompt strategies, sharing and limits.',
+    keywords: ['preplai', 'tips', 'themes', 'palettes', 'prompts', 'cinema', 'minimal'],
+    schemaType: 'TechArticle',
+    section: 'get-started',
   },
   'mcp-tools': {
     title: 'MCP Tools Reference — preplai API',
-    description: 'Complete reference for preplai MCP tools. Any AI agent can call get_preferences, get_illustrations, create_session, add_scene, update_scene, add_narration, get_session_url, list_sessions, delete_session, remove_scene.',
+    description: 'Complete reference for preplai MCP tools: create_session, add_scene, update_scene, add_narration, get_session_url, list_sessions, delete_session, remove_scene.',
     keywords: ['preplai', 'MCP tools', 'create_session', 'add_scene', 'API', 'Model Context Protocol', 'AI agents'],
     schemaType: 'APIReference',
+    section: 'advanced',
   },
   visualscript: {
-    title: 'VisualScript Schema — preplai Documentation',
-    description: 'VisualScript schema for preplai scenes: entity types (Server, Database, BinaryTree, etc.), frame structure, design guidelines, and JSON examples.',
+    title: 'VisualScript Schema — preplai API',
+    description: 'VisualScript JSON schema for preplai scenes: entity types (Server, Database, BinaryTree, etc.), frame structure, design guidelines, and examples.',
     keywords: ['preplai', 'VisualScript', 'schema', 'entity types', 'add_scene', 'frames', '1920x1080', 'SVG'],
-    schemaType: 'TechArticle',
+    schemaType: 'APIReference',
+    section: 'advanced',
   },
 };
 
