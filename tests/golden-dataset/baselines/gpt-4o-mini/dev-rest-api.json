@@ -1,0 +1,14 @@
+{
+  "overall": 91,
+  "dimensions": {
+    "entityDensity": 80,
+    "layoutQuality": 91,
+    "visualBalance": 70,
+    "entityPersistence": 100,
+    "narrationCoverage": 100,
+    "formatCompliance": 100
+  },
+  "frameCount": 4,
+  "totalEntities": 20,
+  "timestamp": "2026-03-12T19:01:11.260Z"
+}
