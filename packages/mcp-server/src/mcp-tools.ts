@@ -34,6 +34,7 @@ import {
 import { getUserPlayerPrefs } from './auth.js';
 import { withErrorBoundary, mcpForbidden, mcpUnauthorized } from './errors.js';
 import { verifySessionOwnership } from './session-utils.js';
+import { scoreVisualScript } from './quality-scorer.js';
 
 // ── MCP App constants ─────────────────────────────────────────────────
 const PLAYER_RESOURCE_URI = 'ui://preplai/player.html';
@@ -235,6 +236,28 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
       const session = store.getSession(args.session_id);
       const prefs = await getUserPlayerPrefs(apiKey.id);
       const suffix = apiKey ? `?key=${apiKey.id}` : '';
+
+      // Fire-and-forget quality scoring (async, non-blocking)
+      if (session?.script) {
+        Promise.resolve().then(() => {
+          try {
+            const report = scoreVisualScript(session.script);
+            console.log(
+              `[quality] session=${args.session_id} overall=${report.overall} ` +
+              `density=${report.dimensions.entityDensity.score} ` +
+              `layout=${report.dimensions.layoutQuality.score} ` +
+              `balance=${report.dimensions.visualBalance.score} ` +
+              `persistence=${report.dimensions.entityPersistence.score} ` +
+              `narration=${report.dimensions.narrationCoverage.score} ` +
+              `format=${report.dimensions.formatCompliance.score} ` +
+              `frames=${report.frameCount} entities=${report.totalEntities}`,
+            );
+          } catch (err) {
+            console.error('[quality] scoring failed:', err);
+          }
+        });
+      }
+
       return {
         content: result.content,
         _meta: {
