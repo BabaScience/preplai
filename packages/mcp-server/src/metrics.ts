@@ -78,6 +78,64 @@ export const ttsGenerationDuration = new Histogram({
   registers: [register],
 });
 
+// ── Quality Score Metrics ─────────────────────────────────────────────
+
+export const qualityScoreOverall = new Histogram({
+  name: 'quality_score_overall',
+  help: 'Overall quality score (0-100) for visual scripts processed by add_scene',
+  buckets: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+  registers: [register],
+});
+
+export const qualityScoreDimension = new Histogram({
+  name: 'quality_score_dimension',
+  help: 'Per-dimension quality score (0-100)',
+  labelNames: ['dimension'],
+  buckets: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+  registers: [register],
+});
+
+export const qualityFrameCount = new Histogram({
+  name: 'quality_frame_count',
+  help: 'Number of frames per scored visual script',
+  buckets: [1, 2, 3, 5, 8, 10, 15, 20, 50],
+  registers: [register],
+});
+
+export const qualityEntityCount = new Histogram({
+  name: 'quality_entity_count',
+  help: 'Total entity count per scored visual script',
+  buckets: [1, 5, 10, 20, 30, 50, 75, 100],
+  registers: [register],
+});
+
+// ── Product Analytics Counters ────────────────────────────────────────
+
+export const sessionCreatedTotal = new Counter({
+  name: 'session_created_total',
+  help: 'Total sessions created',
+  registers: [register],
+});
+
+export const sceneAddedTotal = new Counter({
+  name: 'scene_added_total',
+  help: 'Total scenes added (append or replace)',
+  labelNames: ['mode'],
+  registers: [register],
+});
+
+export const playerUrlOpenedTotal = new Counter({
+  name: 'player_url_opened_total',
+  help: 'Total player URL opens (SSE connections)',
+  registers: [register],
+});
+
+export const sessionCompletionRate = new Gauge({
+  name: 'session_completion_rate',
+  help: 'Ratio of sessions with ≥1 scene vs total sessions created (rolling)',
+  registers: [register],
+});
+
 /**
  * Sanitize path for metrics to avoid high cardinality.
  */

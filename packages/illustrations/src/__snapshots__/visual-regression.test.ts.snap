@@ -1,0 +1,2600 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Visual Regression — SVG Snapshots > renders APIEndpoint without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 2,
+    "text": 3,
+  },
+  "textLabels": [
+    "GET",
+    "/api/users",
+    "200",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders APIGateway without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 4,
+    "g": 1,
+    "line": 3,
+    "path": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "APIGateway",
+  ],
+  "totalElements": 10,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Alert without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 2,
+    "path": 1,
+    "rect": 2,
+    "text": 2,
+  },
+  "textLabels": [
+    "Alert",
+    "FIRING",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Analogy without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "rect": 2,
+    "text": 3,
+    "tspan": 2,
+  },
+  "textLabels": [
+    "~",
+    "Search",
+    "phone book",
+  ],
+  "totalElements": 9,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Annotation without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "path": 3,
+    "text": 1,
+    "tspan": 1,
+  },
+  "textLabels": [
+    "Note text.",
+  ],
+  "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Array without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 4,
+    "text": 9,
+  },
+  "textLabels": [
+    "0",
+    "5",
+    "1",
+    "2",
+    "2",
+    "8",
+    "3",
+    "1",
+    "Array",
+  ],
+  "totalElements": 14,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders ArrayCell without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 1,
+    "text": 3,
+  },
+  "textLabels": [
+    "3",
+    "42",
+    "ArrayCell",
+  ],
+  "totalElements": 5,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders AuthFlow without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 2,
+    "path": 1,
+    "rect": 2,
+    "text": 2,
+  },
+  "textLabels": [
+    "OAuth 2.0",
+    "Authentication Flow",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders BTree without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 3,
+    "g": 1,
+    "line": 2,
+    "text": 4,
+  },
+  "textLabels": [
+    "[10,20]",
+    "[3]",
+    "[15]",
+    "BTree",
+  ],
+  "totalElements": 10,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Badge without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Badge",
+  ],
+  "totalElements": 3,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders BarChart without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 1,
+    "rect": 2,
+    "text": 7,
+  },
+  "textLabels": [
+    "A",
+    "10",
+    "B",
+    "25",
+    "x",
+    "y",
+    "BarChart",
+  ],
+  "totalElements": 11,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders BigO without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "line": 22,
+    "path": 3,
+    "rect": 1,
+    "text": 6,
+  },
+  "textLabels": [
+    "n",
+    "Operations",
+    "O(1)",
+    "O(n)",
+    "O(n²)",
+    "BigO",
+  ],
+  "totalElements": 34,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders BinaryTree without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 5,
+    "g": 1,
+    "line": 4,
+    "text": 6,
+  },
+  "textLabels": [
+    "5",
+    "3",
+    "1",
+    "4",
+    "8",
+    "BinaryTree",
+  ],
+  "totalElements": 16,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Build without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 2,
+    "line": 4,
+    "rect": 1,
+    "text": 2,
+  },
+  "textLabels": [
+    "Build #847",
+    "success · 2m",
+  ],
+  "totalElements": 10,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders CDN without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 4,
+    "ellipse": 2,
+    "g": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "CDN",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders CPU without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 13,
+    "text": 2,
+  },
+  "textLabels": [
+    "CPU",
+    "CPU",
+  ],
+  "totalElements": 16,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Cache without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "ellipse": 2,
+    "g": 2,
+    "line": 4,
+    "path": 2,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Cache",
+  ],
+  "totalElements": 12,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders CacheHierarchy without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 3,
+    "rect": 2,
+    "text": 5,
+  },
+  "textLabels": [
+    "L1",
+    "32 KB",
+    "L2",
+    "256 KB",
+    "CacheHierarchy",
+  ],
+  "totalElements": 10,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders CallStack without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 3,
+    "rect": 2,
+    "text": 3,
+  },
+  "textLabels": [
+    "main()",
+    "foo()",
+    "CallStack",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Callout without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "path": 2,
+    "rect": 2,
+    "text": 2,
+    "tspan": 1,
+  },
+  "textLabels": [
+    "Note",
+    "Callout text.",
+  ],
+  "totalElements": 9,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Certificate without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "path": 2,
+    "rect": 1,
+    "text": 2,
+  },
+  "textLabels": [
+    "*.example.com",
+    "TLS Certificate",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Cloud without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "ellipse": 4,
+    "g": 2,
+    "line": 2,
+    "text": 1,
+  },
+  "textLabels": [
+    "Cloud",
+  ],
+  "totalElements": 9,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Cluster without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "text": 2,
+  },
+  "textLabels": [
+    "Cluster",
+    "Cluster",
+  ],
+  "totalElements": 4,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders CodeBlock without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 3,
+    "g": 1,
+    "rect": 4,
+    "text": 7,
+  },
+  "textLabels": [
+    "CodeBlock",
+    "1",
+    "function fib(n) {",
+    "2",
+    "return n <= 1 ? n : fib(n-...",
+    "3",
+    "}",
+  ],
+  "totalElements": 15,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Comparison without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "rect": 2,
+    "text": 3,
+    "tspan": 2,
+  },
+  "textLabels": [
+    "vs",
+    "Array",
+    "LinkedList",
+  ],
+  "totalElements": 9,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Concept without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "path": 1,
+    "rect": 2,
+    "text": 1,
+    "tspan": 1,
+  },
+  "textLabels": [
+    "Recursion",
+  ],
+  "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders ConfigFile without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 2,
+    "line": 4,
+    "rect": 2,
+    "text": 3,
+  },
+  "textLabels": [
+    ".env",
+    "PORT",
+    "3000",
+  ],
+  "totalElements": 12,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders ConfusionMatrix without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 9,
+    "text": 14,
+  },
+  "textLabels": [
+    "Pred-",
+    "Pred+",
+    "Act-",
+    "45",
+    "TN",
+    "5",
+    "FP",
+    "Act+",
+    "8",
+    "FN",
+  ],
+  "totalElements": 24,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Container without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 3,
+    "text": 1,
+  },
+  "textLabels": [
+    "Container",
+  ],
+  "totalElements": 5,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders CoordinateSystem without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "line": 24,
+    "rect": 1,
+    "text": 4,
+  },
+  "textLabels": [
+    "x",
+    "y",
+    "P",
+    "CoordinateSystem",
+  ],
+  "totalElements": 31,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders CronJob without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 2,
+    "g": 2,
+    "line": 2,
+    "path": 1,
+    "rect": 1,
+    "text": 2,
+  },
+  "textLabels": [
+    "CronJob",
+    "0 */6 * * *",
+  ],
+  "totalElements": 10,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Cycle without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "animatetransform": 1,
+    "circle": 1,
+    "g": 2,
+    "text": 1,
+  },
+  "textLabels": [
+    "Cycle",
+  ],
+  "totalElements": 5,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders DNSResolver without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 10,
+    "g": 1,
+    "line": 5,
+    "path": 1,
+    "polygon": 1,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "DNSResolver",
+  ],
+  "totalElements": 20,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Dashboard without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "polyline": 4,
+    "rect": 6,
+    "text": 1,
+  },
+  "textLabels": [
+    "Dashboard",
+  ],
+  "totalElements": 12,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Database without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 9,
+    "ellipse": 3,
+    "g": 2,
+    "line": 2,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Database",
+  ],
+  "totalElements": 18,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders DeadlockGraph without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 2,
+    "g": 1,
+    "line": 1,
+    "text": 3,
+  },
+  "textLabels": [
+    "P1",
+    "R1",
+    "DeadlockGraph",
+  ],
+  "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Decision without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "polygon": 1,
+    "text": 2,
+  },
+  "textLabels": [
+    "Decision",
+    "?",
+  ],
+  "totalElements": 4,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Decorator without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 2,
+    "rect": 2,
+    "text": 2,
+  },
+  "textLabels": [
+    "fn",
+    "Decorator",
+  ],
+  "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Definition without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 2,
+    "text": 2,
+    "tspan": 1,
+  },
+  "textLabels": [
+    "Binary Search",
+    "A divide-and-conquer algorithm.",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Dependency without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "line": 2,
+    "rect": 2,
+    "text": 2,
+  },
+  "textLabels": [
+    "Dependency",
+    "^4.18.2",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Deployment without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "line": 1,
+    "path": 1,
+    "rect": 1,
+    "text": 2,
+  },
+  "textLabels": [
+    "production",
+    "v2.4 · live",
+  ],
+  "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Device without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 3,
+    "rect": 3,
+    "text": 1,
+  },
+  "textLabels": [
+    "Device",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Dict without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "line": 2,
+    "rect": 2,
+    "text": 5,
+  },
+  "textLabels": [
+    "name",
+    "Alice",
+    "age",
+    "30",
+    "Dict",
+  ],
+  "totalElements": 11,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders DockerImage without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 4,
+    "text": 1,
+  },
+  "textLabels": [
+    "DockerImage",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders DockerRegistry without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "ellipse": 3,
+    "g": 1,
+    "path": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "DockerRegistry",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Entity without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Thing",
+  ],
+  "totalElements": 4,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Equation without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "rect": 2,
+    "text": 1,
+  },
+  "textLabels": [
+    "Equation",
+  ],
+  "totalElements": 5,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders ErrorState without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 2,
+    "line": 2,
+    "rect": 2,
+    "text": 2,
+  },
+  "textLabels": [
+    "TypeError (500)",
+    "Cannot read property",
+  ],
+  "totalElements": 9,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Event without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "path": 1,
+    "polygon": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Event",
+  ],
+  "totalElements": 4,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Expression without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Expression",
+  ],
+  "totalElements": 4,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders FSM without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 2,
+    "g": 1,
+    "line": 1,
+    "text": 3,
+  },
+  "textLabels": [
+    "q0",
+    "q1",
+    "FSM",
+  ],
+  "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders File without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 3,
+    "path": 2,
+    "rect": 1,
+    "text": 2,
+  },
+  "textLabels": [
+    ".md",
+    "File",
+  ],
+  "totalElements": 9,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Firewall without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "line": 2,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Firewall",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders FlowDiagram without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "line": 1,
+    "rect": 2,
+    "text": 3,
+  },
+  "textLabels": [
+    "Start",
+    "End",
+    "FlowDiagram",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders FreeBodyDiagram without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 2,
+    "line": 2,
+    "polygon": 2,
+    "text": 3,
+  },
+  "textLabels": [
+    "F₁",
+    "F₂",
+    "FreeBodyDiagram",
+  ],
+  "totalElements": 10,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders GanttChart without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "line": 4,
+    "rect": 2,
+    "text": 6,
+  },
+  "textLabels": [
+    "P1",
+    "P2",
+    "0",
+    "5",
+    "10",
+    "GanttChart",
+  ],
+  "totalElements": 14,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders GitBranch without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 3,
+    "g": 2,
+    "line": 1,
+    "path": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "feature/auth",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders GitCommit without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "line": 2,
+    "text": 2,
+  },
+  "textLabels": [
+    "a1b2c3d",
+    "feat: add auth",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Graph2D without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 2,
+    "line": 24,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Graph2D",
+  ],
+  "totalElements": 29,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders GraphQLSchema without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 1,
+    "rect": 1,
+    "text": 4,
+  },
+  "textLabels": [
+    "type GraphQLSchema {",
+    "id: ID!",
+    "name: String!",
+    "}",
+  ],
+  "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Group without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 8,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Group",
+  ],
+  "totalElements": 11,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders H1 without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "H1",
+  ],
+  "totalElements": 2,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders H2 without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "H2",
+  ],
+  "totalElements": 2,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders H3 without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "H3",
+  ],
+  "totalElements": 2,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders HTTPRequest without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 1,
+    "rect": 2,
+    "text": 2,
+  },
+  "textLabels": [
+    "→",
+    "POST /api/auth",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders HTTPResponse without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 1,
+    "rect": 2,
+    "text": 3,
+  },
+  "textLabels": [
+    "←",
+    "HTTPResponse",
+    "{"ok":true}",
+  ],
+  "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders HashTable without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "line": 2,
+    "rect": 2,
+    "text": 5,
+  },
+  "textLabels": [
+    "k1",
+    "v1",
+    "k2",
+    "v2",
+    "HashTable",
+  ],
+  "totalElements": 11,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Heap without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 5,
+    "g": 1,
+    "line": 4,
+    "text": 6,
+  },
+  "textLabels": [
+    "10",
+    "8",
+    "5",
+    "3",
+    "6",
+    "Heap",
+  ],
+  "totalElements": 16,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Histogram without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 1,
+    "rect": 2,
+    "text": 5,
+  },
+  "textLabels": [
+    "0-10",
+    "5",
+    "10-20",
+    "12",
+    "Histogram",
+  ],
+  "totalElements": 9,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Interface without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "rect": 2,
+    "text": 4,
+  },
+  "textLabels": [
+    "I",
+    "Interface",
+    "getUser()",
+    "createUser()",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Label without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "path": 1,
+    "rect": 2,
+    "text": 1,
+    "tspan": 1,
+  },
+  "textLabels": [
+    "Label",
+  ],
+  "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Lambda without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 1,
+    "text": 2,
+  },
+  "textLabels": [
+    "λ",
+    "Lambda",
+  ],
+  "totalElements": 4,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders LinkedList without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "line": 2,
+    "rect": 3,
+    "text": 4,
+  },
+  "textLabels": [
+    "1",
+    "2",
+    "3",
+    "LinkedList",
+  ],
+  "totalElements": 11,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders List without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "rect": 4,
+    "text": 9,
+  },
+  "textLabels": [
+    "[0]",
+    "1",
+    "[1]",
+    "2",
+    "[2]",
+    "3",
+    "[3]",
+    "4",
+    "List",
+  ],
+  "totalElements": 15,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders LoadBalancer without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 3,
+    "polygon": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "LoadBalancer",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders LogEntry without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 2,
+    "text": 3,
+  },
+  "textLabels": [
+    "INFO",
+    "12:34",
+    "OK",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders LogicGate without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 3,
+    "g": 1,
+    "line": 3,
+    "rect": 1,
+    "text": 2,
+  },
+  "textLabels": [
+    "AND",
+    "LogicGate",
+  ],
+  "totalElements": 10,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Matrix without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 4,
+    "text": 5,
+  },
+  "textLabels": [
+    "1",
+    "0",
+    "Matrix",
+  ],
+  "totalElements": 10,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders MemoryBlock without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 2,
+    "text": 5,
+  },
+  "textLabels": [
+    "0x00",
+    "42",
+    "0x08",
+    "ptr",
+    "MemoryBlock",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders MemoryLayout without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 3,
+    "text": 6,
+  },
+  "textLabels": [
+    "Stack",
+    "main",
+    "foo()",
+    "Heap",
+    "obj1",
+    "MemoryLayout",
+  ],
+  "totalElements": 10,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders MemoryMap without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 2,
+    "text": 5,
+  },
+  "textLabels": [
+    "Stack",
+    "0xFFF0–0xFFFF",
+    "Heap",
+    "0x1000–0x2000",
+    "MemoryMap",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders MessageBroker without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "path": 4,
+    "rect": 2,
+    "text": 1,
+  },
+  "textLabels": [
+    "MessageBroker",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Metric without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "polygon": 1,
+    "rect": 2,
+    "text": 3,
+  },
+  "textLabels": [
+    "Metric",
+    "99 ms",
+    "12%",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Migration without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "path": 1,
+    "rect": 2,
+    "text": 2,
+  },
+  "textLabels": [
+    "v003",
+    "Add roles",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Module without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 1,
+    "text": 3,
+  },
+  "textLabels": [
+    "{ }",
+    "Module",
+    "5 exports",
+  ],
+  "totalElements": 5,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Monitor without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "path": 1,
+    "rect": 2,
+    "text": 1,
+  },
+  "textLabels": [
+    "Monitor",
+  ],
+  "totalElements": 5,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Mutex without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "path": 1,
+    "rect": 2,
+    "text": 2,
+  },
+  "textLabels": [
+    "Thread-1",
+    "Mutex",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Network without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 7,
+    "g": 1,
+    "line": 6,
+    "text": 1,
+  },
+  "textLabels": [
+    "Network",
+  ],
+  "totalElements": 15,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders NeuralNetwork without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 9,
+    "g": 1,
+    "line": 20,
+    "text": 4,
+  },
+  "textLabels": [
+    "In",
+    "Hidden",
+    "Out",
+    "NeuralNetwork",
+  ],
+  "totalElements": 34,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Notification without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 2,
+    "g": 2,
+    "path": 1,
+    "rect": 1,
+    "text": 2,
+  },
+  "textLabels": [
+    "Notification",
+    "push",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Packet without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 2,
+    "text": 6,
+  },
+  "textLabels": [
+    "Src",
+    "192.168.…",
+    "Payload",
+    "data",
+    "TCP",
+    "Packet",
+  ],
+  "totalElements": 9,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders PieChart without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "path": 2,
+    "text": 3,
+  },
+  "textLabels": [
+    "A 55%",
+    "B 45%",
+    "PieChart",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Pipeline without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 3,
+    "path": 4,
+    "text": 1,
+  },
+  "textLabels": [
+    "Pipeline",
+  ],
+  "totalElements": 9,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders PipelineStage without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 2,
+    "path": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "PipelineSt…",
+  ],
+  "totalElements": 5,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Pod without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "rect": 3,
+    "text": 3,
+  },
+  "textLabels": [
+    "app",
+    "sidecar",
+    "Pod",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Process without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "path": 1,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Process",
+  ],
+  "totalElements": 4,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders ProcessState without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 4,
+    "g": 1,
+    "line": 1,
+    "text": 3,
+  },
+  "textLabels": [
+    "Ready",
+    "Running",
+    "ProcessState",
+  ],
+  "totalElements": 9,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders PullRequest without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 2,
+    "g": 2,
+    "path": 1,
+    "rect": 2,
+    "text": 2,
+  },
+  "textLabels": [
+    "#142 PullRequest",
+    "open",
+  ],
+  "totalElements": 9,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Queue without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 2,
+    "polygon": 1,
+    "rect": 3,
+    "text": 4,
+  },
+  "textLabels": [
+    "1",
+    "2",
+    "3",
+    "Queue",
+  ],
+  "totalElements": 11,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Quote without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "rect": 2,
+    "text": 3,
+    "tspan": 1,
+  },
+  "textLabels": [
+    """,
+    "To be or not to be.",
+    "Shakespeare",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders RecursionTree without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 3,
+    "line": 1,
+    "rect": 2,
+    "text": 4,
+  },
+  "textLabels": [
+    "fib(4)",
+    "fib(3)",
+    "→ 2",
+    "RecursionTree",
+  ],
+  "totalElements": 10,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Rollback without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "path": 1,
+    "rect": 1,
+    "text": 2,
+  },
+  "textLabels": [
+    "Rollback",
+    "v2.4 → v2.3",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders ScatterPlot without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 2,
+    "line": 24,
+    "rect": 1,
+    "text": 3,
+  },
+  "textLabels": [
+    "x",
+    "y",
+    "ScatterPlot",
+  ],
+  "totalElements": 31,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Schema without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 1,
+    "rect": 2,
+    "text": 5,
+  },
+  "textLabels": [
+    "users",
+    "id",
+    "uuid",
+    "email",
+    "varchar",
+  ],
+  "totalElements": 9,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Secret without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 2,
+    "line": 1,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "DB_URL=********",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Semaphore without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 1,
+    "text": 3,
+  },
+  "textLabels": [
+    "2/3",
+    "permits",
+    "sem",
+  ],
+  "totalElements": 5,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Server without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 3,
+    "g": 1,
+    "line": 5,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Server",
+  ],
+  "totalElements": 11,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Service without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "polygon": 1,
+    "text": 2,
+  },
+  "textLabels": [
+    "{ Service }",
+    "Auth Service",
+  ],
+  "totalElements": 5,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Set without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 4,
+    "text": 6,
+  },
+  "textLabels": [
+    "{",
+    "}",
+    "a",
+    "b",
+    "c",
+    "Set",
+  ],
+  "totalElements": 11,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders SortAnimation without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 4,
+    "text": 9,
+  },
+  "textLabels": [
+    "0",
+    "5",
+    "1",
+    "2",
+    "2",
+    "8",
+    "3",
+    "1",
+    "SortAnimation",
+  ],
+  "totalElements": 14,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Stack without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 4,
+    "rect": 3,
+    "text": 4,
+  },
+  "textLabels": [
+    "App",
+    "Transport",
+    "Network",
+    "Stack",
+  ],
+  "totalElements": 11,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders StepList without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 3,
+    "g": 2,
+    "line": 2,
+    "text": 7,
+  },
+  "textLabels": [
+    "1",
+    "Parse",
+    "2",
+    "Validate",
+    "3",
+    "Transform",
+    "StepList",
+  ],
+  "totalElements": 14,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders StorageBucket without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "line": 1,
+    "path": 2,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "StorageBucket",
+  ],
+  "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Stream without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 3,
+    "g": 1,
+    "line": 1,
+    "path": 1,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Stream",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Subnet without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 1,
+    "text": 3,
+  },
+  "textLabels": [
+    "10.0.0.0/24",
+    "private",
+    "Subnet",
+  ],
+  "totalElements": 5,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders SymbolTable without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 3,
+    "rect": 3,
+    "text": 7,
+  },
+  "textLabels": [
+    "Name",
+    "Type",
+    "x",
+    "int",
+    "y",
+    "float",
+    "SymbolTable",
+  ],
+  "totalElements": 14,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Table without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 6,
+    "text": 7,
+  },
+  "textLabels": [
+    "Name",
+    "Type",
+    "id",
+    "int",
+    "name",
+    "str",
+    "Table",
+  ],
+  "totalElements": 14,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Task without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 2,
+    "rect": 2,
+    "text": 2,
+  },
+  "textLabels": [
+    "Task",
+    "IN PROGRESS",
+  ],
+  "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Thread without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Thread",
+  ],
+  "totalElements": 3,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Timeline without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 1,
+    "polygon": 2,
+    "text": 3,
+  },
+  "textLabels": [
+    "Start",
+    "End",
+    "Timeline",
+  ],
+  "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Token without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 2,
+    "line": 3,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Token eyJh******",
+  ],
+  "totalElements": 8,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Trace without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "rect": 1,
+    "text": 3,
+  },
+  "textLabels": [
+    "api",
+    "45ms",
+    "Trace",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Tuple without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "rect": 5,
+    "text": 7,
+  },
+  "textLabels": [
+    "(0)",
+    "1",
+    "(1)",
+    "2",
+    "(2)",
+    "3",
+    "Tuple",
+  ],
+  "totalElements": 14,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders TuringMachine without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 2,
+    "polygon": 1,
+    "rect": 3,
+    "text": 5,
+  },
+  "textLabels": [
+    "a",
+    "b",
+    "□",
+    "state: q0",
+    "TuringMachine",
+  ],
+  "totalElements": 11,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders User without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "path": 3,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "User",
+  ],
+  "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Vector without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "line": 1,
+    "polygon": 1,
+    "text": 2,
+  },
+  "textLabels": [
+    "v",
+    "Vector",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders VennDiagram without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 2,
+    "g": 1,
+    "text": 3,
+  },
+  "textLabels": [
+    "A",
+    "B",
+    "VennDiagram",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Volume without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "ellipse": 2,
+    "g": 2,
+    "line": 4,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Volume",
+  ],
+  "totalElements": 10,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Wave without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 1,
+    "path": 1,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Wave",
+  ],
+  "totalElements": 5,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders WebSocket without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "path": 2,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "WebSocket",
+  ],
+  "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Webhook without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "path": 1,
+    "rect": 2,
+    "text": 2,
+  },
+  "textLabels": [
+    "user.created",
+    "https://example.com",
+  ],
+  "totalElements": 6,
+}
+`;
