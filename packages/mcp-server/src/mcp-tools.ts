@@ -35,6 +35,14 @@ import { getUserPlayerPrefs } from './auth.js';
 import { withErrorBoundary, mcpForbidden, mcpUnauthorized } from './errors.js';
 import { verifySessionOwnership } from './session-utils.js';
 import { scoreVisualScript } from './quality-scorer.js';
+import {
+  qualityScoreOverall,
+  qualityScoreDimension,
+  qualityFrameCount,
+  qualityEntityCount,
+  sceneAddedTotal,
+  sessionCreatedTotal,
+} from './metrics.js';
 
 // ── MCP App constants ─────────────────────────────────────────────────
 const PLAYER_RESOURCE_URI = 'ui://preplai/player.html';
@@ -172,7 +180,10 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
 
       try {
         const data = JSON.parse(result.content[0].text);
-        if (data.success) await trackUsage(apiKey.id, 'create_session', data.data.session_id);
+        if (data.success) {
+          await trackUsage(apiKey.id, 'create_session', data.data.session_id);
+          sessionCreatedTotal.inc();
+        }
       } catch {}
 
       if (openPlayerInBrowser) {
@@ -237,11 +248,21 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
       const prefs = await getUserPlayerPrefs(apiKey.id);
       const suffix = apiKey ? `?key=${apiKey.id}` : '';
 
-      // Fire-and-forget quality scoring (async, non-blocking)
+      // Fire-and-forget: quality scoring + Prometheus metrics (non-blocking)
+      sceneAddedTotal.inc({ mode });
       if (session?.script) {
         Promise.resolve().then(() => {
           try {
             const report = scoreVisualScript(session.script);
+
+            // Prometheus histograms
+            qualityScoreOverall.observe(report.overall);
+            qualityFrameCount.observe(report.frameCount);
+            qualityEntityCount.observe(report.totalEntities);
+            for (const [dim, val] of Object.entries(report.dimensions)) {
+              qualityScoreDimension.observe({ dimension: dim }, val.score);
+            }
+
             console.log(
               `[quality] session=${args.session_id} overall=${report.overall} ` +
               `density=${report.dimensions.entityDensity.score} ` +
