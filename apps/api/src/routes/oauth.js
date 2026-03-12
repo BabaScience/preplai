@@ -1,11 +1,12 @@
 /**
  * OAuth 2.1 server for MCP / Claude Web connector
- * Implements: RFC 8414 (AS metadata), RFC 9728 (PRM), authorization code + PKCE
+ * Implements: RFC 8414 (AS metadata), RFC 9728 (PRM), authorization code + PKCE,
+ *             RFC 7009 (Token Revocation), RFC 7591 (Dynamic Client Registration)
  */
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { OAuthClient, OAuthAuthCode, User, ApiKey } from '../db.js';
+import { OAuthClient, OAuthAuthCode, OAuthRefreshToken, User, ApiKey } from '../db.js';
 
 const router = Router();
 
@@ -41,6 +42,83 @@ function generateAuthCode() {
   return crypto.randomBytes(32).toString('hex');
 }
 
+function generateRefreshToken() {
+  return crypto.randomBytes(64).toString('hex');
+}
+
+const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+/**
+ * Issue a new refresh token, store its hash, and return the raw token.
+ */
+async function issueRefreshToken(clientId, userId, scope) {
+  const raw = generateRefreshToken();
+  const hashed = hashSecret(raw);
+  await OAuthRefreshToken.create({
+    token: hashed,
+    clientId,
+    userId,
+    scope: scope || '',
+    expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+  });
+  return raw;
+}
+
+/**
+ * Generate a JWT access token.
+ */
+function issueAccessToken(userId, aud, scope) {
+  const API_BASE = getApiBase();
+  return jwt.sign(
+    {
+      sub: userId.toString(),
+      aud,
+      iss: API_BASE,
+      scope: scope || 'mcp:preplai',
+    },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+}
+
+/**
+ * Parse client credentials from request body and/or Basic auth header.
+ */
+function parseClientCredentials(req) {
+  const contentType = req.headers['content-type'] || '';
+  let clientId, clientSecret;
+
+  if (contentType.includes('application/json')) {
+    clientId = req.body?.client_id;
+    clientSecret = req.body?.client_secret;
+  } else {
+    clientId = req.body?.client_id;
+    clientSecret = req.body?.client_secret;
+  }
+
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Basic ')) {
+    const decoded = Buffer.from(authHeader.slice(6), 'base64').toString();
+    const [cid, csecret] = decoded.split(':');
+    if (cid && !clientId) clientId = cid;
+    if (csecret && !clientSecret) clientSecret = csecret;
+  }
+
+  return { clientId, clientSecret };
+}
+
+/**
+ * Validate client credentials. Returns client doc or null.
+ */
+async function validateClient(clientId, clientSecret) {
+  if (!clientId || !clientSecret) return null;
+  const client = await OAuthClient.findOne({ clientId });
+  if (!client) return null;
+  const secretHash = hashSecret(clientSecret);
+  if (secretHash !== client.clientSecretHash) return null;
+  return client;
+}
+
 // Optional auth: cookie or Bearer (for authorize flow)
 function optionalAuth(req, res, next) {
   const token =
@@ -66,12 +144,15 @@ router.get('/.well-known/oauth-authorization-server', (req, res) => {
     issuer: API_BASE,
     authorization_endpoint: `${API_BASE}/oauth/authorize`,
     token_endpoint: `${API_BASE}/oauth/token`,
+    registration_endpoint: `${API_BASE}/oauth/register`,
+    revocation_endpoint: `${API_BASE}/oauth/revoke`,
     jwks_uri: `${API_BASE}/oauth/jwks`,
     scopes_supported: ['mcp:preplai'],
     response_types_supported: ['code'],
-    grant_types_supported: ['authorization_code'],
+    grant_types_supported: ['authorization_code', 'refresh_token'],
     code_challenge_methods_supported: ['S256'],
     token_endpoint_auth_methods_supported: ['client_secret_post', 'client_secret_basic'],
+    revocation_endpoint_auth_methods_supported: ['client_secret_post', 'client_secret_basic'],
   });
 });
 
@@ -198,86 +279,232 @@ router.get('/oauth/authorize', optionalAuth, async (req, res) => {
 
 router.post('/oauth/token', async (req, res) => {
   const contentType = req.headers['content-type'] || '';
-  let clientId, clientSecret, code, redirectUri, codeVerifier, resource;
+  let grantType, code, redirectUri, codeVerifier, resource, refreshToken;
 
   if (contentType.includes('application/json')) {
-    ({ client_id: clientId, client_secret: clientSecret, code, redirect_uri: redirectUri, code_verifier: codeVerifier, resource } = req.body || {});
+    ({
+      grant_type: grantType,
+      code,
+      redirect_uri: redirectUri,
+      code_verifier: codeVerifier,
+      resource,
+      refresh_token: refreshToken,
+    } = req.body || {});
   } else {
-    clientId = req.body?.client_id;
-    clientSecret = req.body?.client_secret;
+    grantType = req.body?.grant_type;
     code = req.body?.code;
     redirectUri = req.body?.redirect_uri;
     codeVerifier = req.body?.code_verifier;
     resource = req.body?.resource;
+    refreshToken = req.body?.refresh_token;
   }
 
-  const authHeader = req.headers.authorization;
-  if (authHeader?.startsWith('Basic ')) {
-    const decoded = Buffer.from(authHeader.slice(6), 'base64').toString();
-    const [cid, csecret] = decoded.split(':');
-    if (cid && !clientId) clientId = cid;
-    if (csecret && !clientSecret) clientSecret = csecret;
+  // Default to authorization_code for backwards compat
+  if (!grantType) grantType = 'authorization_code';
+
+  const { clientId, clientSecret } = parseClientCredentials(req);
+  const client = await validateClient(clientId, clientSecret);
+  if (!client) {
+    return res.status(401).json({ error: 'invalid_client', error_description: 'Invalid client credentials' });
   }
 
-  if (!clientId || !clientSecret || !code || !redirectUri || !codeVerifier) {
-    return res.status(400).json({
-      error: 'invalid_request',
-      error_description: 'client_id, client_secret, code, redirect_uri, and code_verifier are required',
+  // ── Grant type: authorization_code ──────────────────────────────────
+  if (grantType === 'authorization_code') {
+    if (!code || !redirectUri || !codeVerifier) {
+      return res.status(400).json({
+        error: 'invalid_request',
+        error_description: 'code, redirect_uri, and code_verifier are required for authorization_code grant',
+      });
+    }
+
+    const authCodeDoc = await OAuthAuthCode.findOne({ code });
+    if (!authCodeDoc) {
+      return res.status(400).json({ error: 'invalid_grant', error_description: 'Invalid or expired authorization code' });
+    }
+
+    if (authCodeDoc.clientId !== clientId || authCodeDoc.redirectUri !== redirectUri) {
+      return res.status(400).json({ error: 'invalid_grant', error_description: 'Code mismatch' });
+    }
+
+    if (new Date() > authCodeDoc.expiresAt) {
+      await OAuthAuthCode.deleteOne({ code });
+      return res.status(400).json({ error: 'invalid_grant', error_description: 'Authorization code expired' });
+    }
+
+    const expectedChallenge = crypto
+      .createHash('sha256')
+      .update(codeVerifier)
+      .digest('base64url');
+    if (expectedChallenge !== authCodeDoc.codeChallenge) {
+      return res.status(400).json({ error: 'invalid_grant', error_description: 'Invalid code_verifier' });
+    }
+
+    const MCP_RESOURCE = getMcpResource();
+    const aud = resource || MCP_RESOURCE;
+    const scope = authCodeDoc.scope || 'mcp:preplai';
+    const accessToken = issueAccessToken(authCodeDoc.userId, aud, scope);
+    const newRefreshToken = await issueRefreshToken(clientId, authCodeDoc.userId, scope);
+
+    await OAuthAuthCode.deleteOne({ code });
+
+    return res.json({
+      access_token: accessToken,
+      token_type: 'Bearer',
+      expires_in: 3600,
+      refresh_token: newRefreshToken,
     });
   }
 
-  const client = await OAuthClient.findOne({ clientId });
+  // ── Grant type: refresh_token ───────────────────────────────────────
+  if (grantType === 'refresh_token') {
+    if (!refreshToken) {
+      return res.status(400).json({
+        error: 'invalid_request',
+        error_description: 'refresh_token is required for refresh_token grant',
+      });
+    }
+
+    const tokenHash = hashSecret(refreshToken);
+    const tokenDoc = await OAuthRefreshToken.findOne({ token: tokenHash });
+
+    if (!tokenDoc || tokenDoc.revoked || new Date() > tokenDoc.expiresAt) {
+      return res.status(400).json({ error: 'invalid_grant', error_description: 'Invalid or expired refresh token' });
+    }
+
+    if (tokenDoc.clientId !== clientId) {
+      return res.status(400).json({ error: 'invalid_grant', error_description: 'Refresh token was not issued to this client' });
+    }
+
+    // Rotate: revoke old token, issue new pair
+    tokenDoc.revoked = true;
+    await tokenDoc.save();
+
+    const MCP_RESOURCE = getMcpResource();
+    const aud = resource || MCP_RESOURCE;
+    const scope = tokenDoc.scope || 'mcp:preplai';
+    const accessToken = issueAccessToken(tokenDoc.userId, aud, scope);
+    const newRefreshToken = await issueRefreshToken(clientId, tokenDoc.userId, scope);
+
+    return res.json({
+      access_token: accessToken,
+      token_type: 'Bearer',
+      expires_in: 3600,
+      refresh_token: newRefreshToken,
+    });
+  }
+
+  return res.status(400).json({
+    error: 'unsupported_grant_type',
+    error_description: `Unsupported grant_type: ${grantType}. Supported: authorization_code, refresh_token`,
+  });
+});
+
+// ── Token Revocation (RFC 7009) ──────────────────────────────────────────
+
+router.post('/oauth/revoke', async (req, res) => {
+  const { clientId, clientSecret } = parseClientCredentials(req);
+  const client = await validateClient(clientId, clientSecret);
   if (!client) {
-    return res.status(401).json({ error: 'invalid_client', error_description: 'Unknown client' });
+    // Per RFC 7009 §2.1: if client auth fails, return 401
+    return res.status(401).json({ error: 'invalid_client', error_description: 'Invalid client credentials' });
   }
 
-  const secretHash = hashSecret(clientSecret);
-  if (secretHash !== client.clientSecretHash) {
-    return res.status(401).json({ error: 'invalid_client', error_description: 'Invalid client secret' });
+  const contentType = req.headers['content-type'] || '';
+  let token, tokenTypeHint;
+  if (contentType.includes('application/json')) {
+    token = req.body?.token;
+    tokenTypeHint = req.body?.token_type_hint;
+  } else {
+    token = req.body?.token;
+    tokenTypeHint = req.body?.token_type_hint;
   }
 
-  const authCodeDoc = await OAuthAuthCode.findOne({ code });
-  if (!authCodeDoc) {
-    return res.status(400).json({ error: 'invalid_grant', error_description: 'Invalid or expired authorization code' });
+  if (!token) {
+    // Per RFC 7009: respond 200 even if token is missing (no-op)
+    return res.status(200).end();
   }
 
-  if (authCodeDoc.clientId !== clientId || authCodeDoc.redirectUri !== redirectUri) {
-    return res.status(400).json({ error: 'invalid_grant', error_description: 'Code mismatch' });
-  }
-
-  if (new Date() > authCodeDoc.expiresAt) {
-    await OAuthAuthCode.deleteOne({ code });
-    return res.status(400).json({ error: 'invalid_grant', error_description: 'Authorization code expired' });
-  }
-
-  const expectedChallenge = crypto
-    .createHash('sha256')
-    .update(codeVerifier)
-    .digest('base64url');
-  if (expectedChallenge !== authCodeDoc.codeChallenge) {
-    return res.status(400).json({ error: 'invalid_grant', error_description: 'Invalid code_verifier' });
-  }
-
-  const API_BASE = getApiBase();
-  const MCP_RESOURCE = getMcpResource();
-  const aud = resource || MCP_RESOURCE;
-  const accessToken = jwt.sign(
-    {
-      sub: authCodeDoc.userId.toString(),
-      aud,
-      iss: API_BASE,
-      scope: authCodeDoc.scope || 'mcp:preplai',
-    },
-    JWT_SECRET,
-    { expiresIn: '1h' }
+  // Try to revoke as refresh token (the only revocable token type)
+  const tokenHash = hashSecret(token);
+  await OAuthRefreshToken.updateOne(
+    { token: tokenHash, clientId, revoked: false },
+    { $set: { revoked: true } }
   );
 
-  await OAuthAuthCode.deleteOne({ code });
+  // Per RFC 7009 §2.1: always return 200, never reveal whether token existed
+  res.status(200).end();
+});
 
-  res.json({
-    access_token: accessToken,
-    token_type: 'Bearer',
-    expires_in: 3600,
+// ── Dynamic Client Registration (RFC 7591) ────────────────────────────────
+
+// Simple in-memory rate limiting for DCR (per IP)
+const dcrRateLimit = new Map();
+const DCR_MAX_PER_HOUR = 10;
+
+router.post('/oauth/register', async (req, res) => {
+  // Rate limit: 10 registrations per IP per hour
+  const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+  const now = Date.now();
+  const windowStart = now - 60 * 60 * 1000;
+  const history = (dcrRateLimit.get(ip) || []).filter((t) => t > windowStart);
+  if (history.length >= DCR_MAX_PER_HOUR) {
+    return res.status(429).json({
+      error: 'too_many_requests',
+      error_description: 'Rate limit exceeded for client registration. Try again later.',
+    });
+  }
+  history.push(now);
+  dcrRateLimit.set(ip, history);
+
+  const { client_name, redirect_uris, grant_types, token_endpoint_auth_method, scope } = req.body || {};
+
+  if (!client_name || typeof client_name !== 'string') {
+    return res.status(400).json({
+      error: 'invalid_client_metadata',
+      error_description: 'client_name is required',
+    });
+  }
+
+  if (!redirect_uris || !Array.isArray(redirect_uris) || redirect_uris.length === 0) {
+    return res.status(400).json({
+      error: 'invalid_client_metadata',
+      error_description: 'redirect_uris (non-empty array) is required',
+    });
+  }
+
+  // Validate redirect URIs
+  for (const uri of redirect_uris) {
+    try {
+      new URL(uri);
+    } catch {
+      return res.status(400).json({
+        error: 'invalid_redirect_uri',
+        error_description: `Invalid redirect URI: ${uri}`,
+      });
+    }
+  }
+
+  const clientId = 'plai_oauth_' + crypto.randomBytes(16).toString('hex');
+  const clientSecretRaw = crypto.randomBytes(32).toString('hex');
+  const clientSecretHash = hashSecret(clientSecretRaw);
+
+  await OAuthClient.create({
+    clientId,
+    clientSecretHash,
+    name: client_name,
+    redirectUris: redirect_uris,
+    userId: null, // DCR clients are unowned
+  });
+
+  res.status(201).json({
+    client_id: clientId,
+    client_secret: clientSecretRaw,
+    client_name,
+    redirect_uris,
+    grant_types: grant_types || ['authorization_code', 'refresh_token'],
+    token_endpoint_auth_method: token_endpoint_auth_method || 'client_secret_post',
+    scope: scope || 'mcp:preplai',
+    client_secret_expires_at: 0, // Does not expire
   });
 });
 

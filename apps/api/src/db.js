@@ -14,6 +14,7 @@ import {
   Narration,
   OAuthClient,
   OAuthAuthCode,
+  OAuthRefreshToken,
 } from '@preplai/db';
 
 export {
@@ -29,4 +30,5 @@ export {
   Narration,
   OAuthClient,
   OAuthAuthCode,
+  OAuthRefreshToken,
 };

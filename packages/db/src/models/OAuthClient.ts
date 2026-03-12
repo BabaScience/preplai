@@ -9,7 +9,7 @@ const oauthClientSchema = new mongoose.Schema(
     clientSecretHash: { type: String, required: true },
     name: { type: String, required: true },
     redirectUris: { type: [String], required: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }, // null for DCR-registered clients
   },
   { timestamps: true }
 );
