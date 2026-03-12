@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Film, ExternalLink, Trash2 } from 'lucide-react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { Film, ExternalLink, Trash2, Search } from 'lucide-react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import EmptyState from '../../components/EmptyState';
 import Modal from '../../components/Modal';
@@ -13,6 +13,13 @@ export default function Sessions() {
   const [error, setError] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const filteredSessions = useMemo(() => {
+    if (!search.trim()) return sessions;
+    const q = search.toLowerCase();
+    return sessions.filter((s) => (s.title || '').toLowerCase().includes(q));
+  }, [sessions, search]);
 
   const loadSessions = useCallback(async () => {
     setLoading(true);
@@ -66,8 +73,37 @@ export default function Sessions() {
             gap: 'var(--space-4)',
           }}>
             <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
-              {sessions.length} session{sessions.length !== 1 ? 's' : ''}
+              {filteredSessions.length === sessions.length
+                ? `${sessions.length} session${sessions.length !== 1 ? 's' : ''}`
+                : `${filteredSessions.length} of ${sessions.length} sessions`}
             </p>
+            <div style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+              <Search
+                size={14}
+                style={{
+                  position: 'absolute',
+                  left: 'var(--space-3)',
+                  color: 'var(--color-text-muted)',
+                  pointerEvents: 'none',
+                }}
+              />
+              <input
+                type="text"
+                className="input-field"
+                placeholder="Search sessions..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{
+                  paddingLeft: 'var(--space-8)',
+                  fontSize: 'var(--text-sm)',
+                  width: 220,
+                }}
+              />
+            </div>
           </div>
           <div className="card" style={{ overflowX: 'auto' }}>
             <table className="data-table">
@@ -80,7 +116,7 @@ export default function Sessions() {
                 </tr>
               </thead>
               <tbody>
-                {sessions.map((s) => (
+                {filteredSessions.map((s) => (
                   <tr key={s.id}>
                     <td>{s.title}</td>
                     <td style={{ fontVariantNumeric: 'tabular-nums' }}>{s.frame_count ?? 0}</td>
