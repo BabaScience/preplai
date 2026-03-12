@@ -1,0 +1,60 @@
+{
+  "sceneId": "golden-agent-infra-topology",
+  "totalDuration": 15000,
+  "frames": [
+    {
+      "id": "f1",
+      "startTime": 0,
+      "endTime": 5000,
+      "description": "Network layer",
+      "narrationSegment": "The infrastructure spans two availability zones in us-east-1. The VPC contains public subnets for the load balancer and NAT gateway, and private subnets for application servers and databases. All traffic enters through the Application Load Balancer in the public subnet.",
+      "entities": [
+        { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "Infrastructure Topology" },
+        { "id": "vpc", "type": "Network", "position": { "x": 50, "y": 30 }, "label": "VPC 10.0.0.0/16", "highlight": true },
+        { "id": "pub-sub", "type": "Subnet", "position": { "x": 25, "y": 50 }, "label": "Public Subnet", "metadata": { "cidr": "10.0.1.0/24" } },
+        { "id": "priv-sub", "type": "Subnet", "position": { "x": 75, "y": 50 }, "label": "Private Subnet", "metadata": { "cidr": "10.0.2.0/24" } },
+        { "id": "alb", "type": "LoadBalancer", "position": { "x": 25, "y": 72 }, "label": "ALB" },
+        { "id": "nat", "type": "Firewall", "position": { "x": 50, "y": 72 }, "label": "NAT Gateway" },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 90 }, "label": "Multi-AZ deployment in us-east-1" }
+      ]
+    },
+    {
+      "id": "f2",
+      "startTime": 5000,
+      "endTime": 10000,
+      "description": "Compute layer",
+      "narrationSegment": "Application workloads run on an EKS Kubernetes cluster in the private subnets. Three API server pods handle traffic, with a Redis cache cluster for session storage. The pods auto-scale based on CPU utilization, scaling from 3 to 12 replicas under load.",
+      "entities": [
+        { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "Infrastructure Topology" },
+        { "id": "alb", "type": "LoadBalancer", "position": { "x": 15, "y": 40 }, "label": "ALB" },
+        { "id": "pod1", "type": "Pod", "position": { "x": 38, "y": 30 }, "label": "API Pod 1", "metadata": { "containers": ["app", "envoy"], "status": "running" } },
+        { "id": "pod2", "type": "Pod", "position": { "x": 38, "y": 50 }, "label": "API Pod 2", "metadata": { "containers": ["app", "envoy"], "status": "running" }, "highlight": true },
+        { "id": "pod3", "type": "Pod", "position": { "x": 38, "y": 70 }, "label": "API Pod 3", "metadata": { "containers": ["app", "envoy"], "status": "running" } },
+        { "id": "cache", "type": "Cache", "position": { "x": 65, "y": 40 }, "label": "Redis Cluster" },
+        { "id": "a1", "type": "Arrow", "position": { "x": 26, "y": 40 }, "sourceEntityId": "alb", "targetEntityId": "pod2" },
+        { "id": "a2", "type": "Arrow", "position": { "x": 51, "y": 40 }, "sourceEntityId": "pod2", "targetEntityId": "cache" },
+        { "id": "metric", "type": "Metric", "position": { "x": 85, "y": 40 }, "label": "Scale", "metadata": { "value": "3-12", "unit": "pods" } },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 88 }, "label": "EKS cluster with HPA auto-scaling" }
+      ]
+    },
+    {
+      "id": "f3",
+      "startTime": 10000,
+      "endTime": 15000,
+      "description": "Data layer",
+      "narrationSegment": "The data tier uses RDS PostgreSQL with a multi-AZ standby replica for high availability. Automated backups run daily with 7-day retention. An S3 bucket stores static assets served through CloudFront CDN across 200+ edge locations worldwide.",
+      "entities": [
+        { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "Infrastructure Topology" },
+        { "id": "pod2", "type": "Pod", "position": { "x": 15, "y": 40 }, "label": "API Pods" },
+        { "id": "rds", "type": "Database", "position": { "x": 40, "y": 40 }, "label": "RDS PostgreSQL", "highlight": true },
+        { "id": "replica", "type": "Database", "position": { "x": 40, "y": 68 }, "label": "Standby Replica" },
+        { "id": "s3", "type": "StorageBucket", "position": { "x": 65, "y": 40 }, "label": "S3 Assets", "metadata": { "provider": "S3" } },
+        { "id": "cdn", "type": "CDN", "position": { "x": 85, "y": 40 }, "label": "CloudFront", "metadata": { "regions": 200 } },
+        { "id": "a1", "type": "Arrow", "position": { "x": 27, "y": 40 }, "sourceEntityId": "pod2", "targetEntityId": "rds" },
+        { "id": "a2", "type": "DataFlow", "position": { "x": 40, "y": 54 }, "sourceEntityId": "rds", "targetEntityId": "replica", "label": "sync" },
+        { "id": "a3", "type": "Arrow", "position": { "x": 75, "y": 40 }, "sourceEntityId": "s3", "targetEntityId": "cdn" },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 88 }, "label": "Multi-AZ RDS + CloudFront CDN for global delivery" }
+      ]
+    }
+  ]
+}

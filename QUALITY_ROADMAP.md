@@ -1,7 +1,7 @@
 # Preplai Quality & Automation Roadmap
 
 > **Last updated:** 2026-03-12
-> **Status:** Phase 1 complete, Phase 2 in progress
+> **Status:** Phase 1 complete, Phase 2 partial, Phase 3 complete
 
 ---
 
@@ -53,23 +53,29 @@
 
 ---
 
-## Phase 3: Prompt Regression Testing (Week 3)
+## Phase 3: Prompt Regression Testing (Week 3) ✅ COMPLETE
 
-### 3.1 Golden Dataset
-- [ ] Curate 30-50 prompts across 3 user types:
-  - CS students: "explain binary search", "show linked list operations", etc.
-  - Programmers: "show microservices architecture", "explain OAuth flow", etc.
-  - Agent owners: "summarize deployment pipeline", "show CI/CD workflow", etc.
-- [ ] Store in `tests/golden-dataset/` with expected quality thresholds
-- [ ] For each prompt, store a known-good `add_scene` payload as reference
+### 3.1 Golden Dataset ✅ DONE
+- [x] Curate 30 prompts across 3 user types (10 each):
+  - CS students: binary search, linked list, stack/queue, BFS/DFS, sorting, hash tables, recursion, big-O, BST insertion, memory layout
+  - Programmers: microservices, OAuth, CI/CD, REST API, caching, event-driven, DB schema, Kubernetes, load balancing, monitoring
+  - Agent owners: deploy pipeline, error analysis, API perf, cost optimization, security audit, data pipeline, infra topology, incident timeline, release changelog, capacity planning
+- [x] Store in `tests/golden-dataset/prompts.json` with expected quality thresholds
+- [x] 5 hand-crafted reference payloads in `tests/golden-dataset/references/`
+- [x] Eval runner (`tests/golden-dataset/eval-runner.ts`) with CLI flags
+- [x] Baseline storage in `tests/golden-dataset/baselines/` (auto-generated on `--update`)
+- [x] README documenting dataset format and usage
 
-### 3.2 Tool Description Versioning & CI
-- [ ] Extract `ADD_SCENE_DESCRIPTION` to versioned file
-- [ ] CI job: on tool description changes, run golden dataset through LLM
-- [ ] Score outputs with `scoreVisualScript()`
-- [ ] Compare against stored baselines
-- [ ] Block merge if any dimension drops >5%
-- [ ] Multi-model testing (Claude, GPT-4) for compatibility
+### 3.2 Tool Description Versioning & CI ✅ DONE
+- [x] Extract `ADD_SCENE_DESCRIPTION` to `packages/mcp-server/src/tool-descriptions/add-scene.v1.md`
+- [x] Extract `CREATE_SESSION_DESCRIPTION` to `packages/mcp-server/src/tool-descriptions/create-session.v1.md`
+- [x] `mcp-tools.ts` loads descriptions from versioned files at module load
+- [x] Build script copies `tool-descriptions/` to `dist/`
+- [x] CI job (`.github/workflows/eval-golden.yml`): on tool description changes, run golden dataset through LLM
+- [x] Score outputs with `scoreVisualScript()`
+- [x] Compare against stored baselines (5% regression threshold)
+- [x] Block merge if any dimension drops >5%
+- [ ] Multi-model testing (Claude, GPT-4) for compatibility (future)
 
 ---
 

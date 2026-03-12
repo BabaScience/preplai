@@ -23,7 +23,8 @@
     "build": "pnpm run build:packages && pnpm --filter website run build && pnpm --filter preplai-api run build",
     "build:packages": "pnpm --filter @preplai/shared run build && pnpm --filter @preplai/illustrations run build && pnpm --filter @preplai/db run build && pnpm --filter @preplai/compiler run build && pnpm --filter @preplai/player run build && pnpm --filter @preplai/player run build:bundle && pnpm --filter @preplai/mcp-server run build",
     "lint": "eslint packages/*/src/**/*.ts",
-    "typecheck": "pnpm exec tsc --noEmit -p packages/shared && pnpm exec tsc --noEmit -p packages/illustrations && pnpm exec tsc --noEmit -p packages/db && pnpm exec tsc --noEmit -p packages/compiler && pnpm exec tsc --noEmit -p packages/player && pnpm exec tsc --noEmit -p packages/mcp-server"
+    "typecheck": "pnpm exec tsc --noEmit -p packages/shared && pnpm exec tsc --noEmit -p packages/illustrations && pnpm exec tsc --noEmit -p packages/db && pnpm exec tsc --noEmit -p packages/compiler && pnpm exec tsc --noEmit -p packages/player && pnpm exec tsc --noEmit -p packages/mcp-server",
+    "eval:golden": "npx tsx tests/golden-dataset/eval-runner.ts"
   },
   "devDependencies": {
     "concurrently": "^9.0.0",
