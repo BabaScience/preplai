@@ -2,11 +2,24 @@
 
 Connect preplai to Claude in about 1 minute. After this, Claude can create animated presentations for you.
 
+**Which method do I need?**
+
+| Where you use Claude | Method | What you need |
+|---------------------|--------|--------------|
+| **Claude Desktop** (app on your computer) | API Token | Token from [Dashboard → Keys](https://preplai.com/dashboard/keys) |
+| **Claude Web** (claude.ai in your browser) | OAuth | OAuth client from [Dashboard → Connectors](https://preplai.com/dashboard/connectors) |
+
 ---
 
 ## Claude Desktop (App)
 
-### 1. Find your config file
+Uses an **API token** — you create it once and paste it into a config file.
+
+### 1. Create your API token
+
+Go to [preplai.com/dashboard/keys](https://preplai.com/dashboard/keys) and create an access token. It looks like: `plai_a1b2c3d4e5f6...`
+
+### 2. Find your config file
 
 | Your computer | Open this file |
 |---------------|----------------|
@@ -15,7 +28,7 @@ Connect preplai to Claude in about 1 minute. After this, Claude can create anima
 
 If the file doesn't exist yet, create it.
 
-### 2. Paste this config
+### 3. Paste this config
 
 Copy and paste the following into your config file:
 
@@ -34,15 +47,15 @@ Copy and paste the following into your config file:
 }
 ```
 
-Replace `PASTE_YOUR_TOKEN_HERE` with your access token from the [dashboard](https://preplai.com/dashboard/keys).
+Replace `PASTE_YOUR_TOKEN_HERE` with your API token from Step 1.
 
 > **Already have other MCP servers?** Add the `"preplai": { ... }` block inside your existing `"mcpServers"` object. Don't replace the whole file.
 
-### 3. Restart Claude Desktop
+### 4. Restart Claude Desktop
 
 Quit and reopen Claude Desktop. That's it — you're connected.
 
-### 4. Try it
+### 5. Try it
 
 Open a new conversation and type:
 
@@ -50,13 +63,23 @@ Open a new conversation and type:
 
 Claude will build the presentation and give you a link to watch it.
 
+> **Other desktop MCP clients** (Cursor, Windsurf, etc.) use the same setup — create an API token and add the same config to your MCP client's settings.
+
 ---
 
 ## Claude Web (claude.ai)
 
+Uses **OAuth** — you click "Connect" and authorize through your browser. No config files needed.
+
 ### 1. Create an OAuth client
 
-Go to [preplai.com/dashboard/connectors](https://preplai.com/dashboard/connectors) and create an OAuth client. You'll get a **Client ID** and **Client Secret**.
+Go to [preplai.com/dashboard/connectors](https://preplai.com/dashboard/connectors) and create an OAuth client:
+
+1. Click **Create OAuth Client**
+2. Add these **redirect URIs** (Claude needs them to complete the authorization):
+   - `https://claude.ai/api/mcp/auth_callback`
+   - `https://claude.com/api/mcp/auth_callback`
+3. Save — you'll get a **Client ID** and **Client Secret**
 
 ### 2. Add the connector in Claude
 
@@ -76,7 +99,9 @@ When starting a new conversation, click the **+** button and enable preplai. The
 
 | Problem | Solution |
 |---------|----------|
-| Claude doesn't see preplai | Restart Claude Desktop after editing the config file |
-| "Unauthorized" error | Check that your token is correct — get a new one from the [dashboard](https://preplai.com/dashboard/keys) |
+| Claude Desktop doesn't see preplai | Restart Claude Desktop after editing the config file |
+| "Unauthorized" error | **Desktop:** Check that your API token is correct — get a new one from [Dashboard → Keys](https://preplai.com/dashboard/keys). **Web:** Re-authorize via Settings → Connectors |
 | Config file doesn't exist | Create it at the path listed above. Make sure it's valid JSON |
 | Already have other servers | Add preplai inside the existing `"mcpServers"` — don't overwrite the file |
+| OAuth fails on claude.ai | Double-check your Client ID and Secret from [Dashboard → Connectors](https://preplai.com/dashboard/connectors) |
+| "redirect_uri not registered" | Make sure you added both `https://claude.ai/api/mcp/auth_callback` and `https://claude.com/api/mcp/auth_callback` as redirect URIs in your OAuth client |

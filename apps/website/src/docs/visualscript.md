@@ -1,28 +1,62 @@
 # VisualScript Schema
 
-**Summary:** VisualScript is the JSON schema that any AI agent passes to `add_scene` and `update_scene`. It defines how a scene is rendered on a 1920×1080 canvas. Positions use percentages (0–100). Entity types (Server, Database, BinaryTree, etc.) map to rich SVG visuals. An 80px horizontal and 60px vertical margin/safe zone is applied automatically.
+**Summary:** VisualScript is the JSON that AI agents pass to `add_scene`. It defines how a scene is rendered as animated SVG on a 1920×1080 dark canvas. Positions use percentages (0–100). Entity types (Server, Database, BinaryTree, etc.) map to rich SVG illustrations. An 80px horizontal and 60px vertical safe zone is applied automatically.
 
 **Definitions:**
-- **VisualScript:** JSON object with `sceneId`, `frames` array, and `totalDuration`. Required by `add_scene` and `update_scene`.
-- **Entity:** A visual element (Server, Database, Label, Arrow, etc.) with `id`, `type`, `position`, and optional `label`, `color`, `metadata`.
-- **Frame:** Object with `id`, `startTime`, `endTime`, `entities`, `narrationSegment`, and optional `transitions`.
+- **VisualScript:** JSON object with `sceneId`, `frames` array, and `totalDuration`. Passed to `add_scene` as the `visual_script` parameter.
+- **Entity:** A visual element (Server, Database, Label, Arrow, etc.) with `id`, `type`, `position`, and optional `label`, `metadata`, `highlight`.
+- **Frame:** A view in a scene containing entities and narration.
+
+---
+
+## Compact Format
+
+Agents should use **short keys** to reduce token usage. This is the format `add_scene` expects:
+
+| Short key | Full key | Description |
+|-----------|----------|-------------|
+| `sid` | `sceneId` | Unique scene ID (use `session_id`) |
+| `td` | `totalDuration` | Total duration in ms |
+| `f` | `frames` | Array of frames |
+| `e` | `entities` | Array of entities in a frame |
+| `n` | `narrationSegment` | Subtitle text for a frame |
+| `p` | `position` | `[x, y]` — percentages 0–100 |
+| `l` | `label` | Display text |
+| `m` | `metadata` | Type-specific metadata object |
+| `src` | `sourceEntityId` | Source entity for connections |
+| `tgt` | `targetEntityId` | Target entity for connections |
+| `a` | `animation` | Entrance animation override |
+| `hl` | `highlight` | `true` for cinematic focus pull |
+| `sz` | `size` | Scale factor (omit to use defaults) |
+
+**Omit by default:** `color` (palette auto-assigns), `id` (for non-connected entities), frame `id`/`startTime`/`endTime`/`description`, entity `size`.
+
+---
 
 ## Structure
 
 ```json
 {
-  "sceneId": "scene-1",
-  "totalDuration": 5000,
-  "style": "cinema",
-  "frames": [
+  "sid": "<session_id>",
+  "td": 10000,
+  "f": [
     {
-      "id": "frame-1",
-      "startTime": 0,
-      "endTime": 5000,
-      "description": "Internal note (not shown)",
-      "narrationSegment": "Subtitle shown to user",
-      "entities": [...],
-      "transitions": [...]
+      "e": [
+        { "id": "srv", "type": "Server", "p": [30, 45], "l": "API Server" },
+        { "id": "db", "type": "Database", "p": [70, 45], "l": "PostgreSQL", "hl": true },
+        { "id": "a1", "type": "Arrow", "p": [50, 45], "src": "srv", "tgt": "db", "l": "SQL Queries" }
+      ],
+      "n": "The API server sends SQL queries to the PostgreSQL database. Each query is routed through the connection pool."
+    },
+    {
+      "e": [
+        { "id": "srv", "type": "Server", "p": [25, 45], "l": "API Server" },
+        { "id": "cache", "type": "Cache", "p": [50, 45], "l": "Redis", "hl": true },
+        { "id": "db", "type": "Database", "p": [75, 45], "l": "PostgreSQL" },
+        { "id": "a1", "type": "Arrow", "p": [37, 45], "src": "srv", "tgt": "cache", "l": "Check cache" },
+        { "id": "a2", "type": "Arrow", "p": [62, 45], "src": "cache", "tgt": "db", "l": "Cache miss" }
+      ],
+      "n": "Adding Redis as a caching layer reduces database load by 90%. Frequently accessed data is served from memory in under 1ms."
     }
   ]
 }
@@ -30,170 +64,341 @@
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `sceneId` | string | Unique scene ID |
-| `totalDuration` | number | Total duration in ms |
-| `style` | string | `"cinema"` (default) or `"minimal"` — theme for this scene |
-| `frames` | array | At least one frame |
+| `sid` | string | Scene ID — use the `session_id` from `create_session` |
+| `td` | number | Total duration in ms |
+| `f` | array | At least one frame |
 
-**Note:** Theme and palette are set at the session level via `create_session` and the user's dashboard preferences. The `player_url` includes `?style=` and `?palette=` (e.g. `?style=cinema&palette=ocean`). See [MCP Tools — Themes and Palettes](/docs/mcp-tools#themes-and-palettes).
+**Note:** Theme and palette are set at the session level via `create_session` and the user's dashboard preferences. See [MCP Tools — Themes and Palettes](/docs/mcp-tools#themes-and-palettes).
 
-## Frame
+---
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | string | Unique frame ID |
-| `startTime` | number | Start time in ms |
-| `endTime` | number | End time in ms |
-| `narrationSegment` | string | Subtitle (2–4 sentences, informative and detailed) |
-| `description` | string | Internal note (not shown) |
-| `entities` | array | Visual entities |
-| `transitions` | array | Animations between states |
+## Frames
 
-**Frame pacing:** 3–5 seconds per frame for readability. 3–7 entities per frame. Avoid sparse slides (1–3 items).
+Each frame is a view with entities and narration. Frames play in sequence.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `e` | array | Yes | Visual entities |
+| `n` | string | Yes | Narration subtitle (2–4 sentences, informative and detailed) |
+
+**Frame pacing:** 3–5 seconds per frame. **Content density:** 5–7 entities per frame — avoid sparse slides with only 1–3 items.
+
+---
+
+## Cinematic Features
+
+### Entity Persistence
+
+Same entity `id` across frames = entity **stays in the DOM** (no rebuild). New IDs animate in, removed IDs slide out. This is the core feature for building narrative continuity — keep core entities (Server, Database, User) persistent across frames and add/remove detail entities around them.
+
+### Depth of Field
+
+Set `"hl": true` (highlight) on the entity you're narrating about. The engine dims and blurs everything else (0.35 opacity, blur, 0.88× scale) and enlarges the focused entity (1.15×). Creates a cinematic focus pull effect. Use **one highlight per frame**, matching the narration.
+
+### Camera
+
+The viewBox auto-pans and zooms to frame your entities. Control it through positioning:
+- **Cluster entities tightly** → camera zooms in (detail shot)
+- **Spread entities wide** → camera zooms out (establishing shot)
+- **Shift cluster between frames** → camera pans (reveal)
+
+### Entrance Animations
+
+Entities near edges fly in from that edge. Entities near existing entities grow from that point. Center entities fade up. Each entity type has a smart default — you can override with the `a` (animation) field:
+
+Available entrances: `fadeInUp`, `fadeIn`, `scaleIn`, `drawIn`, `floatIn`, `slideInLeft`, `dropIn`
+
+### Idle Animations
+
+Automatic: servers pulse LEDs, databases shimmer, neural nets glow, concepts breathe. Entities feel alive without any configuration.
+
+---
 
 ## Entity Types
 
-### Dedicated (prefer these — rich visuals)
+### Headings and Text
 
-- **Server** — Rack with LEDs
-- **Service** — Cogwheel (gear) with label in hub; use for microservices, backend services
-- **API** — Cogwheel with "API" in hub; use for REST APIs, API endpoints (inherits Service)
-- **APIGateway** — Cogwheel with label in hub; use for API gateways, routing layers
-- **Database** — Cylinder
-- **Cache** — Database cylinder with lightning bolt (flash) icon inside; use for Redis, Memcached, CDN, in-memory caches
-- **User** — Avatar
-- **Cloud** — Blob
-- **Concept** — Auto-sized circle
-- **Label** — Text with optional pill
-- **CodeBlock** — Dark terminal with traffic-light dots
-- **BinaryTree**, **BTree** — Tree structures
-- **CallStack** — Stack frames
-- **HashTable** — Key-value pairs
-- **Array** — Indexed cells with customizable values; use `metadata.values`, `metadata.disabledIndexes`, `metadata.selectedIndexes` to show/dim/highlight cells
-- **Analogy** — Single card; `metadata.label` wraps by line; `metadata.width`, `metadata.maxLines`; overflow "..."
-- **GanttChart** — Task bars
-- **ProcessState** — State diagram
-- **MemoryLayout** — Stack/heap
-- **ConfusionMatrix** — TP/FP/TN/FN grid
-- **Graph2D** — 2D plots (ROC, loss, scatter)
-- **BigO** — Complexity growth chart; use `metadata.curves` (e.g. `["O(1)", "O(n)", "O(n²)"]`), `metadata.domain` (e.g. `[0, 10]`). For Big O notation, algorithm complexity, DSA education.
-- **BarChart** — Bar chart; use `metadata.bars` (array of `{label, value, color?}`), `metadata.xLabel`, `metadata.yLabel`, `metadata.horizontal` (boolean). Use for categorical comparisons (sales by month, counts by type). Max 12 bars.
+| Type | Short | Description |
+|------|-------|-------------|
+| `H1` | — | Main heading |
+| `H2` | — | Section heading |
+| `H3` | — | Subsection heading |
+| `Label` | — | Text with optional pill background |
+| `Concept` | — | Auto-sized circle. Label inside if ≤12 chars, else below |
+| `CodeBlock` | `CB` | Dark terminal with traffic-light dots. Use `textContent` for code, `codeLanguage` for syntax |
+| `Definition` | — | Term + definition card |
+| `Callout` | — | Highlighted info box |
+| `Quote` | — | Blockquote |
+| `Badge` | — | Small tag/badge |
+| `Annotation` | — | Note annotation |
+
+### Infrastructure
+
+| Type | Short | Description |
+|------|-------|-------------|
+| `Server` | `SVC` | Rack server with LED indicators |
+| `Database` | `DNS` | Cylinder |
+| `Cache` | `CH` | Cylinder with lightning bolt — Redis, Memcached, CDN |
+| `Cloud` | — | Cloud blob |
+| `User` | — | Avatar icon |
+| `Service` | — | Cogwheel (gear) — microservices, backend services. Use `metadata.kind` for subtypes: `API`, `Service`, `APIGateway` |
+| `Queue` | — | Message queue |
+| `LoadBalancer` | — | Load balancer |
+| `Container` | — | Docker container |
+| `Pod` | — | Kubernetes pod |
+| `Lambda` | — | Serverless function |
+| `Firewall` | — | Firewall/security |
+| `Network` | — | Network diagram |
+| `Volume` | — | Storage volume |
+| `Monitor` | — | Monitoring/observability |
+| `Pipeline` | `PS` | CI/CD or data pipeline |
+| `DNSResolver` | — | DNS resolver |
+| `Subnet` | — | Network subnet |
+| `CDN` | — | Content delivery network |
+| `StorageBucket` | — | Cloud storage (S3, GCS) |
+| `APIGateway` | `GW` | API gateway / routing layer |
+| `MessageBroker` | — | Message broker (Kafka, RabbitMQ) |
+| `Device` | — | Physical device |
+| `Process` | — | OS process |
+
+### Data Structures
+
+| Type | Short | Description |
+|------|-------|-------------|
+| `Array` | `ARR` | Indexed cells. `metadata.values`, `metadata.disabledIndexes`, `metadata.selectedIndexes` |
+| `BinaryTree` | `BT` | Binary tree. `metadata.tree` (nested `{value, left?, right?}`) or `metadata.nodes` (level-order array) |
+| `BTree` | `BTR` | Multi-way tree (B-tree, B+ tree). `metadata.tree` = `{value, children?}` |
+| `HashTable` | — | Key-value pairs |
+| `LinkedList` | — | Linked list nodes |
+| `Stack` | `CST` | Stack (LIFO) |
+| `Heap` | — | Heap / priority queue |
+| `Set` | — | Set collection |
+| `Dict` | — | Dictionary |
+| `List` | — | Generic list |
+| `Tuple` | — | Tuple |
+
+### Algorithms and CS Theory
+
+| Type | Short | Description |
+|------|-------|-------------|
+| `CallStack` | — | Stack frames visualization |
+| `ProcessState` | — | State diagram |
+| `BigO` | `BC` | Complexity growth chart. `metadata.curves` (e.g. `["O(1)", "O(n)", "O(n²)"]`) |
+| `GanttChart` | `GC` | Task/scheduler bars |
+| `MemoryLayout` | `ML` | Stack/heap memory layout |
+| `FSM` | — | Finite state machine |
+| `CPU` | — | CPU diagram |
+| `SymbolTable` | — | Compiler symbol table |
+| `TuringMachine` | — | Turing machine |
+| `RecursionTree` | — | Recursion tree |
+| `SortAnimation` | — | Sorting algorithm visualization |
+| `Cycle` | `CYC` | Cycle/loop diagram |
+
+### Charts and Visualization
+
+| Type | Short | Description |
+|------|-------|-------------|
+| `BarChart` | — | Bar chart. `metadata.bars` = `[{label, value, color?}]` |
+| `Graph2D` | `G2` | 2D plots (ROC, loss, scatter) |
+| `CoordinateSystem` | `COORD` | Coordinate axes |
+| `ConfusionMatrix` | — | TP/FP/TN/FN grid |
+| `Histogram` | — | Histogram |
+| `PieChart` | — | Pie chart |
+| `ScatterPlot` | — | Scatter plot |
+| `VennDiagram` | — | Venn diagram |
+
+### Math and Physics
+
+| Type | Description |
+|------|-------------|
+| `Equation` | Math equation |
+| `Expression` | Math expression |
+| `Matrix` | Matrix display |
+| `Vector` | Vector visualization |
+| `Wave` | Wave/signal |
+| `FreeBodyDiagram` | Physics free body diagram |
+
+### Software Architecture
+
+| Type | Description |
+|------|-------------|
+| `APIEndpoint` | REST endpoint |
+| `HTTPRequest` / `HTTPResponse` | HTTP messages |
+| `WebSocket` | WebSocket connection |
+| `GraphQLSchema` | GraphQL schema |
+| `Webhook` | Webhook |
+| `AuthFlow` | Authentication flow |
+| `Token` / `Certificate` / `Secret` | Security primitives |
+| `Schema` / `Migration` | Database schema/migration |
+| `Event` / `Stream` | Event-driven architecture |
+| `GitBranch` / `GitCommit` / `PullRequest` | Git concepts |
+| `Build` / `Deployment` / `Rollback` | CI/CD concepts |
+| `LogEntry` / `Alert` / `Trace` | Observability |
+| `Dashboard` | Dashboard view |
+| `Module` / `Interface` / `Dependency` | Software design |
+| `ErrorState` | Error/failure state |
+| `ConfigFile` | Configuration file |
+| `CronJob` | Scheduled job |
+| `Notification` / `Task` / `File` | General concepts |
+
+### Pedagogical
+
+| Type | Short | Description |
+|------|-------|-------------|
+| `StepList` | `SL` | Numbered step list |
+| `Analogy` | — | Card with wrapping text. `metadata.label`, `metadata.width`, `metadata.maxLines` |
+| `Timeline` | — | Timeline visualization |
+| `Metric` | — | Key metric display |
+| `Table` | — | Data table |
+| `FlowDiagram` | — | Flow diagram |
 
 ### Connection Types
 
-- **Arrow**, **DataFlow** — Arrows with glow
-- **BidirectArrow**, **DottedArrow**, **Transition**, **Bus**
+| Type | Description |
+|------|-------------|
+| `Arrow` | Solid arrow with glow. Use `src` and `tgt` to connect entities |
+| `DataFlow` | Animated dashed arrow — shows data movement |
+| `BidirectArrow` | Bidirectional arrow |
+| `DottedArrow` | Dotted arrow — optional or conditional paths |
 
-### Topic → Type Mapping
+Use `metadata.curved: true` for curved arrows.
 
-| Topic | Preferred Type |
-|-------|----------------|
-| Trees (BST, AVL, heaps) | BinaryTree, BTree |
-| Call stacks, recursion | CallStack |
-| State machines | ProcessState |
-| Scheduler / CPU | GanttChart |
-| Memory layout | MemoryLayout |
-| ML metrics | ConfusionMatrix |
-| Key-value storage | HashTable |
-| Arrays, lists, indexed data | Array |
-| Analogies, "X is like Y" | Analogy |
-| Architecture diagrams | Server, Database, Cloud, Service, API, APIGateway, Arrow |
-| Microservices, backend services | Service |
-| REST APIs, API endpoints | API |
-| API gateways, routing | APIGateway |
-| Caching layers (Redis, Memcached, CDN) | Cache |
-| Big O, algorithm complexity, DSA | BigO |
-| Categorical comparisons (sales, counts, rankings) | BarChart |
+---
 
-## Entity Schema
+## Entity Schema (Full Format)
 
 ```json
 {
   "id": "srv",
   "type": "Server",
-  "position": { "x": 30, "y": 45 },
-  "size": 1,
-  "label": "API Server",
-  "color": "#4FC3F7",
-  "highlight": false,
-  "animation": {
+  "p": [30, 45],
+  "l": "API Server",
+  "hl": true,
+  "a": {
+    "entrance": "fadeInUp",
     "delay": 0,
-    "duration": 600,
-    "easing": "power2.out",
-    "entrance": "fadeInUp"
-  }
+    "duration": 600
+  },
+  "m": {}
 }
 ```
 
-For **Arrow**/**DataFlow**: add `sourceEntityId`, `targetEntityId`. Use `metadata.curved: true` for curved arrows.
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | string | For connections | 1–128 chars. Required if referenced by arrows or persisted across frames |
+| `type` | string | Yes | Entity type from the tables above |
+| `p` | `[x, y]` | Yes | Position as percentages 0–100 |
+| `l` | string | No | Display label (max 200 chars) |
+| `hl` | boolean | No | Highlight — cinematic focus pull on this entity |
+| `sz` | number | No | Scale factor (0.001–10). Omit to use smart defaults |
+| `a` | object | No | Animation override. Entrance: `fadeInUp`, `fadeIn`, `scaleIn`, `drawIn`, `floatIn`, `slideInLeft`, `dropIn` |
+| `m` | object | No | Type-specific metadata (see below) |
+| `src` | string | Connections | Source entity ID |
+| `tgt` | string | Connections | Target entity ID |
+| `textContent` | string | No | Code or long text (max 10,000 chars). Used by CodeBlock |
+| `codeLanguage` | string | No | Language for CodeBlock syntax highlighting |
 
-For **BinaryTree**: use `metadata.tree` (nested `{value, left?, right?}`) OR `metadata.nodes` (level-order array, e.g. `[5, 3, 8, 1, 4, 6, 9]`). Use `metadata.disabledIndexes` and `metadata.selectedIndexes` (0-based, level-order) to dim/highlight nodes — e.g. binary search: highlight current comparison, dim eliminated half. Per-node: `enabled`, `selected`, `highlight` (`'compare'|'insert'|'visited'|'active'`). Full schema: `packages/illustrations/METADATA_SCHEMAS.md`.
+---
 
-For **BTree**: use `metadata.tree` = `{value, children?}` for multi-way trees. Node labels can be key ranges (e.g. `"[10,20]"`). `metadata.branchingFactor` optional. Use BTree (not BinaryTree) when nodes have 3+ children.
+## Metadata by Type
 
-For **Array**: use `metadata.values` (e.g. `["a", "b", "c", "d", "e"]`) to set cell contents; `metadata.disabledIndexes` (e.g. `[1, 3]`) to dim specific 0-based indexes; `metadata.selectedIndexes` (e.g. `[0, 2]`) to highlight cells (e.g. current comparison in binary search). Or `metadata.cells = [{value, enabled?, selected?}]`. Max 8 cells.
+### Array
+```json
+{ "values": ["a", "b", "c", "d", "e"], "disabledIndexes": [1, 3], "selectedIndexes": [0, 2] }
+```
+Or use `cells`: `[{value, enabled?, selected?}]`. Max 8 cells.
 
-For **Analogy**: use `metadata.label` (or entity.label). Text wraps to new lines; set `metadata.width` and `metadata.maxLines` to control layout. Overflow truncates with "...".
+### BinaryTree
+```json
+{ "tree": { "value": 5, "left": { "value": 3 }, "right": { "value": 8 } } }
+```
+Or level-order: `{ "nodes": [5, 3, 8, 1, 4, 6, 9] }`. Use `disabledIndexes` and `selectedIndexes` (0-based, level-order) to dim/highlight nodes.
 
-For **BigO**: use `metadata.curves` — array of curve names (e.g. `["O(1)", "O(log n)", "O(n)", "O(n log n)", "O(n²)", "O(2^n)"]`; pick a subset). Optional: `metadata.domain` = `[min, max]` for n (default `[0, 10]`). Use `[0, 8]` when including O(2^n).
+### BTree
+```json
+{ "tree": { "value": "[10,20]", "children": [{ "value": "5" }, { "value": "15" }, { "value": "25" }] } }
+```
+Use when nodes have 3+ children. Optional: `branchingFactor`.
 
-For **BarChart**: use `metadata.bars` — array of `{label: string, value: number, color?: string}` (e.g. `[{label: "Jan", value: 10}, {label: "Feb", value: 25}]`). Optional: `metadata.xLabel`, `metadata.yLabel`, `metadata.horizontal` (true = horizontal bars). Max 12 bars.
+### BigO
+```json
+{ "curves": ["O(1)", "O(log n)", "O(n)", "O(n²)"], "domain": [0, 10] }
+```
+Use `[0, 8]` domain when including `O(2^n)`.
+
+### BarChart
+```json
+{ "bars": [{ "label": "Jan", "value": 10 }, { "label": "Feb", "value": 25 }], "xLabel": "Month", "yLabel": "Sales", "horizontal": false }
+```
+Max 12 bars.
+
+### Analogy
+Use `l` (label) for text. Set `metadata.width` and `metadata.maxLines` to control layout. Overflow truncates with "…".
+
+### Connections (Arrow, DataFlow, etc.)
+```json
+{ "curved": true }
+```
+
+### Service
+```json
+{ "kind": "API" }
+```
+Values: `API`, `Service`, `APIGateway`.
+
+---
+
+## Constraints
+
+| Constraint | Limit |
+|-----------|-------|
+| Entities per frame | Max 150 |
+| Frames per script | Max 100 |
+| Total duration | Max 3,600,000 ms (1 hour) |
+| Entity ID length | 1–128 chars |
+| Label length | Max 200 chars |
+| Text content | Max 10,000 chars |
+| Size range | 0.001–10 |
+| Position range | 0–100 |
+| Animation delay | 0–60,000 ms |
+| Animation duration | 0–10,000 ms |
+
+---
 
 ## Design Guidelines
 
-- **Colors:** Pick 2–3 colors max per scene. Recommended: Cyan + Violet + Warm, or Blue + Green + White
-- **Labels:** Up to ~80 chars; longer text auto-wraps
-- **Title labels:** `type: "Label"`, `color: "#FFFFFF"`, `size: 2` or higher
+- **Colors:** Omit `color` — the palette auto-assigns based on entity type
 - **Spacing:** Minimum 15% gap between entity positions
-- **Highlight:** Use `"highlight": true` to emphasize the current entity
+- **Highlight:** Use `"hl": true` on **one entity per frame**, matching the narration
+- **Narration:** 2–4 sentences per frame. Be substantive — include context, specifics, examples. Avoid generic phrasing
+- **Narrative arc:** (1) Establish the scene, (2) Focus on one part with highlight, (3) Expand with new entities, (4) Resolve with complete picture
+- **Labels:** Up to ~80 chars; longer text auto-wraps
 
-## Example
+---
 
-```json
-{
-  "sceneId": "scene-1",
-  "totalDuration": 5000,
-  "frames": [
-    {
-      "id": "frame-1",
-      "startTime": 0,
-      "endTime": 5000,
-      "description": "Server to database",
-      "narrationSegment": "The server sends queries to the database",
-      "entities": [
-        {
-          "id": "title",
-          "type": "Label",
-          "position": { "x": 50, "y": 6 },
-          "label": "System Architecture",
-          "color": "#FFFFFF",
-          "size": 2
-        },
-        {
-          "id": "srv",
-          "type": "Server",
-          "position": { "x": 30, "y": 45 },
-          "label": "API Server",
-          "color": "#4FC3F7"
-        },
-        {
-          "id": "db",
-          "type": "Database",
-          "position": { "x": 70, "y": 45 },
-          "label": "PostgreSQL",
-          "color": "#81C784"
-        },
-        {
-          "id": "arrow1",
-          "type": "Arrow",
-          "position": { "x": 50, "y": 45 },
-          "sourceEntityId": "srv",
-          "targetEntityId": "db",
-          "label": "SQL Queries",
-          "color": "#FFD54F"
-        }
-      ]
-    }
-  ]
-}
-```
+## Topic → Type Mapping
+
+| Topic | Preferred Types |
+|-------|-----------------|
+| Trees (BST, AVL, heaps) | `BinaryTree`, `BTree` |
+| Arrays, lists, indexed data | `Array` |
+| Call stacks, recursion | `CallStack` |
+| State machines | `ProcessState`, `FSM` |
+| Scheduler / CPU | `GanttChart`, `CPU` |
+| Memory layout | `MemoryLayout` |
+| ML metrics | `ConfusionMatrix` |
+| Key-value storage | `HashTable` |
+| Analogies, "X is like Y" | `Analogy` |
+| Architecture diagrams | `Server`, `Database`, `Cloud`, `Service`, `Arrow` |
+| Microservices | `Service`, `Queue`, `LoadBalancer` |
+| REST APIs | `Service` with `metadata.kind: "API"`, `APIEndpoint` |
+| API gateways | `APIGateway` |
+| Caching layers | `Cache` |
+| Big O, algorithm complexity | `BigO` |
+| Categorical comparisons | `BarChart` |
+| Git workflows | `GitBranch`, `GitCommit`, `PullRequest` |
+| CI/CD pipelines | `Pipeline`, `Build`, `Deployment` |
+| Authentication flows | `AuthFlow`, `Token` |
+| Math / equations | `Equation`, `Expression`, `Matrix` |
+| Physics | `FreeBodyDiagram`, `Vector`, `Wave` |
+| Step-by-step instructions | `StepList` |

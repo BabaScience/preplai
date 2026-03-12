@@ -2,20 +2,26 @@
 
 Connect preplai to ChatGPT in about 2 minutes. Works on ChatGPT Web, Desktop, and mobile — you only set it up once.
 
+ChatGPT uses **OAuth** — you click "Connect" and authorize through your browser. No config files needed.
+
 ---
 
-## Step 1: Get your OAuth credentials
+## 1. Get your OAuth credentials
 
-Go to [preplai.com/dashboard/connectors](https://preplai.com/dashboard/connectors) and create an OAuth client. You'll get:
+Go to [preplai.com/dashboard/connectors](https://preplai.com/dashboard/connectors) and create an OAuth client:
 
-- **Client ID** — looks like `client_abc123...`
-- **Client Secret** — looks like `secret_xyz789...`
+1. Click **Create OAuth Client**
+2. Add this **redirect URI** (ChatGPT needs it to complete the authorization):
+   - `https://chatgpt.com/connector_platform_oauth_redirect`
+3. Save — you'll get:
+   - **Client ID** — looks like `client_abc123...`
+   - **Client Secret** — looks like `secret_xyz789...`
 
 Keep this page open — you'll need both in the next step.
 
 ---
 
-## Step 2: Create the connector in ChatGPT
+## 2. Create the connector in ChatGPT
 
 1. Go to [chat.openai.com](https://chat.openai.com)
 2. Open **Settings → Apps & Connectors**
@@ -32,7 +38,7 @@ You should see a list of preplai's tools appear. That means it's working.
 
 ---
 
-## Step 3: Use it
+## 3. Use it in chat
 
 1. Start a new chat in ChatGPT
 2. Click the **+** button near the message box, then **More**
@@ -57,6 +63,7 @@ Good news — you don't need to set up anything extra. Connectors you create on 
 |---------|----------|
 | Can't find "Create" button | Make sure Developer mode is enabled in Settings → Apps & Connectors → Advanced settings |
 | OAuth fails | Double-check your Client ID and Secret from [preplai.com/dashboard/connectors](https://preplai.com/dashboard/connectors) |
+| "redirect_uri not registered" | Make sure you added `https://chatgpt.com/connector_platform_oauth_redirect` as a redirect URI in your OAuth client |
 | Tools not showing up | Click **Refresh** on your preplai connector in Settings |
 | Not showing on Desktop | Make sure you're signed into the same account on both web and desktop |
 | "Not available for your plan" | ChatGPT Apps requires Plus, Business, Enterprise, or Education plans |
