@@ -1,12 +1,12 @@
 # Quick Start
 
-In 2 minutes, you'll create your first animated presentation — no slides, no design skills needed. Just tell your AI what to present.
+In 2 minutes, you'll create your first animated presentation — no slides, no design skills needed. Just tell your AI agent what to present.
 
 ## What is preplai?
 
-preplai lets any AI — Claude, ChatGPT, or others — create **animated, cinema-quality presentations** for you. You type a prompt, the AI builds a visual walkthrough, and you get a link to watch it.
+preplai lets any AI agent — Claude, ChatGPT, or others — create **animated, cinema-quality presentations** for you. You type a prompt, the agent builds a visual walkthrough, and you get a link to watch it.
 
-Think of it like this: instead of the AI writing a wall of text, it *shows* you — with animations, illustrations, and narration.
+Think of it like this: instead of the agent writing a wall of text, it *shows* you — with animations, illustrations, and narration.
 
 ---
 
@@ -23,7 +23,7 @@ Keep it handy — you'll need it in the next step.
 
 ## Step 2: Connect Your AI
 
-Pick the AI you use and follow the guide:
+Pick the AI agent you use and follow the guide:
 
 | I use... | Setup guide |
 |----------|-------------|
@@ -38,7 +38,7 @@ Setup takes about 1 minute. After connecting, come back here for Step 3.
 
 ## Step 3: Create Your First Presentation
 
-Open your AI and try one of these prompts:
+Open your AI agent and try one of these prompts:
 
 > **"Create a presentation about how binary search works"**
 

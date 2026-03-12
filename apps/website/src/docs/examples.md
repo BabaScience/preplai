@@ -93,7 +93,7 @@ Let AI agents present their findings visually.
 ## Pro Tips
 
 - **Be specific** — "Show a microservices architecture" is good. "Show architecture" is vague.
-- **Mention numbers** — "Walk through 5 steps" or "Show 3 services" helps the AI plan the frames.
+- **Mention numbers** — "Walk through 5 steps" or "Show 3 services" helps the AI agent plan the frames.
 - **Name the entities** — "PostgreSQL" is better than "a database". "Redis" is better than "a cache".
 - **Ask for comparisons** — "Compare X vs Y" creates side-by-side frames.
 

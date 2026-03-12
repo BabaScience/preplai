@@ -13,7 +13,7 @@ preplai has two visual themes. Set your default in [dashboard settings](https://
 | **Cinema** | Presentations, demos, storytelling | Rich gradients, ambient glow, drop shadows — feels cinematic |
 | **Minimal** | Algorithm visualizations, technical docs | Flat, clean, no shadows — feels like a whiteboard |
 
-You can also ask the AI to switch: *"Use minimal theme for this presentation"*
+You can also ask the AI agent to switch: *"Use minimal theme for this presentation"*
 
 ---
 
@@ -45,13 +45,13 @@ You don't need to specify colors in your prompts. The palette applies automatica
 
 ### Ask for more frames
 
-By default, the AI creates 3–5 frames. Want more detail?
+By default, the AI agent creates 3–5 frames. Want more detail?
 
 > "Create a **detailed** presentation about Kubernetes with **at least 8 frames**"
 
 ### Use real names
 
-The AI creates better visuals when you use specific technologies:
+The AI agent creates better visuals when you use specific technologies:
 
 - "PostgreSQL" instead of "a database"
 - "Redis" instead of "a cache"
@@ -66,13 +66,13 @@ This creates side-by-side frames that highlight the differences.
 
 ### Iterate and refine
 
-After the first presentation, you can ask:
+After the first presentation, you can ask the AI agent:
 
 - *"Add a frame about error handling"*
 - *"Make the narration more detailed"*
 - *"Add more frames about the database layer"*
 
-The AI will append new frames to the existing presentation.
+The AI agent will append new frames to the existing presentation.
 
 ---
 

@@ -10,7 +10,7 @@ const BASE_URL = typeof window !== 'undefined'
 export const DOC_META = {
   'quick-start': {
     title: 'Quick Start — preplai',
-    description: 'Create your first animated presentation in 2 minutes. Connect Claude or ChatGPT to preplai and start making cinema-quality visuals.',
+    description: 'Create your first animated presentation in 2 minutes. Connect your AI agent (Claude, ChatGPT, or others) to preplai and start making cinema-quality visuals.',
     keywords: ['preplai', 'quick start', 'getting started', 'AI presentations', 'Claude', 'ChatGPT', 'setup'],
     schemaType: 'TechArticle',
     section: 'get-started',

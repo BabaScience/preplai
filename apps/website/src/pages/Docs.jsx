@@ -227,7 +227,7 @@ function DocsIndex() {
           <span className="docs-index-label">Documentation</span>
           <h1>Get started</h1>
           <p className="docs-index-desc">
-            Connect any AI to preplai and create animated presentations. No design skills needed.
+            Connect any AI agent to preplai and create animated presentations. No design skills needed.
           </p>
         </header>
         <div className="docs-grid">
