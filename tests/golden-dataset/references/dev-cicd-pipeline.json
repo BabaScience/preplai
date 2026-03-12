@@ -1,0 +1,60 @@
+{
+  "sceneId": "golden-dev-cicd-pipeline",
+  "totalDuration": 15000,
+  "frames": [
+    {
+      "id": "f1",
+      "startTime": 0,
+      "endTime": 5000,
+      "description": "Code to build",
+      "narrationSegment": "A CI/CD pipeline begins when a developer pushes code to a feature branch and opens a pull request. GitHub Actions triggers the CI pipeline: it checks out the code, installs dependencies, runs lint and type checks, then executes the full test suite.",
+      "entities": [
+        { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "CI/CD Pipeline" },
+        { "id": "dev", "type": "User", "position": { "x": 12, "y": 45 }, "label": "Developer" },
+        { "id": "branch", "type": "GitBranch", "position": { "x": 30, "y": 45 }, "label": "feature/auth", "metadata": { "branchName": "feature/auth" }, "highlight": true },
+        { "id": "pr", "type": "PullRequest", "position": { "x": 50, "y": 45 }, "label": "PR #42", "metadata": { "prNumber": 42, "status": "open" } },
+        { "id": "build", "type": "Build", "position": { "x": 70, "y": 45 }, "label": "CI Build", "metadata": { "status": "running", "duration": "3m" } },
+        { "id": "a1", "type": "Arrow", "position": { "x": 21, "y": 45 }, "sourceEntityId": "dev", "targetEntityId": "branch", "label": "git push" },
+        { "id": "a2", "type": "Arrow", "position": { "x": 40, "y": 45 }, "sourceEntityId": "branch", "targetEntityId": "pr" },
+        { "id": "a3", "type": "Arrow", "position": { "x": 60, "y": 45 }, "sourceEntityId": "pr", "targetEntityId": "build", "label": "trigger" },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 80 }, "label": "Lint → Type check → Test → Build" }
+      ]
+    },
+    {
+      "id": "f2",
+      "startTime": 5000,
+      "endTime": 10000,
+      "description": "Build artifacts and staging",
+      "narrationSegment": "After tests pass, the pipeline builds a Docker image, tags it with the commit hash, and pushes it to a container registry. The image is then deployed to a staging environment for integration testing and manual QA review before production.",
+      "entities": [
+        { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "CI/CD Pipeline" },
+        { "id": "build", "type": "Build", "position": { "x": 15, "y": 45 }, "label": "CI Build", "metadata": { "status": "passed" } },
+        { "id": "docker", "type": "Container", "position": { "x": 35, "y": 45 }, "label": "Docker Image", "highlight": true },
+        { "id": "registry", "type": "DockerRegistry", "position": { "x": 55, "y": 45 }, "label": "ECR Registry" },
+        { "id": "staging", "type": "Deployment", "position": { "x": 78, "y": 45 }, "label": "Staging", "metadata": { "environment": "staging", "version": "a1b2c3d", "status": "live" } },
+        { "id": "a1", "type": "Arrow", "position": { "x": 25, "y": 45 }, "sourceEntityId": "build", "targetEntityId": "docker", "label": "docker build" },
+        { "id": "a2", "type": "Arrow", "position": { "x": 45, "y": 45 }, "sourceEntityId": "docker", "targetEntityId": "registry", "label": "push" },
+        { "id": "a3", "type": "Arrow", "position": { "x": 66, "y": 45 }, "sourceEntityId": "registry", "targetEntityId": "staging", "label": "deploy" },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 78 }, "label": "Image tagged with commit SHA for traceability" }
+      ]
+    },
+    {
+      "id": "f3",
+      "startTime": 10000,
+      "endTime": 15000,
+      "description": "Production deployment with rollback",
+      "narrationSegment": "Production deployment uses a blue-green strategy. The new version is deployed alongside the old one, traffic is gradually shifted, and if error rates spike, an automatic rollback kicks in within 60 seconds. This gives zero-downtime deployments with built-in safety nets.",
+      "entities": [
+        { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "CI/CD Pipeline" },
+        { "id": "staging", "type": "Deployment", "position": { "x": 15, "y": 40 }, "label": "Staging ✓", "metadata": { "environment": "staging", "status": "live" } },
+        { "id": "prod", "type": "Deployment", "position": { "x": 50, "y": 40 }, "label": "Production", "metadata": { "environment": "production", "version": "v2.4", "status": "live" }, "highlight": true },
+        { "id": "rollback", "type": "Rollback", "position": { "x": 82, "y": 40 }, "label": "Auto-Rollback", "metadata": { "fromVersion": "v2.4", "toVersion": "v2.3" } },
+        { "id": "monitor", "type": "Monitor", "position": { "x": 50, "y": 68 }, "label": "Error Rate Monitor" },
+        { "id": "a1", "type": "Arrow", "position": { "x": 32, "y": 40 }, "sourceEntityId": "staging", "targetEntityId": "prod", "label": "promote" },
+        { "id": "a2", "type": "Arrow", "position": { "x": 66, "y": 40 }, "sourceEntityId": "prod", "targetEntityId": "rollback", "label": "errors > 1%" },
+        { "id": "a3", "type": "Arrow", "position": { "x": 50, "y": 54 }, "sourceEntityId": "monitor", "targetEntityId": "prod" },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 88 }, "label": "Blue-green deploy with auto-rollback on error spike" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "sceneId": "golden-cs-binary-search",
+  "totalDuration": 20000,
+  "frames": [
+    {
+      "id": "f1",
+      "startTime": 0,
+      "endTime": 5000,
+      "description": "Initial sorted array",
+      "narrationSegment": "Binary search works on a sorted array. We start with the full array and maintain two pointers: lo at the beginning and hi at the end. Our target value is 23.",
+      "entities": [
+        { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "Binary Search" },
+        { "id": "arr", "type": "Array", "position": { "x": 50, "y": 40 }, "label": "Sorted Array", "highlight": true, "metadata": { "values": [2, 5, 8, 12, 16, 23, 38, 56, 72, 91], "selectedIndexes": [], "pointerLabels": { "0": "lo", "9": "hi" } } },
+        { "id": "target", "type": "Concept", "position": { "x": 80, "y": 40 }, "label": "Target: 23" },
+        { "id": "bigo", "type": "BigO", "position": { "x": 50, "y": 75 }, "label": "O(log n)", "metadata": { "curves": ["O(log n)", "O(n)"], "domain": [0, 10] } },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 90 }, "label": "Each step eliminates half the remaining elements" }
+      ]
+    },
+    {
+      "id": "f2",
+      "startTime": 5000,
+      "endTime": 10000,
+      "description": "First comparison at midpoint",
+      "narrationSegment": "We calculate the midpoint: index 4, value 16. Since 16 is less than our target 23, we know the answer must be in the right half. We move lo to mid + 1, eliminating 5 elements in one comparison.",
+      "entities": [
+        { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "Binary Search" },
+        { "id": "arr", "type": "Array", "position": { "x": 50, "y": 40 }, "label": "Sorted Array", "metadata": { "values": [2, 5, 8, 12, 16, 23, 38, 56, 72, 91], "selectedIndexes": [4], "pointerLabels": { "4": "mid", "5": "lo", "9": "hi" } } },
+        { "id": "target", "type": "Concept", "position": { "x": 80, "y": 40 }, "label": "Target: 23" },
+        { "id": "compare", "type": "Comparison", "position": { "x": 50, "y": 68 }, "label": "16 < 23", "metadata": { "left": "mid=16", "right": "target=23" }, "highlight": true },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 85 }, "label": "16 < 23 → search right half (indices 5-9)" },
+        { "id": "arrow", "type": "Arrow", "position": { "x": 65, "y": 54 }, "sourceEntityId": "compare", "targetEntityId": "arr", "label": "Narrow" }
+      ]
+    },
+    {
+      "id": "f3",
+      "startTime": 10000,
+      "endTime": 15000,
+      "description": "Second comparison",
+      "narrationSegment": "The new midpoint is index 7, value 56. Since 56 is greater than 23, the answer is in the left portion of our remaining range. We move hi to mid minus 1. Only 2 elements left to check.",
+      "entities": [
+        { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "Binary Search" },
+        { "id": "arr", "type": "Array", "position": { "x": 50, "y": 40 }, "label": "Narrowed Range", "metadata": { "values": [23, 38, 56, 72, 91], "selectedIndexes": [2], "pointerLabels": { "0": "lo", "2": "mid", "4": "hi" } } },
+        { "id": "target", "type": "Concept", "position": { "x": 80, "y": 40 }, "label": "Target: 23" },
+        { "id": "compare", "type": "Comparison", "position": { "x": 50, "y": 68 }, "label": "56 > 23", "metadata": { "left": "mid=56", "right": "target=23" }, "highlight": true },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 85 }, "label": "56 > 23 → search left half" },
+        { "id": "metric", "type": "Metric", "position": { "x": 20, "y": 68 }, "label": "Eliminated", "metadata": { "value": "80", "unit": "%" } }
+      ]
+    },
+    {
+      "id": "f4",
+      "startTime": 15000,
+      "endTime": 20000,
+      "description": "Found the target",
+      "narrationSegment": "The new midpoint is index 5, value 23 — that's our target! Found in just 3 comparisons out of 10 elements. A linear search would have needed 6 comparisons. This is the power of O(log n).",
+      "entities": [
+        { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "Binary Search — Found!" },
+        { "id": "arr", "type": "Array", "position": { "x": 50, "y": 40 }, "label": "Target Found", "metadata": { "values": [2, 5, 8, 12, 16, 23, 38, 56, 72, 91], "selectedIndexes": [5], "doneIndexes": [5] }, "highlight": true },
+        { "id": "target", "type": "Concept", "position": { "x": 80, "y": 40 }, "label": "23 Found!" },
+        { "id": "steps", "type": "StepList", "position": { "x": 25, "y": 72 }, "label": "Steps Taken", "metadata": { "steps": ["Compare mid=16 < 23 → go right", "Compare mid=56 > 23 → go left", "Compare mid=23 = 23 → found!"], "currentStep": 2, "checkmarks": true } },
+        { "id": "metric", "type": "Metric", "position": { "x": 75, "y": 72 }, "label": "Comparisons", "metadata": { "value": "3", "unit": "of 10" } },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 92 }, "label": "O(log n) = 3 steps vs O(n) = 6 steps for this example" }
+      ]
+    }
+  ]
+}

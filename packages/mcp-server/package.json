@@ -16,7 +16,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && cp ../player/dist/mcp-app.html dist/mcp-app.html 2>/dev/null || true",
+    "build": "tsc -p tsconfig.json && cp ../player/dist/mcp-app.html dist/mcp-app.html 2>/dev/null || true && cp -r src/tool-descriptions dist/tool-descriptions",
     "start": "node dist/server.js",
     "start:mcp": "node dist/stdio-bridge.js",
     "dev": "node --watch dist/server.js",

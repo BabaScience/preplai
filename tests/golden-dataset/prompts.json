@@ -1,0 +1,242 @@
+[
+  {
+    "id": "cs-binary-search",
+    "category": "cs-student",
+    "prompt": "Explain how binary search works step by step, showing the array being narrowed down",
+    "minQuality": 70,
+    "expectedEntityTypes": ["Array", "H1", "Arrow"],
+    "minFrames": 3
+  },
+  {
+    "id": "cs-linked-list",
+    "category": "cs-student",
+    "prompt": "Show how a linked list works: insertion at head, traversal, and deletion",
+    "minQuality": 70,
+    "expectedEntityTypes": ["LinkedList", "H1", "Arrow"],
+    "minFrames": 3
+  },
+  {
+    "id": "cs-stack-queue",
+    "category": "cs-student",
+    "prompt": "Compare stack and queue data structures, showing push/pop vs enqueue/dequeue operations",
+    "minQuality": 65,
+    "expectedEntityTypes": ["Stack", "H1"],
+    "minFrames": 2
+  },
+  {
+    "id": "cs-bfs-dfs",
+    "category": "cs-student",
+    "prompt": "Explain BFS vs DFS graph traversal with a visual example showing the order nodes are visited",
+    "minQuality": 65,
+    "expectedEntityTypes": ["H1"],
+    "minFrames": 3
+  },
+  {
+    "id": "cs-sorting",
+    "category": "cs-student",
+    "prompt": "Show how merge sort works by splitting an array and merging sorted halves back together",
+    "minQuality": 70,
+    "expectedEntityTypes": ["Array", "H1"],
+    "minFrames": 3
+  },
+  {
+    "id": "cs-hash-table",
+    "category": "cs-student",
+    "prompt": "Explain how a hash table works, showing hashing, bucket storage, and collision handling",
+    "minQuality": 65,
+    "expectedEntityTypes": ["HashTable", "H1"],
+    "minFrames": 3
+  },
+  {
+    "id": "cs-recursion",
+    "category": "cs-student",
+    "prompt": "Visualize how recursion works using the Fibonacci sequence, showing the call stack building up and unwinding",
+    "minQuality": 65,
+    "expectedEntityTypes": ["CallStack", "H1"],
+    "minFrames": 3
+  },
+  {
+    "id": "cs-big-o",
+    "category": "cs-student",
+    "prompt": "Compare O(1), O(log n), O(n), and O(n^2) time complexities with visual examples",
+    "minQuality": 65,
+    "expectedEntityTypes": ["BigO", "H1"],
+    "minFrames": 2
+  },
+  {
+    "id": "cs-bst-insert",
+    "category": "cs-student",
+    "prompt": "Show step by step how inserting values into a binary search tree works, demonstrating the comparison at each node",
+    "minQuality": 65,
+    "expectedEntityTypes": ["BinaryTree", "H1"],
+    "minFrames": 3
+  },
+  {
+    "id": "cs-memory-layout",
+    "category": "cs-student",
+    "prompt": "Explain memory layout in a running program: stack, heap, code segment, and data segment",
+    "minQuality": 65,
+    "expectedEntityTypes": ["MemoryLayout", "H1"],
+    "minFrames": 2
+  },
+  {
+    "id": "dev-microservices",
+    "category": "programmer",
+    "prompt": "Show a microservices architecture with API gateway, auth service, user service, and database per service",
+    "minQuality": 75,
+    "expectedEntityTypes": ["Server", "Database", "Service", "Arrow"],
+    "minFrames": 3
+  },
+  {
+    "id": "dev-oauth-flow",
+    "category": "programmer",
+    "prompt": "Explain the OAuth 2.0 authorization code flow between client, auth server, and resource server",
+    "minQuality": 70,
+    "expectedEntityTypes": ["H1", "Arrow"],
+    "minFrames": 3
+  },
+  {
+    "id": "dev-cicd-pipeline",
+    "category": "programmer",
+    "prompt": "Show a CI/CD pipeline from git push through build, test, staging, and production deployment",
+    "minQuality": 75,
+    "expectedEntityTypes": ["Pipeline", "H1", "Arrow"],
+    "minFrames": 3
+  },
+  {
+    "id": "dev-rest-api",
+    "category": "programmer",
+    "prompt": "Design a REST API architecture showing request flow through load balancer, API server, cache, and database",
+    "minQuality": 75,
+    "expectedEntityTypes": ["Server", "Database", "Cache", "LoadBalancer"],
+    "minFrames": 3
+  },
+  {
+    "id": "dev-caching",
+    "category": "programmer",
+    "prompt": "Explain caching strategies: read-through, write-through, and write-behind with Redis and PostgreSQL",
+    "minQuality": 70,
+    "expectedEntityTypes": ["Cache", "Database", "Arrow"],
+    "minFrames": 3
+  },
+  {
+    "id": "dev-event-driven",
+    "category": "programmer",
+    "prompt": "Show an event-driven architecture with producers, message broker (Kafka), consumers, and dead letter queue",
+    "minQuality": 70,
+    "expectedEntityTypes": ["Queue", "Arrow"],
+    "minFrames": 3
+  },
+  {
+    "id": "dev-db-schema",
+    "category": "programmer",
+    "prompt": "Design a database schema for an e-commerce app showing users, orders, products, and their relationships",
+    "minQuality": 65,
+    "expectedEntityTypes": ["Schema", "H1"],
+    "minFrames": 2
+  },
+  {
+    "id": "dev-kubernetes",
+    "category": "programmer",
+    "prompt": "Show a Kubernetes deployment with pods, services, ingress controller, and persistent volumes",
+    "minQuality": 70,
+    "expectedEntityTypes": ["Pod", "Container", "H1"],
+    "minFrames": 3
+  },
+  {
+    "id": "dev-load-balancing",
+    "category": "programmer",
+    "prompt": "Explain load balancing strategies: round-robin, least connections, and IP hash with multiple backend servers",
+    "minQuality": 70,
+    "expectedEntityTypes": ["LoadBalancer", "Server", "Arrow"],
+    "minFrames": 3
+  },
+  {
+    "id": "dev-monitoring",
+    "category": "programmer",
+    "prompt": "Show a monitoring and observability stack with Prometheus metrics, Grafana dashboards, and PagerDuty alerts",
+    "minQuality": 70,
+    "expectedEntityTypes": ["Monitor", "H1"],
+    "minFrames": 3
+  },
+  {
+    "id": "agent-deploy-pipeline",
+    "category": "agent-owner",
+    "prompt": "Present a deployment pipeline report showing stages completed, artifacts built, and environments updated",
+    "minQuality": 70,
+    "expectedEntityTypes": ["Pipeline", "Deployment", "H1"],
+    "minFrames": 3
+  },
+  {
+    "id": "agent-error-analysis",
+    "category": "agent-owner",
+    "prompt": "Show an error analysis dashboard: error rates by service, top error types, and affected endpoints",
+    "minQuality": 65,
+    "expectedEntityTypes": ["BarChart", "H1"],
+    "minFrames": 2
+  },
+  {
+    "id": "agent-api-performance",
+    "category": "agent-owner",
+    "prompt": "Present API performance metrics: p50/p95/p99 latencies, throughput, and error rates across endpoints",
+    "minQuality": 65,
+    "expectedEntityTypes": ["Metric", "H1"],
+    "minFrames": 2
+  },
+  {
+    "id": "agent-cost-optimization",
+    "category": "agent-owner",
+    "prompt": "Show a cloud cost optimization report: current spend by service, savings opportunities, and right-sizing recommendations",
+    "minQuality": 65,
+    "expectedEntityTypes": ["BarChart", "H1"],
+    "minFrames": 2
+  },
+  {
+    "id": "agent-security-audit",
+    "category": "agent-owner",
+    "prompt": "Present security audit results: vulnerabilities found, severity distribution, and remediation status",
+    "minQuality": 65,
+    "expectedEntityTypes": ["H1"],
+    "minFrames": 2
+  },
+  {
+    "id": "agent-data-pipeline",
+    "category": "agent-owner",
+    "prompt": "Show a data pipeline status report: ingestion rates, processing stages, data quality scores, and output destinations",
+    "minQuality": 70,
+    "expectedEntityTypes": ["Pipeline", "Database", "H1"],
+    "minFrames": 3
+  },
+  {
+    "id": "agent-infra-topology",
+    "category": "agent-owner",
+    "prompt": "Present infrastructure topology: VPCs, subnets, load balancers, EC2 instances, and RDS databases with their connections",
+    "minQuality": 75,
+    "expectedEntityTypes": ["Server", "Database", "Network", "Arrow"],
+    "minFrames": 3
+  },
+  {
+    "id": "agent-incident-timeline",
+    "category": "agent-owner",
+    "prompt": "Show an incident timeline: detection, investigation steps, root cause identified, fix deployed, and post-mortem",
+    "minQuality": 65,
+    "expectedEntityTypes": ["Timeline", "H1"],
+    "minFrames": 3
+  },
+  {
+    "id": "agent-release-changelog",
+    "category": "agent-owner",
+    "prompt": "Present a release changelog: new features, bug fixes, breaking changes, and migration steps for v2.0",
+    "minQuality": 60,
+    "expectedEntityTypes": ["StepList", "H1"],
+    "minFrames": 2
+  },
+  {
+    "id": "agent-capacity-planning",
+    "category": "agent-owner",
+    "prompt": "Show capacity planning projections: current utilization, growth trends, and when scaling thresholds will be hit",
+    "minQuality": 65,
+    "expectedEntityTypes": ["H1"],
+    "minFrames": 2
+  }
+]
