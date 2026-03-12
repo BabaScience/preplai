@@ -231,15 +231,17 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
       const toolName = mode === 'replace' ? 'update_scene' : 'add_scene';
       await trackUsage(apiKey.id, toolName, args.session_id);
 
-      // Attach full script + palette/theme for MCP App inline rendering
+      // Attach full script + palette/theme + player URL for MCP App inline rendering
       const session = store.getSession(args.session_id);
       const prefs = await getUserPlayerPrefs(apiKey.id);
+      const suffix = apiKey ? `?key=${apiKey.id}` : '';
       return {
         content: result.content,
         _meta: {
           script: session?.script ?? null,
           palette: prefs.palette || 'default',
           theme: prefs.theme || 'cinema',
+          playerUrl: `${baseUrl}/player/${args.session_id}${suffix}`,
         },
       };
     },
@@ -270,15 +272,17 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
         (a: any) => handleGetSessionUrl(a, { store, baseUrl, apiKeyId: apiKey?.id }),
       )(args);
 
-      // Attach full script + palette/theme for MCP App inline rendering
+      // Attach full script + palette/theme + player URL for MCP App inline rendering
       const session = store.getSession(args.session_id);
       const prefs = await getUserPlayerPrefs(apiKey?.id);
+      const suffix = apiKey ? `?key=${apiKey.id}` : '';
       return {
         content: result.content,
         _meta: {
           script: session?.script ?? null,
           palette: prefs.palette || 'default',
           theme: prefs.theme || 'cinema',
+          playerUrl: `${baseUrl}/player/${args.session_id}${suffix}`,
         },
       };
     },

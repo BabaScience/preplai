@@ -208,6 +208,80 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   pointer-events: none;
 }
 
+/* ── Play/Pause button ──────────────────────────────────────────── */
+
+#play-pause-toggle {
+  position: relative;
+}
+
+#play-pause-toggle .play-icon,
+#play-pause-toggle .pause-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.15s ease;
+}
+
+#play-pause-toggle.play-state .play-icon { opacity: 1; }
+#play-pause-toggle.play-state .pause-icon { opacity: 0; }
+#play-pause-toggle.pause-state .play-icon { opacity: 0; }
+#play-pause-toggle.pause-state .pause-icon { opacity: 1; }
+
+#play-pause-toggle.play-state:hover {
+  background: rgba(201, 168, 76, 0.15);
+  color: #C9A84C;
+  border-color: rgba(201, 168, 76, 0.3);
+}
+
+/* ── Open Player link ───────────────────────────────────────────── */
+
+#open-player-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  color: #C9A84C;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+#open-player-link:hover {
+  background: rgba(201, 168, 76, 0.2);
+  border-color: rgba(201, 168, 76, 0.4);
+  color: #dfc06a;
+}
+
+#open-player-link svg {
+  flex-shrink: 0;
+}
+
+[data-theme="minimal"] #open-player-link {
+  background: rgba(148, 163, 184, 0.1);
+  border-color: rgba(148, 163, 184, 0.25);
+  color: #94a3b8;
+}
+
+[data-theme="minimal"] #open-player-link:hover {
+  background: rgba(148, 163, 184, 0.2);
+  border-color: rgba(148, 163, 184, 0.4);
+  color: #cbd5e1;
+}
+
+[data-theme="minimal"] #play-pause-toggle.play-state:hover {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
 /* ── Frame dot indicators ────────────────────────────────────────── */
 
 #frame-dots {
