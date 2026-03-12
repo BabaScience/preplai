@@ -887,40 +887,7 @@
   .bento-wide { grid-column: span 1; }
 }
 
-/* Steps */
-.steps-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
-  gap: var(--space-8);
-  counter-reset: step;
-}
-.step-item {
-  counter-increment: step;
-  position: relative;
-  padding-left: var(--space-12);
-}
-.step-item::before {
-  content: counter(step);
-  position: absolute;
-  left: 0; top: 0;
-  width: 36px; height: 36px;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--color-primary);
-  color: var(--color-text-inverse);
-  border-radius: var(--radius-full);
-  font-weight: 600;
-  font-size: var(--text-sm);
-}
-.step-item h3 {
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  font-weight: 600;
-  margin-bottom: var(--space-2);
-}
-.step-item p {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
+/* (old Steps block removed — replaced by new steps-grid below) */
 
 /* Pricing */
 .pricing-grid {
@@ -1008,6 +975,109 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-8);
+}
+
+/* Problem section */
+.problem-section {
+  background: #0b0c10;
+  color: #e8e6e3;
+}
+.problem-section .section-block {
+  padding-top: 0;
+}
+.problem-section h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-10);
+}
+.problem-statements {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 640px;
+}
+.problem-statements p {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--text-lg);
+  color: #8a8b95;
+  line-height: 1.6;
+}
+.problem-statements em {
+  color: #e8e6e3;
+  font-style: italic;
+}
+.problem-kicker {
+  margin-top: var(--space-10);
+  font-size: var(--text-xl);
+  color: #e8e6e3;
+  max-width: 640px;
+  line-height: 1.5;
+}
+
+/* Steps grid */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-8);
+  margin-top: var(--space-10);
+}
+.step-item h3 {
+  font-size: var(--text-base);
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+.step-item p {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.55;
+}
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #0b0c10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-4);
+}
+@media (max-width: 768px) {
+  .steps-grid { grid-template-columns: 1fr; }
+}
+
+/* Final CTA */
+.final-cta {
+  position: relative;
+  overflow: hidden;
+  background: #0b0c10;
+  color: #e8e6e3;
+  padding: clamp(var(--space-16), 10vw, var(--space-24)) var(--space-6);
+  text-align: center;
+}
+.final-cta-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+}
+.final-cta-inner {
+  position: relative;
+  z-index: 1;
+  max-width: var(--content-wide);
+  margin: 0 auto;
+}
+.final-cta h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-8);
+  line-height: 1.2;
+}
+.final-cta .hero-ctas {
+  justify-content: center;
 }
 
 /* Footer */
