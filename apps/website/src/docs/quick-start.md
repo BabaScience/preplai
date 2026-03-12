@@ -1,34 +1,83 @@
 # Quick Start
 
-**Summary:** Get from zero to your first preplai presentation in 3 steps. preplai is the presentation API for AI agents — any agent that speaks MCP (Model Context Protocol) can create cinema-quality, live, animated presentations. Claude, ChatGPT, or any MCP client. Not slides. Cinema.
+In 2 minutes, you'll create your first animated presentation — no slides, no design skills needed. Just tell your AI agent what to present.
 
-**Key terms:** preplai, MCP (Model Context Protocol), access token, AI agent, player URL
+## What is preplai?
 
-## Prerequisites
+preplai lets any AI agent — Claude, ChatGPT, Cursor, or others — create **animated, cinema-quality presentations** for you. You type a prompt, the agent builds a visual walkthrough, and you get a link to watch it.
 
-- An access token from [preplai.com/dashboard/keys](https://preplai.com/dashboard/keys)
+Think of it like this: instead of the agent writing a wall of text, it *shows* you — with animations, illustrations, and narration.
 
-## 1. Get Your Access Token
+---
 
-Sign up at [preplai.com](https://preplai.com), then create an access token in the dashboard at [preplai.com/dashboard/keys](https://preplai.com/dashboard/keys).
+## Step 1: Pick Your Connection Method
 
-## 2. Connect Your AI Agent
+preplai supports two ways to connect, depending on which AI agent you use:
 
-preplai works with **any MCP-compatible AI agent**. Popular integrations:
+| Connection method | How it works | Used by |
+|-------------------|-------------|---------|
+| **API Token** | You create a token and paste it into a config file | Claude Desktop, Cursor, Windsurf, and other desktop MCP clients |
+| **OAuth** | You click "Connect" and authorize through your browser | Claude Web (claude.ai), ChatGPT Web, ChatGPT Desktop & mobile |
 
-- **Claude (Desktop or Web):** See [Claude Desktop & Web](/docs/claude-desktop) for configuration.
-- **ChatGPT (Desktop or Web):** See [ChatGPT Desktop & Web](/docs/chatgpt) for configuration via ChatGPT Apps.
-- **Other MCP clients:** Use the same MCP endpoint; see the [MCP Tools Reference](/docs/mcp-tools).
+**Not sure?** If you use an app installed on your computer, you probably need an **API token**. If you use AI in a web browser, you probably need **OAuth**.
 
-## 3. Create Your First Presentation
+---
 
-In your AI agent, try:
+## Step 2: Set Up Your Connection
 
-> Create a presentation about binary search tree insertion
+### API Token (for desktop apps)
 
-The agent will use preplai's MCP tools to build a session, add scenes, and return a shareable player URL.
+1. Sign up at [preplai.com](https://preplai.com)
+2. Go to [Dashboard → Keys](https://preplai.com/dashboard/keys) and create an **access token**
+3. Your token looks like: `plai_a1b2c3d4e5f6...`
+4. Follow the setup guide for your AI agent:
 
-## Access Token Format
+| I use... | Setup guide |
+|----------|-------------|
+| **Claude Desktop** | [Connect Claude →](/docs/connect-claude#claude-desktop-app) |
+| **Cursor, Windsurf, other MCP clients** | [Connect Claude →](/docs/connect-claude#claude-desktop-app) (same config format) |
 
-- **Prefix:** `plai_` + 40 random hex characters
-- **Header:** `X-Preplai-API-Key` or `Authorization: Bearer <token>`
+### OAuth (for web & mobile)
+
+1. Sign up at [preplai.com](https://preplai.com)
+2. Go to [Dashboard → Connectors](https://preplai.com/dashboard/connectors) and create an **OAuth client**
+3. You'll get a **Client ID** and **Client Secret**
+4. Follow the setup guide for your AI agent:
+
+| I use... | Setup guide |
+|----------|-------------|
+| **Claude Web** (claude.ai) | [Connect Claude →](/docs/connect-claude#claude-web-claudeai) |
+| **ChatGPT** (Web, Desktop, or mobile) | [Connect ChatGPT →](/docs/connect-chatgpt) |
+
+---
+
+## Step 3: Create Your First Presentation
+
+Open your AI agent and try one of these prompts:
+
+> **"Create a presentation about how binary search works"**
+
+> **"Show me a microservices architecture with an API gateway, database, and cache"**
+
+> **"Explain the CI/CD pipeline step by step"**
+
+The AI agent will build your presentation and give you a **player link**. Click it to watch.
+
+---
+
+## What You'll See
+
+Your presentation opens in the **preplai player** — a cinematic viewer with:
+
+- **Animated illustrations** that appear, move, and highlight as the story progresses
+- **Narration text** at the bottom explaining each frame
+- **Play/pause controls** so you can go at your own pace
+- **A shareable link** you can send to anyone
+
+---
+
+## What's Next?
+
+- [**Examples →**](/docs/examples) See what kinds of presentations you can create
+- [**Tips →**](/docs/tips) Get better results with themes, palettes, and prompt tips
+- [**MCP Tools Reference →**](/docs/mcp-tools) For developers building integrations

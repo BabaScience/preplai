@@ -1,8 +1,8 @@
 /**
  * usePageView — Track page views on every route change.
  *
- * Works with HashRouter: useLocation().pathname returns the path
- * after the # (e.g. /dashboard/sessions), so no special parsing needed.
+ * useLocation().pathname returns the current route path
+ * (e.g. /dashboard/sessions), sent to GA4 on every navigation.
  */
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';

@@ -9,18 +9,36 @@ import { DOC_META, getDocSchema } from '../docs/meta';
 import 'highlight.js/styles/github-dark.css';
 
 import quickStartMd from '../docs/quick-start.md?raw';
-import claudeDesktopMd from '../docs/claude-desktop.md?raw';
-import chatgptMd from '../docs/chatgpt.md?raw';
+import connectClaudeMd from '../docs/connect-claude.md?raw';
+import connectChatgptMd from '../docs/connect-chatgpt.md?raw';
+import examplesMd from '../docs/examples.md?raw';
+import tipsMd from '../docs/tips.md?raw';
 import mcpToolsMd from '../docs/mcp-tools.md?raw';
 import visualscriptMd from '../docs/visualscript.md?raw';
 
-const DOC_SLUGS = ['quick-start', 'claude-desktop', 'chatgpt', 'mcp-tools', 'visualscript'];
+const DOC_SLUGS = [
+  'quick-start',
+  'connect-claude',
+  'connect-chatgpt',
+  'examples',
+  'tips',
+  'mcp-tools',
+  'visualscript',
+];
 const DOC_CONTENT = {
   'quick-start': quickStartMd,
-  'claude-desktop': claudeDesktopMd,
-  chatgpt: chatgptMd,
+  'connect-claude': connectClaudeMd,
+  'connect-chatgpt': connectChatgptMd,
+  examples: examplesMd,
+  tips: tipsMd,
   'mcp-tools': mcpToolsMd,
   visualscript: visualscriptMd,
+};
+
+/* Redirect old slugs to new ones */
+const SLUG_REDIRECTS = {
+  'claude-desktop': 'connect-claude',
+  chatgpt: 'connect-chatgpt',
 };
 
 function DocMeta({ slug }) {
@@ -147,6 +165,10 @@ function DocContent({ slug }) {
 function DocPage() {
   const { slug } = useParams();
   if (!slug) return <Navigate to="/docs/quick-start" replace />;
+
+  /* Handle old URLs */
+  if (SLUG_REDIRECTS[slug]) return <Navigate to={`/docs/${SLUG_REDIRECTS[slug]}`} replace />;
+
   if (!DOC_SLUGS.includes(slug)) return <Navigate to="/docs/quick-start" replace />;
 
   const idx = DOC_SLUGS.indexOf(slug);
@@ -185,12 +207,17 @@ function DocsIndex() {
     return () => { document.title = 'preplai — Cinema-quality presentations. Built for AI agents.'; };
   }, []);
 
-  const sections = [
-    { slug: 'quick-start', title: 'Quick Start', desc: 'Get from zero to your first presentation in 3 steps.' },
-    { slug: 'claude-desktop', title: 'Claude Desktop & Web', desc: 'Connect preplai to Claude via hosted MCP.' },
-    { slug: 'chatgpt', title: 'ChatGPT Desktop & Web', desc: 'Connect preplai to ChatGPT via ChatGPT Apps.' },
-    { slug: 'mcp-tools', title: 'MCP Tools Reference', desc: 'Complete reference for all 8 MCP tools.' },
-    { slug: 'visualscript', title: 'VisualScript Schema', desc: 'Entity types, frames, and design guidelines.' },
+  const getStarted = [
+    { slug: 'quick-start', title: 'Quick Start', desc: 'Your first presentation in 2 minutes.' },
+    { slug: 'connect-claude', title: 'Connect Claude', desc: 'Set up Claude Desktop or claude.ai.' },
+    { slug: 'connect-chatgpt', title: 'Connect ChatGPT', desc: 'Set up ChatGPT Web, Desktop, or mobile.' },
+    { slug: 'examples', title: 'Examples', desc: 'Prompts you can copy and paste right now.' },
+    { slug: 'tips', title: 'Tips & Tricks', desc: 'Themes, palettes, and better prompts.' },
+  ];
+
+  const advanced = [
+    { slug: 'mcp-tools', title: 'MCP Tools Reference', desc: 'Complete API reference for all 10 tools.' },
+    { slug: 'visualscript', title: 'VisualScript Schema', desc: 'Entity types, frames, and JSON format.' },
   ];
 
   return (
@@ -200,16 +227,34 @@ function DocsIndex() {
           <span className="docs-index-label">Documentation</span>
           <h1>Get started</h1>
           <p className="docs-index-desc">
-            Connect any AI agent to preplai. Claude, ChatGPT, or any MCP client — one API, cinema-quality presentations.
+            Connect any AI agent to preplai and create animated presentations. No design skills needed.
           </p>
         </header>
         <div className="docs-grid">
-          {sections.map(({ slug, title, desc }) => (
+          {getStarted.map(({ slug, title, desc }) => (
             <Link key={slug} to={`/docs/${slug}`} className="docs-card">
               <h2 className="docs-card-title">{title}</h2>
               <p className="docs-card-desc">{desc}</p>
               <span className="docs-card-cta">
                 Read guide <ArrowRight size={14} strokeWidth={2.5} />
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        <header className="docs-index-header docs-index-header-section">
+          <h2>For developers</h2>
+          <p className="docs-index-desc">
+            Building an integration? These docs cover the full API.
+          </p>
+        </header>
+        <div className="docs-grid">
+          {advanced.map(({ slug, title, desc }) => (
+            <Link key={slug} to={`/docs/${slug}`} className="docs-card">
+              <h2 className="docs-card-title">{title}</h2>
+              <p className="docs-card-desc">{desc}</p>
+              <span className="docs-card-cta">
+                Read reference <ArrowRight size={14} strokeWidth={2.5} />
               </span>
             </Link>
           ))}
