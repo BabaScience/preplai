@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preplai Player</title>
+</head>
+<body data-theme="cinema" data-palette="default">
+
+  <!-- Narrator text overlay (HTML, not SVG — better font rendering) -->
+  <div id="narrator-overlay">
+    <p id="narrator-text" aria-live="polite"></p>
+  </div>
+
+  <!-- Progress bar -->
+  <div id="progress-bar" class="progress-bar">
+    <div id="progress-fill" class="progress-fill"></div>
+  </div>
+
+  <!-- Frame navigation -->
+  <div id="frame-nav">
+    <button id="prev-frame" aria-label="Previous frame" title="Previous frame">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div id="frame-dots" role="tablist" aria-label="Scene navigation"></div>
+    <button id="next-frame" aria-label="Next frame" title="Next frame">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <span id="frame-counter">1 / 1</span>
+    <button id="fullscreen-toggle" type="button" aria-label="Toggle fullscreen" title="Fullscreen" style="display:none">
+      <svg class="fs-enter-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      <svg class="fs-exit-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+    </button>
+  </div>
+
+  <div id="canvas-wrapper">
+    <svg
+      id="canvas"
+      viewBox="0 0 1920 1080"
+      preserveAspectRatio="xMidYMid meet"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <radialGradient id="bg-vignette" cx="50%" cy="50%" r="70%">
+          <stop offset="0%"   stop-color="#12131c" />
+          <stop offset="60%"  stop-color="#0c0d14" />
+          <stop offset="100%" stop-color="#060610" />
+        </radialGradient>
+        <filter id="noise" x="0%" y="0%" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" result="noise" />
+          <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise" />
+          <feComponentTransfer in="grayNoise" result="alphaedNoise">
+            <feFuncA type="linear" slope="0.03" />
+          </feComponentTransfer>
+          <feBlend in="SourceGraphic" in2="alphaedNoise" mode="overlay" />
+        </filter>
+        <filter id="entity-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
+          <feColorMatrix in="blur" type="matrix" result="coloredBlur"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.6 0" />
+          <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+        <filter id="soft-shadow" x="-10%" y="-10%" width="130%" height="130%">
+          <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.35" />
+        </filter>
+        <marker id="arrowhead-default" markerWidth="14" markerHeight="10" refX="12" refY="5" orient="auto">
+          <path d="M 0 0 L 14 5 L 0 10 L 3 5 Z" fill="rgba(255,255,255,0.8)" />
+        </marker>
+        <filter id="accent-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="16" result="blur" />
+          <feColorMatrix in="blur" type="matrix" result="coloredBlur"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.4 0" />
+          <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
+
+      <rect id="bg" width="1920" height="1080" fill="url(#bg-vignette)" />
+      <g id="dot-grid" opacity="0.04"></g>
+      <g id="ambient-layer"></g>
+      <g id="entity-layer"></g>
+      <g id="connection-layer"></g>
+      <g id="overlay-layer"></g>
+    </svg>
+  </div>
+
+  <!-- Loading indicator -->
+  <div id="loading-indicator" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);font-family:Inter,sans-serif;font-size:14px;pointer-events:none;">
+    Loading presentation...
+  </div>
+
+  <script type="module" src="./src/mcp-app-bootstrap.ts"></script>
+</body>
+</html>

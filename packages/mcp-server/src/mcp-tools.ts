@@ -10,6 +10,13 @@
  */
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
+import {
+  registerAppTool,
+  registerAppResource,
+  RESOURCE_MIME_TYPE,
+} from '@modelcontextprotocol/ext-apps/server';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { SessionStore } from './session-store.js';
 import type { SseRegistry } from './sse.js';
 import type { TtsService } from './tts-service.js';
@@ -24,8 +31,28 @@ import {
   handleDeleteSession,
   handleRemoveScene,
 } from './tools.js';
+import { getUserPlayerPrefs } from './auth.js';
 import { withErrorBoundary, mcpForbidden, mcpUnauthorized } from './errors.js';
 import { verifySessionOwnership } from './session-utils.js';
+
+// ── MCP App constants ─────────────────────────────────────────────────
+const PLAYER_RESOURCE_URI = 'ui://preplai/player.html';
+
+/**
+ * Resolve path to built MCP App HTML.
+ * - Production: copied to dist/mcp-app.html alongside compiled JS
+ * - Dev (monorepo): falls back to ../../player/dist/mcp-app.html
+ */
+async function resolveMcpAppHtmlPath(): Promise<string> {
+  // 1. Check local dist/ (production deploy)
+  const localPath = path.resolve(import.meta.dirname, 'mcp-app.html');
+  try {
+    await fs.access(localPath);
+    return localPath;
+  } catch {}
+  // 2. Fallback to monorepo sibling package (dev)
+  return path.resolve(import.meta.dirname, '../../player/dist/mcp-app.html');
+}
 
 // ── Rich tool descriptions ────────────────────────────────────────────
 
@@ -160,24 +187,28 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
     },
   );
 
-  // ── Tool 2: add_scene ───────────────────────────────────────────────
+  // ── Tool 2: add_scene (MCP App — renders inline player) ────────────
   // Consolidates: add_scene + update_scene (via mode param)
-  mcp.tool(
+  registerAppTool(
+    mcp,
     'add_scene',
-    ADD_SCENE_DESCRIPTION,
     {
-      session_id: z.string().describe('Session ID from create_session'),
-      visual_script: z.record(z.unknown()).describe('REQUIRED compact format: sid, td, f, e, p, n, l, src, tgt; position [x,y]; omit color. Use session_id as sid.'),
-      mode: z.enum(['append', 'replace']).optional().describe('Mode: "append" (default) appends frames to existing scene. "replace" replaces the entire visual script.'),
+      description: ADD_SCENE_DESCRIPTION,
+      inputSchema: {
+        session_id: z.string().describe('Session ID from create_session'),
+        visual_script: z.record(z.unknown()).describe('REQUIRED compact format: sid, td, f, e, p, n, l, src, tgt; position [x,y]; omit color. Use session_id as sid.'),
+        mode: z.enum(['append', 'replace']).optional().describe('Mode: "append" (default) appends frames to existing scene. "replace" replaces the entire visual script.'),
+      },
+      _meta: { ui: { resourceUri: PLAYER_RESOURCE_URI } },
     },
-    async (args, extra) => {
+    async (args: { session_id: string; visual_script: any; mode?: 'append' | 'replace' }, extra: any) => {
       const { trackUsage, checkSceneLimit } = await import('./auth.js');
       const apiKey = getApiKey(extra);
-      if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
+      if (!apiKey) return mcpUnauthorized() as any;
 
       const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
       if (!ownership.ok && !ownership.notFound) {
-        return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
+        return mcpForbidden() as any;
       }
 
       const mode = args.mode ?? 'append';
@@ -190,7 +221,7 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
 
       const sceneCheck = await checkSceneLimit(apiKey.id, apiKey.tier);
       if (!sceneCheck.allowed) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'LIMIT_EXCEEDED', message: sceneCheck.reason, suggestion: 'Upgrade your plan or delete scenes.' } }) }] };
+        return { content: [{ type: 'text' as const, text: JSON.stringify({ success: false, error: { code: 'LIMIT_EXCEEDED', message: sceneCheck.reason, suggestion: 'Upgrade your plan or delete scenes.' } }) }] };
       }
 
       const result = await withErrorBoundary(
@@ -199,31 +230,57 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
 
       const toolName = mode === 'replace' ? 'update_scene' : 'add_scene';
       await trackUsage(apiKey.id, toolName, args.session_id);
-      return { content: result.content };
+
+      // Attach full script + palette/theme for MCP App inline rendering
+      const session = store.getSession(args.session_id);
+      const prefs = await getUserPlayerPrefs(apiKey.id);
+      return {
+        content: result.content,
+        _meta: {
+          script: session?.script ?? null,
+          palette: prefs.palette || 'default',
+          theme: prefs.theme || 'cinema',
+        },
+      };
     },
   );
 
-  // ── Tool 3: get_session_url ─────────────────────────────────────────
-  mcp.tool(
+  // ── Tool 3: get_session_url (MCP App — renders inline player) ───────
+  registerAppTool(
+    mcp,
     'get_session_url',
-    'Get the player URL for a session. Returns player_url, embed_url (iframe), and preferences (theme, palette). Set include_stats to true for frame count and duration. Open the player_url in a browser to view the presentation.',
     {
-      session_id: z.string().describe('Session ID'),
-      include_stats: z.boolean().optional().describe('Include frame count, duration, etc.'),
+      description: 'Get the player URL for a session. Returns player_url, embed_url (iframe), and preferences (theme, palette). Set include_stats to true for frame count and duration. Open the player_url in a browser to view the presentation.',
+      inputSchema: {
+        session_id: z.string().describe('Session ID'),
+        include_stats: z.boolean().optional().describe('Include frame count, duration, etc.'),
+      },
+      _meta: { ui: { resourceUri: PLAYER_RESOURCE_URI } },
     },
-    async (args, extra) => {
+    async (args: { session_id: string; include_stats?: boolean }, extra: any) => {
       const apiKey = getApiKey(extra);
       if (apiKey) {
         const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
         if (!ownership.ok && !ownership.notFound) {
-          return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
+          return mcpForbidden() as any;
         }
       }
 
       const result = await withErrorBoundary(
         (a: any) => handleGetSessionUrl(a, { store, baseUrl, apiKeyId: apiKey?.id }),
       )(args);
-      return { content: result.content };
+
+      // Attach full script + palette/theme for MCP App inline rendering
+      const session = store.getSession(args.session_id);
+      const prefs = await getUserPlayerPrefs(apiKey?.id);
+      return {
+        content: result.content,
+        _meta: {
+          script: session?.script ?? null,
+          palette: prefs.palette || 'default',
+          theme: prefs.theme || 'cinema',
+        },
+      };
     },
   );
 
@@ -318,6 +375,40 @@ CALLBACK: When running locally, the player URL is auto-opened. For remote client
 
       await trackUsage(apiKey.id, 'add_narration', args.session_id);
       return { content: result.content };
+    },
+  );
+
+  // ── MCP App Resource: Preplai Player HTML ─────────────────────────
+  // Shared by add_scene and get_session_url tools.
+  // CSP allows GSAP CDN and Google Fonts for dynamic loading in sandbox.
+  registerAppResource(
+    mcp,
+    'Preplai Player',
+    PLAYER_RESOURCE_URI,
+    { mimeType: RESOURCE_MIME_TYPE },
+    async () => {
+      const htmlPath = await resolveMcpAppHtmlPath();
+      const html = await fs.readFile(htmlPath, 'utf-8');
+      return {
+        contents: [
+          {
+            uri: PLAYER_RESOURCE_URI,
+            mimeType: RESOURCE_MIME_TYPE,
+            text: html,
+            _meta: {
+              ui: {
+                csp: {
+                  resourceDomains: [
+                    'https://cdnjs.cloudflare.com',
+                    'https://fonts.googleapis.com',
+                    'https://fonts.gstatic.com',
+                  ],
+                },
+              },
+            },
+          },
+        ],
+      };
     },
   );
 }
