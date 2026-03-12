@@ -13,14 +13,17 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "build:bundle": "vite build",
+    "build:bundle": "vite build && vite build -c vite.mcp-app.config.ts",
+    "build:mcp-app": "vite build -c vite.mcp-app.config.ts",
     "test": "vitest run"
   },
   "dependencies": {
-    "@preplai/shared": "workspace:*",
-    "@preplai/illustrations": "workspace:*"
+    "@modelcontextprotocol/ext-apps": "^1.2.2",
+    "@preplai/illustrations": "workspace:*",
+    "@preplai/shared": "workspace:*"
   },
   "devDependencies": {
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vite-plugin-singlefile": "^2.3.0"
   }
 }
