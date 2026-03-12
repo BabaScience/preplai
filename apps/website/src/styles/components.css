@@ -625,10 +625,10 @@
 .capabilities-inner {
   max-width: 1000px;
   margin: 0 auto;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, auto);
   justify-content: center;
-  gap: var(--space-10);
-  flex-wrap: wrap;
+  gap: var(--space-6) var(--space-12);
 }
 
 .capability-item {
@@ -648,8 +648,8 @@
 
 @media (max-width: 600px) {
   .capabilities-inner {
-    gap: var(--space-6) var(--space-8);
-    justify-content: flex-start;
+    grid-template-columns: repeat(2, auto);
+    gap: var(--space-4) var(--space-6);
   }
 }
 
@@ -847,6 +847,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-5);
+  align-items: stretch;
 }
 .bento-card {
   background: var(--color-surface);
@@ -984,6 +985,7 @@
 }
 .problem-section .section-block {
   padding-top: 0;
+  text-align: center;
 }
 .problem-section h2 {
   font-family: var(--font-display);
@@ -993,8 +995,9 @@
 .problem-statements {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
-  max-width: 640px;
+  gap: var(--space-5);
+  max-width: 680px;
+  margin: 0 auto;
 }
 .problem-statements p {
   font-family: var(--font-display);
@@ -1002,6 +1005,7 @@
   font-size: var(--text-lg);
   color: #8a8b95;
   line-height: 1.6;
+  text-align: center;
 }
 .problem-statements em {
   color: #e8e6e3;
@@ -1011,16 +1015,29 @@
   margin-top: var(--space-10);
   font-size: var(--text-xl);
   color: #e8e6e3;
-  max-width: 640px;
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
   line-height: 1.5;
+  font-weight: 600;
 }
 
 /* Steps grid */
 .steps-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-8);
+  gap: var(--space-6);
   margin-top: var(--space-10);
+}
+.step-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  transition: border-color var(--transition-interactive);
+}
+.step-item:hover {
+  border-color: var(--color-primary);
 }
 .step-item h3 {
   font-size: var(--text-base);

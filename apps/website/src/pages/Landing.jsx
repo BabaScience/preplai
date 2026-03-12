@@ -56,7 +56,7 @@ export default function Landing() {
       </section>
 
       {/* 3. Live Demos */}
-      <section id="showcases" className="section-block showcase-section">
+      <section id="showcases" className="section-block showcase-section" style={{ borderTop: 'none' }}>
         <div className="section-label">See It In Action</div>
         <h2>From explanation to presentation</h2>
         <p className="section-desc">Every demo below is a live Preplai presentation. The same engine your AI will use.</p>
