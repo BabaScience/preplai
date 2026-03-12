@@ -65,7 +65,7 @@ export function initAnalytics() {
   };
   window.gtag('js', new Date());
   window.gtag('config', GA_ID, {
-    send_page_view: false, // HashRouter needs manual page views
+    send_page_view: false, // manual page views via usePageView hook
   });
 }
 
