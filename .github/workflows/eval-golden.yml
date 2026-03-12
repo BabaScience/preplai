@@ -1,6 +1,7 @@
 # .github/workflows/eval-golden.yml
 # Runs golden dataset eval when tool descriptions change.
-# Requires ANTHROPIC_API_KEY secret. Skipped on forks.
+# Requires ANTHROPIC_API_KEY secret. Optionally uses OPENAI_API_KEY.
+# Skipped on forks.
 
 name: Golden Dataset Eval
 
@@ -40,9 +41,13 @@ jobs:
         run: pnpm run build:packages
 
       - name: Run golden dataset eval
-        run: pnpm run eval:golden
+        id: eval
+        run: |
+          pnpm run eval:golden 2>&1 | tee eval-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
       - name: Post results as PR comment
         if: always()
@@ -50,16 +55,11 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const { execSync } = require('child_process');
-
-            let output;
+            let output = 'No output captured';
             try {
-              output = execSync('pnpm run eval:golden 2>&1', {
-                env: { ...process.env, ANTHROPIC_API_KEY: '${{ secrets.ANTHROPIC_API_KEY }}' },
-                timeout: 300000,
-              }).toString();
+              output = fs.readFileSync('eval-output.txt', 'utf8');
             } catch (e) {
-              output = e.stdout?.toString() || 'Eval failed';
+              output = 'Failed to read eval output';
             }
 
             // Truncate if too long

@@ -1,20 +1,28 @@
 #!/usr/bin/env npx tsx
 /**
- * Golden Dataset Eval Runner
+ * Golden Dataset Eval Runner — Multi-Model
  *
  * Evaluates LLM-generated visual scripts against quality baselines.
- * Requires ANTHROPIC_API_KEY environment variable.
+ * Supports multiple LLM providers (Anthropic, OpenAI).
  *
  * Usage:
- *   pnpm run eval:golden                    # Run eval, compare to baselines
- *   pnpm run eval:golden -- --update        # Update baselines with current scores
- *   pnpm run eval:golden -- --prompt cs-binary-search  # Run single prompt
- *   pnpm run eval:golden -- --category cs-student      # Run one category
+ *   pnpm run eval:golden                                    # Run with claude-sonnet (default)
+ *   pnpm run eval:golden -- --model gpt-4o                  # Run with GPT-4o
+ *   pnpm run eval:golden -- --model all                     # Run all models, compare
+ *   pnpm run eval:golden -- --update                        # Update baselines
+ *   pnpm run eval:golden -- --prompt cs-binary-search       # Run single prompt
+ *   pnpm run eval:golden -- --category cs-student           # Run one category
+ *   pnpm run eval:golden -- --model gpt-4o --prompt cs-binary-search
+ *
+ * Environment:
+ *   ANTHROPIC_API_KEY  — required for claude-* models
+ *   OPENAI_API_KEY     — required for gpt-* models
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import { scoreVisualScript } from '../../packages/mcp-server/dist/quality-scorer.js';
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -52,6 +60,7 @@ interface Baseline {
 interface EvalResult {
   promptId: string;
   category: string;
+  model: string;
   quality: QualityReport;
   passed: boolean;
   regressions: string[];
@@ -59,6 +68,81 @@ interface EvalResult {
   missingExpectedTypes: string[];
   frameCount: number;
   error?: string;
+}
+
+// ── LLM Provider abstraction ─────────────────────────────────────────
+
+type LLMProvider = (systemPrompt: string, userPrompt: string) => Promise<string>;
+
+function createAnthropicProvider(model: string): LLMProvider {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('ANTHROPIC_API_KEY environment variable required for Anthropic models');
+  }
+  const client = new Anthropic();
+  return async (systemPrompt, userPrompt) => {
+    const response = await client.messages.create({
+      model,
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+    });
+    return response.content[0].type === 'text' ? response.content[0].text : '';
+  };
+}
+
+function createOpenAIProvider(model: string): LLMProvider {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY environment variable required for OpenAI models');
+  }
+  const client = new OpenAI();
+  return async (systemPrompt, userPrompt) => {
+    const response = await client.chat.completions.create({
+      model,
+      max_tokens: 4096,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+    });
+    return response.choices[0]?.message?.content ?? '';
+  };
+}
+
+// ── Model registry ───────────────────────────────────────────────────
+
+interface ModelConfig {
+  provider: 'anthropic' | 'openai';
+  model: string;
+  displayName: string;
+}
+
+const MODELS: Record<string, ModelConfig> = {
+  'claude-sonnet': {
+    provider: 'anthropic',
+    model: 'claude-sonnet-4-20250514',
+    displayName: 'Claude Sonnet',
+  },
+  'gpt-4o': {
+    provider: 'openai',
+    model: 'gpt-4o',
+    displayName: 'GPT-4o',
+  },
+  'gpt-4o-mini': {
+    provider: 'openai',
+    model: 'gpt-4o-mini',
+    displayName: 'GPT-4o Mini',
+  },
+};
+
+function createProvider(config: ModelConfig): LLMProvider {
+  switch (config.provider) {
+    case 'anthropic':
+      return createAnthropicProvider(config.model);
+    case 'openai':
+      return createOpenAIProvider(config.model);
+    default:
+      throw new Error(`Unknown provider: ${config.provider}`);
+  }
 }
 
 // ── Paths ────────────────────────────────────────────────────────────
@@ -114,10 +198,7 @@ OUTPUT FORMAT: Raw JSON object starting with { and ending with }`;
 // ── Parse visual script from LLM response ────────────────────────────
 
 function parseVisualScript(text: string): any {
-  // Try direct JSON parse
   const trimmed = text.trim();
-
-  // Strip markdown code fences if present
   const stripped = trimmed
     .replace(/^```(?:json)?\s*\n?/i, '')
     .replace(/\n?```\s*$/i, '')
@@ -126,7 +207,6 @@ function parseVisualScript(text: string): any {
   try {
     return JSON.parse(stripped);
   } catch {
-    // Try to extract JSON object from the text
     const match = stripped.match(/\{[\s\S]*\}/);
     if (match) {
       return JSON.parse(match[0]);
@@ -167,7 +247,6 @@ function expandCompactScript(compact: any): any {
 
   const expanded = expandObj(compact);
 
-  // Ensure frames have required fields
   if (expanded.frames) {
     let time = 0;
     const frameDuration = expanded.totalDuration
@@ -188,10 +267,14 @@ function expandCompactScript(compact: any): any {
   return expanded;
 }
 
-// ── Load baseline for a prompt ───────────────────────────────────────
+// ── Baselines (per model) ────────────────────────────────────────────
 
-function loadBaseline(promptId: string): Baseline | null {
-  const filePath = path.join(BASELINES_DIR, `${promptId}.json`);
+function baselinesDir(modelKey: string): string {
+  return path.join(BASELINES_DIR, modelKey);
+}
+
+function loadBaseline(modelKey: string, promptId: string): Baseline | null {
+  const filePath = path.join(baselinesDir(modelKey), `${promptId}.json`);
   try {
     return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
   } catch {
@@ -199,8 +282,9 @@ function loadBaseline(promptId: string): Baseline | null {
   }
 }
 
-function saveBaseline(promptId: string, report: QualityReport): void {
-  fs.mkdirSync(BASELINES_DIR, { recursive: true });
+function saveBaseline(modelKey: string, promptId: string, report: QualityReport): void {
+  const dir = baselinesDir(modelKey);
+  fs.mkdirSync(dir, { recursive: true });
   const baseline: Baseline = {
     overall: report.overall,
     dimensions: Object.fromEntries(
@@ -211,14 +295,14 @@ function saveBaseline(promptId: string, report: QualityReport): void {
     timestamp: new Date().toISOString(),
   };
   fs.writeFileSync(
-    path.join(BASELINES_DIR, `${promptId}.json`),
+    path.join(dir, `${promptId}.json`),
     JSON.stringify(baseline, null, 2) + '\n',
   );
 }
 
 // ── Detect regressions against baseline ──────────────────────────────
 
-const REGRESSION_THRESHOLD = 5; // percent drop that triggers failure
+const REGRESSION_THRESHOLD = 5;
 
 function detectRegressions(report: QualityReport, baseline: Baseline): string[] {
   const regressions: string[] = [];
@@ -249,19 +333,13 @@ function extractEntityTypes(script: any): string[] {
 // ── Run eval for a single prompt ─────────────────────────────────────
 
 async function evalPrompt(
-  client: Anthropic,
+  provider: LLMProvider,
+  modelKey: string,
   prompt: GoldenPrompt,
   updateBaselines: boolean,
 ): Promise<EvalResult> {
   try {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: prompt.prompt }],
-    });
-
-    const text = response.content[0].type === 'text' ? response.content[0].text : '';
+    const text = await provider(SYSTEM_PROMPT, prompt.prompt);
     const compact = parseVisualScript(text);
     const script = expandCompactScript(compact);
 
@@ -271,7 +349,7 @@ async function evalPrompt(
       (t) => !entityTypes.includes(t),
     );
 
-    const baseline = loadBaseline(prompt.id);
+    const baseline = loadBaseline(modelKey, prompt.id);
     const regressions = baseline ? detectRegressions(report, baseline) : [];
 
     const passed =
@@ -280,12 +358,13 @@ async function evalPrompt(
       regressions.length === 0;
 
     if (updateBaselines) {
-      saveBaseline(prompt.id, report);
+      saveBaseline(modelKey, prompt.id, report);
     }
 
     return {
       promptId: prompt.id,
       category: prompt.category,
+      model: modelKey,
       quality: report,
       passed,
       regressions,
@@ -297,6 +376,7 @@ async function evalPrompt(
     return {
       promptId: prompt.id,
       category: prompt.category,
+      model: modelKey,
       quality: { overall: 0, dimensions: {}, frameCount: 0, totalEntities: 0, timestamp: '' } as any,
       passed: false,
       regressions: [],
@@ -308,40 +388,39 @@ async function evalPrompt(
   }
 }
 
-// ── CLI ──────────────────────────────────────────────────────────────
+// ── Run eval for a single model ──────────────────────────────────────
 
-async function main() {
-  const args = process.argv.slice(2);
-  const updateBaselines = args.includes('--update') || args.includes('--update-baselines');
-  const singlePrompt = args.find((_, i) => args[i - 1] === '--prompt');
-  const categoryFilter = args.find((_, i) => args[i - 1] === '--category');
+interface ModelSummary {
+  modelKey: string;
+  displayName: string;
+  results: EvalResult[];
+  passed: number;
+  failed: number;
+  avgQuality: number;
+}
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error('❌ ANTHROPIC_API_KEY environment variable required');
-    process.exit(1);
+async function evalModel(
+  modelKey: string,
+  config: ModelConfig,
+  filteredPrompts: GoldenPrompt[],
+  updateBaselines: boolean,
+): Promise<ModelSummary> {
+  let provider: LLMProvider;
+  try {
+    provider = createProvider(config);
+  } catch (err: any) {
+    console.log(`\n  ⚠️  Skipping ${config.displayName}: ${err.message}\n`);
+    return {
+      modelKey,
+      displayName: config.displayName,
+      results: [],
+      passed: 0,
+      failed: 0,
+      avgQuality: 0,
+    };
   }
 
-  const client = new Anthropic();
-
-  let filteredPrompts = prompts;
-  if (singlePrompt) {
-    filteredPrompts = prompts.filter((p) => p.id === singlePrompt);
-    if (filteredPrompts.length === 0) {
-      console.error(`❌ Prompt "${singlePrompt}" not found in prompts.json`);
-      process.exit(1);
-    }
-  } else if (categoryFilter) {
-    filteredPrompts = prompts.filter((p) => p.category === categoryFilter);
-    if (filteredPrompts.length === 0) {
-      console.error(`❌ Category "${categoryFilter}" not found`);
-      process.exit(1);
-    }
-  }
-
-  console.log('\n═══════════════════════════════════════════════════════════');
-  console.log('  Preplai Golden Dataset Evaluation');
-  console.log('═══════════════════════════════════════════════════════════');
-  console.log(`  Prompts: ${filteredPrompts.length}  |  Update baselines: ${updateBaselines}\n`);
+  console.log(`\n  ── ${config.displayName} (${modelKey}) ──\n`);
 
   const results: EvalResult[] = [];
   let passed = 0;
@@ -349,7 +428,7 @@ async function main() {
 
   for (const prompt of filteredPrompts) {
     process.stdout.write(`  ⏳ ${prompt.id.padEnd(30)}`);
-    const result = await evalPrompt(client, prompt, updateBaselines);
+    const result = await evalPrompt(provider, modelKey, prompt, updateBaselines);
     results.push(result);
 
     if (result.error) {
@@ -375,35 +454,113 @@ async function main() {
     }
   }
 
-  // ── Summary by category ──────────────────────────────────────────
+  const avgQuality = results.length > 0
+    ? Math.round(results.reduce((s, r) => s + r.quality.overall, 0) / results.length)
+    : 0;
 
-  console.log('\n═══════════════════════════════════════════════════════════');
-  console.log('  CATEGORY BREAKDOWN');
-  console.log('═══════════════════════════════════════════════════════════\n');
+  return { modelKey, displayName: config.displayName, results, passed, failed, avgQuality };
+}
 
-  const categories = [...new Set(results.map((r) => r.category))];
-  for (const cat of categories) {
-    const catResults = results.filter((r) => r.category === cat);
-    const catPassed = catResults.filter((r) => r.passed).length;
-    const avgQuality = Math.round(
-      catResults.reduce((s, r) => s + r.quality.overall, 0) / catResults.length,
-    );
-    const icon = catPassed === catResults.length ? '✅' : '⚠️';
-    console.log(`  ${icon} ${cat.padEnd(20)} ${catPassed}/${catResults.length} passed  avg=${avgQuality}/100`);
+// ── CLI ──────────────────────────────────────────────────────────────
+
+async function main() {
+  const args = process.argv.slice(2);
+  const updateBaselines = args.includes('--update') || args.includes('--update-baselines');
+  const singlePrompt = args.find((_, i) => args[i - 1] === '--prompt');
+  const categoryFilter = args.find((_, i) => args[i - 1] === '--category');
+  const modelFlag = args.find((_, i) => args[i - 1] === '--model') ?? 'claude-sonnet';
+
+  // Determine which models to run
+  let modelKeys: string[];
+  if (modelFlag === 'all') {
+    modelKeys = Object.keys(MODELS);
+  } else if (MODELS[modelFlag]) {
+    modelKeys = [modelFlag];
+  } else {
+    console.error(`❌ Unknown model: "${modelFlag}". Available: ${Object.keys(MODELS).join(', ')}, all`);
+    process.exit(1);
   }
 
-  // ── Overall summary ──────────────────────────────────────────────
+  // Filter prompts
+  let filteredPrompts = prompts;
+  if (singlePrompt) {
+    filteredPrompts = prompts.filter((p) => p.id === singlePrompt);
+    if (filteredPrompts.length === 0) {
+      console.error(`❌ Prompt "${singlePrompt}" not found in prompts.json`);
+      process.exit(1);
+    }
+  } else if (categoryFilter) {
+    filteredPrompts = prompts.filter((p) => p.category === categoryFilter);
+    if (filteredPrompts.length === 0) {
+      console.error(`❌ Category "${categoryFilter}" not found`);
+      process.exit(1);
+    }
+  }
 
-  const avgOverall = Math.round(
-    results.reduce((s, r) => s + r.quality.overall, 0) / results.length,
-  );
+  console.log('\n═══════════════════════════════════════════════════════════');
+  console.log('  Preplai Golden Dataset Evaluation');
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log(`  Models: ${modelKeys.join(', ')}  |  Prompts: ${filteredPrompts.length}  |  Update baselines: ${updateBaselines}`);
+
+  // Run eval for each model
+  const summaries: ModelSummary[] = [];
+  for (const modelKey of modelKeys) {
+    const summary = await evalModel(modelKey, MODELS[modelKey], filteredPrompts, updateBaselines);
+    summaries.push(summary);
+  }
+
+  // ── Category breakdown (per model) ────────────────────────────────
+
+  for (const summary of summaries) {
+    if (summary.results.length === 0) continue;
+
+    console.log(`\n═══════════════════════════════════════════════════════════`);
+    console.log(`  CATEGORY BREAKDOWN — ${summary.displayName}`);
+    console.log(`═══════════════════════════════════════════════════════════\n`);
+
+    const categories = [...new Set(summary.results.map((r) => r.category))];
+    for (const cat of categories) {
+      const catResults = summary.results.filter((r) => r.category === cat);
+      const catPassed = catResults.filter((r) => r.passed).length;
+      const avgQuality = Math.round(
+        catResults.reduce((s, r) => s + r.quality.overall, 0) / catResults.length,
+      );
+      const icon = catPassed === catResults.length ? '✅' : '⚠️';
+      console.log(`  ${icon} ${cat.padEnd(20)} ${catPassed}/${catResults.length} passed  avg=${avgQuality}/100`);
+    }
+  }
+
+  // ── Multi-model comparison table ──────────────────────────────────
+
+  if (summaries.length > 1) {
+    console.log('\n═══════════════════════════════════════════════════════════');
+    console.log('  MODEL COMPARISON');
+    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log(`  ${'MODEL'.padEnd(20)} ${'PASSED'.padEnd(10)} ${'AVG SCORE'.padEnd(12)} STATUS`);
+    console.log(`  ${'─'.repeat(20)} ${'─'.repeat(10)} ${'─'.repeat(12)} ${'─'.repeat(8)}`);
+    for (const s of summaries) {
+      if (s.results.length === 0) {
+        console.log(`  ${s.displayName.padEnd(20)} ${'skipped'.padEnd(10)} ${'—'.padEnd(12)} ⚠️`);
+      } else {
+        const passStr = `${s.passed}/${s.results.length}`;
+        const scoreStr = `${s.avgQuality}/100`;
+        const icon = s.failed === 0 ? '✅' : '❌';
+        console.log(`  ${s.displayName.padEnd(20)} ${passStr.padEnd(10)} ${scoreStr.padEnd(12)} ${icon}`);
+      }
+    }
+  }
+
+  // ── Overall summary ───────────────────────────────────────────────
+
+  const totalPassed = summaries.reduce((s, m) => s + m.passed, 0);
+  const totalResults = summaries.reduce((s, m) => s + m.results.length, 0);
+  const totalFailed = summaries.reduce((s, m) => s + m.failed, 0);
 
   console.log('\n═══════════════════════════════════════════════════════════');
   console.log('  OVERALL');
   console.log('═══════════════════════════════════════════════════════════\n');
-  console.log(`  Passed: ${passed}/${results.length}`);
-  console.log(`  Failed: ${failed}/${results.length}`);
-  console.log(`  Average quality: ${avgOverall}/100`);
+  console.log(`  Passed: ${totalPassed}/${totalResults}`);
+  console.log(`  Failed: ${totalFailed}/${totalResults}`);
 
   if (updateBaselines) {
     console.log(`\n  📝 Baselines updated in ${BASELINES_DIR}`);
@@ -411,8 +568,7 @@ async function main() {
 
   console.log('');
 
-  // Exit with error if any failed (for CI)
-  if (failed > 0) {
+  if (totalFailed > 0) {
     process.exit(1);
   }
 }
