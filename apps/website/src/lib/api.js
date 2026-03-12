@@ -92,6 +92,11 @@ export async function apiCreateKey(name) {
   return data;
 }
 
+export async function apiRenameKey(id, name) {
+  const { data } = await client.patch(`keys/${id}`, { name });
+  return data;
+}
+
 export async function apiRevokeKey(id) {
   const { data } = await client.delete(`keys/${id}`);
   return data;
@@ -125,9 +130,24 @@ export async function apiCreateOAuthClient(name, redirectUris) {
   return data;
 }
 
+export async function apiUpdateOAuthClient(clientId, updates) {
+  const { data } = await client.patch(`oauth/clients/${clientId}`, updates);
+  return data;
+}
+
+export async function apiDeleteOAuthClient(clientId) {
+  const { data } = await client.delete(`oauth/clients/${clientId}`);
+  return data;
+}
+
 // Settings
 export async function apiGetSettings() {
   const { data } = await client.get('settings');
+  return data;
+}
+
+export async function apiUpdateProfile(updates) {
+  const { data } = await client.patch('settings/profile', updates);
   return data;
 }
 

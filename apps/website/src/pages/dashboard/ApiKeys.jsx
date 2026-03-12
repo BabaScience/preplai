@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, Key, Copy, Check } from 'lucide-react';
+import { Plus, Key, Copy, Check, Pencil } from 'lucide-react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import EmptyState from '../../components/EmptyState';
 import Badge from '../../components/Badge';
 import Modal from '../../components/Modal';
 import Alert from '../../components/Alert';
 import Input from '../../components/Input';
-import { apiGetKeys, apiCreateKey, apiRevokeKey } from '../../lib/api';
+import { apiGetKeys, apiCreateKey, apiRenameKey, apiRevokeKey } from '../../lib/api';
 import { formatDate } from '../../utils/format';
 
 export default function ApiKeys() {
@@ -20,6 +20,12 @@ export default function ApiKeys() {
   const [createError, setCreateError] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Rename state
+  const [renameKey, setRenameKey] = useState(null);
+  const [renameName, setRenameName] = useState('');
+  const [renameError, setRenameError] = useState('');
+  const [renameLoading, setRenameLoading] = useState(false);
 
   const loadKeys = useCallback(async () => {
     setLoading(true);
@@ -63,6 +69,27 @@ export default function ApiKeys() {
     } catch (err) {
       alert(err.message);
     }
+  };
+
+  const handleRename = async (e) => {
+    e.preventDefault();
+    setRenameError('');
+    setRenameLoading(true);
+    try {
+      await apiRenameKey(renameKey.id, renameName);
+      setRenameKey(null);
+      loadKeys();
+    } catch (err) {
+      setRenameError(err.message);
+    } finally {
+      setRenameLoading(false);
+    }
+  };
+
+  const openRename = (k) => {
+    setRenameKey(k);
+    setRenameName(k.name);
+    setRenameError('');
   };
 
   const handleCopyKey = () => {
@@ -152,12 +179,21 @@ export default function ApiKeys() {
                     </td>
                     <td>
                       {k.status === 'active' && (
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => setShowRevokeModal(k.id)}
-                        >
-                          Revoke
-                        </button>
+                        <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end' }}>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => openRename(k)}
+                            title="Rename token"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => setShowRevokeModal(k.id)}
+                          >
+                            Revoke
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -219,6 +255,43 @@ export default function ApiKeys() {
               </div>
             </form>
           )}
+        </Modal>
+      )}
+
+      {/* Rename Modal */}
+      {renameKey && (
+        <Modal open={!!renameKey} onClose={() => setRenameKey(null)}>
+          <h2>Rename Access Token</h2>
+          <Alert variant="error">{renameError}</Alert>
+          <form className="auth-form" onSubmit={handleRename}>
+            <Input
+              label="Token Name"
+              id="rename-key"
+              type="text"
+              placeholder="e.g. Production"
+              required
+              value={renameName}
+              onChange={(e) => setRenameName(e.target.value)}
+            />
+            <div style={{
+              fontSize: 'var(--text-xs)',
+              color: 'var(--color-text-muted)',
+              padding: 'var(--space-3)',
+              background: 'var(--color-bg-elevated)',
+              borderRadius: 'var(--radius-sm)',
+            }}>
+              <strong>Key:</strong>{' '}
+              <code style={{ fontSize: 'var(--text-xs)' }}>{renameKey.key_display}</code>
+            </div>
+            <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end', marginTop: 'var(--space-4)' }}>
+              <button type="button" className="btn btn-ghost" onClick={() => setRenameKey(null)}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary" disabled={renameLoading}>
+                {renameLoading ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </form>
         </Modal>
       )}
 

@@ -11,6 +11,7 @@ import {
   clearApiToken,
   apiGetSettings,
   apiUpdatePlayerPrefs,
+  apiUpdateProfile,
 } from '../../lib/api';
 
 const THEMES = [
@@ -30,6 +31,10 @@ export default function Settings() {
   const { email, logout } = useAuth();
   const navigate = useNavigate();
 
+  const [profileName, setProfileName] = useState('');
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileAlert, setProfileAlert] = useState({ type: '', msg: '' });
+
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
@@ -47,12 +52,27 @@ export default function Settings() {
     apiGetSettings()
       .then((data) => {
         if (data.user) {
+          setProfileName(data.user.name ?? '');
           setPlayerTheme(data.user.player_theme ?? 'cinema');
           setPlayerPalette(data.user.player_palette ?? 'default');
         }
       })
       .catch(() => {});
   }, []);
+
+  const handleProfileSave = async (e) => {
+    e.preventDefault();
+    setProfileAlert({ type: '', msg: '' });
+    setProfileLoading(true);
+    try {
+      await apiUpdateProfile({ name: profileName.trim() });
+      setProfileAlert({ type: 'success', msg: 'Profile updated.' });
+    } catch (err) {
+      setProfileAlert({ type: 'error', msg: err.message });
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
@@ -106,16 +126,46 @@ export default function Settings() {
         }}>
           Account
         </h3>
-        <div className="input-group" style={{ marginBottom: 'var(--space-6)' }}>
-          <label>Email</label>
-          <input
-            type="email"
-            className="input-field"
-            value={email || ''}
-            disabled
-            style={{ opacity: 0.6 }}
+        {profileAlert.msg && (
+          <Alert variant={profileAlert.type}>{profileAlert.msg}</Alert>
+        )}
+
+        <form onSubmit={handleProfileSave}>
+          <div className="input-group" style={{ marginBottom: 'var(--space-4)' }}>
+            <label>Email</label>
+            <input
+              type="email"
+              className="input-field"
+              value={email || ''}
+              disabled
+              style={{ opacity: 0.6 }}
+            />
+          </div>
+
+          <Input
+            label="Display Name"
+            id="profile-name"
+            type="text"
+            placeholder="Your name"
+            value={profileName}
+            onChange={(e) => setProfileName(e.target.value)}
           />
-        </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary btn-sm"
+            disabled={profileLoading}
+            style={{ marginTop: 'var(--space-2)' }}
+          >
+            {profileLoading ? 'Saving...' : 'Save Profile'}
+          </button>
+        </form>
+
+        <hr style={{
+          border: 'none',
+          borderTop: '1px solid var(--color-border)',
+          margin: 'var(--space-6) 0',
+        }} />
 
         <h3 style={{
           fontSize: 'var(--text-base)',

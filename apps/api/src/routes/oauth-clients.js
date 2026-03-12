@@ -83,4 +83,66 @@ router.get('/oauth/clients', async (req, res) => {
   res.json({ clients });
 });
 
+router.patch('/oauth/clients/:clientId', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const token = authHeader.slice(7);
+  let payload;
+  try {
+    payload = jwt.verify(token, JWT_SECRET);
+  } catch {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+
+  const { name, redirectUris } = req.body || {};
+  const update = {};
+  if (name) update.name = name;
+  if (Array.isArray(redirectUris) && redirectUris.length > 0) {
+    update.redirectUris = redirectUris;
+  }
+
+  if (Object.keys(update).length === 0) {
+    return res.status(400).json({ error: 'Nothing to update. Provide name or redirectUris.' });
+  }
+
+  const client = await OAuthClient.findOneAndUpdate(
+    { clientId: req.params.clientId, userId: payload.userId },
+    { $set: update },
+    { new: true, select: 'clientId name redirectUris createdAt' },
+  );
+
+  if (!client) {
+    return res.status(404).json({ error: 'OAuth client not found' });
+  }
+
+  res.json({ client });
+});
+
+router.delete('/oauth/clients/:clientId', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const token = authHeader.slice(7);
+  let payload;
+  try {
+    payload = jwt.verify(token, JWT_SECRET);
+  } catch {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+
+  const result = await OAuthClient.findOneAndDelete({
+    clientId: req.params.clientId,
+    userId: payload.userId,
+  });
+
+  if (!result) {
+    return res.status(404).json({ error: 'OAuth client not found' });
+  }
+
+  res.json({ message: 'OAuth client deleted' });
+});
+
 export default router;

@@ -75,6 +75,29 @@ router.post('/', async (req, res) => {
   }
 });
 
+// PATCH /api/keys/:id
+router.patch('/:id', async (req, res) => {
+  const { name } = req.body;
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Key name is required' });
+  }
+
+  try {
+    const key = await ApiKey.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.userId, revoked: false },
+      { $set: { name: name.trim() } },
+      { new: true, select: '_id name' },
+    );
+    if (!key) {
+      return res.status(404).json({ error: 'Access token not found' });
+    }
+    res.json({ message: 'Token renamed', name: key.name });
+  } catch (err) {
+    req.log?.error({ err }, 'Rename key failed');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // DELETE /api/keys/:id
 router.delete('/:id', async (req, res) => {
   try {
