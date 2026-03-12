@@ -13,3 +13,4 @@ export { Narration } from './models/Narration.js';
 export { McpUsageLog } from './models/McpUsageLog.js';
 export { OAuthClient } from './models/OAuthClient.js';
 export { OAuthAuthCode } from './models/OAuthAuthCode.js';
+export { OAuthRefreshToken } from './models/OAuthRefreshToken.js';
