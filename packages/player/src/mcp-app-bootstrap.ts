@@ -97,11 +97,95 @@ async function main(): Promise<void> {
   const frameCounter = document.getElementById('frame-counter');
   const prevBtn = document.getElementById('prev-frame');
   const nextBtn = document.getElementById('next-frame');
+  const playPauseBtn = document.getElementById('play-pause-toggle');
+  const openPlayerLink = document.getElementById('open-player-link') as HTMLAnchorElement | null;
   const fullscreenBtn = document.getElementById('fullscreen-toggle');
 
   if (!entityLayer || !connectionLayer) {
     console.error('[PRE-MCP] Missing SVG layers.');
     return;
+  }
+
+  // ── Web Speech API narration ──────────────────────────────────────
+  const synth = window.speechSynthesis;
+  let isSpeaking = false;
+  let isAutoPlaying = false;
+  let autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function stopSpeech(): void {
+    if (synth) synth.cancel();
+    isSpeaking = false;
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      autoAdvanceTimer = null;
+    }
+  }
+
+  function speakNarration(text: string): void {
+    if (!synth || !text) return;
+    stopSpeech();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    isSpeaking = true;
+    updatePlayPauseUI(true);
+
+    utterance.onend = () => {
+      isSpeaking = false;
+      if (isAutoPlaying) {
+        // Auto-advance after a brief pause
+        autoAdvanceTimer = setTimeout(() => {
+          if (currentScript && currentFrame < currentScript.frames.length - 1) {
+            goNext();
+            playCurrentFrame();
+          } else {
+            // Reached last frame — stop autoplay
+            isAutoPlaying = false;
+            updatePlayPauseUI(false);
+          }
+        }, 800);
+      } else {
+        updatePlayPauseUI(false);
+      }
+    };
+
+    utterance.onerror = () => {
+      isSpeaking = false;
+      updatePlayPauseUI(false);
+    };
+
+    synth.speak(utterance);
+  }
+
+  function updatePlayPauseUI(playing: boolean): void {
+    if (!playPauseBtn) return;
+    playPauseBtn.classList.toggle('play-state', !playing);
+    playPauseBtn.classList.toggle('pause-state', playing);
+    playPauseBtn.title = playing ? 'Pause (Space)' : 'Play (Space)';
+    playPauseBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+  }
+
+  function playCurrentFrame(): void {
+    if (!currentScript) return;
+    const frame = currentScript.frames[currentFrame];
+    const narration = (frame as any)?.narrationSegment || (frame as any)?.n || '';
+    if (narration) {
+      speakNarration(narration);
+    }
+  }
+
+  function togglePlayPause(): void {
+    if (isSpeaking) {
+      // Stop playback
+      stopSpeech();
+      isAutoPlaying = false;
+      updatePlayPauseUI(false);
+    } else {
+      // Start autoplay from current frame
+      isAutoPlaying = true;
+      playCurrentFrame();
+    }
   }
 
   // ── Scene + Narrator controllers ──────────────────────────────────
@@ -129,6 +213,9 @@ async function main(): Promise<void> {
         const idx = i;
         dot.addEventListener('click', () => {
           if (currentScript && idx >= 0 && idx < currentScript.frames.length) {
+            stopSpeech();
+            isAutoPlaying = false;
+            updatePlayPauseUI(false);
             currentFrame = idx;
             sceneController.seekToFrame(idx);
             updateFrameCounter();
@@ -175,14 +262,36 @@ async function main(): Promise<void> {
     updateFrameCounter();
   }
 
-  if (prevBtn) prevBtn.addEventListener('click', goPrev);
-  if (nextBtn) nextBtn.addEventListener('click', goNext);
+  if (prevBtn) prevBtn.addEventListener('click', () => {
+    stopSpeech();
+    isAutoPlaying = false;
+    updatePlayPauseUI(false);
+    goPrev();
+  });
+  if (nextBtn) nextBtn.addEventListener('click', () => {
+    stopSpeech();
+    isAutoPlaying = false;
+    updatePlayPauseUI(false);
+    goNext();
+  });
+  if (playPauseBtn) playPauseBtn.addEventListener('click', togglePlayPause);
 
   // ── Keyboard navigation ─────────────────────────────────────────
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight') goNext();
-    else if (e.key === 'ArrowLeft') goPrev();
-    else if (e.key === 'n' || e.key === 'N') {
+    if (e.key === 'ArrowRight') {
+      stopSpeech();
+      isAutoPlaying = false;
+      updatePlayPauseUI(false);
+      goNext();
+    } else if (e.key === 'ArrowLeft') {
+      stopSpeech();
+      isAutoPlaying = false;
+      updatePlayPauseUI(false);
+      goPrev();
+    } else if (e.key === ' ') {
+      e.preventDefault();
+      togglePlayPause();
+    } else if (e.key === 'n' || e.key === 'N') {
       const overlay = document.getElementById('narrator-overlay');
       overlay?.classList.toggle('hidden');
     }
@@ -223,6 +332,13 @@ async function main(): Promise<void> {
       setupAmbientParticles();
     }
 
+    // Set player URL link
+    const playerUrl = meta.playerUrl as string | undefined;
+    if (playerUrl && openPlayerLink) {
+      openPlayerLink.href = playerUrl;
+      openPlayerLink.style.display = 'flex';
+    }
+
     // Load and render the script
     const script = meta.script as VisualScript | undefined;
     if (script) {
@@ -250,6 +366,7 @@ async function main(): Promise<void> {
   };
 
   app.onteardown = async () => {
+    stopSpeech();
     return {};
   };
 
