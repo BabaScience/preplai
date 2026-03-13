@@ -203,6 +203,8 @@ OUTPUT FORMAT: Raw JSON object starting with { and ending with }`;
 
 // ── Parse visual script from LLM response ────────────────────────────
 
+import { diagnoseJsonError, formatDiagnosticConsole } from '../../packages/mcp-server/src/json-diagnostic.js';
+
 function parseVisualScript(text: string): any {
   const trimmed = text.trim();
   const stripped = trimmed
@@ -212,12 +214,24 @@ function parseVisualScript(text: string): any {
 
   try {
     return JSON.parse(stripped);
-  } catch {
+  } catch (err) {
+    // Try extracting just the JSON object
     const match = stripped.match(/\{[\s\S]*\}/);
     if (match) {
-      return JSON.parse(match[0]);
+      try {
+        return JSON.parse(match[0]);
+      } catch (innerErr) {
+        const diagnostic = diagnoseJsonError(match[0], innerErr);
+        throw new Error(
+          `Malformed JSON in visual script.\n${formatDiagnosticConsole(diagnostic)}`
+        );
+      }
     }
-    throw new Error(`Could not parse JSON from LLM response: ${stripped.slice(0, 200)}...`);
+
+    const diagnostic = diagnoseJsonError(stripped, err);
+    throw new Error(
+      `Could not parse JSON from LLM response.\n${formatDiagnosticConsole(diagnostic)}`
+    );
   }
 }
 

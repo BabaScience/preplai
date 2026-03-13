@@ -7,11 +7,11 @@
     "entityPersistence": 13,
     "narrationCoverage": 100,
     "formatCompliance": 100,
-    "narrationQuality": 88,
-    "narrativeArc": 90,
-    "connectionCompleteness": 48
+    "narrationQuality": 90,
+    "narrativeArc": 76,
+    "connectionCompleteness": 62
   },
   "frameCount": 4,
-  "totalEntities": 34,
-  "timestamp": "2026-03-13T10:07:46.296Z"
+  "totalEntities": 33,
+  "timestamp": "2026-03-13T13:09:13.773Z"
 }

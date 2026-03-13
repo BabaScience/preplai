@@ -1,17 +1,17 @@
 {
-  "overall": 91,
+  "overall": 89,
   "dimensions": {
     "entityDensity": 85,
-    "layoutQuality": 93,
-    "visualBalance": 53,
+    "layoutQuality": 94,
+    "visualBalance": 74,
     "entityPersistence": 100,
     "narrationCoverage": 100,
     "formatCompliance": 100,
-    "narrationQuality": 96,
-    "narrativeArc": 93,
-    "connectionCompleteness": 84
+    "narrationQuality": 86,
+    "narrativeArc": 94,
+    "connectionCompleteness": 71
   },
-  "frameCount": 4,
-  "totalEntities": 33,
-  "timestamp": "2026-03-13T10:01:35.115Z"
+  "frameCount": 5,
+  "totalEntities": 48,
+  "timestamp": "2026-03-13T13:03:04.600Z"
 }
