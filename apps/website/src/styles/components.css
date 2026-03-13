@@ -594,8 +594,8 @@
 @media (max-width: 768px) {
   .showcase-carousel {
     max-width: 100%;
-    margin-left: var(--space-4);
-    margin-right: var(--space-4);
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .showcase-carousel-arrow {
@@ -603,7 +603,17 @@
   }
 
   .showcase-carousel-player {
-    border-radius: 8px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .showcase-carousel-narrator {
+    width: calc(100% - 24px);
+    font-size: 12px;
+    padding: 6px 10px;
+    bottom: 8px;
+    min-height: 20px;
   }
 
   .showcase-carousel-dot-label {
@@ -612,6 +622,13 @@
 
   .showcase-carousel-dot {
     padding: var(--space-2);
+  }
+
+  .hero-player-live {
+    margin-left: calc(-1 * var(--space-6));
+    margin-right: calc(-1 * var(--space-6));
+    border-radius: 0;
+    max-width: none;
   }
 }
 
