@@ -379,7 +379,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
             text: html,
             _meta: {
               ui: {
-                domain: 'preplai',
+                domain: '7933d89bad7a6221b3baf1bdbde12f3c.claudemcpcontent.com',
                 prefersBorder: false,
                 csp: {
                   resourceDomains: [
