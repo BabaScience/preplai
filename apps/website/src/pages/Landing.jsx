@@ -121,11 +121,10 @@ export default function Landing() {
             <pre>{`{
   `}<span className="ck">&quot;mcpServers&quot;</span>{`: {
     `}<span className="ck">&quot;preplai&quot;</span>{`: {
-      `}<span className="ck">&quot;command&quot;</span>{`: `}<span className="cs">&quot;npx&quot;</span>{`,
-      `}<span className="ck">&quot;args&quot;</span>{`: [`}<span className="cs">&quot;-y&quot;</span>{`, `}<span className="cs">&quot;@pyroprompts/mcp-stdio-to-streamable-http-adapter&quot;</span>{`],
-      `}<span className="ck">&quot;env&quot;</span>{`: {
-        `}<span className="ck">&quot;URI&quot;</span>{`: `}<span className="cs">&quot;https://player.preplai.com/mcp&quot;</span>{`,
-        `}<span className="ck">&quot;BEARER_TOKEN&quot;</span>{`: `}<span className="cs">&quot;your-access-token&quot;</span>{`
+      `}<span className="ck">&quot;url&quot;</span>{`: `}<span className="cs">&quot;https://player.preplai.com/mcp&quot;</span>{`,
+      `}<span className="ck">&quot;headers&quot;</span>{`: {
+        `}<span className="ck">&quot;Authorization&quot;</span>{`: `}<span className="cs">&quot;Bearer plai_**************&quot;</span>{`,
+        `}<span className="ck">&quot;Content-Type&quot;</span>{`: `}<span className="cs">&quot;application/json&quot;</span>{`
       }
     }
   }
