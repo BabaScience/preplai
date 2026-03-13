@@ -12,6 +12,8 @@
  *   pnpm run eval:golden -- --update                        # Update baselines
  *   pnpm run eval:golden -- --prompt cs-binary-search       # Run single prompt
  *   pnpm run eval:golden -- --category cs-student           # Run one category
+ *   pnpm run eval:golden -- --judge                         # Enable LLM-as-judge scoring
+ *   pnpm run eval:golden -- --judge --judge-model gpt-4o    # Use GPT-4o as judge
  *   pnpm run eval:golden -- --model gpt-4o --prompt cs-binary-search
  *
  * Environment:
@@ -24,6 +26,8 @@ import { fileURLToPath } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { scoreVisualScript } from '../../packages/mcp-server/dist/quality-scorer.js';
+import { judgeVisualScript, combineScores } from '../../packages/mcp-server/dist/llm-judge.js';
+import type { LlmJudgeReport } from '../../packages/mcp-server/dist/llm-judge.js';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -67,6 +71,8 @@ interface EvalResult {
   entityTypesFound: string[];
   missingExpectedTypes: string[];
   frameCount: number;
+  judgeReport?: LlmJudgeReport;
+  combinedScore?: number;
   error?: string;
 }
 
@@ -197,6 +203,8 @@ OUTPUT FORMAT: Raw JSON object starting with { and ending with }`;
 
 // ── Parse visual script from LLM response ────────────────────────────
 
+import { diagnoseJsonError, formatDiagnosticConsole } from '../../packages/mcp-server/src/json-diagnostic.js';
+
 function parseVisualScript(text: string): any {
   const trimmed = text.trim();
   const stripped = trimmed
@@ -206,12 +214,24 @@ function parseVisualScript(text: string): any {
 
   try {
     return JSON.parse(stripped);
-  } catch {
+  } catch (err) {
+    // Try extracting just the JSON object
     const match = stripped.match(/\{[\s\S]*\}/);
     if (match) {
-      return JSON.parse(match[0]);
+      try {
+        return JSON.parse(match[0]);
+      } catch (innerErr) {
+        const diagnostic = diagnoseJsonError(match[0], innerErr);
+        throw new Error(
+          `Malformed JSON in visual script.\n${formatDiagnosticConsole(diagnostic)}`
+        );
+      }
     }
-    throw new Error(`Could not parse JSON from LLM response: ${stripped.slice(0, 200)}...`);
+
+    const diagnostic = diagnoseJsonError(stripped, err);
+    throw new Error(
+      `Could not parse JSON from LLM response.\n${formatDiagnosticConsole(diagnostic)}`
+    );
   }
 }
 
@@ -337,6 +357,8 @@ async function evalPrompt(
   modelKey: string,
   prompt: GoldenPrompt,
   updateBaselines: boolean,
+  judgeProvider?: LLMProvider,
+  judgeModelName?: string,
 ): Promise<EvalResult> {
   try {
     const text = await provider(SYSTEM_PROMPT, prompt.prompt);
@@ -351,6 +373,24 @@ async function evalPrompt(
 
     const baseline = loadBaseline(modelKey, prompt.id);
     const regressions = baseline ? detectRegressions(report, baseline) : [];
+
+    // ── LLM Judge (optional) ──────────────────────────────────────
+    let judgeReport: LlmJudgeReport | undefined;
+    let combinedScore: number | undefined;
+
+    if (judgeProvider && judgeModelName) {
+      try {
+        judgeReport = await judgeVisualScript({
+          prompt: prompt.prompt,
+          visualScript: script,
+          provider: judgeProvider,
+          model: judgeModelName,
+        });
+        combinedScore = combineScores(report.overall, judgeReport.overall);
+      } catch (judgeErr: any) {
+        console.log(`\n      ⚠️  Judge failed: ${judgeErr.message}`);
+      }
+    }
 
     const passed =
       report.overall >= prompt.minQuality &&
@@ -371,6 +411,8 @@ async function evalPrompt(
       entityTypesFound: entityTypes,
       missingExpectedTypes: missingTypes,
       frameCount: report.frameCount,
+      judgeReport,
+      combinedScore,
     };
   } catch (err: any) {
     return {
@@ -397,6 +439,8 @@ interface ModelSummary {
   passed: number;
   failed: number;
   avgQuality: number;
+  avgJudge?: number;
+  avgCombined?: number;
 }
 
 async function evalModel(
@@ -404,6 +448,8 @@ async function evalModel(
   config: ModelConfig,
   filteredPrompts: GoldenPrompt[],
   updateBaselines: boolean,
+  judgeProvider?: LLMProvider,
+  judgeModelName?: string,
 ): Promise<ModelSummary> {
   let provider: LLMProvider;
   try {
@@ -428,17 +474,21 @@ async function evalModel(
 
   for (const prompt of filteredPrompts) {
     process.stdout.write(`  ⏳ ${prompt.id.padEnd(30)}`);
-    const result = await evalPrompt(provider, modelKey, prompt, updateBaselines);
+    const result = await evalPrompt(provider, modelKey, prompt, updateBaselines, judgeProvider, judgeModelName);
     results.push(result);
+
+    const judgeStr = result.judgeReport
+      ? `  judge=${result.judgeReport.overall}/10  combined=${result.combinedScore}/100`
+      : '';
 
     if (result.error) {
       console.log(`❌ ERROR: ${result.error}`);
       failed++;
     } else if (result.passed) {
-      console.log(`✅ ${result.quality.overall}/100  (${result.frameCount} frames, ${result.quality.totalEntities} entities)`);
+      console.log(`✅ ${result.quality.overall}/100  (${result.frameCount} frames, ${result.quality.totalEntities} entities)${judgeStr}`);
       passed++;
     } else {
-      console.log(`❌ ${result.quality.overall}/100  min=${prompt.minQuality}`);
+      console.log(`❌ ${result.quality.overall}/100  min=${prompt.minQuality}${judgeStr}`);
       if (result.regressions.length > 0) {
         for (const r of result.regressions) {
           console.log(`      ↓ regression: ${r}`);
@@ -458,7 +508,16 @@ async function evalModel(
     ? Math.round(results.reduce((s, r) => s + r.quality.overall, 0) / results.length)
     : 0;
 
-  return { modelKey, displayName: config.displayName, results, passed, failed, avgQuality };
+  // Judge averages (only if any results have judge reports)
+  const judgedResults = results.filter((r) => r.judgeReport);
+  const avgJudge = judgedResults.length > 0
+    ? Number((judgedResults.reduce((s, r) => s + r.judgeReport!.overall, 0) / judgedResults.length).toFixed(1))
+    : undefined;
+  const avgCombined = judgedResults.length > 0
+    ? Math.round(judgedResults.reduce((s, r) => s + (r.combinedScore ?? 0), 0) / judgedResults.length)
+    : undefined;
+
+  return { modelKey, displayName: config.displayName, results, passed, failed, avgQuality, avgJudge, avgCombined };
 }
 
 // ── CLI ──────────────────────────────────────────────────────────────
@@ -466,9 +525,11 @@ async function evalModel(
 async function main() {
   const args = process.argv.slice(2);
   const updateBaselines = args.includes('--update') || args.includes('--update-baselines');
+  const useJudge = args.includes('--judge');
   const singlePrompt = args.find((_, i) => args[i - 1] === '--prompt');
   const categoryFilter = args.find((_, i) => args[i - 1] === '--category');
   const modelFlag = args.find((_, i) => args[i - 1] === '--model') ?? 'claude-sonnet';
+  const judgeModelFlag = args.find((_, i) => args[i - 1] === '--judge-model') ?? 'claude-sonnet';
 
   // Determine which models to run
   let modelKeys: string[];
@@ -479,6 +540,26 @@ async function main() {
   } else {
     console.error(`❌ Unknown model: "${modelFlag}". Available: ${Object.keys(MODELS).join(', ')}, all`);
     process.exit(1);
+  }
+
+  // Create judge provider if --judge flag is set
+  let judgeProvider: LLMProvider | undefined;
+  let judgeModelName: string | undefined;
+
+  if (useJudge) {
+    const judgeConfig = MODELS[judgeModelFlag];
+    if (!judgeConfig) {
+      console.error(`❌ Unknown judge model: "${judgeModelFlag}". Available: ${Object.keys(MODELS).join(', ')}`);
+      process.exit(1);
+    }
+    try {
+      judgeProvider = createProvider(judgeConfig);
+      judgeModelName = judgeConfig.model;
+      console.log(`\n  🧑‍⚖️  LLM Judge enabled: ${judgeConfig.displayName}`);
+    } catch (err: any) {
+      console.error(`❌ Could not create judge provider: ${err.message}`);
+      process.exit(1);
+    }
   }
 
   // Filter prompts
@@ -500,12 +581,12 @@ async function main() {
   console.log('\n═══════════════════════════════════════════════════════════');
   console.log('  Preplai Golden Dataset Evaluation');
   console.log('═══════════════════════════════════════════════════════════');
-  console.log(`  Models: ${modelKeys.join(', ')}  |  Prompts: ${filteredPrompts.length}  |  Update baselines: ${updateBaselines}`);
+  console.log(`  Models: ${modelKeys.join(', ')}  |  Prompts: ${filteredPrompts.length}  |  Update baselines: ${updateBaselines}  |  Judge: ${useJudge ? judgeModelFlag : 'off'}`);
 
   // Run eval for each model
   const summaries: ModelSummary[] = [];
   for (const modelKey of modelKeys) {
-    const summary = await evalModel(modelKey, MODELS[modelKey], filteredPrompts, updateBaselines);
+    const summary = await evalModel(modelKey, MODELS[modelKey], filteredPrompts, updateBaselines, judgeProvider, judgeModelName);
     summaries.push(summary);
   }
 
@@ -533,19 +614,38 @@ async function main() {
   // ── Multi-model comparison table ──────────────────────────────────
 
   if (summaries.length > 1) {
+    const hasJudge = summaries.some((s) => s.avgJudge !== undefined);
     console.log('\n═══════════════════════════════════════════════════════════');
     console.log('  MODEL COMPARISON');
     console.log('═══════════════════════════════════════════════════════════\n');
-    console.log(`  ${'MODEL'.padEnd(20)} ${'PASSED'.padEnd(10)} ${'AVG SCORE'.padEnd(12)} STATUS`);
-    console.log(`  ${'─'.repeat(20)} ${'─'.repeat(10)} ${'─'.repeat(12)} ${'─'.repeat(8)}`);
-    for (const s of summaries) {
-      if (s.results.length === 0) {
-        console.log(`  ${s.displayName.padEnd(20)} ${'skipped'.padEnd(10)} ${'—'.padEnd(12)} ⚠️`);
-      } else {
-        const passStr = `${s.passed}/${s.results.length}`;
-        const scoreStr = `${s.avgQuality}/100`;
-        const icon = s.failed === 0 ? '✅' : '❌';
-        console.log(`  ${s.displayName.padEnd(20)} ${passStr.padEnd(10)} ${scoreStr.padEnd(12)} ${icon}`);
+
+    if (hasJudge) {
+      console.log(`  ${'MODEL'.padEnd(20)} ${'PASSED'.padEnd(10)} ${'HEURISTIC'.padEnd(12)} ${'JUDGE'.padEnd(10)} ${'COMBINED'.padEnd(12)} STATUS`);
+      console.log(`  ${'─'.repeat(20)} ${'─'.repeat(10)} ${'─'.repeat(12)} ${'─'.repeat(10)} ${'─'.repeat(12)} ${'─'.repeat(8)}`);
+      for (const s of summaries) {
+        if (s.results.length === 0) {
+          console.log(`  ${s.displayName.padEnd(20)} ${'skipped'.padEnd(10)} ${'—'.padEnd(12)} ${'—'.padEnd(10)} ${'—'.padEnd(12)} ⚠️`);
+        } else {
+          const passStr = `${s.passed}/${s.results.length}`;
+          const heuristicStr = `${s.avgQuality}/100`;
+          const judgeStr = s.avgJudge !== undefined ? `${s.avgJudge}/10` : '—';
+          const combinedStr = s.avgCombined !== undefined ? `${s.avgCombined}/100` : '—';
+          const icon = s.failed === 0 ? '✅' : '❌';
+          console.log(`  ${s.displayName.padEnd(20)} ${passStr.padEnd(10)} ${heuristicStr.padEnd(12)} ${judgeStr.padEnd(10)} ${combinedStr.padEnd(12)} ${icon}`);
+        }
+      }
+    } else {
+      console.log(`  ${'MODEL'.padEnd(20)} ${'PASSED'.padEnd(10)} ${'AVG SCORE'.padEnd(12)} STATUS`);
+      console.log(`  ${'─'.repeat(20)} ${'─'.repeat(10)} ${'─'.repeat(12)} ${'─'.repeat(8)}`);
+      for (const s of summaries) {
+        if (s.results.length === 0) {
+          console.log(`  ${s.displayName.padEnd(20)} ${'skipped'.padEnd(10)} ${'—'.padEnd(12)} ⚠️`);
+        } else {
+          const passStr = `${s.passed}/${s.results.length}`;
+          const scoreStr = `${s.avgQuality}/100`;
+          const icon = s.failed === 0 ? '✅' : '❌';
+          console.log(`  ${s.displayName.padEnd(20)} ${passStr.padEnd(10)} ${scoreStr.padEnd(12)} ${icon}`);
+        }
       }
     }
   }
@@ -555,6 +655,28 @@ async function main() {
   const totalPassed = summaries.reduce((s, m) => s + m.passed, 0);
   const totalResults = summaries.reduce((s, m) => s + m.results.length, 0);
   const totalFailed = summaries.reduce((s, m) => s + m.failed, 0);
+
+  // ── Judge dimension breakdown (if enabled) ──────────────────────
+  if (useJudge) {
+    for (const summary of summaries) {
+      const judged = summary.results.filter((r) => r.judgeReport);
+      if (judged.length === 0) continue;
+
+      console.log(`\n═══════════════════════════════════════════════════════════`);
+      console.log(`  LLM JUDGE BREAKDOWN — ${summary.displayName}`);
+      console.log(`═══════════════════════════════════════════════════════════\n`);
+
+      const avgCA = (judged.reduce((s, r) => s + r.judgeReport!.contentAccuracy.score, 0) / judged.length).toFixed(1);
+      const avgCo = (judged.reduce((s, r) => s + r.judgeReport!.coherence.score, 0) / judged.length).toFixed(1);
+      const avgEA = (judged.reduce((s, r) => s + r.judgeReport!.entityAppropriateness.score, 0) / judged.length).toFixed(1);
+
+      console.log(`  Content Accuracy:        ${avgCA}/10`);
+      console.log(`  Coherence:               ${avgCo}/10`);
+      console.log(`  Entity Appropriateness:  ${avgEA}/10`);
+      console.log(`  Overall Judge:           ${summary.avgJudge}/10`);
+      console.log(`  Combined (H40+J60):      ${summary.avgCombined}/100`);
+    }
+  }
 
   console.log('\n═══════════════════════════════════════════════════════════');
   console.log('  OVERALL');

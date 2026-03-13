@@ -11,6 +11,7 @@ import type { TtsService } from './tts-service.js';
 import { getUserPlayerPrefs, buildPlayerUrlSuffix } from './auth.js';
 import { mcpOk, mcpNotFound, mcpErr, mcpValidationError, type McpToolContent } from './errors.js';
 import { getIllustrationsReference, type IllustrationsReference } from './illustrations-reference.js';
+import { diagnoseJsonError, formatDiagnosticMcp } from './json-diagnostic.js';
 
 // ── Dependency injection interfaces ───────────────────────────────────
 
@@ -156,15 +157,50 @@ export async function handleGetIllustrations(): Promise<McpToolContent> {
 
 // ── Tool 3: add_scene ─────────────────────────────────────────────────
 
+/**
+ * If the agent sends visual_script as a string instead of an object,
+ * try to parse it and return a diagnostic error if it fails.
+ */
+function coerceVisualScript(raw: any): { ok: true; value: any } | { ok: false; error: string } {
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    return { ok: true, value: raw };
+  }
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim()
+      .replace(/^```(?:json)?\s*\n?/i, '')
+      .replace(/\n?```\s*$/i, '')
+      .trim();
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && typeof parsed === 'object') {
+        return { ok: true, value: parsed };
+      }
+      return { ok: false, error: 'visual_script must be a JSON object, not ' + typeof parsed + '.' };
+    } catch (err) {
+      const diagnostic = diagnoseJsonError(trimmed, err);
+      return {
+        ok: false,
+        error: `visual_script contains malformed JSON.\n${formatDiagnosticMcp(diagnostic)}`,
+      };
+    }
+  }
+  return { ok: false, error: 'visual_script must be a JSON object with { sid, td, f }. Received: ' + typeof raw };
+}
+
 export async function handleAddScene(
   args: { session_id: string; visual_script: any },
   deps: SceneDeps,
 ): Promise<McpToolContent> {
-  const { session_id, visual_script } = args;
+  const { session_id } = args;
   const { store, sse } = deps;
 
   const session = store.getSession(session_id);
   if (!session) return mcpNotFound(session_id);
+
+  // Coerce string → object with diagnostic on failure
+  const coerced = coerceVisualScript(args.visual_script);
+  if (!coerced.ok) return mcpValidationError(coerced.error);
+  const visual_script = coerced.value;
 
   // Expand compact format (short keys, aliases) before validation
   const expandResult = stage0Expand(visual_script);
@@ -241,11 +277,16 @@ export async function handleUpdateScene(
   args: { session_id: string; visual_script: any },
   deps: SceneDeps,
 ): Promise<McpToolContent> {
-  const { session_id, visual_script } = args;
+  const { session_id } = args;
   const { store, sse } = deps;
 
   const session = store.getSession(session_id);
   if (!session) return mcpNotFound(session_id);
+
+  // Coerce string → object with diagnostic on failure
+  const coerced = coerceVisualScript(args.visual_script);
+  if (!coerced.ok) return mcpValidationError(coerced.error);
+  const visual_script = coerced.value;
 
   // Expand compact format before validation
   const expandResult = stage0Expand(visual_script);

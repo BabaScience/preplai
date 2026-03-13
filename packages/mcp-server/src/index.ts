@@ -43,6 +43,10 @@ export {
   handleRemoveScene,
 } from './tools.js';
 
+// JSON diagnostic
+export { diagnoseJsonError, formatDiagnosticConsole, formatDiagnosticMcp, safeParseJson } from './json-diagnostic.js';
+export type { JsonDiagnostic } from './json-diagnostic.js';
+
 // Audio / TTS
 export { AudioStore } from './audio-store.js';
 export { TtsService } from './tts-service.js';
