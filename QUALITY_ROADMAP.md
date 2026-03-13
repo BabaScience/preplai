@@ -1,7 +1,7 @@
 # Preplai Quality & Automation Roadmap
 
-> **Last updated:** 2026-03-12
-> **Status:** Phase 1 complete, Phase 2 partial, Phase 3 complete
+> **Last updated:** 2026-03-13
+> **Status:** Phase 1 complete, Phase 1b complete, Phase 2 partial, Phase 3 complete, Phase 4 in progress
 
 ---
 
@@ -20,6 +20,38 @@
 - [x] 34 unit tests in `quality-scorer.test.ts`
 - [x] Wire into `add_scene` handler (async, fire-and-forget)
 - [x] Prometheus histograms: `quality_score_overall`, `quality_score_dimension`, `quality_frame_count`, `quality_entity_count`
+
+### 1b. Advanced Heuristic Scoring ✅ COMPLETE
+
+> Three new dimensions that close the gap between "well-formed JSON" and "good presentation".
+> All heuristic (no API calls), cheap to compute, high signal. 54 total tests (up from 34).
+
+#### 1b.1 Narration Quality (content depth without LLM) ✅ DONE
+- [x] **Word count scoring** — 20-60 words per frame = ideal. <10 = too thin, >100 = wall of text
+- [x] **Specificity scoring** — ratio of technical/proper terms vs generic words. "PostgreSQL" > "database", "O(log n)" > "fast"
+- [x] **Label specificity** — entity labels that use proper names vs generic ("Redis Cache" > "Cache", "API Gateway" > "Service")
+- [x] **Narration-highlight alignment** — if a frame has `highlight: true` on entity X, the narration should mention X's label
+- [x] Unit tests for narrationQuality dimension (6 tests)
+
+#### 1b.2 Narrative Arc (storytelling structure) ✅ DONE
+- [x] **Complexity growth** — entity count should generally increase across frames (establish → build → resolve)
+- [x] **Highlight progression** — the highlighted entity should change across frames, not stay on the same one
+- [x] **Introduction rate** — new entities per frame. >5 new entities at once = overwhelming. 0 new for 3+ frames = stagnant
+- [x] **Frame count adequacy** — penalise <3 frames (too simple) and >8 frames (too long for most topics)
+- [x] Unit tests for narrativeArc dimension (6 tests)
+
+#### 1b.3 Connection Completeness (diagram quality) ✅ DONE
+- [x] **Orphan entity ratio** — % of content entities not connected by any Arrow/DataFlow. High orphan % = disconnected diagram
+- [x] **Connection reference integrity** — do all Arrow src/tgt IDs actually exist as entities in the same frame?
+- [x] Unit tests for connectionCompleteness dimension (5 tests)
+
+#### 1b.4 Integration ✅ DONE
+- [x] Add all 3 new dimensions to `scoreVisualScript()` aggregate
+- [x] Rebalance weights: 9 dimensions (narrationQuality 16%, narrativeArc 14%, connectionCompleteness 12%, entityDensity/layoutQuality/entityPersistence 12% each, narrationCoverage 10%, visualBalance/formatCompliance 6% each)
+- [x] Update `QualityReport` type with new dimension fields
+- [x] Prometheus metrics auto-track new dimensions via `qualityScoreDimension` label iteration — no code changes needed
+- [ ] Update golden dataset baselines after scorer changes (run `pnpm run eval:golden -- --update`)
+- [x] All 54 tests pass (34 existing + 20 new), full suite 769/769 green
 
 ### 1.2 Visual Regression Testing (SVG Snapshots) ✅ DONE
 - [x] SVG structural snapshot testing via Vitest (no heavy Playwright dep needed)
@@ -79,26 +111,45 @@
 
 ---
 
-## Phase 4: Full Agent Loop Testing (Month 2)
+## Phase 4: Full Agent Loop Testing (Month 2) — IN PROGRESS
 
-### 4.1 MCP-Bench Style Evaluation
+### 4.1 LLM-as-Judge Module ✅ DONE
+- [x] `packages/mcp-server/src/llm-judge.ts` — 3-dimension LLM evaluation
+  - Content Accuracy (45% weight): Does presentation correctly explain the topic?
+  - Coherence (30% weight): Does narrative flow logically across frames?
+  - Entity Appropriateness (25% weight): Are the right entity types used?
+- [x] Detailed rubric with 1-10 scale per dimension (inspired by PPTEval + Agent-as-Judge)
+- [x] `serialiseForJudge()` — extracts id, type, label, highlight, narration per frame
+- [x] `parseJudgeResponse()` — handles JSON, markdown fences, partial extraction
+- [x] `combineScores(heuristic, judge)` — unified 0-100 score (heuristic 40% + judge 60%)
+- [x] 11 unit tests in `llm-judge.test.ts` (all passing)
+
+### 4.2 Eval Runner Integration ✅ DONE
+- [x] `--judge` flag enables LLM-as-judge scoring during golden dataset eval
+- [x] `--judge-model` flag to select judge model (default: claude-sonnet)
+- [x] Judge scores shown per-prompt in eval output
+- [x] Judge dimension breakdown (Content Accuracy, Coherence, Entity Appropriateness)
+- [x] Combined score (heuristic + judge) in model comparison table
+- [x] Category breakdown includes judge averages
+
+### 4.3 MCP-Bench Style Evaluation
 - [ ] Build test harness that sends prompts through actual MCP tool chain
 - [ ] Validate tool call sequence (create_session → add_scene flow)
 - [ ] AST validation of `add_scene` payloads (schema + entity reference integrity)
-- [ ] Score with quality scorer + LLM-as-judge for content/design/coherence
+- [x] Score with quality scorer + LLM-as-judge for content/design/coherence
 - [ ] Nightly CI job running full eval suite
 
-### 4.2 Agent-as-Judge (Visual Evaluation)
+### 4.4 Agent-as-Judge (Visual Evaluation)
 - [ ] Render visual scripts to PNG via Playwright
 - [ ] Use LLM vision model to score rendered output
 - [ ] Compare visual quality across model versions
 - [ ] Track visual quality regression over time
 
-### 4.3 PPTEval-Inspired 3-Dimension Scoring
-- [ ] Content dimension: entity accuracy, narration specificity, information completeness
-- [ ] Design dimension: layout quality, spacing, entity density, color usage
-- [ ] Coherence dimension: narrative arc, visual consistency, highlight progression
-- [ ] LLM judge rubrics for each dimension
+### 4.5 PPTEval-Inspired 3-Dimension Scoring ✅ DONE (via LLM Judge + Heuristics)
+- [x] Content dimension: LLM judge contentAccuracy + heuristic narrationQuality
+- [x] Design dimension: heuristic entityDensity, layoutQuality, visualBalance, connectionCompleteness
+- [x] Coherence dimension: LLM judge coherence + heuristic narrativeArc, entityPersistence
+- [x] LLM judge rubrics for each dimension
 
 ---
 

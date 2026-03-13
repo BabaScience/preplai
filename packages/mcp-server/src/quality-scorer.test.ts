@@ -12,6 +12,9 @@ import {
   scoreEntityPersistence,
   scoreNarrationCoverage,
   scoreFormatCompliance,
+  scoreNarrationQuality,
+  scoreNarrativeArc,
+  scoreConnectionCompleteness,
   scoreVisualScript,
 } from './quality-scorer.js';
 
@@ -342,6 +345,266 @@ describe('scoreFormatCompliance', () => {
   });
 });
 
+// ── Narration Quality ────────────────────────────────────────────────────
+
+describe('scoreNarrationQuality', () => {
+  it('returns 0 for empty frames', () => {
+    expect(scoreNarrationQuality([]).score).toBe(0);
+  });
+
+  it('scores 0 for frames with no narration', () => {
+    const frame = makeFrame([makeEntity()], '');
+    expect(scoreNarrationQuality([frame]).score).toBe(0);
+  });
+
+  it('scores low for very short narration', () => {
+    const frame = makeFrame([makeEntity()], 'This is short.');
+    const result = scoreNarrationQuality([frame]);
+    expect(result.score).toBeLessThan(50);
+  });
+
+  it('scores high for ideal-length narration with technical terms', () => {
+    const frame = makeFrame(
+      [makeEntity()],
+      'Binary search halves the search space each iteration by maintaining two pointers, lo and hi. Each comparison eliminates half the remaining elements, giving O(log n) time complexity.',
+    );
+    const result = scoreNarrationQuality([frame]);
+    expect(result.score).toBeGreaterThanOrEqual(60);
+  });
+
+  it('rewards narration with specific technical terms', () => {
+    const technical = makeFrame(
+      [makeEntity()],
+      'The PostgreSQL database handles 10000 req/s with Redis caching, reducing p95 latency from 200ms to 5ms across the API gateway.',
+    );
+    const generic = makeFrame(
+      [makeEntity()],
+      'The database is very fast and handles many requests well with good performance and great caching capabilities throughout the system.',
+    );
+    const techScore = scoreNarrationQuality([technical]).score;
+    const genScore = scoreNarrationQuality([generic]).score;
+    expect(techScore).toBeGreaterThan(genScore);
+  });
+
+  it('gives alignment bonus when narration mentions highlighted entity label', () => {
+    const aligned = makeFrame(
+      [
+        makeEntity({ id: 'srv', type: 'Server', label: 'API Server' } as any),
+        makeEntity({ id: 'db', type: 'Database', label: 'PostgreSQL', highlight: true } as any),
+      ],
+      'PostgreSQL handles the primary data storage, providing ACID compliance and supporting complex queries across multiple tables.',
+    );
+    const misaligned = makeFrame(
+      [
+        makeEntity({ id: 'srv', type: 'Server', label: 'API Server' } as any),
+        makeEntity({ id: 'db', type: 'Database', label: 'PostgreSQL', highlight: true } as any),
+      ],
+      'The server handles incoming requests and routes them to the appropriate backend services for processing and response generation.',
+    );
+    const alignedScore = scoreNarrationQuality([aligned]).score;
+    const misalignedScore = scoreNarrationQuality([misaligned]).score;
+    expect(alignedScore).toBeGreaterThanOrEqual(misalignedScore);
+  });
+
+  it('penalises excessively long narration', () => {
+    const longText = Array(30).fill('The system processes data through multiple layers.').join(' ');
+    const frame = makeFrame([makeEntity()], longText);
+    const result = scoreNarrationQuality([frame]);
+    expect(result.score).toBeLessThan(80);
+  });
+});
+
+// ── Narrative Arc ────────────────────────────────────────────────────────
+
+describe('scoreNarrativeArc', () => {
+  it('returns 0 for empty frames', () => {
+    expect(scoreNarrativeArc([]).score).toBe(0);
+  });
+
+  it('returns 50 for single frame', () => {
+    const frame = makeFrame([makeEntity()]);
+    expect(scoreNarrativeArc([frame]).score).toBe(50);
+  });
+
+  it('scores high for presentations with growing complexity', () => {
+    const frame1 = makeFrame([
+      makeEntity({ id: 'srv', position: { x: 50, y: 50 } }),
+    ]);
+    const frame2 = makeFrame([
+      makeEntity({ id: 'srv', position: { x: 30, y: 50 } }),
+      makeEntity({ id: 'db', position: { x: 70, y: 50 } }),
+    ]);
+    const frame3 = makeFrame([
+      makeEntity({ id: 'srv', position: { x: 20, y: 50 } }),
+      makeEntity({ id: 'db', position: { x: 50, y: 50 } }),
+      makeEntity({ id: 'cache', position: { x: 80, y: 50 } }),
+    ]);
+    const result = scoreNarrativeArc([frame1, frame2, frame3]);
+    expect(result.score).toBeGreaterThanOrEqual(40);
+  });
+
+  it('rewards highlight progression across frames', () => {
+    const withProgression = [
+      makeFrame([
+        makeEntity({ id: 'a', highlight: true } as any),
+        makeEntity({ id: 'b' }),
+        makeEntity({ id: 'c' }),
+      ]),
+      makeFrame([
+        makeEntity({ id: 'a' }),
+        makeEntity({ id: 'b', highlight: true } as any),
+        makeEntity({ id: 'c' }),
+      ]),
+      makeFrame([
+        makeEntity({ id: 'a' }),
+        makeEntity({ id: 'b' }),
+        makeEntity({ id: 'c', highlight: true } as any),
+      ]),
+    ];
+    const withoutProgression = [
+      makeFrame([
+        makeEntity({ id: 'a', highlight: true } as any),
+        makeEntity({ id: 'b' }),
+        makeEntity({ id: 'c' }),
+      ]),
+      makeFrame([
+        makeEntity({ id: 'a', highlight: true } as any),
+        makeEntity({ id: 'b' }),
+        makeEntity({ id: 'c' }),
+      ]),
+      makeFrame([
+        makeEntity({ id: 'a', highlight: true } as any),
+        makeEntity({ id: 'b' }),
+        makeEntity({ id: 'c' }),
+      ]),
+    ];
+    const progScore = scoreNarrativeArc(withProgression).score;
+    const staticScore = scoreNarrativeArc(withoutProgression).score;
+    expect(progScore).toBeGreaterThan(staticScore);
+  });
+
+  it('penalises too many new entities at once', () => {
+    const frame1 = makeFrame([makeEntity({ id: 'a' })]);
+    // Frame 2 introduces 8 new entities at once — overwhelming
+    const frame2 = makeFrame(
+      Array.from({ length: 9 }, (_, i) =>
+        makeEntity({ id: i === 0 ? 'a' : `new${i}`, position: { x: 10 + i * 10, y: 50 } }),
+      ),
+    );
+    const result = scoreNarrativeArc([frame1, frame2]);
+    expect(result.details).toContain('introRate=');
+  });
+
+  it('penalises too few frames', () => {
+    const frames = [
+      makeFrame([makeEntity({ id: 'a' }), makeEntity({ id: 'b' })]),
+      makeFrame([makeEntity({ id: 'a' }), makeEntity({ id: 'b' }), makeEntity({ id: 'c' })]),
+    ];
+    const result = scoreNarrativeArc(frames);
+    expect(result.details).toContain('frameCount=');
+    // 2 frames < ideal minimum of 3
+    expect(result.score).toBeLessThan(80);
+  });
+
+  it('scores well for ideal frame count (3-7)', () => {
+    const frames = Array.from({ length: 5 }, (_, i) =>
+      makeFrame(
+        Array.from({ length: 3 + i }, (__, j) =>
+          makeEntity({ id: `e${j}`, position: { x: 20 + j * 15, y: 50 } }),
+        ),
+      ),
+    );
+    // Add highlights that progress
+    (frames[0].entities[0] as any).highlight = true;
+    (frames[1].entities[1] as any).highlight = true;
+    (frames[2].entities[2] as any).highlight = true;
+    (frames[3].entities[3] as any).highlight = true;
+    (frames[4].entities[4] as any).highlight = true;
+
+    const result = scoreNarrativeArc(frames);
+    expect(result.score).toBeGreaterThanOrEqual(60);
+  });
+});
+
+// ── Connection Completeness ──────────────────────────────────────────────
+
+describe('scoreConnectionCompleteness', () => {
+  it('returns 0 for empty frames', () => {
+    expect(scoreConnectionCompleteness([]).score).toBe(0);
+  });
+
+  it('scores 100 for single-entity frames', () => {
+    const frame = makeFrame([makeEntity({ id: 'e1' })]);
+    expect(scoreConnectionCompleteness([frame]).score).toBe(100);
+  });
+
+  it('scores high when all entities are connected', () => {
+    const frame = makeFrame([
+      makeEntity({ id: 'srv', type: 'Server', position: { x: 25, y: 50 } }),
+      makeEntity({ id: 'db', type: 'Database', position: { x: 75, y: 50 } }),
+      makeEntity({
+        id: 'a1', type: 'Arrow', position: { x: 50, y: 50 },
+        sourceEntityId: 'srv', targetEntityId: 'db',
+      } as any),
+    ]);
+    const result = scoreConnectionCompleteness([frame]);
+    expect(result.score).toBeGreaterThanOrEqual(80);
+  });
+
+  it('penalises orphan entities', () => {
+    const connected = makeFrame([
+      makeEntity({ id: 'srv', type: 'Server', position: { x: 25, y: 50 } }),
+      makeEntity({ id: 'db', type: 'Database', position: { x: 75, y: 50 } }),
+      makeEntity({
+        id: 'a1', type: 'Arrow', position: { x: 50, y: 50 },
+        sourceEntityId: 'srv', targetEntityId: 'db',
+      } as any),
+    ]);
+    const orphaned = makeFrame([
+      makeEntity({ id: 'srv', type: 'Server', position: { x: 25, y: 50 } }),
+      makeEntity({ id: 'db', type: 'Database', position: { x: 50, y: 50 } }),
+      makeEntity({ id: 'cache', type: 'Cache', position: { x: 75, y: 50 } }),
+      // No connections at all
+    ]);
+    const connScore = scoreConnectionCompleteness([connected]).score;
+    const orphanScore = scoreConnectionCompleteness([orphaned]).score;
+    expect(connScore).toBeGreaterThan(orphanScore);
+  });
+
+  it('penalises broken connection references', () => {
+    const valid = makeFrame([
+      makeEntity({ id: 'srv', type: 'Server', position: { x: 25, y: 50 } }),
+      makeEntity({ id: 'db', type: 'Database', position: { x: 75, y: 50 } }),
+      makeEntity({
+        id: 'a1', type: 'Arrow', position: { x: 50, y: 50 },
+        sourceEntityId: 'srv', targetEntityId: 'db',
+      } as any),
+    ]);
+    const broken = makeFrame([
+      makeEntity({ id: 'srv', type: 'Server', position: { x: 25, y: 50 } }),
+      makeEntity({ id: 'db', type: 'Database', position: { x: 75, y: 50 } }),
+      makeEntity({
+        id: 'a1', type: 'Arrow', position: { x: 50, y: 50 },
+        sourceEntityId: 'srv', targetEntityId: 'nonexistent',
+      } as any),
+    ]);
+    const validScore = scoreConnectionCompleteness([valid]).score;
+    const brokenScore = scoreConnectionCompleteness([broken]).score;
+    expect(validScore).toBeGreaterThanOrEqual(brokenScore);
+  });
+
+  it('reports orphan and broken ref counts in details', () => {
+    const frame = makeFrame([
+      makeEntity({ id: 'a', type: 'Server', position: { x: 25, y: 50 } }),
+      makeEntity({ id: 'b', type: 'Database', position: { x: 50, y: 50 } }),
+      makeEntity({ id: 'c', type: 'Cache', position: { x: 75, y: 50 } }),
+    ]);
+    const result = scoreConnectionCompleteness([frame]);
+    expect(result.details).toContain('orphan entities');
+    expect(result.details).toContain('broken refs');
+  });
+});
+
 // ── Aggregate Scorer ─────────────────────────────────────────────────────
 
 describe('scoreVisualScript', () => {
@@ -399,6 +662,9 @@ describe('scoreVisualScript', () => {
     expect(report.dimensions).toHaveProperty('entityPersistence');
     expect(report.dimensions).toHaveProperty('narrationCoverage');
     expect(report.dimensions).toHaveProperty('formatCompliance');
+    expect(report.dimensions).toHaveProperty('narrationQuality');
+    expect(report.dimensions).toHaveProperty('narrativeArc');
+    expect(report.dimensions).toHaveProperty('connectionCompleteness');
 
     // Each dimension should have score and details
     for (const dim of Object.values(report.dimensions)) {
@@ -436,12 +702,15 @@ describe('scoreVisualScript', () => {
     // Manually compute expected weighted average
     const d = report.dimensions;
     const expected = Math.round(
-      d.entityDensity.score * 0.20 +
-      d.layoutQuality.score * 0.20 +
-      d.visualBalance.score * 0.10 +
-      d.entityPersistence.score * 0.20 +
-      d.narrationCoverage.score * 0.20 +
-      d.formatCompliance.score * 0.10,
+      d.entityDensity.score * 0.12 +
+      d.layoutQuality.score * 0.12 +
+      d.visualBalance.score * 0.06 +
+      d.entityPersistence.score * 0.12 +
+      d.narrationCoverage.score * 0.10 +
+      d.formatCompliance.score * 0.06 +
+      d.narrationQuality.score * 0.16 +
+      d.narrativeArc.score * 0.14 +
+      d.connectionCompleteness.score * 0.12,
     );
     expect(report.overall).toBe(expected);
   });
