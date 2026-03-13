@@ -33,7 +33,7 @@ export default function SiteNav({ links }) {
   }, [menuOpen]);
 
   const defaultLinks = [
-    { href: '#features', label: 'Features' },
+    { href: '#showcases', label: 'Demos' },
     { href: '#setup', label: 'Setup' },
     { to: '/docs', label: 'Docs' },
     { to: '/blog', label: 'Blog' },
@@ -63,7 +63,7 @@ export default function SiteNav({ links }) {
           <li><Link to="/login" className="btn btn-ghost btn-sm nav-btn-login">Log in</Link></li>
           <li>
             <Link to="/signup" className="btn btn-primary btn-sm nav-btn-cta">
-              <span className="nav-cta-full">Get Access Token</span>
+              <span className="nav-cta-full">Get started free</span>
               <span className="nav-cta-short">Sign up</span>
             </Link>
           </li>
@@ -104,7 +104,7 @@ export default function SiteNav({ links }) {
             Log in
           </Link>
           <Link to="/signup" className="btn btn-primary mobile-nav-cta" onClick={() => setMenuOpen(false)}>
-            Get Access Token
+            Get started free
           </Link>
         </div>
       </div>

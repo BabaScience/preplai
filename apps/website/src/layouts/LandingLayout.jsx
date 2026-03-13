@@ -5,7 +5,7 @@ export default function LandingLayout({ children }) {
     <div className="dashboard-layout landing-mode">
       <SiteNav
         links={[
-          { href: '#features', label: 'Features' },
+          { href: '#showcases', label: 'Demos' },
           { href: '#setup', label: 'Setup' },
           { to: '/docs', label: 'Docs' },
           { to: '/blog', label: 'Blog' },
