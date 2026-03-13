@@ -388,6 +388,8 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
             text: html,
             _meta: {
               ui: {
+                domain: 'preplai',
+                prefersBorder: false,
                 csp: {
                   resourceDomains: [
                     'https://cdnjs.cloudflare.com',
