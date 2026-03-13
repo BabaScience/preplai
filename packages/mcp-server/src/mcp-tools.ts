@@ -142,28 +142,27 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
     },
   );
 
-  // ── Tool 2: add_scene (MCP App — renders inline player) ────────────
+  // ── Tool 2: add_scene (data-only — no inline UI) ───────────────────
   // Consolidates: add_scene + update_scene (via mode param)
-  registerAppTool(
-    mcp,
+  // NOTE: This is a regular tool, NOT an App tool. No iframe is rendered.
+  // The AI calls add_scene to build/update the presentation, then calls
+  // get_session_url once at the end to show the inline player.
+  mcp.tool(
     'add_scene',
+    ADD_SCENE_DESCRIPTION,
     {
-      description: ADD_SCENE_DESCRIPTION,
-      inputSchema: {
-        session_id: z.string().describe('Session ID from create_session'),
-        visual_script: z.record(z.unknown()).describe('REQUIRED compact format: sid, td, f, e, p, n, l, src, tgt; position [x,y]; omit color. Use session_id as sid.'),
-        mode: z.enum(['append', 'replace']).optional().describe('Mode: "append" (default) appends frames to existing scene. "replace" replaces the entire visual script.'),
-      },
-      _meta: { ui: { resourceUri: PLAYER_RESOURCE_URI } },
+      session_id: z.string().describe('Session ID from create_session'),
+      visual_script: z.record(z.unknown()).describe('REQUIRED compact format: sid, td, f, e, p, n, l, src, tgt; position [x,y]; omit color. Use session_id as sid.'),
+      mode: z.enum(['append', 'replace']).optional().describe('Mode: "append" (default) appends frames to existing scene. "replace" replaces the entire visual script.'),
     },
-    async (args: { session_id: string; visual_script: any; mode?: 'append' | 'replace' }, extra: any) => {
+    async (args, extra) => {
       const { trackUsage, checkSceneLimit } = await import('./auth.js');
       const apiKey = getApiKey(extra);
-      if (!apiKey) return mcpUnauthorized() as any;
+      if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
 
       const ownership = verifySessionOwnership(store, args.session_id, apiKey.id);
       if (!ownership.ok && !ownership.notFound) {
-        return mcpForbidden() as any;
+        return mcpForbidden() as { content: Array<{ type: 'text'; text: string }> };
       }
 
       const mode = args.mode ?? 'append';
@@ -186,12 +185,8 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       const toolName = mode === 'replace' ? 'update_scene' : 'add_scene';
       await trackUsage(apiKey.id, toolName, args.session_id);
 
-      // Attach full script + palette/theme + player URL for MCP App inline rendering
-      const session = store.getSession(args.session_id);
-      const prefs = await getUserPlayerPrefs(apiKey.id);
-      const suffix = apiKey ? `?key=${apiKey.id}` : '';
-
       // Fire-and-forget: quality scoring + Prometheus metrics (non-blocking)
+      const session = store.getSession(args.session_id);
       sceneAddedTotal.inc({ mode });
       if (session?.script) {
         Promise.resolve().then(() => {
@@ -222,24 +217,20 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
         });
       }
 
-      return {
-        content: result.content,
-        _meta: {
-          script: session?.script ?? null,
-          palette: prefs.palette || 'default',
-          theme: prefs.theme || 'cinema',
-          playerUrl: `${baseUrl}/player/${args.session_id}${suffix}`,
-        },
-      };
+      return { content: result.content };
     },
   );
 
   // ── Tool 3: get_session_url (MCP App — renders inline player) ───────
+  // This is the ONLY App tool — it renders the cinematic player inline.
+  // The AI should call add_scene to build the presentation, then call
+  // get_session_url ONCE at the end to display it. On follow-up questions,
+  // the AI adds more scenes and calls get_session_url again to refresh.
   registerAppTool(
     mcp,
     'get_session_url',
     {
-      description: 'Get the player URL for a session. Returns player_url, embed_url (iframe), and preferences (theme, palette). Set include_stats to true for frame count and duration. Open the player_url in a browser to view the presentation.',
+      description: 'Show the presentation inline and get its player URL. Call this ONCE after all add_scene calls are done — it renders the cinematic player directly in the conversation. Returns player_url, embed_url (iframe), and preferences (theme, palette). Set include_stats to true for frame count and duration. For follow-up requests, add more scenes first, then call this again to refresh the player.',
       inputSchema: {
         session_id: z.string().describe('Session ID'),
         include_stats: z.boolean().optional().describe('Include frame count, duration, etc.'),

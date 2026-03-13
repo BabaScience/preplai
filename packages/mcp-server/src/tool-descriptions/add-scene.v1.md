@@ -1,4 +1,4 @@
-Add or replace a visual scene in a presentation session. The scene is rendered as animated SVG on a 1920x1080 dark canvas.
+Add or replace a visual scene in a presentation session. The scene is rendered as animated SVG on a 1920x1080 dark canvas. This tool saves scene data only — call get_session_url after all scenes are added to display the inline player.
 
 MODE: "append" (default) appends frames to existing scene. "replace" replaces the entire visual script.
 
