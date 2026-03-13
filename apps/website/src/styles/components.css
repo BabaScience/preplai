@@ -228,6 +228,7 @@
   gap: var(--space-6);
   list-style: none;
 }
+.nav-cta-short { display: none; }
 .landing-nav .nav-links a {
   font-size: var(--text-sm);
   color: #8a8b95;
@@ -2056,19 +2057,48 @@
 
 /* ===== MOBILE RESPONSIVE ===== */
 @media (max-width: 768px) {
+  /* --- Nav header --- */
   .landing-nav .nav-links .nav-link-desktop { display: none; }
+  .landing-nav .nav-links { gap: var(--space-3); }
+  .nav-btn-login { display: none; }
+  .nav-cta-full { display: none; }
+  .nav-cta-short { display: inline; }
 
+  /* --- Hero --- */
   .hero-cinema h1 { font-size: var(--text-2xl); }
-  .hero-cinema-sub { font-size: var(--text-sm); }
+  .hero-cinema-sub { font-size: var(--text-sm); max-width: 100%; }
   .hero-player-preview { margin-top: var(--space-10); }
+  .hero-ctas { justify-content: center; flex-wrap: wrap; }
 
   .hero-section h1 { font-size: var(--text-2xl); }
   .hero-inner { flex-direction: column; text-align: center; }
   .hero-text { align-items: center; }
   .hero-section .hero-sub { margin-left: auto; margin-right: auto; }
-  .hero-ctas { justify-content: center; }
   .hero-terminal { margin: 0 auto; }
 
+  /* --- Problem section --- */
+  .problem-section .section-block h2 { font-size: var(--text-xl); }
+  .problem-kicker { font-size: var(--text-base) !important; }
+
+  /* --- Bento cards --- */
+  .bento-grid { grid-template-columns: 1fr !important; }
+
+  /* --- Steps --- */
+  .steps-grid { grid-template-columns: 1fr; }
+
+  /* --- Code block --- */
+  .code-block { font-size: var(--text-xs); padding: var(--space-3); }
+  .code-block pre { white-space: pre; overflow-x: auto; }
+
+  /* --- Final CTA --- */
+  .final-cta h2 { font-size: var(--text-xl); }
+
+  /* --- Footer --- */
+  .footer-inner { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+  .footer-links { gap: var(--space-4); }
+  .site-footer { margin-top: var(--space-8); }
+
+  /* --- Dashboard --- */
   .dashboard-layout {
     grid-template-columns: 1fr;
   }
@@ -2094,6 +2124,7 @@
 @media (max-width: 480px) {
   .kpi-grid { grid-template-columns: 1fr; }
   .hero-ctas { flex-direction: column; align-items: center; }
+  .landing-nav { padding: var(--space-3) var(--space-3); }
 }
 
 /* Theme toggle icon button */
