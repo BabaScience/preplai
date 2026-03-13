@@ -8,4 +8,6 @@ RETURNS: session_id, player_url, embed_url (for iframe embedding), preferences (
 
 LANGUAGE: For non-English presentations, set lang in the visual_script passed to add_scene. Supported: "en" (default), "fr", "it". TTS generates voice in the matching language.
 
+WORKFLOW: 1) create_session → 2) add_scene (one or more calls to build frames) → 3) get_session_url (renders the inline player). Do NOT skip step 3 — add_scene only saves data, get_session_url displays it. On follow-up requests, add more scenes to the existing session, then call get_session_url again to refresh the player.
+
 CALLBACK: When running locally, the player URL is auto-opened. For remote clients, share the player_url.
