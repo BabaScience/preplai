@@ -69,6 +69,14 @@ export default function Landing() {
         <h2>Built for engineers who use AI every day</h2>
         <div className="bento-grid" style={{ marginTop: 'var(--space-10)' }}>
           <div className="bento-card">
+            <div className="bento-icon"><Film size={20} /></div>
+            <h3>Students and educators</h3>
+            <p>
+              Ask any LLM to explain quicksort, TCP handshakes, or B-trees — and watch the concepts animate.
+              Arrays sort themselves, trees grow, data flows through pipelines. Learning becomes visual.
+            </p>
+          </div>
+          <div className="bento-card">
             <div className="bento-icon"><Cpu size={20} /></div>
             <h3>Programmers using AI coding tools</h3>
             <p>
@@ -82,14 +90,6 @@ export default function Landing() {
             <p>
               Your agent ran 47 steps, made 12 API calls, and hit a decision branch.
               Instead of parsing logs, get a visual report: every action, every decision, every data source. Shareable with your team in one click.
-            </p>
-          </div>
-          <div className="bento-card">
-            <div className="bento-icon"><Film size={20} /></div>
-            <h3>Students and educators</h3>
-            <p>
-              Ask any LLM to explain quicksort, TCP handshakes, or B-trees — and watch the concepts animate.
-              Arrays sort themselves, trees grow, data flows through pipelines. Learning becomes visual.
             </p>
           </div>
         </div>
