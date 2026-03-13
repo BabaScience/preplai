@@ -1,7 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Zap, MessageSquare, Bot, Wrench, FileCode, Lightbulb, BookOpen } from 'lucide-react';
-import Logo from '../components/Logo';
-import ThemeToggle from '../components/ThemeToggle';
+import SiteNav from '../components/SiteNav';
+
+const NAV_LINKS = [
+  { to: '/', label: 'Home' },
+  { to: '/docs', label: 'Docs' },
+  { to: '/blog', label: 'Blog' },
+];
 
 const GET_STARTED = [
   { slug: 'quick-start', label: 'Quick Start', icon: Zap },
@@ -22,20 +27,7 @@ export default function DocsLayout({ children }) {
 
   return (
     <div className="dashboard-layout docs-mode">
-      <nav className="landing-nav">
-        <Link to="/" className="nav-logo">
-          <Logo />
-        </Link>
-        <ul className="nav-links" role="list">
-          <li className="nav-link-desktop"><Link to={{ pathname: '/', hash: 'features' }}>Features</Link></li>
-          <li className="nav-link-desktop"><Link to={{ pathname: '/', hash: 'setup' }}>Setup</Link></li>
-          <li className="nav-link-desktop"><Link to="/docs">Docs</Link></li>
-          <li className="nav-link-desktop"><Link to="/blog">Blog</Link></li>
-          <li><ThemeToggle /></li>
-          <li><Link to="/login" className="btn btn-ghost btn-sm">Log in</Link></li>
-          <li><Link to="/signup" className="btn btn-primary btn-sm">Get Access Token</Link></li>
-        </ul>
-      </nav>
+      <SiteNav links={NAV_LINKS} />
       <div className="docs-container">
         <aside className="docs-sidebar">
           <span className="docs-sidebar-label">Get Started</span>
