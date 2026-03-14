@@ -141,6 +141,8 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
 
   // ── Tool 1: create_session ──────────────────────────────────────────
   // Consolidates: create_session + get_preferences + get_illustrations
+  // IMPORTANT: Returns existing active session if one was created recently,
+  // so the LLM appends to it instead of creating duplicates.
   mcp.tool(
     'create_session',
     CREATE_SESSION_DESCRIPTION,
@@ -148,11 +150,61 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       title: z.string().describe('Clear, descriptive title matching the user\'s topic (e.g. "Binary Search Tree Insertion", "System Architecture Overview")'),
       aspect_ratio: z.string().optional().describe('Aspect ratio, default "16:9". Options: "16:9", "4:3"'),
       style: z.enum(['cinema', 'minimal']).optional().describe('Override theme: "cinema" (rich gradients) or "minimal" (flat). Omit to use the user\'s dashboard preference.'),
+      force_new: z.boolean().optional().describe('Set to true to force creating a new session even if one already exists. Default: false — reuses the most recent active session.'),
     },
     async (args, extra) => {
       const { trackUsage, checkSessionLimit } = await import('./auth.js');
       const apiKey = getApiKey(extra);
       if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
+
+      // ── Active session reuse ──────────────────────────────────────
+      // If the API key already has a recent session (< 1 hour old),
+      // return it instead of creating a new one. This prevents the LLM
+      // from creating duplicate presentations on follow-up requests
+      // like "explain deeper" or "add more slides".
+      if (!args.force_new) {
+        const existingSessions = store.listSessionsByKey(apiKey.id);
+        const ONE_HOUR = 60 * 60 * 1000;
+        const recentSession = existingSessions.find(
+          (s) => Date.now() - s.created_at < ONE_HOUR,
+        );
+        if (recentSession) {
+          const prefs = await getUserPlayerPrefs(apiKey.id);
+          const theme = args.style ?? prefs.theme;
+          const palette = prefs.palette;
+          const { buildPlayerUrlSuffix } = await import('./auth.js');
+          const suffix = buildPlayerUrlSuffix(theme, palette);
+          const embedSuffix = suffix ? `?embed=1&${suffix.slice(1)}` : '?embed=1';
+          const { getIllustrationsReference } = await import('./illustrations-reference.js');
+          const illustrations = getIllustrationsReference();
+
+          const frameCount = recentSession.script?.frames?.length ?? 0;
+
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                success: true,
+                reused_existing_session: true,
+                data: {
+                  session_id: recentSession.id,
+                  player_url: `${baseUrl}/player/${recentSession.id}${suffix}`,
+                  embed_url: `${baseUrl}/player/${recentSession.id}${embedSuffix}`,
+                  title: recentSession.title,
+                  aspect_ratio: recentSession.aspect_ratio,
+                  created_at: new Date(recentSession.created_at).toISOString(),
+                  frame_count: frameCount,
+                  preferences: { theme, palette },
+                  illustrations,
+                },
+                hint: `Active session "${recentSession.title}" already exists with ${frameCount} frame(s). ` +
+                  `Use add_scene with session_id "${recentSession.id}" and mode:"append" to add more content. ` +
+                  `Only call create_session with force_new:true if the user explicitly asks for a completely new/separate presentation.`,
+              }),
+            }],
+          };
+        }
+      }
 
       const limitCheck = await checkSessionLimit(apiKey.id, apiKey.tier);
       if (!limitCheck.allowed) {
