@@ -387,6 +387,14 @@ async function main(): Promise<void> {
   // Connect to host — MUST happen after all handlers are registered
   await app.connect();
 
+  // Explicitly report preferred size to host so it allocates enough iframe height.
+  // autoResize may not measure correctly with overflow:hidden + height:100%.
+  try {
+    app.sendSizeChanged({ width: 960, height: 540 });
+  } catch (_) {
+    // sendSizeChanged may not be supported by all hosts — ignore
+  }
+
   console.log('[PRE-MCP] Player connected to host');
 }
 
