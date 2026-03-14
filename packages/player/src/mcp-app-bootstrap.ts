@@ -367,39 +367,6 @@ async function main(): Promise<void> {
   // Start the timer
   resetHideTimer();
 
-  // ── Dock magnification effect (JS-driven for neighbors) ─────────
-  // CSS :hover + sibling selectors only reach the next sibling.
-  // For true macOS dock effect, we use JS to scale neighbors.
-  const dockItems = frameNav?.querySelectorAll('button, a') ?? [];
-  const dockItemArray = Array.from(dockItems) as HTMLElement[];
-
-  frameNav?.addEventListener('mousemove', (e: MouseEvent) => {
-    const navRect = frameNav.getBoundingClientRect();
-    const mouseX = e.clientX;
-
-    for (const item of dockItemArray) {
-      const rect = item.getBoundingClientRect();
-      const itemCenter = rect.left + rect.width / 2;
-      const distance = Math.abs(mouseX - itemCenter);
-      const maxDist = 100; // influence radius in px
-
-      if (distance < maxDist) {
-        // Scale: 1.0 at maxDist → 1.35 at center
-        const scale = 1 + 0.35 * (1 - distance / maxDist);
-        const lift = -6 * (1 - distance / maxDist);
-        item.style.transform = `scale(${scale.toFixed(3)}) translateY(${lift.toFixed(1)}px)`;
-      } else {
-        item.style.transform = '';
-      }
-    }
-  });
-
-  frameNav?.addEventListener('mouseleave', () => {
-    for (const item of dockItemArray) {
-      item.style.transform = '';
-    }
-  });
-
   // ── MCP App lifecycle ─────────────────────────────────────────────
   const app = new App(
     { name: 'Preplai Player', version: '1.0.0' },
