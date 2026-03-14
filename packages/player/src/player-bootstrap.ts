@@ -492,6 +492,37 @@ function main(): void {
     }
   });
 
+  // ── Auto-hide controls (video-player style) ──────────────────────
+  const frameNav = document.getElementById('frame-nav');
+  const progressBar = document.getElementById('progress-bar');
+  const keyboardHint = document.getElementById('keyboard-hint');
+  let hideTimer: ReturnType<typeof setTimeout> | null = null;
+  const AUTO_HIDE_DELAY = 3000; // 3 seconds of inactivity
+
+  function showControls(): void {
+    frameNav?.classList.remove('auto-hidden');
+    if (progressBar) progressBar.style.removeProperty('opacity');
+    if (keyboardHint) keyboardHint.style.removeProperty('opacity');
+  }
+
+  function hideControls(): void {
+    if (frameNav?.matches(':hover')) return;
+    frameNav?.classList.add('auto-hidden');
+    if (progressBar) progressBar.style.opacity = '0';
+    if (keyboardHint) keyboardHint.style.opacity = '0';
+  }
+
+  function resetHideTimer(): void {
+    showControls();
+    if (hideTimer) clearTimeout(hideTimer);
+    hideTimer = setTimeout(hideControls, AUTO_HIDE_DELAY);
+  }
+
+  document.addEventListener('mousemove', resetHideTimer);
+  document.addEventListener('touchstart', resetHideTimer);
+  document.addEventListener('keydown', resetHideTimer);
+  resetHideTimer();
+
   // ── Empty state ──────────────────────────────────────────────────
   let emptyState: SVGGElement | null = null;
   function showEmptyState(): void {
