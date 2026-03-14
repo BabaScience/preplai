@@ -111,6 +111,7 @@ async function main(): Promise<void> {
   let isSpeaking = false;
   let isAutoPlaying = false;
   let autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null;
+  let ttsEnabled = true; // controlled by TTS toggle button
 
   function stopSpeech(): void {
     if (synth) synth.cancel();
@@ -122,7 +123,7 @@ async function main(): Promise<void> {
   }
 
   function speakNarration(text: string): void {
-    if (!synth || !text) return;
+    if (!synth || !text || !ttsEnabled) return;
     stopSpeech();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.95;
@@ -276,6 +277,40 @@ async function main(): Promise<void> {
   });
   if (playPauseBtn) playPauseBtn.addEventListener('click', togglePlayPause);
 
+  // ── TTS toggle button ───────────────────────────────────────────
+  const ttsToggleBtn = document.getElementById('tts-toggle');
+
+  function updateTtsUI(): void {
+    if (!ttsToggleBtn) return;
+    ttsToggleBtn.classList.toggle('tts-on', ttsEnabled);
+    ttsToggleBtn.classList.toggle('tts-off', !ttsEnabled);
+    ttsToggleBtn.setAttribute('aria-pressed', String(ttsEnabled));
+    ttsToggleBtn.title = ttsEnabled ? 'Voice narration on (click to mute)' : 'Voice narration off (click to unmute)';
+  }
+
+  if (ttsToggleBtn) {
+    ttsToggleBtn.addEventListener('click', () => {
+      ttsEnabled = !ttsEnabled;
+      updateTtsUI();
+      if (!ttsEnabled) stopSpeech();
+    });
+  }
+
+  // ── Narrator overlay toggle button ──────────────────────────────
+  const narratorToggleBtn = document.getElementById('narrator-overlay-toggle');
+  let narratorVisible = true;
+
+  function toggleNarratorOverlay(): void {
+    const overlay = document.getElementById('narrator-overlay');
+    narratorVisible = !narratorVisible;
+    overlay?.classList.toggle('hidden', !narratorVisible);
+    narratorToggleBtn?.classList.toggle('narrator-hidden', !narratorVisible);
+  }
+
+  if (narratorToggleBtn) {
+    narratorToggleBtn.addEventListener('click', toggleNarratorOverlay);
+  }
+
   // ── Keyboard navigation ─────────────────────────────────────────
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') {
@@ -292,8 +327,76 @@ async function main(): Promise<void> {
       e.preventDefault();
       togglePlayPause();
     } else if (e.key === 'n' || e.key === 'N') {
-      const overlay = document.getElementById('narrator-overlay');
-      overlay?.classList.toggle('hidden');
+      toggleNarratorOverlay();
+    } else if (e.key === 'm' || e.key === 'M') {
+      ttsEnabled = !ttsEnabled;
+      updateTtsUI();
+      if (!ttsEnabled) stopSpeech();
+    }
+  });
+
+  // ── Auto-hide controls (video-player style) ──────────────────────
+  const frameNav = document.getElementById('frame-nav');
+  const progressBar = document.getElementById('progress-bar');
+  let hideTimer: ReturnType<typeof setTimeout> | null = null;
+  const AUTO_HIDE_DELAY = 3000; // 3 seconds of inactivity
+
+  function showControls(): void {
+    frameNav?.classList.remove('auto-hidden');
+    progressBar?.style.removeProperty('opacity');
+  }
+
+  function hideControls(): void {
+    // Don't hide if user is hovering the nav bar
+    if (frameNav?.matches(':hover')) return;
+    frameNav?.classList.add('auto-hidden');
+    if (progressBar) progressBar.style.opacity = '0';
+  }
+
+  function resetHideTimer(): void {
+    showControls();
+    if (hideTimer) clearTimeout(hideTimer);
+    hideTimer = setTimeout(hideControls, AUTO_HIDE_DELAY);
+  }
+
+  // Show controls on any mouse movement, touch, or keyboard input
+  document.addEventListener('mousemove', resetHideTimer);
+  document.addEventListener('touchstart', resetHideTimer);
+  document.addEventListener('keydown', resetHideTimer);
+
+  // Start the timer
+  resetHideTimer();
+
+  // ── Dock magnification effect (JS-driven for neighbors) ─────────
+  // CSS :hover + sibling selectors only reach the next sibling.
+  // For true macOS dock effect, we use JS to scale neighbors.
+  const dockItems = frameNav?.querySelectorAll('button, a') ?? [];
+  const dockItemArray = Array.from(dockItems) as HTMLElement[];
+
+  frameNav?.addEventListener('mousemove', (e: MouseEvent) => {
+    const navRect = frameNav.getBoundingClientRect();
+    const mouseX = e.clientX;
+
+    for (const item of dockItemArray) {
+      const rect = item.getBoundingClientRect();
+      const itemCenter = rect.left + rect.width / 2;
+      const distance = Math.abs(mouseX - itemCenter);
+      const maxDist = 100; // influence radius in px
+
+      if (distance < maxDist) {
+        // Scale: 1.0 at maxDist → 1.35 at center
+        const scale = 1 + 0.35 * (1 - distance / maxDist);
+        const lift = -6 * (1 - distance / maxDist);
+        item.style.transform = `scale(${scale.toFixed(3)}) translateY(${lift.toFixed(1)}px)`;
+      } else {
+        item.style.transform = '';
+      }
+    }
+  });
+
+  frameNav?.addEventListener('mouseleave', () => {
+    for (const item of dockItemArray) {
+      item.style.transform = '';
     }
   });
 

@@ -142,26 +142,33 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   position: fixed;
   bottom: 24px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(0);
   z-index: 150;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  opacity: 0.85;
-  transition: opacity 0.3s ease;
+  align-items: flex-end;
+  gap: 6px;
+  opacity: 1;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   background: rgba(12, 13, 20, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 20px;
-  padding: 8px 16px;
+  padding: 8px 12px;
 }
 
-#frame-nav.visible {
-  opacity: 0.9;
+/* Auto-hide: slide down + fade out when idle */
+#frame-nav.auto-hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(20px);
+  pointer-events: none;
 }
 
+/* Keep visible when hovering the nav bar itself */
 #frame-nav:hover {
   opacity: 1 !important;
+  transform: translateX(-50%) translateY(0) !important;
+  pointer-events: auto !important;
 }
 
 #frame-counter {
@@ -173,7 +180,8 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   user-select: none;
 }
 
-#frame-nav button {
+#frame-nav button,
+#frame-nav a {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.5);
@@ -185,16 +193,25 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  /* Dock-style smooth scale transition */
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.15s ease,
+              color 0.15s ease,
+              border-color 0.15s ease,
+              width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
 }
 
-#frame-nav button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
+/* Dock magnification: JS handles transform via mousemove for proximity effect.
+   CSS handles background/color hover states. */
+#frame-nav button:hover,
+#frame-nav a:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 #frame-nav button:active {
-  transform: scale(0.95);
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -234,6 +251,59 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   color: #C9A84C;
   border-color: rgba(201, 168, 76, 0.3);
 }
+
+/* ── TTS toggle ────────────────────────────────────────────────── */
+
+#tts-toggle {
+  position: relative;
+}
+
+#tts-toggle .tts-icon-on,
+#tts-toggle .tts-icon-off {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.15s ease;
+}
+
+#tts-toggle.tts-on .tts-icon-on { opacity: 1; }
+#tts-toggle.tts-on .tts-icon-off { opacity: 0; }
+#tts-toggle.tts-off .tts-icon-on { opacity: 0; }
+#tts-toggle.tts-off .tts-icon-off { opacity: 1; }
+
+#tts-toggle.tts-on:hover {
+  background: rgba(201, 168, 76, 0.15);
+  color: #C9A84C;
+  border-color: rgba(201, 168, 76, 0.3);
+}
+
+[data-theme="minimal"] #tts-toggle.tts-on:hover {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+/* ── Narrator overlay toggle ──────────────────────────────────── */
+
+#narrator-overlay-toggle {
+  position: relative;
+}
+
+#narrator-overlay-toggle .narrator-toggle-on,
+#narrator-overlay-toggle .narrator-toggle-off {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.15s ease;
+}
+
+/* Default: narrator visible → show "on" icon */
+#narrator-overlay-toggle .narrator-toggle-on { opacity: 1; }
+#narrator-overlay-toggle .narrator-toggle-off { opacity: 0; }
+#narrator-overlay-toggle.narrator-hidden .narrator-toggle-on { opacity: 0; }
+#narrator-overlay-toggle.narrator-hidden .narrator-toggle-off { opacity: 1; }
 
 /* ── Open Player link ───────────────────────────────────────────── */
 
@@ -632,6 +702,13 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   background: rgba(30, 41, 59, 0.6);
   border-radius: 4px;
   overflow: hidden;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Auto-hide progress bar with controls */
+.controls-hidden .progress-bar,
+body.controls-hidden .progress-bar {
+  opacity: 0;
 }
 
 .progress-fill {
