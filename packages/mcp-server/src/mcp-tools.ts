@@ -34,7 +34,7 @@ import {
 import { getUserPlayerPrefs } from './auth.js';
 import { withErrorBoundary, mcpForbidden, mcpUnauthorized } from './errors.js';
 import { verifySessionOwnership } from './session-utils.js';
-import { scoreVisualScript } from './quality-scorer.js';
+import { scoreVisualScript, type QualityReport } from './quality-scorer.js';
 import {
   qualityScoreOverall,
   qualityScoreDimension,
@@ -88,6 +88,48 @@ export interface McpToolDeps {
   ttsService?: TtsService;
   /** Optional: audio buffer store for cleanup on session delete */
   audioStore?: AudioStore;
+}
+
+// ── Quality hints for agent self-correction ──────────────────────────
+
+const QUALITY_THRESHOLD = 60; // dimensions scoring below this get a hint
+
+function generateQualityHints(report: QualityReport): string[] {
+  const hints: string[] = [];
+  const d = report.dimensions;
+
+  if (d.entityPersistence.score < QUALITY_THRESHOLD) {
+    hints.push(
+      `- Entity Persistence (${d.entityPersistence.score}/100): Entities are being rebuilt each frame. ` +
+      `Keep 2–3 anchor entities (like your title H1 and main Server/Concept) with the SAME id across ALL frames. ` +
+      `Only add/remove 1–3 detail entities per transition.`
+    );
+  }
+
+  if (d.connectionCompleteness.score < QUALITY_THRESHOLD) {
+    hints.push(
+      `- Connection Completeness (${d.connectionCompleteness.score}/100): Some entities are orphaned (no connections). ` +
+      `Every content entity (Server, Database, User, etc.) should connect to at least one other via Arrow or DataFlow. ` +
+      `Add src/tgt connections to show relationships.`
+    );
+  }
+
+  if (d.visualBalance.score < QUALITY_THRESHOLD) {
+    hints.push(
+      `- Visual Balance (${d.visualBalance.score}/100): Entities are clustered to one side. ` +
+      `Spread entities across x: 20–80 and y: 20–80. The center of mass should be near [50, 50]. ` +
+      `Example balanced positions: [20,40], [50,30], [80,40].`
+    );
+  }
+
+  if (d.entityDensity.score < QUALITY_THRESHOLD) {
+    hints.push(
+      `- Entity Density (${d.entityDensity.score}/100): Frames have too few or too many entities. ` +
+      `Aim for 5–7 content entities per frame (excluding connections and headings).`
+    );
+  }
+
+  return hints;
 }
 
 // ── Tool registration (5 consolidated tools) ─────────────────────────
@@ -185,36 +227,54 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       const toolName = mode === 'replace' ? 'update_scene' : 'add_scene';
       await trackUsage(apiKey.id, toolName, args.session_id);
 
-      // Fire-and-forget: quality scoring + Prometheus metrics (non-blocking)
+      // Quality scoring: run synchronously so we can return feedback to the agent
       const session = store.getSession(args.session_id);
       sceneAddedTotal.inc({ mode });
+
+      let qualityHints: string[] = [];
       if (session?.script) {
-        Promise.resolve().then(() => {
-          try {
-            const report = scoreVisualScript(session.script);
+        try {
+          const report = scoreVisualScript(session.script);
 
-            // Prometheus histograms
-            qualityScoreOverall.observe(report.overall);
-            qualityFrameCount.observe(report.frameCount);
-            qualityEntityCount.observe(report.totalEntities);
-            for (const [dim, val] of Object.entries(report.dimensions)) {
-              qualityScoreDimension.observe({ dimension: dim }, val.score);
-            }
-
-            console.log(
-              `[quality] session=${args.session_id} overall=${report.overall} ` +
-              `density=${report.dimensions.entityDensity.score} ` +
-              `layout=${report.dimensions.layoutQuality.score} ` +
-              `balance=${report.dimensions.visualBalance.score} ` +
-              `persistence=${report.dimensions.entityPersistence.score} ` +
-              `narration=${report.dimensions.narrationCoverage.score} ` +
-              `format=${report.dimensions.formatCompliance.score} ` +
-              `frames=${report.frameCount} entities=${report.totalEntities}`,
-            );
-          } catch (err) {
-            console.error('[quality] scoring failed:', err);
+          // Prometheus histograms
+          qualityScoreOverall.observe(report.overall);
+          qualityFrameCount.observe(report.frameCount);
+          qualityEntityCount.observe(report.totalEntities);
+          for (const [dim, val] of Object.entries(report.dimensions)) {
+            qualityScoreDimension.observe({ dimension: dim }, val.score);
           }
-        });
+
+          console.log(
+            `[quality] session=${args.session_id} overall=${report.overall} ` +
+            `density=${report.dimensions.entityDensity.score} ` +
+            `layout=${report.dimensions.layoutQuality.score} ` +
+            `balance=${report.dimensions.visualBalance.score} ` +
+            `persistence=${report.dimensions.entityPersistence.score} ` +
+            `narration=${report.dimensions.narrationCoverage.score} ` +
+            `format=${report.dimensions.formatCompliance.score} ` +
+            `connections=${report.dimensions.connectionCompleteness.score} ` +
+            `frames=${report.frameCount} entities=${report.totalEntities}`,
+          );
+
+          // Generate actionable hints for weak dimensions (threshold: 60)
+          qualityHints = generateQualityHints(report);
+        } catch (err) {
+          console.error('[quality] scoring failed:', err);
+        }
+      }
+
+      // Append quality hints to the response so the agent can self-correct
+      if (qualityHints.length > 0) {
+        const hintsText = `\n⚠️ QUALITY HINTS (fix with add_scene mode="replace"):\n${qualityHints.join('\n')}`;
+        const resultContent = [...result.content];
+        // Append hints to the last text content block
+        const lastText = [...resultContent].reverse().find((c: any) => c.type === 'text');
+        if (lastText && 'text' in lastText) {
+          (lastText as any).text += hintsText;
+        } else {
+          resultContent.push({ type: 'text' as const, text: hintsText });
+        }
+        return { content: resultContent };
       }
 
       return { content: result.content };
