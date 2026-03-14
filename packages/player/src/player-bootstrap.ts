@@ -200,19 +200,143 @@ function main(): void {
     btn.setAttribute('title', playing ? 'Pause (Space)' : 'Play (Space)');
   }
 
+  // ── Timer-based focus cues (fallback when no ElevenLabs audio) ────
+  let focusCueTimers: ReturnType<typeof setTimeout>[] = [];
+
+  function clearFocusCueTimers(): void {
+    for (const t of focusCueTimers) clearTimeout(t);
+    focusCueTimers = [];
+  }
+
+  /**
+   * Simulate focus cues using estimated timing from narration word count.
+   * Entities with highlight=true in the frame get focused sequentially,
+   * spaced evenly across the estimated narration duration.
+   */
+  function scheduleTimerFocusCues(frameIndex: number, estimatedDuration: number): void {
+    clearFocusCueTimers();
+    if (!currentScript) return;
+
+    const frame = currentScript.frames[frameIndex] as any;
+    if (!frame?.entities) return;
+
+    // Use frame-level focusCues if available (from script data)
+    if (frame.focusCues?.length) {
+      const scale = estimatedDuration / (frame.focusCues[frame.focusCues.length - 1].time || estimatedDuration);
+      for (const cue of frame.focusCues) {
+        const delay = cue.time * scale * 1000;
+        focusCueTimers.push(setTimeout(() => {
+          const ids = cue.entityIds?.length ? cue.entityIds : cue.entityId ? [cue.entityId] : null;
+          sceneController.shiftFocus(ids, cue.confidences);
+          if (cue.segment) narrator.update(cue.segment);
+        }, delay));
+      }
+      return;
+    }
+
+    // Fallback: focus on highlighted entities sequentially
+    const highlightedIds = frame.entities
+      .filter((e: any) => e.highlight && e.id)
+      .map((e: any) => e.id as string);
+
+    if (highlightedIds.length === 0) return;
+
+    const interval = (estimatedDuration * 1000) / (highlightedIds.length + 1);
+    for (let i = 0; i < highlightedIds.length; i++) {
+      const delay = interval * (i + 1);
+      const entityId = highlightedIds[i];
+      focusCueTimers.push(setTimeout(() => {
+        sceneController.shiftFocus([entityId]);
+      }, delay));
+    }
+  }
+
+  /** Estimate narration duration from word count (~150 words/min). */
+  function estimateNarrationDuration(text: string): number {
+    const words = text.trim().split(/\s+/).length;
+    return Math.max(2, (words / 150) * 60); // seconds, minimum 2s
+  }
+
+  // ── Web Speech fallback with focus cues + auto-advance ────────────
+  let webSpeechPlaying = false;
+
+  function playFrameWithWebSpeech(frameIndex: number): void {
+    if (!synth || !currentScript) return;
+    stopTTS();
+    clearFocusCueTimers();
+
+    const frame = currentScript.frames[frameIndex] as any;
+    const narrationText = frame?.narrationSegment?.text || frame?.narrationSegment || '';
+    if (!narrationText?.trim()) {
+      // No narration — just schedule auto-advance after a short pause
+      if (autoPlayEnabled) {
+        autoAdvanceTimer = setTimeout(() => {
+          autoAdvanceTimer = null;
+          if (currentScript && currentFrame < currentScript.frames.length - 1) {
+            goNext();
+          }
+        }, 2000);
+      }
+      return;
+    }
+
+    const estimatedDuration = estimateNarrationDuration(narrationText);
+
+    // Schedule timer-based focus cues
+    scheduleTimerFocusCues(frameIndex, estimatedDuration);
+
+    // Speak narration via Web Speech API
+    const utterance = new SpeechSynthesisUtterance(narrationText);
+    utterance.rate = 0.95;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    webSpeechPlaying = true;
+    updatePlayPauseUI(true);
+
+    utterance.onend = () => {
+      webSpeechPlaying = false;
+      sceneController.shiftFocus(null); // Clear focus
+      clearFocusCueTimers();
+      updatePlayPauseUI(false);
+
+      // Auto-advance to next frame
+      if (autoPlayEnabled && currentScript) {
+        autoAdvanceTimer = setTimeout(() => {
+          autoAdvanceTimer = null;
+          if (currentScript && currentFrame < currentScript.frames.length - 1) {
+            goNext();
+          }
+        }, 1200);
+      }
+    };
+
+    utterance.onerror = () => {
+      webSpeechPlaying = false;
+      clearFocusCueTimers();
+      updatePlayPauseUI(false);
+    };
+
+    synth.speak(utterance);
+  }
+
   function playFrameAudio(frameIndex: number): void {
     if (autoAdvanceTimer) {
       clearTimeout(autoAdvanceTimer);
       autoAdvanceTimer = null;
     }
     audioEngine.stop();
+    stopTTS();
+    clearFocusCueTimers();
     sceneController.shiftFocus(null);
 
     const audio = audioMetadata.get(frameIndex);
     if (audio?.status === 'ready' && audio.url && ttsEnabled) {
-      stopTTS(); // Stop Web Speech API
+      // ElevenLabs audio available — use AudioEngine (precise focus cues)
       audioEngine.play(audio.url, audio.focusCues);
       updatePlayPauseUI(true);
+    } else if (ttsEnabled && synth) {
+      // No ElevenLabs — fall back to Web Speech + timer-based focus cues
+      playFrameWithWebSpeech(frameIndex);
     } else {
       updatePlayPauseUI(false);
     }
@@ -472,12 +596,18 @@ function main(): void {
       if (audioEngine.isPlaying) {
         audioEngine.pause();
         updatePlayPauseUI(false);
+      } else if (webSpeechPlaying && synth) {
+        // Pause/stop Web Speech playback
+        synth.cancel();
+        webSpeechPlaying = false;
+        clearFocusCueTimers();
+        updatePlayPauseUI(false);
       } else {
         audioEngine.resume();
         if (audioEngine.isPlaying) {
           updatePlayPauseUI(true);
         } else {
-          // No audio loaded — try playing current frame
+          // No audio loaded — try playing current frame (ElevenLabs or Web Speech fallback)
           playFrameAudio(currentFrame);
         }
       }
