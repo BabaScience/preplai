@@ -154,13 +154,14 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   position: fixed;
   bottom: 24px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(0);
   z-index: 150;
   display: flex;
   align-items: center;
   gap: 12px;
-  opacity: 0.85;
-  transition: opacity 0.3s ease;
+  opacity: 1;
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   background: rgba(12, 13, 20, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -168,8 +169,22 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   padding: 8px 16px;
 }
 
+/* Auto-hide: slide down + fade out when idle */
+#frame-nav.auto-hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(20px);
+  pointer-events: none;
+}
+
+/* Keep visible when hovering the nav bar itself */
+#frame-nav:hover {
+  opacity: 1 !important;
+  transform: translateX(-50%) translateY(0) !important;
+  pointer-events: auto !important;
+}
+
 #frame-nav.visible {
-  opacity: 0.9;
+  opacity: 1;
 }
 
 #frame-nav:hover {
@@ -697,6 +712,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   background: rgba(30, 41, 59, 0.6);
   border-radius: 4px;
   overflow: hidden;
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #progress-fill {
