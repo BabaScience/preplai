@@ -439,7 +439,8 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
             text: html,
             _meta: {
               ui: {
-                domain: '7933d89bad7a6221b3baf1bdbde12f3c.claudemcpcontent.com',
+                // domain omitted intentionally — each host (Claude, ChatGPT, Perplexity)
+                // uses its own default sandbox origin. Only needed for OAuth/CORS/API keys.
                 prefersBorder: false,
                 csp: {
                   resourceDomains: [
