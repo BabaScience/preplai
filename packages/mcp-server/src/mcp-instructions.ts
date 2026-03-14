@@ -19,6 +19,8 @@ Preplai serves three audiences. Adapt tone, depth, and entity choices:
 
 WORKFLOW: (1) create_session — returns preferences AND illustrations reference (entity types, aliases, metadata schemas). (2) add_scene — push frames using compact format. Can call multiple times to append. Use mode:"replace" to replace entire script. (3) get_session_url — get player URL.
 
+SESSION CONTINUITY: When the user asks to "explain deeper", "add more slides", "expand on X", or any follow-up — do NOT create a new session. Use the existing session_id and call add_scene with mode:"append". create_session will auto-detect and return your active session if one exists. Only create a new session for an entirely different topic.
+
 Use manage_sessions to list, delete sessions, or remove frames.
 
 FORMAT: Use COMPACT format in add_scene — short keys (sid, td, f, e, p, n, l, src, tgt, m, a), position as [x,y], aliases (BT, ARR, CST, CB, etc.), omit color and size.
