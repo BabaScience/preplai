@@ -145,8 +145,8 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   transform: translateX(-50%) translateY(0);
   z-index: 150;
   display: flex;
-  align-items: flex-end;
-  gap: 6px;
+  align-items: center;
+  gap: 12px;
   opacity: 1;
   transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
@@ -154,7 +154,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 20px;
-  padding: 8px 12px;
+  padding: 8px 16px;
 }
 
 /* Auto-hide: slide down + fade out when idle */
@@ -171,6 +171,14 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   pointer-events: auto !important;
 }
 
+#frame-nav.visible {
+  opacity: 1;
+}
+
+#frame-nav:hover {
+  opacity: 1 !important;
+}
+
 #frame-counter {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
@@ -180,8 +188,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   user-select: none;
 }
 
-#frame-nav button,
-#frame-nav a {
+#frame-nav button {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.5);
@@ -194,11 +201,9 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   align-items: center;
   justify-content: center;
   transition: all 0.15s ease;
-  flex-shrink: 0;
 }
 
-#frame-nav button:hover,
-#frame-nav a:hover {
+#frame-nav button:hover {
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.8);
 }
@@ -219,26 +224,34 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   pointer-events: none;
 }
 
-/* ── Play/Pause button ──────────────────────────────────────────── */
+/* ── Play/Pause toggle ───────────────────────────────────────────── */
 
 #play-pause-toggle {
-  position: relative;
+  margin-left: 4px;
 }
 
 #play-pause-toggle .play-icon,
 #play-pause-toggle .pause-icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  transition: opacity 0.15s ease;
+  display: none;
 }
 
-#play-pause-toggle.play-state .play-icon { opacity: 1; }
-#play-pause-toggle.play-state .pause-icon { opacity: 0; }
-#play-pause-toggle.pause-state .play-icon { opacity: 0; }
-#play-pause-toggle.pause-state .pause-icon { opacity: 1; }
+#play-pause-toggle.play-state .play-icon {
+  display: block;
+}
 
+#play-pause-toggle.play-state .pause-icon {
+  display: none;
+}
+
+#play-pause-toggle.pause-state .play-icon {
+  display: none;
+}
+
+#play-pause-toggle.pause-state .pause-icon {
+  display: block;
+}
+
+/* Play button accent on hover (cinema theme) */
 #play-pause-toggle.play-state:hover {
   background: rgba(201, 168, 76, 0.15);
   color: #C9A84C;
@@ -271,58 +284,57 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   opacity: 0.4;
 }
 
-/* ── TTS toggle ────────────────────────────────────────────────── */
+/* ── TTS toggle ──────────────────────────────────────────────────── */
 
-#tts-toggle {
-  position: relative;
+#tts-toggle,
+#narrator-overlay-toggle {
+  margin-left: 4px;
 }
 
+/* Vocal button: show only one icon at a time */
 #tts-toggle .tts-icon-on,
 #tts-toggle .tts-icon-off {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  transition: opacity 0.15s ease;
+  display: none;
 }
 
-#tts-toggle.tts-on .tts-icon-on { opacity: 1; }
-#tts-toggle.tts-on .tts-icon-off { opacity: 0; }
-#tts-toggle.tts-off .tts-icon-on { opacity: 0; }
-#tts-toggle.tts-off .tts-icon-off { opacity: 1; }
-
-#tts-toggle.tts-on:hover {
-  background: rgba(201, 168, 76, 0.15);
-  color: #C9A84C;
-  border-color: rgba(201, 168, 76, 0.3);
+#tts-toggle.tts-on .tts-icon-on {
+  display: block;
 }
 
-[data-theme="minimal"] #tts-toggle.tts-on:hover {
-  background: rgba(148, 163, 184, 0.15);
-  color: #94a3b8;
-  border-color: rgba(148, 163, 184, 0.3);
+#tts-toggle.tts-on .tts-icon-off {
+  display: none;
 }
 
-/* ── Narrator overlay toggle ──────────────────────────────────── */
-
-#narrator-overlay-toggle {
-  position: relative;
+#tts-toggle.tts-off .tts-icon-on {
+  display: none;
 }
 
+#tts-toggle.tts-off .tts-icon-off {
+  display: block;
+  opacity: 0.5;
+}
+
+/* Narrator overlay toggle: show only one icon at a time */
 #narrator-overlay-toggle .narrator-toggle-on,
 #narrator-overlay-toggle .narrator-toggle-off {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  transition: opacity 0.15s ease;
+  display: none;
 }
 
-/* Default: narrator visible → show "on" icon */
-#narrator-overlay-toggle .narrator-toggle-on { opacity: 1; }
-#narrator-overlay-toggle .narrator-toggle-off { opacity: 0; }
-#narrator-overlay-toggle.narrator-hidden .narrator-toggle-on { opacity: 0; }
-#narrator-overlay-toggle.narrator-hidden .narrator-toggle-off { opacity: 1; }
+#narrator-overlay-toggle.narrator-hidden .narrator-toggle-on {
+  display: none;
+}
+
+#narrator-overlay-toggle.narrator-hidden .narrator-toggle-off {
+  display: block;
+}
+
+#narrator-overlay-toggle:not(.narrator-hidden) .narrator-toggle-on {
+  display: block;
+}
+
+#narrator-overlay-toggle:not(.narrator-hidden) .narrator-toggle-off {
+  display: none;
+}
 
 /* ── Open Player link ───────────────────────────────────────────── */
 
