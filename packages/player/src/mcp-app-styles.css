@@ -338,12 +338,14 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 
 /* ── Open Player link ───────────────────────────────────────────── */
 
-#open-player-link {
+#frame-nav #open-player-link {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 4px 12px;
   border-radius: 12px;
+  width: auto;
+  height: auto;
   background: rgba(201, 168, 76, 0.1);
   border: 1px solid rgba(201, 168, 76, 0.25);
   color: #C9A84C;

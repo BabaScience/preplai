@@ -98,7 +98,7 @@ async function main(): Promise<void> {
   const prevBtn = document.getElementById('prev-frame');
   const nextBtn = document.getElementById('next-frame');
   const playPauseBtn = document.getElementById('play-pause-toggle');
-  const openPlayerLink = document.getElementById('open-player-link') as HTMLAnchorElement | null;
+  const openPlayerLink = document.getElementById('open-player-link') as HTMLButtonElement | null;
   const fullscreenBtn = document.getElementById('fullscreen-toggle');
 
   if (!entityLayer || !connectionLayer) {
@@ -471,11 +471,23 @@ async function main(): Promise<void> {
       console.log('[PRE-MCP] Audio base URL:', metaBaseUrl);
     }
 
-    // Set player URL link
+    // Set player URL link (uses SDK openLink to bypass sandbox restrictions)
     const playerUrl = meta.playerUrl as string | undefined;
     if (playerUrl && openPlayerLink) {
-      openPlayerLink.href = playerUrl;
       openPlayerLink.style.display = 'flex';
+      openPlayerLink.addEventListener('click', async () => {
+        try {
+          const result = await app.openLink({ url: playerUrl });
+          if (result.isError) {
+            console.warn('[PRE-MCP] Host denied openLink request, falling back to clipboard');
+            await navigator.clipboard.writeText(playerUrl).catch(() => {});
+          }
+        } catch (err) {
+          console.warn('[PRE-MCP] openLink failed:', err);
+          // Fallback: copy URL to clipboard so user can paste in browser
+          await navigator.clipboard.writeText(playerUrl).catch(() => {});
+        }
+      });
     }
 
     // Load and render the script

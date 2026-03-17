@@ -480,7 +480,9 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
 
   // ── MCP App Resource: Preplai Player HTML ─────────────────────────
   // Shared by add_scene and get_session_url tools.
-  // CSP allows GSAP CDN and Google Fonts for dynamic loading in sandbox.
+  // CSP:
+  // - resourceDomains: GSAP CDN, Google Fonts, AND our server (for audio media-src)
+  // - connectDomains: our server (for fetching audio via HTMLAudioElement)
   registerAppResource(
     mcp,
     'Preplai Player',
@@ -497,14 +499,16 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
             text: html,
             _meta: {
               ui: {
-                // domain omitted intentionally — each host (Claude, ChatGPT, Perplexity)
-                // uses its own default sandbox origin. Only needed for OAuth/CORS/API keys.
                 prefersBorder: false,
                 csp: {
                   resourceDomains: [
                     'https://cdnjs.cloudflare.com',
                     'https://fonts.googleapis.com',
                     'https://fonts.gstatic.com',
+                    baseUrl,  // e.g. https://player.preplai.com — for audio media-src
+                  ],
+                  connectDomains: [
+                    baseUrl,  // for HTMLAudioElement fetching /audio/:sessionId/:frame.mp3
                   ],
                 },
               },
