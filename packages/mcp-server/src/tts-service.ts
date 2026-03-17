@@ -82,23 +82,32 @@ export class TtsService {
     startIndex: number,
     scriptLanguage?: string,
   ): Promise<void> {
+    console.log(`[TTS] Processing ${frames.length - startIndex} frame(s) from index ${startIndex} for session ${sessionId}`);
+
     for (let i = startIndex; i < frames.length; i++) {
       const frame = frames[i];
       // narrationSegment can be a string or { text: '...' } from expanded format
       const seg = frame?.narrationSegment;
       const narrationText = typeof seg === 'string' ? seg : (seg as any)?.text;
-      if (!narrationText?.trim()) continue;
+      if (!narrationText?.trim()) {
+        console.log(`[TTS] Frame ${i}: no narration text, skipping`);
+        continue;
+      }
 
       try {
         // Resolve per-frame voice: frame language > script language > 'en'
         const lang = (frame as any).language ?? scriptLanguage ?? 'en';
         const voiceId = this.serviceConfig.voiceMap[lang] ?? this.serviceConfig.voiceMap.en;
 
+        console.log(`[TTS] Frame ${i}: generating audio (${narrationText.length} chars, voice=${voiceId}, provider=${this.provider.name})`);
+
         // Track TTS generation duration
         const ttsStart = performance.now();
         const result = await this.provider.generateSpeech(narrationText, voiceId);
         const ttsDurationSec = (performance.now() - ttsStart) / 1000;
         ttsGenerationDuration.observe(ttsDurationSec);
+
+        console.log(`[TTS] Frame ${i}: audio ready (${(result.audioBuffer.length / 1024).toFixed(1)}KB, ${result.duration.toFixed(1)}s, ${result.wordTimestamps.length} words) in ${ttsDurationSec.toFixed(2)}s`);
 
         // Store audio buffer (async — GridFS backed)
         await this.audioStore.set(sessionId, i, result.audioBuffer);
@@ -131,6 +140,7 @@ export class TtsService {
           frameIndex: i,
           audio,
         });
+        console.log(`[TTS] Frame ${i}: SSE audio_ready emitted for session ${sessionId}`);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown TTS error';
         console.error(`[TTS] Frame ${i} failed for session ${sessionId}:`, errorMessage);
