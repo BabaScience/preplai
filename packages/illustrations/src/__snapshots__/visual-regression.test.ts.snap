@@ -1211,12 +1211,13 @@ exports[`Visual Regression — SVG Snapshots > renders H1 without crashing > pro
   "rendered": true,
   "tagCounts": {
     "g": 1,
+    "line": 1,
     "text": 1,
   },
   "textLabels": [
     "H1",
   ],
-  "totalElements": 2,
+  "totalElements": 3,
 }
 `;
 
@@ -1227,12 +1228,13 @@ exports[`Visual Regression — SVG Snapshots > renders H2 without crashing > pro
   "rendered": true,
   "tagCounts": {
     "g": 1,
+    "line": 1,
     "text": 1,
   },
   "textLabels": [
     "H2",
   ],
-  "totalElements": 2,
+  "totalElements": 3,
 }
 `;
 

@@ -976,6 +976,18 @@ body.controls-hidden .progress-bar {
   fill: rgba(0, 0, 0, 0.45) !important;
 }
 
+/* ── Light connection label pills ─────────────────────────────── */
+
+[data-theme="light"] #connection-layer rect {
+  fill: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* ── Light noise overlay (subtler on light backgrounds) ────────── */
+
+[data-theme="light"] #noise-overlay {
+  opacity: 0.2;
+}
+
 /* ── Light entity subtle shadow ───────────────────────────────── */
 
 [data-theme="light"] #entity-layer > g {

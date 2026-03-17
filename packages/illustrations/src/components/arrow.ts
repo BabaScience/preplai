@@ -11,6 +11,7 @@
 import { SVG_NS, getSizeParam } from '../utils.js';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@preplai/shared';
 import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import { ensureDropShadowFilter } from '../visual-utils.js';
 import type { VisualEntity } from '@preplai/shared';
 
 /** Rect in SVG coordinates */
@@ -150,14 +151,14 @@ function ensureArrowheadMarker(markerId: string, color: string, svgEl: SVGElemen
 
   const marker = document.createElementNS(SVG_NS, 'marker');
   marker.setAttribute('id', markerId);
-  marker.setAttribute('markerWidth', '10');
-  marker.setAttribute('markerHeight', '10');
-  marker.setAttribute('refX', '9');
-  marker.setAttribute('refY', '3');
+  marker.setAttribute('markerWidth', '12');
+  marker.setAttribute('markerHeight', '12');
+  marker.setAttribute('refX', '11');
+  marker.setAttribute('refY', '4');
   marker.setAttribute('orient', 'auto-start-reverse');
 
   const polygon = document.createElementNS(SVG_NS, 'polygon');
-  polygon.setAttribute('points', '0 0, 10 3, 0 6');
+  polygon.setAttribute('points', '0 0, 12 4, 0 8');
   polygon.setAttribute('fill', color);
 
   marker.appendChild(polygon);
@@ -237,7 +238,7 @@ export function renderArrow(
   const strokeAttrs: Record<string, string> = {
     fill: 'none',
     stroke: color,
-    'stroke-width': '3',
+    'stroke-width': '3.5',
     opacity: '0.9',
     'marker-end': `url(#${markerId})`,
   };
@@ -252,18 +253,43 @@ export function renderArrow(
   const mainLine = document.createElementNS(SVG_NS, 'path');
   mainLine.setAttribute('d', pathD);
   for (const [k, v] of Object.entries(strokeAttrs)) mainLine.setAttribute(k, v);
+
+  // Subtle drop shadow for depth
+  const shadowFilter = ensureDropShadowFilter(svgRoot);
+  mainLine.setAttribute('filter', shadowFilter);
+
   g.appendChild(mainLine);
 
-  // Optional midpoint label (text only, no background)
+  // Optional midpoint label with background pill
   if (entity.label) {
     const midX = useCurved ? 0.25 * x1 + 0.5 * ctrlX + 0.25 * x2 : (x1 + x2) / 2;
     const midY = useCurved ? 0.25 * y1 + 0.5 * ctrlY + 0.25 * y2 : (y1 + y2) / 2;
+    const labelY = midY - 6;
+    const labelFontSize = 12;
+    const padH = 8;
+    const padV = 4;
+    // Estimate text width: ~7px per character at 12px font
+    const pillW = entity.label.length * 7 + padH * 2;
+    const pillH = labelFontSize + padV * 2;
+
+    // Background pill for readability
+    const pill = document.createElementNS(SVG_NS, 'rect');
+    pill.setAttribute('x', String(midX - pillW / 2));
+    pill.setAttribute('y', String(labelY - pillH / 2));
+    pill.setAttribute('width', String(pillW));
+    pill.setAttribute('height', String(pillH));
+    pill.setAttribute('rx', '6');
+    pill.setAttribute('ry', '6');
+    pill.setAttribute('fill', 'rgba(12, 13, 20, 0.75)');
+    g.appendChild(pill);
+
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', String(midX));
-    text.setAttribute('y', String(midY - 6));
+    text.setAttribute('y', String(labelY));
     text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'central');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', '12');
+    text.setAttribute('font-size', String(labelFontSize));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;
@@ -409,10 +435,14 @@ export function renderDataFlow(
   mainLine.setAttribute('d', pathD);
   mainLine.setAttribute('fill', 'none');
   mainLine.setAttribute('stroke', color);
-  mainLine.setAttribute('stroke-width', '4');
+  mainLine.setAttribute('stroke-width', '4.5');
   mainLine.setAttribute('stroke-dasharray', '8,4');
   mainLine.setAttribute('stroke-dashoffset', '0');
   mainLine.setAttribute('opacity', '0.7');
+
+  // Subtle drop shadow for depth
+  const dfShadowFilter = ensureDropShadowFilter(svgRoot);
+  mainLine.setAttribute('filter', dfShadowFilter);
 
   // ── Draw-on animation for DataFlow ──
   const delayMs = entity.animation?.delay ?? 0;

@@ -78,7 +78,20 @@ interface ViewBox {
 
 const VIEWBOX_PADDING = 0.12; // 12% padding around entity bounding box
 const VIEWBOX_MIN_W = 600; // don't zoom in tighter than this
-const VIEWBOX_ANIM_MS = 600;
+const VIEWBOX_ANIM_MS_DEFAULT = 600; // fallback
+
+/** Scale camera duration based on change magnitude. Snappy for small pans, dramatic for reveals. */
+function computeViewBoxDuration(start: ViewBox, target: ViewBox): number {
+  const dx = Math.abs(target.x - start.x);
+  const dy = Math.abs(target.y - start.y);
+  const dw = Math.abs(target.w - start.w);
+  const dh = Math.abs(target.h - start.h);
+  const panDelta = Math.sqrt(dx * dx + dy * dy) / Math.sqrt(1920 * 1920 + 1080 * 1080);
+  const zoomDelta = (dw + dh) / (1920 + 1080);
+  const totalDelta = Math.max(panDelta, zoomDelta);
+  // 400ms (snappy small pan) to 800ms (dramatic reveal)
+  return Math.round(Math.min(800, Math.max(400, 400 + totalDelta * 2000)));
+}
 
 /** Ease-in-out quad */
 function easeInOutQuad(t: number): number {
@@ -189,9 +202,22 @@ export class SceneController {
     const removed = this.prevNonConnections.filter(e => !currIds.has(e.id) && !e.parentEntityId);
     const kept = nonConnections.filter(e => prevIds.has(e.id) && !e.parentEntityId);
 
-    // ── Exit animation for removed entities ────────────────────────
-    for (const entity of removed) {
-      this._exitEntity(entity.id, entity.position);
+    // ── Exit animation for removed entities (staggered, outside-in) ──
+    const EXIT_STAGGER_MS = 30;
+    const sortedRemoved = [...removed].sort((a, b) => {
+      const distA = Math.sqrt(Math.pow((a.position?.x ?? 50) - 50, 2) + Math.pow((a.position?.y ?? 50) - 50, 2));
+      const distB = Math.sqrt(Math.pow((b.position?.x ?? 50) - 50, 2) + Math.pow((b.position?.y ?? 50) - 50, 2));
+      return distB - distA; // furthest from center exits first
+    });
+    for (let i = 0; i < sortedRemoved.length; i++) {
+      const entity = sortedRemoved[i];
+      if (i === 0) {
+        this._exitEntity(entity.id, entity.position);
+      } else {
+        setTimeout(() => {
+          this._exitEntity(entity.id, entity.position);
+        }, i * EXIT_STAGGER_MS);
+      }
     }
 
     // ── Update kept entities (position changes) ────────────────────
@@ -274,7 +300,7 @@ export class SceneController {
     el.classList.remove('dof-focus', 'dof-bg');
 
     // Determine directional exit transform based on position (P2.4)
-    let exitTransform = 'scale(0.85)';
+    let exitTransform = 'scale(0.85) rotate(-1deg)';
     if (position) {
       const x = position.x;
       const y = position.y;
@@ -284,10 +310,10 @@ export class SceneController {
       const distBottom = 100 - y;
       const minDist = Math.min(distLeft, distRight, distTop, distBottom);
 
-      if (minDist === distLeft) exitTransform = 'translateX(-80px) scale(0.9)';
-      else if (minDist === distRight) exitTransform = 'translateX(80px) scale(0.9)';
-      else if (minDist === distTop) exitTransform = 'translateY(-50px) scale(0.9)';
-      else exitTransform = 'translateY(50px) scale(0.9)';
+      if (minDist === distLeft) exitTransform = 'translateX(-100px) scale(0.9) rotate(-2deg)';
+      else if (minDist === distRight) exitTransform = 'translateX(100px) scale(0.9) rotate(2deg)';
+      else if (minDist === distTop) exitTransform = 'translateY(-80px) scale(0.9) rotate(-1deg)';
+      else exitTransform = 'translateY(80px) scale(0.9) rotate(1deg)';
     }
 
     // Apply exit: fade out + directional slide
@@ -500,11 +526,12 @@ export class SceneController {
       return;
     }
 
+    const duration = computeViewBoxDuration(start, target);
     const startTime = performance.now();
 
     const step = (now: number) => {
       const elapsed = now - startTime;
-      const t = Math.min(1, elapsed / VIEWBOX_ANIM_MS);
+      const t = Math.min(1, elapsed / duration);
       const ease = easeInOutQuad(t);
 
       const x = start.x + (target.x - start.x) * ease;
