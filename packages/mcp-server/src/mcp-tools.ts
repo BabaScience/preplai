@@ -377,6 +377,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
           script: session?.script ?? null,
           palette,
           theme,
+          baseUrl,
           playerUrl: `${baseUrl}/player/${args.session_id}?${params.toString()}`,
         },
       };

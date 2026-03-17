@@ -9,8 +9,8 @@
  * from @preplai/player and @preplai/illustrations.
  */
 import { App } from '@modelcontextprotocol/ext-apps';
-import type { VisualScript } from '@preplai/shared';
-import { SceneController, NarratorController } from '@preplai/player';
+import type { VisualScript, FrameAudio } from '@preplai/shared';
+import { SceneController, NarratorController, AudioEngine } from '@preplai/player';
 import { setActivePalette, getParticleColors } from '@preplai/illustrations';
 
 // Import player CSS — Vite will inline this into the single-file HTML
@@ -106,42 +106,27 @@ async function main(): Promise<void> {
     return;
   }
 
-  // ── Web Speech API narration ──────────────────────────────────────
-  const synth = window.speechSynthesis;
-  let isSpeaking = false;
+  // ── Audio engine (Inworld TTS via server, with Web Speech API fallback) ──
+  const audioMetadata = new Map<number, FrameAudio>();
   let isAutoPlaying = false;
   let autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null;
   let ttsEnabled = true; // controlled by TTS toggle button
 
-  function stopSpeech(): void {
-    if (synth) synth.cancel();
-    isSpeaking = false;
-    if (autoAdvanceTimer) {
-      clearTimeout(autoAdvanceTimer);
-      autoAdvanceTimer = null;
-    }
-  }
+  // Web Speech API fallback (used when no server audio is available)
+  const synth = window.speechSynthesis;
+  let isSpeakingFallback = false;
 
-  function speakNarration(text: string): void {
-    if (!synth || !text || !ttsEnabled) return;
-    stopSpeech();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
-    isSpeaking = true;
-    updatePlayPauseUI(true);
-
-    utterance.onend = () => {
-      isSpeaking = false;
+  const audioEngine = new AudioEngine({
+    onFocusCue: (cue) => {
+      sceneController.shiftFocus(cue.entityIds ?? (cue.entityId ? [cue.entityId] : null), cue.confidences);
+    },
+    onAudioEnd: () => {
       if (isAutoPlaying) {
-        // Auto-advance after a brief pause
         autoAdvanceTimer = setTimeout(() => {
           if (currentScript && currentFrame < currentScript.frames.length - 1) {
             goNext();
             playCurrentFrame();
           } else {
-            // Reached last frame — stop autoplay
             isAutoPlaying = false;
             updatePlayPauseUI(false);
           }
@@ -149,14 +134,26 @@ async function main(): Promise<void> {
       } else {
         updatePlayPauseUI(false);
       }
-    };
+    },
+    onAudioError: (_error) => {
+      // HD audio failed — fall back to Web Speech API
+      playCurrentFrameFallback();
+    },
+    onLoadingChange: (loading) => {
+      if (playPauseBtn) {
+        playPauseBtn.classList.toggle('audio-loading', loading);
+      }
+    },
+  });
 
-    utterance.onerror = () => {
-      isSpeaking = false;
-      updatePlayPauseUI(false);
-    };
-
-    synth.speak(utterance);
+  function stopSpeech(): void {
+    audioEngine.stop();
+    if (synth) synth.cancel();
+    isSpeakingFallback = false;
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      autoAdvanceTimer = null;
+    }
   }
 
   function updatePlayPauseUI(playing: boolean): void {
@@ -167,17 +164,68 @@ async function main(): Promise<void> {
     playPauseBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
   }
 
+  /** Play current frame using HD audio if available, else Web Speech API. */
   function playCurrentFrame(): void {
-    if (!currentScript) return;
-    const frame = currentScript.frames[currentFrame];
-    const narration = (frame as any)?.narrationSegment || (frame as any)?.n || '';
-    if (narration) {
-      speakNarration(narration);
+    if (!currentScript || !ttsEnabled) return;
+    const audio = audioMetadata.get(currentFrame);
+    if (audio?.status === 'ready' && audio.url) {
+      // HD audio from Inworld
+      audioEngine.play(audio.url, audio.focusCues);
+      updatePlayPauseUI(true);
+      // Preload next frame
+      const nextAudio = audioMetadata.get(currentFrame + 1);
+      if (nextAudio?.status === 'ready' && nextAudio.url) {
+        audioEngine.preload(nextAudio.url);
+      }
+    } else {
+      // Fallback to Web Speech API
+      playCurrentFrameFallback();
     }
   }
 
+  /** Web Speech API fallback for when server audio isn't available. */
+  function playCurrentFrameFallback(): void {
+    if (!currentScript || !synth || !ttsEnabled) return;
+    const frame = currentScript.frames[currentFrame];
+    const seg = frame?.narrationSegment;
+    const narration = typeof seg === 'string' ? seg : (seg as any)?.text || '';
+    if (!narration) return;
+
+    if (synth) synth.cancel();
+    const utterance = new SpeechSynthesisUtterance(narration);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    isSpeakingFallback = true;
+    updatePlayPauseUI(true);
+
+    utterance.onend = () => {
+      isSpeakingFallback = false;
+      if (isAutoPlaying) {
+        autoAdvanceTimer = setTimeout(() => {
+          if (currentScript && currentFrame < currentScript.frames.length - 1) {
+            goNext();
+            playCurrentFrame();
+          } else {
+            isAutoPlaying = false;
+            updatePlayPauseUI(false);
+          }
+        }, 800);
+      } else {
+        updatePlayPauseUI(false);
+      }
+    };
+
+    utterance.onerror = () => {
+      isSpeakingFallback = false;
+      updatePlayPauseUI(false);
+    };
+
+    synth.speak(utterance);
+  }
+
   function togglePlayPause(): void {
-    if (isSpeaking) {
+    if (audioEngine.isPlaying || isSpeakingFallback) {
       // Stop playback
       stopSpeech();
       isAutoPlaying = false;
@@ -187,6 +235,18 @@ async function main(): Promise<void> {
       isAutoPlaying = true;
       playCurrentFrame();
     }
+  }
+
+  /** Populate audio metadata from script frames. */
+  function populateAudioFromScript(script: VisualScript): void {
+    audioMetadata.clear();
+    for (let i = 0; i < script.frames.length; i++) {
+      const frame = script.frames[i] as any;
+      if (frame?.audio?.status === 'ready') {
+        audioMetadata.set(i, frame.audio);
+      }
+    }
+    console.log(`[PRE-MCP] Audio metadata: ${audioMetadata.size}/${script.frames.length} frames have HD audio`);
   }
 
   // ── Scene + Narrator controllers ──────────────────────────────────
@@ -245,6 +305,7 @@ async function main(): Promise<void> {
     hideLoading();
     currentScript = script;
     currentFrame = 0;
+    populateAudioFromScript(script);
     sceneController.loadScript(script);
     updateFrameCounter();
   }
@@ -291,6 +352,7 @@ async function main(): Promise<void> {
   if (ttsToggleBtn) {
     ttsToggleBtn.addEventListener('click', () => {
       ttsEnabled = !ttsEnabled;
+      audioEngine.setEnabled(ttsEnabled);
       updateTtsUI();
       if (!ttsEnabled) stopSpeech();
     });
@@ -402,6 +464,13 @@ async function main(): Promise<void> {
       setupAmbientParticles();
     }
 
+    // Set the events base URL for AudioEngine to resolve audio URLs
+    const metaBaseUrl = meta.baseUrl as string | undefined;
+    if (metaBaseUrl) {
+      document.body.setAttribute('data-events-base', metaBaseUrl.replace(/\/$/, ''));
+      console.log('[PRE-MCP] Audio base URL:', metaBaseUrl);
+    }
+
     // Set player URL link
     const playerUrl = meta.playerUrl as string | undefined;
     if (playerUrl && openPlayerLink) {
@@ -437,6 +506,7 @@ async function main(): Promise<void> {
 
   app.onteardown = async () => {
     stopSpeech();
+    audioEngine.setEnabled(false);
     return {};
   };
 
