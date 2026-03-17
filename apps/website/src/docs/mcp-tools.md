@@ -19,8 +19,8 @@ Presentations use a **theme** (visual style) and **palette** (color scheme). The
 **Themes:**
 | Theme | Description |
 |-------|-------------|
-| `cinema` | Rich gradients, ambient effects, drop shadows (default) |
-| `minimal` | Flat, algorithm-viz style, clean and technical |
+| `light` | Warm beige, frosted glass UI (default) |
+| `cinema` | Rich gradients, ambient effects, drop shadows |
 
 **Palettes:**
 | Palette | Description |
@@ -70,7 +70,7 @@ Create a new presentation session. Returns `session_id`, `player_url`, `preferen
 
 **No need to call anything first** — this single tool replaces the old `get_preferences` + `get_illustrations` + `create_session` workflow.
 
-Pass `style` to override the theme (e.g. `"minimal"` for algorithm visualizations). Omit `entity.color` in `add_scene` — the player uses the palette automatically. When running locally, the player URL is automatically opened in the browser (see [Callbacks](#callbacks)).
+Pass `style` to override the theme (e.g. `"cinema"` for dark cinematic mode). Omit `entity.color` in `add_scene` — the player uses the palette automatically. When running locally, the player URL is automatically opened in the browser (see [Callbacks](#callbacks)).
 
 **Parameters:**
 
@@ -78,7 +78,7 @@ Pass `style` to override the theme (e.g. `"minimal"` for algorithm visualization
 |------|------|----------|-------------|
 | `title` | string | Yes | Clear, descriptive title (e.g. "Binary Search Tree Insertion") |
 | `aspect_ratio` | string | No | Default `"16:9"`. Options: `"16:9"`, `"4:3"` |
-| `style` | string | No | Override theme: `"cinema"` or `"minimal"`. Omit to use the user's dashboard preference. |
+| `style` | string | No | Override theme: `"light"` or `"cinema"`. Omit to use the user's dashboard preference. |
 
 **Response includes:**
 - `session_id` — unique session identifier

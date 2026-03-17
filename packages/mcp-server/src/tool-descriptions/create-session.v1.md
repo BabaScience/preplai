@@ -4,7 +4,7 @@ SESSION REUSE — CRITICAL: If you already have a session_id from a previous cre
 
 PREREQUISITE — MANDATORY: NEVER call this tool until you have asked the user at least one clarifying question. Even vague requests ("make me a simple presentation", "the simplest example possible") require you to ask first — e.g. "What topic would you like this to cover?" or "What do you want to understand better?" Gather topic, purpose, depth, and style before proceeding. Do NOT call immediately when the user says "create a presentation" without context.
 
-THEMES: "cinema" (rich gradients) or "minimal" (flat, algorithm-viz). PALETTES: "default", "ocean", "sunset", "forest", "mono". The user's dashboard preference is used unless you pass style. Omit entity.color in add_scene by default — the player uses the palette automatically. Player URL: open in browser for user to watch.
+THEMES: "light" (warm beige, light mode — default) or "cinema" (rich gradients, dark). PALETTES: "default", "ocean", "sunset", "forest", "mono". The user's dashboard preference is used unless you pass style. Omit entity.color in add_scene by default — the player uses the palette automatically. Player URL: open in browser for user to watch.
 
 RETURNS: session_id, player_url, embed_url (for iframe embedding), preferences (theme, palette), AND illustrations reference (entityTypes, aliases, shortKeys, topicHints, metadataHints). Use the illustrations data to choose the right entity types for add_scene.
 

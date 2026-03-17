@@ -15,8 +15,8 @@ import {
 } from '../../lib/api';
 
 const THEMES = [
+  { id: 'light', label: 'Light', desc: 'Warm beige, frosted glass UI' },
   { id: 'cinema', label: 'Cinematic', desc: 'Rich gradients, ambient effects' },
-  { id: 'minimal', label: 'Minimal', desc: 'Flat, algorithm-viz style' },
 ];
 
 const PALETTES = [

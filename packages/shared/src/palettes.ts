@@ -5,7 +5,7 @@
  * when rendering entities without explicit entity.color.
  */
 
-export const PLAYER_THEMES = ['cinema', 'minimal'] as const;
+export const PLAYER_THEMES = ['cinema', 'light'] as const;
 export type PlayerTheme = (typeof PLAYER_THEMES)[number];
 
 export const PLAYER_PALETTES = ['default', 'ocean', 'sunset', 'forest', 'mono'] as const;

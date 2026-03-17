@@ -82,7 +82,7 @@ router.patch('/profile', async (req, res) => {
 router.patch('/player', async (req, res) => {
   const { playerTheme, playerPalette } = req.body;
 
-  const validThemes = ['cinema', 'minimal'];
+  const validThemes = ['cinema', 'light'];
   const validPalettes = ['default', 'ocean', 'sunset', 'forest', 'mono'];
 
   if (playerTheme != null && !validThemes.includes(playerTheme)) {

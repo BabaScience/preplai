@@ -137,13 +137,13 @@ export async function getOrCreateApiKeyForUser(userId: string): Promise<Validate
 // ── User player preferences (theme + palette) ──────────────────────────
 
 export interface UserPlayerPrefs {
-  theme: 'cinema' | 'minimal';
+  theme: 'cinema' | 'light';
   palette: string;
 }
 
 /** Get user's saved player theme and palette from API key. Returns defaults if key has no userId. */
 export async function getUserPlayerPrefs(apiKeyId: string | undefined): Promise<UserPlayerPrefs> {
-  const defaults = { theme: 'cinema' as const, palette: 'default' };
+  const defaults = { theme: 'light' as const, palette: 'default' };
 
   if (!apiKeyId) {
     logPlayerPrefs('debug', { reason: 'no_api_key_id', prefs: defaults }, 'Using defaults: no API key');
@@ -166,10 +166,10 @@ export async function getUserPlayerPrefs(apiKeyId: string | undefined): Promise<
     return defaults;
   }
 
-  const validThemes = ['cinema', 'minimal'];
+  const validThemes = ['cinema', 'light'];
   const validPalettes = ['default', 'ocean', 'sunset', 'forest', 'mono'];
   const prefs: UserPlayerPrefs = {
-    theme: validThemes.includes(user.playerTheme ?? '') ? (user.playerTheme as 'cinema' | 'minimal') : 'cinema',
+    theme: validThemes.includes(user.playerTheme ?? '') ? (user.playerTheme as 'cinema' | 'light') : 'light',
     palette: validPalettes.includes(user.playerPalette ?? '') ? (user.playerPalette as string) : 'default',
   };
   logPlayerPrefs('debug', { userId: String(userId), reason: 'from_dashboard', prefs }, 'Player prefs from dashboard');

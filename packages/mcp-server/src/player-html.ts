@@ -3,7 +3,7 @@
  *
  * Inline HTML template for the player page.
  * {{SESSION_ID}} is replaced at serve time.
- * {{STYLE}} is replaced with 'cinema' or 'minimal' from URL ?style= param.
+ * {{STYLE}} is replaced with 'light' or 'cinema' from URL ?style= param.
  * {{EVENTS_BASE}} is the base URL for SSE (e.g. https://player.preplai.com) — used when player is in iframe.
  * {{GA_SCRIPT}} is replaced with GA4 inline script if GA_MEASUREMENT_ID env var is set, else empty string.
  *
@@ -191,5 +191,257 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
   <script src="/player.js"></script>
 
   <div id="keyboard-hint" class="keyboard-hint">← → navigate · Space play/pause · N narrator</div>
+</body>
+</html>`;
+
+
+/**
+ * Polished 404 page for when a session is not found or has expired.
+ * Self-contained — no external CSS/JS dependencies (except Google Fonts).
+ * {{SESSION_ID}} is replaced with the requested session ID.
+ * {{GA_SCRIPT}} is replaced with GA4 script if configured.
+ */
+export const PLAYER_NOT_FOUND_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presentation Not Found — Preplai</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b0c10'/%3E%3Cpath d='M8 8h6a6 6 0 0 1 0 12H8z' fill='none' stroke='%23C9A84C' stroke-width='2.5'/%3E%3Ccircle cx='22' cy='22' r='3' fill='%23C9A84C'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+{{GA_SCRIPT}}
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #faf7f2;
+      color: #1a1a2e;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 520px;
+      padding: 2rem;
+      animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Animated film reel icon */
+    .icon-wrap {
+      width: 88px;
+      height: 88px;
+      margin: 0 auto 2rem;
+      position: relative;
+    }
+
+    .icon-ring {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      border: 2.5px solid #e8e0d4;
+      position: absolute;
+      top: 0; left: 0;
+    }
+
+    .icon-ring::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #e8e0d4;
+      transform: translate(-50%, -50%);
+    }
+
+    .icon-reel {
+      position: absolute;
+      top: 0; left: 0;
+      width: 88px;
+      height: 88px;
+      animation: spin 12s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .icon-reel .hole {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #faf7f2;
+      position: absolute;
+      border: 2px solid #d4ccc0;
+    }
+
+    .icon-reel .hole:nth-child(1) { top: 8px; left: 50%; transform: translateX(-50%); }
+    .icon-reel .hole:nth-child(2) { top: 22px; right: 12px; }
+    .icon-reel .hole:nth-child(3) { bottom: 22px; right: 12px; }
+    .icon-reel .hole:nth-child(4) { bottom: 8px; left: 50%; transform: translateX(-50%); }
+    .icon-reel .hole:nth-child(5) { bottom: 22px; left: 12px; }
+    .icon-reel .hole:nth-child(6) { top: 22px; left: 12px; }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 1.05rem;
+      color: #5a5a6e;
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+    }
+
+    .session-id {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #8a8a9e;
+      background: rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 6px;
+      padding: 0.25rem 0.6rem;
+      margin-top: 0.5rem;
+      letter-spacing: 0.02em;
+      word-break: break-all;
+    }
+
+    .hints {
+      margin-top: 2rem;
+      padding: 1.25rem 1.5rem;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 12px;
+      text-align: left;
+    }
+
+    .hints-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #8a8a9e;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.75rem;
+    }
+
+    .hints ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .hints li {
+      font-size: 0.9rem;
+      color: #5a5a6e;
+      line-height: 1.6;
+      padding-left: 1.25rem;
+      position: relative;
+    }
+
+    .hints li + li {
+      margin-top: 0.4rem;
+    }
+
+    .hints li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: #B8943D;
+      font-weight: 600;
+    }
+
+    .home-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #B8943D;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .home-link:hover {
+      opacity: 0.75;
+    }
+
+    /* Ambient floating dots */
+    .dot {
+      position: fixed;
+      border-radius: 50%;
+      background: #B8943D;
+      opacity: 0;
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .dot:nth-child(1) { width: 4px; height: 4px; top: 15%; left: 10%; animation-delay: 0s; }
+    .dot:nth-child(2) { width: 3px; height: 3px; top: 70%; left: 85%; animation-delay: 2s; }
+    .dot:nth-child(3) { width: 5px; height: 5px; top: 30%; right: 15%; animation-delay: 4s; }
+    .dot:nth-child(4) { width: 3px; height: 3px; bottom: 20%; left: 25%; animation-delay: 6s; }
+
+    @keyframes float {
+      0%, 100% { opacity: 0; transform: translateY(0); }
+      50% { opacity: 0.15; transform: translateY(-20px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+
+  <div class="container">
+    <div class="icon-wrap">
+      <div class="icon-ring"></div>
+      <div class="icon-reel">
+        <div class="hole"></div>
+        <div class="hole"></div>
+        <div class="hole"></div>
+        <div class="hole"></div>
+        <div class="hole"></div>
+        <div class="hole"></div>
+      </div>
+    </div>
+
+    <h1>Presentation not found</h1>
+    <p class="subtitle">
+      This presentation doesn't exist or may have expired.
+      Presentations are automatically removed after a period of inactivity.
+    </p>
+    <code class="session-id">{{SESSION_ID}}</code>
+
+    <div class="hints">
+      <div class="hints-title">What you can do</div>
+      <ul>
+        <li>Check that the URL was copied correctly</li>
+        <li>Ask the person who shared it to generate a new link</li>
+        <li>Create a new presentation from your AI assistant</li>
+      </ul>
+    </div>
+
+    <a class="home-link" href="https://preplai.com">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Back to Preplai
+    </a>
+  </div>
 </body>
 </html>`;

@@ -177,23 +177,23 @@ describe('GET /player/:sessionId', () => {
     expect(res.body).toContain('id="frame-counter"');
   });
 
-  it('should inject data-theme=minimal when ?style=minimal in query', async () => {
+  it('should inject data-theme=cinema when ?style=cinema in query', async () => {
     const res = await ctx.app.inject({
       method: 'GET',
-      url: `/player/${sessionId}?style=minimal`,
+      url: `/player/${sessionId}?style=cinema`,
     });
 
     expect(res.statusCode).toBe(200);
-    expect(res.body).toContain('data-theme="minimal"');
+    expect(res.body).toContain('data-theme="cinema"');
   });
 
-  it('should inject data-theme=cinema when no style param', async () => {
+  it('should inject data-theme=light when no style param (default)', async () => {
     const res = await ctx.app.inject({
       method: 'GET',
       url: `/player/${sessionId}`,
     });
 
-    expect(res.body).toContain('data-theme="cinema"');
+    expect(res.body).toContain('data-theme="light"');
   });
 });
 

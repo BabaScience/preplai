@@ -43,7 +43,7 @@ import {
 } from './tools.js';
 import { withErrorBoundary } from './errors.js';
 import { verifySessionOwnership } from './session-utils.js';
-import { PLAYER_HTML_TEMPLATE } from './player-html.js';
+import { PLAYER_HTML_TEMPLATE, PLAYER_NOT_FOUND_HTML } from './player-html.js';
 import {
   validateApiKey,
   trackUsage,
@@ -532,10 +532,14 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       const { sessionId } = request.params;
       const session = await store.getSessionOrHydrate(sessionId);
       if (!session) {
-        reply.status(404).send({ error: 'Session not found or expired.' });
+        const notFoundHtml = PLAYER_NOT_FOUND_HTML
+          .replace(/\{\{SESSION_ID\}\}/g, sessionId)
+          .replace(/\{\{GA_SCRIPT\}\}/g, GA_SCRIPT_BLOCK);
+        reply.status(404).type('text/html').send(notFoundHtml);
         return;
       }
-      const style = request.query.style === 'minimal' ? 'minimal' : 'cinema';
+      const VALID_THEMES = new Set(['cinema', 'light']);
+      const style = VALID_THEMES.has(request.query.style ?? '') ? request.query.style! : 'light';
       const palette = VALID_PALETTES.has(request.query.palette ?? '') ? request.query.palette! : 'default';
       const eventsBase = cfg.baseUrl.replace(/\/$/, '');
       const html = PLAYER_HTML_TEMPLATE
@@ -549,12 +553,14 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   );
 
   // ── Test player route (no auth, no session needed) ─────────────────
-  app.get<{ Querystring: { palette?: string } }>('/player/_test', async (request, reply) => {
+  app.get<{ Querystring: { palette?: string; style?: string } }>('/player/_test', async (request, reply) => {
+    const VALID_TEST_THEMES = new Set(['cinema', 'light']);
+    const style = VALID_TEST_THEMES.has(request.query.style ?? '') ? request.query.style! : 'light';
     const palette = VALID_PALETTES.has(request.query.palette ?? '') ? request.query.palette! : 'default';
     const eventsBase = cfg.baseUrl.replace(/\/$/, '');
     const html = PLAYER_HTML_TEMPLATE
       .replace(/\{\{SESSION_ID\}\}/g, '_test')
-      .replace(/\{\{STYLE\}\}/g, 'cinema')
+      .replace(/\{\{STYLE\}\}/g, style)
       .replace(/\{\{PALETTE\}\}/g, palette)
       .replace(/\{\{EVENTS_BASE\}\}/g, eventsBase)
       .replace(/\{\{GA_SCRIPT\}\}/g, GA_SCRIPT_BLOCK);
@@ -591,7 +597,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   const checkOwnership = (sessionId: string, apiKeyId: string) =>
     verifySessionOwnership(store, sessionId, apiKeyId);
 
-  app.post<{ Body: { title: string; aspect_ratio?: string; style?: 'cinema' | 'minimal' } }>(
+  app.post<{ Body: { title: string; aspect_ratio?: string; style?: 'cinema' | 'light' } }>(
     '/api/create-session',
     async (request, reply) => {
       const apiKey = (request as any).apiKey as ValidatedKey;

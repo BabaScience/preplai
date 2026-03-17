@@ -72,7 +72,7 @@ describe('MCP Tool Handlers', () => {
       const result = await handleGetPreferences({}, { apiKeyId: undefined });
       const data = parse(result);
       expect(data.success).toBe(true);
-      expect(data.data).toEqual({ theme: 'cinema', palette: 'default' });
+      expect(data.data).toEqual({ theme: 'light', palette: 'default' });
       expect(data.data.colors).toBeUndefined();
     });
   });
@@ -146,12 +146,12 @@ describe('MCP Tool Handlers', () => {
       const data = parse(result);
       expect(data.success).toBe(true);
       expect(data.data.session_id).toMatch(/^[0-9a-f]{8}-/);
-      expect(data.data.player_url).toBe(`${baseUrl}/player/${data.data.session_id}?style=cinema&palette=default`);
-      expect(data.data.embed_url).toBe(`${baseUrl}/player/${data.data.session_id}?embed=1&style=cinema&palette=default`);
+      expect(data.data.player_url).toBe(`${baseUrl}/player/${data.data.session_id}?style=light&palette=default`);
+      expect(data.data.embed_url).toBe(`${baseUrl}/player/${data.data.session_id}?embed=1&style=light&palette=default`);
       expect(data.data.title).toBe('Binary Search Intro');
       expect(data.data.aspect_ratio).toBe('16:9');
       expect(data.data.created_at).toBeTruthy();
-      expect(data.data.preferences).toEqual({ theme: 'cinema', palette: 'default' });
+      expect(data.data.preferences).toEqual({ theme: 'light', palette: 'default' });
     });
 
     it('returns illustrations reference (consolidated from get_illustrations)', async () => {
@@ -183,15 +183,15 @@ describe('MCP Tool Handlers', () => {
       expect(data.data.aspect_ratio).toBe('16:9');
     });
 
-    it('appends ?style=minimal&palette=default to URLs when style is minimal', async () => {
+    it('appends ?style=cinema&palette=default to URLs when style is cinema', async () => {
       const result = await handleCreateSession(
-        { title: 'Minimal Style', style: 'minimal' },
+        { title: 'Cinema Style', style: 'cinema' },
         { store, baseUrl }
       );
       const data = parse(result);
       expect(data.success).toBe(true);
-      expect(data.data.player_url).toBe(`${baseUrl}/player/${data.data.session_id}?style=minimal&palette=default`);
-      expect(data.data.embed_url).toBe(`${baseUrl}/player/${data.data.session_id}?embed=1&style=minimal&palette=default`);
+      expect(data.data.player_url).toBe(`${baseUrl}/player/${data.data.session_id}?style=cinema&palette=default`);
+      expect(data.data.embed_url).toBe(`${baseUrl}/player/${data.data.session_id}?embed=1&style=cinema&palette=default`);
     });
 
     it('persists session in store', async () => {

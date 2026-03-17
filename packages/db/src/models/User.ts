@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
     name: { type: String, default: null },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     emailVerified: { type: Boolean, default: true },
-    playerTheme: { type: String, enum: ['cinema', 'minimal'], default: 'cinema' },
+    playerTheme: { type: String, enum: ['cinema', 'light'], default: 'light' },
     playerPalette: {
       type: String,
       enum: ['default', 'ocean', 'sunset', 'forest', 'mono'],

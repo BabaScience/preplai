@@ -69,10 +69,11 @@ export const PLAYER_JS = `(function() {
     mono:    { compute:'#ECEFF1', data:'#607D8B', environment:'#78909C', human:'#B0BEC5', structure:'#455A64', state:'#90A4AE', annotation:'#FFFFFF', generic:'#CFD8DC', accent:'#90A4AE', particles:['#ECEFF1','#90A4AE','#78909C','#607D8B','#546E7A','#455A64','#37474F'] }
   };
 
-  // Style: cinema (default) or minimal. Set from URL ?style= or script.style
+  // Style: light (default) or cinema. Set from URL ?style= or script.style
+  var VALID_STYLES = { cinema: 1, light: 1 };
   var urlStyle = (function() {
     var m = window.location.search.match(/[?&]style=([^&]+)/);
-    return m && m[1] === 'minimal' ? 'minimal' : null;
+    return m && VALID_STYLES[m[1]] ? m[1] : null;
   })();
   var renderStyle = urlStyle || 'cinema';
 
@@ -3064,7 +3065,7 @@ export const PLAYER_JS = `(function() {
     hideEmptyState();
     var prevFrameCount = currentScript ? currentScript.frames.length : 0;
     currentScript = script;
-    renderStyle = (currentScript && currentScript.style === 'minimal') || urlStyle ? 'minimal' : 'cinema';
+    renderStyle = urlStyle || (currentScript && VALID_STYLES[currentScript.style] ? currentScript.style : 'light');
     if (document.body) document.body.setAttribute('data-theme', renderStyle);
     if (prevFrameCount > 0 && currentScript.frames.length > prevFrameCount) {
       currentFrame = prevFrameCount;

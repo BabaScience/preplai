@@ -817,6 +817,211 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   fill: #0f172a;
 }
 
+/* ── Light theme overrides ──────────────────────────────────────── */
+
+[data-theme="light"] html,
+[data-theme="light"] body {
+  background: radial-gradient(ellipse at center, #faf7f2 0%, #f3ede4 70%);
+  color: #1a1a2e;
+}
+
+[data-theme="light"] #bg {
+  fill: #f5f0e8;
+}
+
+/* Dot grid: dark dots on light bg */
+[data-theme="light"] #dot-grid {
+  opacity: 0.06;
+}
+[data-theme="light"] #dot-grid circle {
+  fill: rgba(0, 0, 0, 0.5);
+}
+
+/* Ambient particles: tinted with low opacity */
+[data-theme="light"] .ambient-particle {
+  opacity: 0.04 !important;
+}
+
+/* ── Light narrator ──────────────────────────────────────────── */
+
+[data-theme="light"] #narrator-text {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(40px) saturate(1.2);
+  -webkit-backdrop-filter: blur(40px) saturate(1.2);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-left: 3px solid #B8943D;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.02) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  color: #3a3a4e;
+}
+
+[data-theme="light"] #narrator-text::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] #narrator-text {
+  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
+}
+
+/* ── Light frame nav ─────────────────────────────────────────── */
+
+[data-theme="light"] #frame-nav {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] #frame-nav button {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #5a5a6e;
+}
+
+[data-theme="light"] #frame-nav button:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #1a1a2e;
+}
+
+[data-theme="light"] #frame-nav button:active {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] #frame-nav button:focus-visible {
+  outline: 2px solid #B8943D;
+}
+
+[data-theme="light"] #frame-counter {
+  color: #8a8a9e;
+}
+
+/* ── Light dots ──────────────────────────────────────────────── */
+
+[data-theme="light"] .frame-dot {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .frame-dot:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="light"] .frame-dot.visited {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .frame-dot.visited:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] .frame-dot.current {
+  background: #B8943D;
+  box-shadow: 0 0 8px rgba(184, 148, 61, 0.35);
+}
+
+[data-theme="light"] .frame-dot.current:hover {
+  background: #B8943D;
+}
+
+/* ── Light progress bar ──────────────────────────────────────── */
+
+[data-theme="light"] #progress-bar {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] #progress-fill {
+  background: #B8943D;
+}
+
+/* ── Light play button gold accent ───────────────────────────── */
+
+[data-theme="light"] #play-pause-toggle.play-state:hover {
+  background: rgba(184, 148, 61, 0.12);
+  color: #B8943D;
+  border-color: rgba(184, 148, 61, 0.25);
+}
+
+[data-theme="light"] #play-pause-toggle.audio-loading::after {
+  border-top-color: #B8943D;
+}
+
+/* ── Light tooltips ──────────────────────────────────────────── */
+
+[data-theme="light"] .entity-tooltip {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #1a1a2e;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Light connection status ─────────────────────────────────── */
+
+[data-theme="light"] #connection-status.reconnecting {
+  color: #1a1a2e;
+}
+
+/* ── Light keyboard hint ─────────────────────────────────────── */
+
+[data-theme="light"] .keyboard-hint {
+  color: rgba(0, 0, 0, 0.2);
+}
+
+/* ── Light rotate hint ───────────────────────────────────────── */
+
+[data-theme="light"] #rotate-hint {
+  background: rgba(250, 247, 242, 0.95);
+  color: #3a3a4e;
+}
+
+[data-theme="light"] #rotate-hint svg {
+  stroke: #5a5a6e;
+}
+
+[data-theme="light"] #rotate-fullscreen-btn {
+  background: #B8943D;
+  color: #ffffff;
+}
+
+[data-theme="light"] #rotate-fullscreen-btn:active {
+  background: #a68535;
+}
+
+/* ── Light entity hover ──────────────────────────────────────── */
+
+[data-theme="light"] .entity-interactive:hover {
+  filter: brightness(0.92) drop-shadow(0 0 12px rgba(0, 0, 0, 0.08));
+}
+
+/* ── Light SVG text — make all text dark for readability ─────── */
+
+[data-theme="light"] #entity-layer text,
+[data-theme="light"] #connection-layer text,
+[data-theme="light"] #overlay-layer text {
+  fill: #2d2d3a;
+}
+
+/* ── Light connections — dark strokes + arrow markers ─────────── */
+
+[data-theme="light"] #connection-layer line,
+[data-theme="light"] #connection-layer path,
+[data-theme="light"] #connection-layer polyline {
+  stroke: rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="light"] marker path {
+  fill: rgba(0, 0, 0, 0.45) !important;
+}
+
+/* ── Light soft shadow filter — lighter for light bg ─────────── */
+
+[data-theme="light"] #entity-layer > g {
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.06));
+}
+
 /* ── Entity idle micro-animations ────────────────────────────────── */
 /* GPU-only: opacity + transform. Activates after entrance completes. */
 /* Each entity type gets a unique ambient rhythm so the scene feels alive. */

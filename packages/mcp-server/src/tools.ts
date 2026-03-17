@@ -91,7 +91,7 @@ function logCreateSession(obj: {
 // ── Tool 1: create_session ────────────────────────────────────────────
 
 export async function handleCreateSession(
-  args: { title: string; aspect_ratio?: string; style?: 'cinema' | 'minimal'; _apiKeyId?: string },
+  args: { title: string; aspect_ratio?: string; style?: 'cinema' | 'light'; _apiKeyId?: string },
   deps: CreateSessionDeps,
 ): Promise<McpToolContent> {
   const { title, aspect_ratio = '16:9', style, _apiKeyId } = args;

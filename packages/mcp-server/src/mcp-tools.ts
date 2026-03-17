@@ -149,7 +149,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
     {
       title: z.string().describe('Clear, descriptive title matching the user\'s topic (e.g. "Binary Search Tree Insertion", "System Architecture Overview")'),
       aspect_ratio: z.string().optional().describe('Aspect ratio, default "16:9". Options: "16:9", "4:3"'),
-      style: z.enum(['cinema', 'minimal']).optional().describe('Override theme: "cinema" (rich gradients) or "minimal" (flat). Omit to use the user\'s dashboard preference.'),
+      style: z.enum(['cinema', 'light']).optional().describe('Override theme: "cinema" (rich gradients, dark) or "light" (warm beige, light mode). Omit to use the user\'s dashboard preference.'),
       force_new: z.boolean().optional().describe('Set to true to force creating a new session even if one already exists. Default: false — reuses the most recent active session.'),
     },
     async (args, extra) => {

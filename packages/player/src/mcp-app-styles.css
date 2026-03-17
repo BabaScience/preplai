@@ -820,6 +820,172 @@ body.controls-hidden .progress-bar {
   fill: #0f172a;
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   Light theme — Cloud Beige
+   Warm cream background, white-glass UI chrome, dark text.
+   ══════════════════════════════════════════════════════════════════ */
+
+[data-theme="light"] {
+  background: radial-gradient(ellipse at center, #faf7f2 0%, #f3ede4 70%) !important;
+  color: #1a1a2e;
+}
+
+[data-theme="light"] #bg {
+  fill: #f5f0e8;
+}
+
+/* Dot grid: dark dots */
+[data-theme="light"] #dot-grid {
+  opacity: 0.06;
+}
+[data-theme="light"] #dot-grid circle {
+  fill: rgba(0, 0, 0, 0.5);
+}
+
+/* Ambient particles: low opacity on light bg */
+[data-theme="light"] .ambient-particle {
+  opacity: 0.04 !important;
+}
+
+/* ── Light narrator ───────────────────────────────────────────── */
+
+[data-theme="light"] #narrator-text {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(40px) saturate(1.2);
+  -webkit-backdrop-filter: blur(40px) saturate(1.2);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-left: 3px solid #B8943D;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.02) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  color: #3a3a4e;
+}
+
+/* ── Light frame nav ──────────────────────────────────────────── */
+
+[data-theme="light"] #frame-nav {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] #frame-nav button {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #5a5a6e;
+}
+
+[data-theme="light"] #frame-nav button:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #1a1a2e;
+}
+
+[data-theme="light"] #frame-nav button:active {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] #frame-nav button:focus-visible {
+  outline: 2px solid #B8943D;
+}
+
+[data-theme="light"] #frame-counter {
+  color: #8a8a9e;
+}
+
+/* ── Light dots ───────────────────────────────────────────────── */
+
+[data-theme="light"] .frame-dot {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .frame-dot:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="light"] .frame-dot.visited {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .frame-dot.current {
+  background: #B8943D;
+  box-shadow: 0 0 8px rgba(184, 148, 61, 0.35);
+}
+
+[data-theme="light"] .frame-dot.current:hover {
+  background: #B8943D;
+}
+
+/* ── Light progress bar ───────────────────────────────────────── */
+
+[data-theme="light"] .progress-bar,
+[data-theme="light"] #progress-bar {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .progress-fill,
+[data-theme="light"] #progress-fill {
+  background: #B8943D;
+}
+
+/* ── Light play button gold accent ────────────────────────────── */
+
+[data-theme="light"] #play-pause-toggle.play-state:hover {
+  background: rgba(184, 148, 61, 0.12);
+  color: #B8943D;
+  border-color: rgba(184, 148, 61, 0.25);
+}
+
+[data-theme="light"] #play-pause-toggle.audio-loading::after {
+  border-top-color: #B8943D;
+}
+
+/* ── Light open-player link ───────────────────────────────────── */
+
+[data-theme="light"] #frame-nav #open-player-link {
+  background: rgba(184, 148, 61, 0.1);
+  border-color: rgba(184, 148, 61, 0.2);
+  color: #8a7530;
+}
+
+[data-theme="light"] #frame-nav #open-player-link:hover {
+  background: rgba(184, 148, 61, 0.18);
+  border-color: rgba(184, 148, 61, 0.35);
+  color: #6b5a25;
+}
+
+/* ── Light SVG text — dark for readability ────────────────────── */
+
+[data-theme="light"] #entity-layer text,
+[data-theme="light"] #connection-layer text,
+[data-theme="light"] #overlay-layer text {
+  fill: #2d2d3a;
+}
+
+/* ── Light connections — dark strokes ─────────────────────────── */
+
+[data-theme="light"] #connection-layer line,
+[data-theme="light"] #connection-layer path,
+[data-theme="light"] #connection-layer polyline {
+  stroke: rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="light"] marker path {
+  fill: rgba(0, 0, 0, 0.45) !important;
+}
+
+/* ── Light entity subtle shadow ───────────────────────────────── */
+
+[data-theme="light"] #entity-layer > g {
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.06));
+}
+
+[data-theme="light"] .entity-interactive:hover {
+  filter: brightness(0.92) drop-shadow(0 0 12px rgba(0, 0, 0, 0.08));
+}
+
 /* ── Entity idle micro-animations ────────────────────────────────── */
 
 @keyframes idle-breathe {

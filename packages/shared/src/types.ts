@@ -189,7 +189,7 @@ export interface VisualScript {
   frames: IllustrationFrame[];
   totalDuration: number;
   entities?: Record<string, VisualEntity>;
-  style?: 'cinema' | 'minimal';
+  style?: 'cinema' | 'light';
   /** ISO 639-1 language code for narration (e.g. 'en', 'fr', 'it'). Default: 'en' */
   language?: string;
 }
