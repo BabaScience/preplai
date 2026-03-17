@@ -156,6 +156,13 @@ import { renderNotification } from './components/notification.js';
 import { renderTask } from './components/task.js';
 import { renderFile } from './components/file.js';
 
+// ── Phase 1: Core Architecture Diagrams
+import { renderSequenceDiagram } from './components/sequence-diagram.js';
+import { renderEREntity } from './components/er-entity.js';
+import { renderClassNode } from './components/class-node.js';
+import { renderSystemBoundary } from './components/system-boundary.js';
+import { renderCircuitBreaker } from './components/circuit-breaker.js';
+
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
 import { getCategoryColor } from './design-tokens.js';
@@ -372,6 +379,13 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   Notification: renderNotification,
   Task: renderTask,
   File: renderFile,
+
+  // ── Phase 1: Core Architecture Diagrams
+  SequenceDiagram: renderSequenceDiagram,
+  EREntity: renderEREntity,
+  ClassNode: renderClassNode,
+  SystemBoundary: renderSystemBoundary,
+  CircuitBreaker: renderCircuitBreaker,
 };
 
 /**

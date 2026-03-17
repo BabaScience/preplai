@@ -156,6 +156,13 @@ const TOPIC_HINTS: Record<string, string[]> = {
   'deployment pipeline': ['GitBranch', 'PullRequest', 'Build', 'Deployment', 'Pipeline', 'Arrow'],
   'observability stack': ['LogEntry', 'Alert', 'Trace', 'Dashboard', 'Monitor', 'Metric'],
   'auth system': ['AuthFlow', 'Token', 'Certificate', 'Secret', 'Service', 'Arrow'],
+
+  // ── Phase 1: Core Architecture Diagrams ──
+  'sequence diagram, interaction, message flow, api call flow': ['SequenceDiagram'],
+  'er diagram, entity relationship, database schema, table design': ['EREntity'],
+  'class diagram, oop, object oriented, uml class': ['ClassNode'],
+  'system boundary, c4, context diagram, system context': ['SystemBoundary'],
+  'circuit breaker, fault tolerance, resilience, bulkhead': ['CircuitBreaker'],
 };
 
 // ── Metadata hints by type (from COMPACT_REFERENCE, METADATA_SCHEMAS) ───────
@@ -329,6 +336,13 @@ const METADATA_HINTS: Record<string, string> = {
   Notification: 'channel?: "push"|"email"|"slack"|"sms", title?',
   Task: 'status?: "todo"|"in_progress"|"done", priority?: "low"|"medium"|"high"',
   File: 'extension?, size?',
+
+  // Phase 1: Core Architecture Diagrams
+  SequenceDiagram: 'participants: [{name, type?}], messages: [{from, to, label, type?: "sync"|"async"|"reply"}]',
+  EREntity: 'tableName?, columns: [{name, type, key?: "PK"|"FK"|"UK"}]',
+  ClassNode: 'className?, stereotype?, attributes?: [{visibility?, name, type}], methods?: [{visibility?, name, params?, returnType?}]',
+  SystemBoundary: 'label?, style?: "dashed"|"solid", description?',
+  CircuitBreaker: 'state?: "closed"|"open"|"half-open", failureRate?, threshold?',
 };
 
 // ── Public API ─────────────────────────────────────────────────────────────

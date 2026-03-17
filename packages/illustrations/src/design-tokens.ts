@@ -334,6 +334,13 @@ export const ENTITY_COLORS: Record<string, string> = {
   Task: COLORS.cyan,
   File: COLORS.blue,
 
+  // ── Phase 1: Core Architecture Diagrams ─────────────────────────
+  SequenceDiagram: COLORS.cyan,
+  EREntity: COLORS.emerald,
+  ClassNode: COLORS.violet,
+  SystemBoundary: COLORS.teal,
+  CircuitBreaker: COLORS.red,
+
   // ── White: Connectors ────────────────────────────────────────────
   Arrow: '#ffffff',
   DataFlow: '#ffffff',

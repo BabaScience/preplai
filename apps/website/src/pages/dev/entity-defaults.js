@@ -574,6 +574,56 @@ export const METADATA_DEFAULTS = {
   File: {
     extension: 'md',
   },
+  // ── Phase 1: Core Architecture Diagrams
+  SequenceDiagram: {
+    participants: [
+      { name: 'Client' },
+      { name: 'API Gateway' },
+      { name: 'Auth Service' },
+      { name: 'Database' },
+    ],
+    messages: [
+      { from: 'Client', to: 'API Gateway', label: 'POST /login', type: 'sync' },
+      { from: 'API Gateway', to: 'Auth Service', label: 'Validate JWT', type: 'sync' },
+      { from: 'Auth Service', to: 'Database', label: 'SELECT user', type: 'sync' },
+      { from: 'Database', to: 'Auth Service', label: 'User record', type: 'reply' },
+      { from: 'Auth Service', to: 'API Gateway', label: '200 OK', type: 'reply' },
+      { from: 'API Gateway', to: 'Client', label: 'Token', type: 'reply' },
+    ],
+  },
+  EREntity: {
+    tableName: 'users',
+    columns: [
+      { name: 'id', type: 'uuid', key: 'PK' },
+      { name: 'email', type: 'varchar(255)', key: 'UK' },
+      { name: 'name', type: 'varchar(100)' },
+      { name: 'org_id', type: 'uuid', key: 'FK' },
+      { name: 'created_at', type: 'timestamp' },
+    ],
+  },
+  ClassNode: {
+    className: 'UserService',
+    stereotype: '<<service>>',
+    attributes: [
+      { visibility: '-', name: 'db', type: 'Database' },
+      { visibility: '-', name: 'cache', type: 'Redis' },
+    ],
+    methods: [
+      { visibility: '+', name: 'getUser', params: 'id: string', returnType: 'User' },
+      { visibility: '+', name: 'createUser', params: 'data: CreateUserDTO', returnType: 'User' },
+      { visibility: '#', name: 'hashPassword', params: 'pwd: string', returnType: 'string' },
+    ],
+  },
+  SystemBoundary: {
+    label: 'Payment System',
+    style: 'dashed',
+    description: 'Internal microservices',
+  },
+  CircuitBreaker: {
+    state: 'closed',
+    failureRate: '2%',
+    threshold: '50%',
+  },
 };
 
 /** Entity-level defaults (not metadata) for types that need textContent etc. */
@@ -649,4 +699,10 @@ export const ENTITY_FIELD_DEFAULTS = {
   Notification: { label: 'Deploy succeeded' },
   Task: { label: 'Implement OAuth' },
   File: { label: 'readme.md' },
+  // ── Phase 1: Core Architecture Diagrams
+  SequenceDiagram: { label: 'Auth Flow', size: 3.5 },
+  EREntity: { label: 'users', size: 2.5 },
+  ClassNode: { label: 'UserService', size: 2.5 },
+  SystemBoundary: { label: 'Payment System', size: 4 },
+  CircuitBreaker: { label: 'Circuit Breaker' },
 };

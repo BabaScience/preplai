@@ -93,6 +93,8 @@ export const KNOWN_ENTITY_TYPES: ReadonlySet<string> = new Set([
   'Packet',
   // Machine Learning (1)
   'NeuralNetwork',
+  // Phase 1: Core Architecture Diagrams (5)
+  'SequenceDiagram', 'EREntity', 'ClassNode', 'SystemBoundary', 'CircuitBreaker',
 ]);
 
 // ── Type-specific Size Defaults (base pixel dimensions at size=1.0) ────
@@ -129,6 +131,12 @@ export const BASE_ENTITY_SIZES: ReadonlyMap<string, { w: number; h: number }> = 
   ['H3',       { w: 160, h: 45 }],
   ['CodeBlock',{ w: 200, h: 120 }],
   ['Table',    { w: 200, h: 120 }],
+  // Phase 1: Core Architecture Diagrams
+  ['SequenceDiagram', { w: 300, h: 250 }],
+  ['EREntity',        { w: 160, h: 140 }],
+  ['ClassNode',       { w: 180, h: 160 }],
+  ['SystemBoundary',  { w: 300, h: 200 }],
+  ['CircuitBreaker',  { w: 60,  h: 80  }],
 ]);
 
 // ── Arrow-like types (skip position clamping) ─────────────────────────

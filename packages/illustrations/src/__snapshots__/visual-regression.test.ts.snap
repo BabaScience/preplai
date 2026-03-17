@@ -424,6 +424,52 @@ exports[`Visual Regression — SVG Snapshots > renders Certificate without crash
 }
 `;
 
+exports[`Visual Regression — SVG Snapshots > renders CircuitBreaker without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 5,
+    "g": 2,
+    "line": 3,
+    "text": 2,
+  },
+  "textLabels": [
+    "CLOSED",
+    "CircuitBreaker",
+  ],
+  "totalElements": 12,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders ClassNode without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 2,
+    "rect": 3,
+    "text": 13,
+  },
+  "textLabels": [
+    "ClassNode",
+    "-",
+    "id: string",
+    "-",
+    "name: string",
+    "+",
+    "email: string",
+    "+",
+    "save(): void",
+    "+",
+  ],
+  "totalElements": 19,
+}
+`;
+
 exports[`Visual Regression — SVG Snapshots > renders Cloud without crashing > produces valid SVG group with stable structure 1`] = `
 {
   "defsCount": 0,
@@ -894,6 +940,33 @@ exports[`Visual Regression — SVG Snapshots > renders DockerRegistry without cr
     "DockerRegistry",
   ],
   "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders EREntity without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 1,
+    "rect": 5,
+    "text": 11,
+  },
+  "textLabels": [
+    "EREntity",
+    "PK",
+    "id",
+    "uuid",
+    "name",
+    "varchar(255)",
+    "UK",
+    "email",
+    "varchar(255)",
+    "created_at",
+  ],
+  "totalElements": 18,
 }
 `;
 
@@ -2094,6 +2167,32 @@ exports[`Visual Regression — SVG Snapshots > renders Semaphore without crashin
 }
 `;
 
+exports[`Visual Regression — SVG Snapshots > renders SequenceDiagram without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 7,
+    "path": 4,
+    "rect": 3,
+    "text": 8,
+  },
+  "textLabels": [
+    "Client",
+    "Server",
+    "Database",
+    "Request",
+    "Query",
+    "Result",
+    "Response",
+    "SequenceDiagram",
+  ],
+  "totalElements": 23,
+}
+`;
+
 exports[`Visual Regression — SVG Snapshots > renders Server without crashing > produces valid SVG group with stable structure 1`] = `
 {
   "defsCount": 0,
@@ -2301,6 +2400,23 @@ exports[`Visual Regression — SVG Snapshots > renders SymbolTable without crash
     "SymbolTable",
   ],
   "totalElements": 14,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders SystemBoundary without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 2,
+    "text": 1,
+  },
+  "textLabels": [
+    "SystemBoundary",
+  ],
+  "totalElements": 4,
 }
 `;
 

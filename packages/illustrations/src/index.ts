@@ -182,5 +182,12 @@ export { renderNotification } from './components/notification.js';
 export { renderTask } from './components/task.js';
 export { renderFile } from './components/file.js';
 
+// ── Phase 1: Core Architecture Diagrams
+export { renderSequenceDiagram } from './components/sequence-diagram.js';
+export { renderEREntity } from './components/er-entity.js';
+export { renderClassNode } from './components/class-node.js';
+export { renderSystemBoundary } from './components/system-boundary.js';
+export { renderCircuitBreaker } from './components/circuit-breaker.js';
+
 // ── Generic component factory (for extending)
 export { createGenericRenderer } from './components/generic.js';
