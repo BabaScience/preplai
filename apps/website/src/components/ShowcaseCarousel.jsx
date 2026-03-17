@@ -7,6 +7,7 @@
 import { useRef, useEffect, useCallback, useState } from 'react';
 import { SceneController } from '@preplai/player';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const CW = 1920;
 const CH = 1080;
@@ -14,7 +15,13 @@ const FRAME_INTERVAL_MS = 5000; // 5s per frame
 const FRAMES_PER_SCRIPT = 5;
 const AUTO_ADVANCE_MS = FRAME_INTERVAL_MS * FRAMES_PER_SCRIPT; // 25s per use case
 
+const SC_THEME = {
+  dark: { bgGrad: ['#14151f', '#08090e'], dotFill: 'rgba(255,255,255,0.03)' },
+  light: { bgGrad: ['#f5f0e8', '#ebe5d8'], dotFill: 'rgba(0,0,0,0.03)' },
+};
+
 export default function ShowcaseCarousel({ items }) {
+  const { currentTheme } = useTheme();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -122,8 +129,8 @@ export default function ShowcaseCarousel({ items }) {
         >
           <defs>
             <radialGradient id="sc-carousel-bg" cx="50%" cy="50%" r="70%">
-              <stop offset="0%" stopColor="#14151f" />
-              <stop offset="100%" stopColor="#08090e" />
+              <stop offset="0%" stopColor={(SC_THEME[currentTheme] || SC_THEME.dark).bgGrad[0]} />
+              <stop offset="100%" stopColor={(SC_THEME[currentTheme] || SC_THEME.dark).bgGrad[1]} />
             </radialGradient>
             <filter id="glass-inner-light-carousel" x="-10%" y="-10%" width="120%" height="120%">
               <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
@@ -155,7 +162,7 @@ export default function ShowcaseCarousel({ items }) {
                   cx={x * 100 + 50}
                   cy={y * 100 + 50}
                   r="1"
-                  fill="rgba(255,255,255,0.03)"
+                  fill={(SC_THEME[currentTheme] || SC_THEME.dark).dotFill}
                 />
               ))
             )}

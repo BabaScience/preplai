@@ -475,6 +475,85 @@
 .hero-player-live .dof-bg { opacity: 0.35 !important; filter: blur(1.5px) saturate(0.5) !important; }
 .hero-player-live .dof-bg > .animate-element { transform: scale(0.88) !important; }
 
+/* ── Light Theme — Cinematic Sections ─────────────────────────── */
+[data-theme="light"] .hero-cinema,
+[data-theme="light"] .problem-section,
+[data-theme="light"] .final-cta {
+  --_cinema-text: #1a1a2e;
+  --_cinema-text-muted: #5a5a6e;
+  --_cinema-bg: #faf7f2;
+  --_cinema-primary: #B8943D;
+}
+
+/* Hero warm gradient bg */
+[data-theme="light"] .hero-cinema {
+  background: linear-gradient(180deg, #faf7f2 0%, #f3ede4 100%);
+}
+
+/* Softer glows for light mode */
+[data-theme="light"] .hero-glow-1 {
+  background: radial-gradient(circle, rgba(184, 148, 61, 0.12), transparent 70%);
+}
+[data-theme="light"] .hero-glow-2 {
+  background: radial-gradient(circle, rgba(120, 80, 200, 0.08), transparent 70%);
+}
+[data-theme="light"] .hero-glow-3 {
+  background: radial-gradient(circle, rgba(184, 148, 61, 0.06), transparent 70%);
+}
+
+/* Dot grid — dark dots on light */
+[data-theme="light"] .hero-dot-grid {
+  background-image: radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px);
+}
+
+/* Ghost button — dark border and text */
+[data-theme="light"] .btn-ghost-light {
+  color: #5a5a6e;
+  border-color: rgba(0,0,0,0.12);
+}
+[data-theme="light"] .btn-ghost-light:hover {
+  background: rgba(0,0,0,0.04);
+  color: #1a1a2e;
+  border-color: rgba(0,0,0,0.2);
+}
+
+/* Player container — light shadow */
+[data-theme="light"] .hero-player-live {
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0,0,0,0.06),
+    0 0 60px rgba(184, 148, 61, 0.06);
+}
+
+/* Primary CTA button glow — softer */
+[data-theme="light"] .hero-ctas .btn-primary {
+  box-shadow: 0 4px 20px rgba(184, 148, 61, 0.2);
+}
+
+/* SVG entity text — dark on light canvas */
+[data-theme="light"] .hero-player-live text,
+[data-theme="light"] .showcase-carousel-player text {
+  fill: #2d2d3a;
+}
+
+/* SVG connections — dark strokes on light canvas */
+[data-theme="light"] .hero-player-live #hero-connection-layer line,
+[data-theme="light"] .hero-player-live #hero-connection-layer path,
+[data-theme="light"] .showcase-carousel-player line,
+[data-theme="light"] .showcase-carousel-player path.connection-line {
+  stroke: rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Problem section — light bg */
+[data-theme="light"] .problem-section {
+  background: linear-gradient(180deg, #f3ede4 0%, #faf7f2 100%);
+}
+
+/* Final CTA — light bg */
+[data-theme="light"] .final-cta {
+  background: linear-gradient(180deg, #f3ede4 0%, #faf7f2 100%);
+}
+
 /* ── Showcase Carousel (P3.2) ───────────────────────────────────── */
 
 .showcase-section {

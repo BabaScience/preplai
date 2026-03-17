@@ -6,6 +6,7 @@
  */
 import { useRef, useEffect, useCallback } from 'react';
 import { SceneController } from '@preplai/player';
+import { useTheme } from '../context/ThemeContext';
 
 const CW = 1920;
 const CH = 1080;
@@ -82,7 +83,32 @@ const DEMO_SCRIPT = {
 
 // ── Component ────────────────────────────────────────────────────────
 
+// ── Theme palettes ──────────────────────────────────────────────────
+const THEME = {
+  dark: {
+    bgGrad: ['#14151f', '#08090e'],
+    dotFill: 'rgba(255,255,255,0.04)',
+    narratorBg: 'rgba(12,13,18,0.75)',
+    narratorBorder: 'rgba(255,255,255,0.06)',
+    narratorAccent: '#C9A84C',
+    narratorText: '#b0b0c8',
+    dotActive: '#C9A84C',
+    dotInactive: 'rgba(255,255,255,0.2)',
+  },
+  light: {
+    bgGrad: ['#f5f0e8', '#ebe5d8'],
+    dotFill: 'rgba(0,0,0,0.04)',
+    narratorBg: 'rgba(255,255,255,0.82)',
+    narratorBorder: 'rgba(0,0,0,0.08)',
+    narratorAccent: '#B8943D',
+    narratorText: '#3a3a4e',
+    dotActive: '#B8943D',
+    dotInactive: 'rgba(0,0,0,0.15)',
+  },
+};
+
 export default function HeroPlayer() {
+  const { currentTheme } = useTheme();
   const svgRef = useRef(null);
   const entityLayerRef = useRef(null);
   const connectionLayerRef = useRef(null);
@@ -112,13 +138,15 @@ export default function HeroPlayer() {
         if (narratorRef.current) narratorRef.current.textContent = text;
       },
       onFrameChange: () => {
-        // Update dots
+        // Update dots — colors driven by theme
         if (dotsRef.current) {
           const total = DEMO_SCRIPT.frames.length;
           const current = frameRef.current;
           const dots = dotsRef.current.children;
+          const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          const t = isDark ? THEME.dark : THEME.light;
           for (let i = 0; i < dots.length; i++) {
-            dots[i].setAttribute('fill', i === current ? '#C9A84C' : 'rgba(255,255,255,0.2)');
+            dots[i].setAttribute('fill', i === current ? t.dotActive : t.dotInactive);
             dots[i].setAttribute('r', i === current ? '4' : '3');
           }
         }
@@ -138,6 +166,7 @@ export default function HeroPlayer() {
   }, [advanceFrame]);
 
   const totalFrames = DEMO_SCRIPT.frames.length;
+  const t = THEME[currentTheme] || THEME.dark;
 
   return (
     <div className="hero-player-live">
@@ -149,8 +178,8 @@ export default function HeroPlayer() {
       >
         <defs>
           <radialGradient id="hero-bg-grad" cx="50%" cy="50%" r="70%">
-            <stop offset="0%" stopColor="#14151f" />
-            <stop offset="100%" stopColor="#08090e" />
+            <stop offset="0%" stopColor={t.bgGrad[0]} />
+            <stop offset="100%" stopColor={t.bgGrad[1]} />
           </radialGradient>
           {/* Glass filter for entities (mirrored from player) */}
           <filter id="glass-inner-light" x="-10%" y="-10%" width="120%" height="120%">
@@ -183,7 +212,7 @@ export default function HeroPlayer() {
                 cx={x * 80 + 40}
                 cy={y * 80 + 40}
                 r="1.2"
-                fill="rgba(255,255,255,0.04)"
+                fill={t.dotFill}
               />
             ))
           )}
@@ -197,14 +226,14 @@ export default function HeroPlayer() {
 
         {/* Narrator bar */}
         <g transform={`translate(${CW / 2}, ${CH - 80})`}>
-          <rect x="-340" y="-24" width="680" height="48" rx="10" fill="rgba(12,13,18,0.75)" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-          <rect x="-340" y="-24" width="3" height="48" rx="1.5" fill="#C9A84C" />
+          <rect x="-340" y="-24" width="680" height="48" rx="10" fill={t.narratorBg} stroke={t.narratorBorder} strokeWidth="1" />
+          <rect x="-340" y="-24" width="3" height="48" rx="1.5" fill={t.narratorAccent} />
           <text
             ref={narratorRef}
             x="0"
             y="5"
             textAnchor="middle"
-            fill="#b0b0c8"
+            fill={t.narratorText}
             fontSize="17"
             fontFamily="Inter, sans-serif"
           />
@@ -218,7 +247,7 @@ export default function HeroPlayer() {
               cx={i * 20}
               cy="0"
               r={i === 0 ? 4 : 3}
-              fill={i === 0 ? '#C9A84C' : 'rgba(255,255,255,0.2)'}
+              fill={i === 0 ? t.dotActive : t.dotInactive}
             />
           ))}
         </g>

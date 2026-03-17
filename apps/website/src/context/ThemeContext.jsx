@@ -8,7 +8,7 @@ function getStoredTheme() {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
     if (stored === 'dark' || stored === 'light') return stored;
   } catch (_) {}
-  return 'dark';
+  return 'light';
 }
 
 export function ThemeProvider({ children }) {
