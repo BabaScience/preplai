@@ -9,6 +9,8 @@ import Blog from './pages/Blog';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import VerifyEmail from './pages/VerifyEmail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Overview from './pages/dashboard/Overview';
 import ApiKeys from './pages/dashboard/ApiKeys';
 import Connectors from './pages/dashboard/Connectors';
@@ -39,6 +41,8 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/docs/*" element={<Docs />} />
       <Route path="/blog/*" element={<Blog />} />
       <Route path="/dashboard" element={<Navigate to="/dashboard/overview" replace />} />

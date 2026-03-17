@@ -67,6 +67,16 @@ export async function apiResendVerification(email) {
   return data;
 }
 
+export async function apiForgotPassword(email) {
+  const { data } = await client.post('auth/forgot-password', { email });
+  return data;
+}
+
+export async function apiResetPassword(token, password) {
+  const { data } = await client.post('auth/reset-password', { token, password });
+  return data;
+}
+
 export async function apiLogout() {
   try {
     await client.post('auth/logout');

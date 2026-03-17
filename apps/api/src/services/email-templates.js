@@ -138,6 +138,34 @@ ${ctaButton({ href: verifyUrl, label: 'Verify my email' })}
 }
 
 /**
+ * Password reset email template
+ */
+export function passwordResetEmailHtml({ name, resetUrl, appUrl }) {
+  const greeting = name ? `Hi ${name},` : 'Hi,';
+  const content = `
+<p style="margin: 0 0 16px; font-size: 16px; color: ${COLORS.text};">
+  ${greeting}
+</p>
+<p style="margin: 0 0 20px; font-size: 16px; color: ${COLORS.text}; line-height: 1.6;">
+  We received a request to reset your password. Click the button below to choose a new one.
+</p>
+${ctaButton({ href: resetUrl, label: 'Reset my password' })}
+<p style="margin: 0; font-size: 14px; color: ${COLORS.textMuted}; line-height: 1.5;">
+  This link expires in 1 hour. If you didn't request a password reset, you can safely ignore this email.
+</p>
+<p style="margin: 16px 0 0; font-size: 13px; color: ${COLORS.textMuted};">
+  If the button doesn't work, copy and paste this link into your browser:<br>
+  <a href="${resetUrl}" style="color: ${COLORS.primary}; word-break: break-all;">${resetUrl}</a>
+</p>`;
+
+  return baseLayout({
+    preheader: 'Reset your preplai password.',
+    content,
+    appUrl,
+  });
+}
+
+/**
  * Welcome email template (post-verification)
  */
 export function welcomeEmailHtml({ name, appUrl }) {

@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import { verificationEmailHtml, welcomeEmailHtml } from './email-templates.js';
+import { verificationEmailHtml, passwordResetEmailHtml, welcomeEmailHtml } from './email-templates.js';
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -30,6 +30,25 @@ export async function sendVerificationEmail({ to, name, verifyToken }) {
     to,
     subject: 'Verify your email — preplai',
     html: verificationEmailHtml({ name, verifyUrl, appUrl: APP_URL }),
+  });
+}
+
+/**
+ * Send a password reset email with a link to reset the user's password.
+ * No-ops if RESEND_API_KEY is not set (e.g. tests, local dev).
+ */
+export async function sendPasswordResetEmail({ to, name, resetToken }) {
+  if (!resend) {
+    return;
+  }
+
+  const resetUrl = `${APP_URL}/reset-password?token=${encodeURIComponent(resetToken)}`;
+
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: 'Reset your password — preplai',
+    html: passwordResetEmailHtml({ name, resetUrl, appUrl: APP_URL }),
   });
 }
 

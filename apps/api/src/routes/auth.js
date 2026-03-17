@@ -2,7 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../db.js';
-import { sendVerificationEmail } from '../services/email.js';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../services/email.js';
 
 const router = Router();
 
@@ -177,6 +177,75 @@ router.post('/resend-verification', async (req, res) => {
   } catch (err) {
     req.log?.error({ err }, 'Resend verification failed');
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/auth/forgot-password
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    // Always return success to avoid leaking whether the email exists
+    if (!user) {
+      return res.json({ message: 'If that email exists, a password reset link was sent' });
+    }
+
+    const resetToken = jwt.sign(
+      { userId: user._id.toString(), purpose: 'reset-password' },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    sendPasswordResetEmail({ to: email, name: user.name, resetToken }).catch((err) =>
+      req.log?.warn({ err, email }, 'Password reset email failed')
+    );
+
+    res.json({ message: 'If that email exists, a password reset link was sent' });
+  } catch (err) {
+    req.log?.error({ err }, 'Forgot password failed');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/auth/reset-password
+router.post('/reset-password', async (req, res) => {
+  const { token, password } = req.body;
+
+  if (!token || !password) {
+    return res.status(400).json({ error: 'Token and password are required' });
+  }
+
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  }
+
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    if (payload.purpose !== 'reset-password') {
+      return res.status(400).json({ error: 'Invalid token' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await User.findByIdAndUpdate(
+      payload.userId,
+      { passwordHash },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid token' });
+    }
+
+    res.json({ message: 'Password has been reset' });
+  } catch (err) {
+    req.log?.warn({ err }, 'Reset password failed');
+    res.status(400).json({ error: 'Invalid or expired token' });
   }
 });
 

@@ -62,6 +62,9 @@ export default function Login() {
         <p className="auth-sub" style={{ textAlign: 'center' }}>
           Log in to manage your access tokens.
         </p>
+        {new URLSearchParams(location.search).get('reset') === '1' && (
+          <Alert variant="success">Password reset successfully. Log in with your new password.</Alert>
+        )}
         <Alert variant="error">{error}</Alert>
         {error && error.toLowerCase().includes('verify') && (
           <p style={{ marginBottom: 'var(--space-4)', fontSize: 'var(--text-sm)' }}>
@@ -90,6 +93,11 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          <div style={{ textAlign: 'right', marginTop: 'calc(-1 * var(--space-2))' }}>
+            <Link to="/forgot-password" style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-faint)' }}>
+              Forgot password?
+            </Link>
+          </div>
           <button
             type="submit"
             className="btn btn-primary btn-lg"
