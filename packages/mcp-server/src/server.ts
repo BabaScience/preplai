@@ -28,8 +28,10 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SessionStore } from './session-store.js';
 import { SseRegistry } from './sse.js';
 import { AudioStore } from './audio-store.js';
-import { TtsService } from './tts-service.js';
-import type { ElevenLabsConfig } from './elevenlabs.js';
+import { TtsService, type TtsServiceConfig } from './tts-service.js';
+import type { TtsProvider } from './tts-provider.js';
+import { ElevenLabsTtsProvider, type ElevenLabsConfig } from './elevenlabs.js';
+import { InworldTtsProvider, type InworldConfig } from './inworld.js';
 import {
   handleCreateSession,
   handleAddScene,
@@ -129,17 +131,83 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   audioStore.init(); // Initialize GridFS bucket (uses mongoose.connection.db)
   let ttsService: TtsService | undefined;
 
+  // ── TTS Provider Selection ──────────────────────────────────────────
+  // Priority: TTS_PROVIDER env → auto-detect from available API keys
+  const ttsProviderEnv = (process.env.TTS_PROVIDER ?? '').toLowerCase();
   const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
-  if (elevenLabsApiKey) {
-    const ttsConfig: ElevenLabsConfig = {
+  const inworldApiKey = process.env.INWORLD_API_KEY;
+
+  let ttsProvider: TtsProvider | undefined;
+  let ttsServiceConfig: TtsServiceConfig | undefined;
+
+  if (ttsProviderEnv === 'inworld' && inworldApiKey) {
+    // Explicit Inworld selection
+    const inworldCfg: InworldConfig = {
+      apiKey: inworldApiKey,
+      voiceId: process.env.INWORLD_VOICE_ID || 'Ashley',
+      modelId: process.env.INWORLD_MODEL_ID || 'inworld-tts-1.5-max',
+    };
+    ttsProvider = new InworldTtsProvider(inworldCfg);
+    ttsServiceConfig = {
+      voiceMap: {
+        en: process.env.INWORLD_VOICE_EN || inworldCfg.voiceId,
+        fr: process.env.INWORLD_VOICE_FR || inworldCfg.voiceId,
+        it: process.env.INWORLD_VOICE_IT || inworldCfg.voiceId,
+      },
+    };
+  } else if (ttsProviderEnv === 'elevenlabs' && elevenLabsApiKey) {
+    // Explicit ElevenLabs selection
+    const elCfg: ElevenLabsConfig = {
       apiKey: elevenLabsApiKey,
       voiceId: process.env.ELEVENLABS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb',
       modelId: process.env.ELEVENLABS_MODEL_ID || 'eleven_turbo_v2_5',
     };
-    ttsService = new TtsService(ttsConfig, audioStore, store, sse);
-    console.log('[preplai] ElevenLabs TTS enabled (voice: %s)', ttsConfig.voiceId);
+    ttsProvider = new ElevenLabsTtsProvider(elCfg);
+    ttsServiceConfig = {
+      voiceMap: {
+        en: 'uh5qBlKfjqFl7XXhFnJi',
+        fr: 'oziFLKtaxVDHQAh7o45V',
+        it: 'osWtKxGwfZZUMhr77HFc',
+      },
+    };
+  } else if (inworldApiKey) {
+    // Auto-detect: prefer Inworld (cheaper, higher quality)
+    const inworldCfg: InworldConfig = {
+      apiKey: inworldApiKey,
+      voiceId: process.env.INWORLD_VOICE_ID || 'Ashley',
+      modelId: process.env.INWORLD_MODEL_ID || 'inworld-tts-1.5-max',
+    };
+    ttsProvider = new InworldTtsProvider(inworldCfg);
+    ttsServiceConfig = {
+      voiceMap: {
+        en: process.env.INWORLD_VOICE_EN || inworldCfg.voiceId,
+        fr: process.env.INWORLD_VOICE_FR || inworldCfg.voiceId,
+        it: process.env.INWORLD_VOICE_IT || inworldCfg.voiceId,
+      },
+    };
+  } else if (elevenLabsApiKey) {
+    // Auto-detect: fallback to ElevenLabs
+    const elCfg: ElevenLabsConfig = {
+      apiKey: elevenLabsApiKey,
+      voiceId: process.env.ELEVENLABS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb',
+      modelId: process.env.ELEVENLABS_MODEL_ID || 'eleven_turbo_v2_5',
+    };
+    ttsProvider = new ElevenLabsTtsProvider(elCfg);
+    ttsServiceConfig = {
+      voiceMap: {
+        en: 'uh5qBlKfjqFl7XXhFnJi',
+        fr: 'oziFLKtaxVDHQAh7o45V',
+        it: 'osWtKxGwfZZUMhr77HFc',
+      },
+    };
+  }
+
+  if (ttsProvider && ttsServiceConfig) {
+    ttsService = new TtsService(ttsProvider, ttsServiceConfig, audioStore, store, sse);
+    console.log('[preplai] TTS enabled — provider: %s', ttsProvider.name);
   } else {
-    console.log('[preplai] ElevenLabs TTS disabled — player uses Web Speech API');
+    console.log('[preplai] TTS disabled — no API key set. Player uses Web Speech API fallback.');
+    console.log('[preplai]   Set INWORLD_API_KEY or ELEVENLABS_API_KEY to enable TTS.');
   }
 
   // ── Fastify app ───────────────────────────────────────────────────

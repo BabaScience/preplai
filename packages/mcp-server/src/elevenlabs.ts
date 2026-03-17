@@ -1,34 +1,22 @@
 /**
- * @preplai/mcp-server — ElevenLabs TTS Service
+ * @preplai/mcp-server — ElevenLabs TTS Provider
  *
  * Generates speech audio from text with word-level timestamps.
  * Uses the /v1/text-to-speech/{voice_id}/with-timestamps endpoint.
  * No SDK dependency — uses raw fetch for minimal footprint.
  */
 
-// ── Types ────────────────────────────────────────────────────────────
+import type { TtsProvider, TtsResult, WordTimestamp } from './tts-provider.js';
+
+// Re-export shared types so existing imports don't break
+export type { WordTimestamp, TtsResult } from './tts-provider.js';
+
+// ── Config ───────────────────────────────────────────────────────────
 
 export interface ElevenLabsConfig {
   apiKey: string;
   voiceId: string;
   modelId: string;
-}
-
-export interface WordTimestamp {
-  word: string;
-  /** Start time in seconds */
-  startTime: number;
-  /** End time in seconds */
-  endTime: number;
-}
-
-export interface TtsResult {
-  /** Raw MP3 audio as a Buffer */
-  audioBuffer: Buffer;
-  /** Audio duration in seconds */
-  duration: number;
-  /** Word-level timestamps aggregated from character timestamps */
-  wordTimestamps: WordTimestamp[];
 }
 
 // ── ElevenLabs API Response Shape ────────────────────────────────────
@@ -44,52 +32,62 @@ interface ElevenLabsResponse {
   alignment: ElevenLabsAlignment;
 }
 
-// ── Public API ───────────────────────────────────────────────────────
+// ── Provider Implementation ──────────────────────────────────────────
+
+export class ElevenLabsTtsProvider implements TtsProvider {
+  readonly name = 'ElevenLabs';
+
+  constructor(private readonly config: ElevenLabsConfig) {}
+
+  async generateSpeech(text: string, voiceId?: string): Promise<TtsResult> {
+    const voice = voiceId || this.config.voiceId;
+    const url = `https://api.elevenlabs.io/v1/text-to-speech/${voice}/with-timestamps`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'xi-api-key': this.config.apiKey,
+      },
+      body: JSON.stringify({
+        text,
+        model_id: this.config.modelId,
+        output_format: 'mp3_44100_128',
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => 'unknown');
+      throw new Error(`ElevenLabs API error ${response.status}: ${errorBody}`);
+    }
+
+    const data = (await response.json()) as ElevenLabsResponse;
+
+    if (!data.audio_base64) {
+      throw new Error('ElevenLabs response missing audio_base64');
+    }
+
+    const audioBuffer = Buffer.from(data.audio_base64, 'base64');
+    const wordTimestamps = aggregateWordTimestamps(data.alignment);
+    const duration = computeDuration(data.alignment);
+
+    return { audioBuffer, duration, wordTimestamps };
+  }
+}
+
+// ── Legacy Function API (backward compat) ────────────────────────────
 
 /**
  * Generate speech audio from text using ElevenLabs TTS API.
- * Returns the audio buffer, duration, and word-level timestamps.
- * @param voiceIdOverride - Use a specific voice instead of config default (for per-language voices)
+ * @deprecated Use ElevenLabsTtsProvider class instead.
  */
 export async function generateSpeech(
   text: string,
   config: ElevenLabsConfig,
   voiceIdOverride?: string,
 ): Promise<TtsResult> {
-  const voiceId = voiceIdOverride ?? config.voiceId;
-  const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/with-timestamps`;
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'xi-api-key': config.apiKey,
-    },
-    body: JSON.stringify({
-      text,
-      model_id: config.modelId,
-      output_format: 'mp3_44100_128',
-    }),
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.text().catch(() => 'unknown');
-    throw new Error(
-      `ElevenLabs API error ${response.status}: ${errorBody}`,
-    );
-  }
-
-  const data = (await response.json()) as ElevenLabsResponse;
-
-  if (!data.audio_base64) {
-    throw new Error('ElevenLabs response missing audio_base64');
-  }
-
-  const audioBuffer = Buffer.from(data.audio_base64, 'base64');
-  const wordTimestamps = aggregateWordTimestamps(data.alignment);
-  const duration = computeDuration(data.alignment);
-
-  return { audioBuffer, duration, wordTimestamps };
+  const provider = new ElevenLabsTtsProvider(config);
+  return provider.generateSpeech(text, voiceIdOverride);
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────

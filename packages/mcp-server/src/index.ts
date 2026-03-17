@@ -50,6 +50,9 @@ export type { JsonDiagnostic } from './json-diagnostic.js';
 // Audio / TTS
 export { AudioStore } from './audio-store.js';
 export { TtsService } from './tts-service.js';
-export { generateSpeech, aggregateWordTimestamps } from './elevenlabs.js';
-export type { ElevenLabsConfig, TtsResult, WordTimestamp } from './elevenlabs.js';
+export type { TtsProvider, TtsResult, WordTimestamp } from './tts-provider.js';
+export { generateSpeech, aggregateWordTimestamps, ElevenLabsTtsProvider } from './elevenlabs.js';
+export type { ElevenLabsConfig } from './elevenlabs.js';
+export { InworldTtsProvider } from './inworld.js';
+export type { InworldConfig } from './inworld.js';
 export { generateFocusCues, buildLabelMap } from './tts-service.js';

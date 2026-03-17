@@ -9,7 +9,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import type { VisualEntity, FocusCue } from '@preplai/shared';
-import type { WordTimestamp } from './elevenlabs.js';
+import type { WordTimestamp } from './tts-provider.js';
 import { semanticFallbackTotal } from './metrics.js';
 
 // ── Types ────────────────────────────────────────────────────────────

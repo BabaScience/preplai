@@ -2,7 +2,7 @@
  * @preplai/mcp-server — TTS Orchestrator Service
  *
  * Coordinates async audio generation for frames:
- * 1. Calls ElevenLabs TTS for each frame's narration text
+ * 1. Calls the configured TTS provider (ElevenLabs or Inworld) for each frame's narration text
  * 2. Generates focus cues by matching entity labels to word timestamps
  * 3. Stores audio buffers and updates frame metadata
  * 4. Emits SSE events when audio is ready
@@ -11,7 +11,7 @@
  */
 
 import type { IllustrationFrame, VisualEntity, FocusCue, FrameAudio } from '@preplai/shared';
-import { generateSpeech, type ElevenLabsConfig, type WordTimestamp } from './elevenlabs.js';
+import type { TtsProvider, WordTimestamp } from './tts-provider.js';
 import { generateSemanticFocusCues } from './semantic-focus.js';
 import { VisualScriptFrame } from '@preplai/db';
 import type { AudioStore } from './audio-store.js';
@@ -24,6 +24,9 @@ import {
   semanticFocusLlmLatency,
 } from './metrics.js';
 
+// Re-export WordTimestamp so existing imports from tts-service still work
+export type { WordTimestamp } from './tts-provider.js';
+
 // ── Constants ────────────────────────────────────────────────────────
 
 /** Minimum word length to consider for auto-matching (skip "a", "to", etc.) */
@@ -32,22 +35,26 @@ const MIN_WORD_LENGTH = 3;
 /** Minimum seconds between cues for the same entity */
 const MIN_CUE_GAP_S = 2.0;
 
-/** Per-language ElevenLabs voice IDs */
-const VOICE_MAP: Record<string, string> = {
-  en: 'uh5qBlKfjqFl7XXhFnJi',
-  fr: 'oziFLKtaxVDHQAh7o45V',
-  it: 'osWtKxGwfZZUMhr77HFc',
-};
-
 // ── Public API ───────────────────────────────────────────────────────
+
+export interface TtsServiceConfig {
+  /** Per-language voice IDs (provider-specific) */
+  voiceMap: Record<string, string>;
+}
 
 export class TtsService {
   constructor(
-    private readonly config: ElevenLabsConfig,
+    private readonly provider: TtsProvider,
+    private readonly serviceConfig: TtsServiceConfig,
     private readonly audioStore: AudioStore,
     private readonly sessionStore: SessionStore,
     private readonly sse: SseRegistry,
   ) {}
+
+  /** The name of the active TTS provider */
+  get providerName(): string {
+    return this.provider.name;
+  }
 
   /**
    * Generate audio for frames that have narrationSegment text.
@@ -85,11 +92,11 @@ export class TtsService {
       try {
         // Resolve per-frame voice: frame language > script language > 'en'
         const lang = (frame as any).language ?? scriptLanguage ?? 'en';
-        const voiceId = VOICE_MAP[lang] ?? VOICE_MAP.en;
+        const voiceId = this.serviceConfig.voiceMap[lang] ?? this.serviceConfig.voiceMap.en;
 
         // Track TTS generation duration
         const ttsStart = performance.now();
-        const result = await generateSpeech(narrationText, this.config, voiceId);
+        const result = await this.provider.generateSpeech(narrationText, voiceId);
         const ttsDurationSec = (performance.now() - ttsStart) / 1000;
         ttsGenerationDuration.observe(ttsDurationSec);
 
