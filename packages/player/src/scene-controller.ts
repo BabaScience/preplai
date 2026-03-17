@@ -375,44 +375,21 @@ export class SceneController {
   // ── Depth of field ───────────────────────────────────────────────────
 
   private _applyDepthOfField(nonConnections: VisualEntity[]): void {
-    const focusedEntities = nonConnections.filter(e => e.highlight);
-    const focusedIds = new Set(focusedEntities.map(e => e.id));
-    const hasFocus = focusedIds.size > 0;
-
+    // On frame render, clear all DoF classes so every entity starts fully visible.
+    // Focus cues from the audio engine (or timer-based fallback) will apply
+    // dof-focus / dof-bg dynamically during narration via shiftFocus().
+    // This prevents the "everything blurred" state when narration plays
+    // but hasn't targeted a specific entity yet.
     for (const entity of nonConnections) {
       const el = this._findEntity(entity.id);
       if (!el) continue;
-
-      if (hasFocus) {
-        if (focusedIds.has(entity.id)) {
-          el.classList.add('dof-focus');
-          el.classList.remove('dof-bg', 'dof-focus-secondary');
-        } else {
-          el.classList.add('dof-bg');
-          el.classList.remove('dof-focus', 'dof-focus-secondary');
-        }
-      } else {
-        el.classList.remove('dof-focus', 'dof-bg', 'dof-focus-secondary');
-      }
+      el.classList.remove('dof-focus', 'dof-bg', 'dof-focus-secondary');
     }
 
-    // Emit focus change for spatial narrator
+    // No initial focus — spatial narrator returns to default position.
+    // Focus cues will drive spatial positioning during playback.
     if (this.onFocusChange) {
-      if (hasFocus) {
-        const primary = focusedEntities[0];
-        const el = this._findEntity(primary.id);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          this.onFocusChange({
-            entityId: primary.id,
-            entityIds: focusedEntities.map(e => e.id),
-            screenX: rect.left + rect.width / 2,
-            screenY: rect.top,
-          });
-        }
-      } else {
-        this.onFocusChange(null);
-      }
+      this.onFocusChange(null);
     }
   }
 

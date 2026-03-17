@@ -1,6 +1,6 @@
 # docker-compose.yml — preplai full stack (preplai.com)
 # Run: docker compose up -d
-# Requires: .env with MONGODB_URI, JWT_SECRET
+# Requires: .env with MONGODB_URI, JWT_SECRET, and optionally INWORLD_API_KEY or ELEVENLABS_API_KEY for TTS
 # SSL: certs at /etc/letsencrypt (bind mount or symlink)
 
 services:
@@ -47,6 +47,13 @@ services:
       ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
       ELEVENLABS_VOICE_ID: ${ELEVENLABS_VOICE_ID:-}
       ELEVENLABS_MODEL_ID: ${ELEVENLABS_MODEL_ID:-}
+      INWORLD_API_KEY: ${INWORLD_API_KEY:-}
+      INWORLD_VOICE_ID: ${INWORLD_VOICE_ID:-}
+      INWORLD_MODEL_ID: ${INWORLD_MODEL_ID:-}
+      INWORLD_VOICE_EN: ${INWORLD_VOICE_EN:-}
+      INWORLD_VOICE_FR: ${INWORLD_VOICE_FR:-}
+      INWORLD_VOICE_IT: ${INWORLD_VOICE_IT:-}
+      TTS_PROVIDER: ${TTS_PROVIDER:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID:-}
     healthcheck:

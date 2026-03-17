@@ -245,6 +245,32 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   border-color: rgba(201, 168, 76, 0.3);
 }
 
+/* ── Audio loading spinner ────────────────────────────────────── */
+
+#play-pause-toggle.audio-loading {
+  position: relative;
+  pointer-events: none;
+}
+
+#play-pause-toggle.audio-loading::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: #C9A84C;
+  animation: audioLoadingSpin 0.8s linear infinite;
+}
+
+@keyframes audioLoadingSpin {
+  to { transform: rotate(360deg); }
+}
+
+#play-pause-toggle.audio-loading .play-icon,
+#play-pause-toggle.audio-loading .pause-icon {
+  opacity: 0.4;
+}
+
 /* ── TTS toggle ────────────────────────────────────────────────── */
 
 #tts-toggle {

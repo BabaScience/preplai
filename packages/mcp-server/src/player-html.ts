@@ -26,7 +26,8 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PRE Player</title>
+  <title>Preplai Player</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b0c10'/%3E%3Cpath d='M8 8h6a6 6 0 0 1 0 12H8z' fill='none' stroke='%23C9A84C' stroke-width='2.5'/%3E%3Ccircle cx='22' cy='22' r='3' fill='%23C9A84C'/%3E%3C/svg%3E">
 
   <!-- Fonts: Inter for UI, JetBrains Mono for code/technical -->
   <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -128,10 +128,79 @@ function main(): void {
     }
   }
 
-  // ── AudioEngine (ElevenLabs TTS) ────────────────────────────────
+  // ── Toast notifications ──────────────────────────────────────────
+  let toastEl: HTMLDivElement | null = null;
+  let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function showToast(message: string, duration = 4000): void {
+    if (!toastEl) {
+      toastEl = document.createElement('div');
+      toastEl.id = 'player-toast';
+      toastEl.style.cssText = `
+        position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-100%);
+        padding: 10px 20px; background: rgba(18,20,28,0.85); backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px; color: rgba(255,255,255,0.8); font-size: 13px; font-family: Inter, sans-serif;
+        z-index: 200; transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.35s ease;
+        opacity: 0; pointer-events: none; white-space: nowrap;
+      `;
+      document.body.appendChild(toastEl);
+    }
+    if (toastTimer) clearTimeout(toastTimer);
+    toastEl.textContent = message;
+    // Force reflow then animate in
+    void toastEl.offsetHeight;
+    toastEl.style.opacity = '1';
+    toastEl.style.transform = 'translateX(-50%) translateY(0)';
+    toastTimer = setTimeout(() => {
+      if (toastEl) {
+        toastEl.style.opacity = '0';
+        toastEl.style.transform = 'translateX(-50%) translateY(-100%)';
+      }
+      toastTimer = null;
+    }, duration);
+  }
+
+  // ── Voice source indicator ──────────────────────────────────────
+  let voiceIndicatorEl: HTMLDivElement | null = null;
+  let voiceIndicatorTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function showVoiceSource(source: 'hd' | 'system'): void {
+    if (!voiceIndicatorEl) {
+      voiceIndicatorEl = document.createElement('div');
+      voiceIndicatorEl.id = 'voice-source';
+      voiceIndicatorEl.style.cssText = `
+        position: fixed; bottom: 54px; left: 50%; transform: translateX(-50%);
+        padding: 4px 12px; background: rgba(18,20,28,0.7); backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 8px; color: rgba(255,255,255,0.5); font-size: 11px; font-family: Inter, sans-serif;
+        z-index: 140; transition: opacity 0.4s ease; pointer-events: none;
+      `;
+      document.body.appendChild(voiceIndicatorEl);
+    }
+    if (voiceIndicatorTimer) clearTimeout(voiceIndicatorTimer);
+    voiceIndicatorEl.textContent = source === 'hd' ? 'HD voice' : 'System voice';
+    voiceIndicatorEl.style.opacity = '1';
+    voiceIndicatorTimer = setTimeout(() => {
+      if (voiceIndicatorEl) voiceIndicatorEl.style.opacity = '0';
+      voiceIndicatorTimer = null;
+    }, 3000);
+  }
+
+  // ── Audio loading indicator on play button ──────────────────────
+  function setAudioLoadingUI(loading: boolean): void {
+    const btn = document.getElementById('play-pause-toggle');
+    if (!btn) return;
+    btn.classList.toggle('audio-loading', loading);
+  }
+
+  // ── AudioEngine (TTS — Inworld / ElevenLabs) ───────────────────
   const audioMetadata = new Map<number, FrameAudio>();
   let autoPlayEnabled = true;
   let autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Resolves when audio_ready SSE arrives for the awaited frame */
+  let audioReadyResolve: ((ready: boolean) => void) | null = null;
+  let awaitingAudioForFrame = -1;
 
   // Forward-declared — assigned after sceneController is created
   let audioEngine: AudioEngine;
@@ -154,6 +223,7 @@ function main(): void {
   });
 
   audioEngine = new AudioEngine({
+    onLoadingChange: (loading) => setAudioLoadingUI(loading),
     onFocusCue: (cue) => {
       // Multi-entity focus: prefer entityIds, fall back to entityId
       const ids = cue.entityIds?.length ? cue.entityIds : cue.entityId ? [cue.entityId] : null;
@@ -187,6 +257,14 @@ function main(): void {
       if (error === 'autoplay_blocked') {
         if (ttsEnabled && synth && narratorText?.textContent?.trim()) {
           speakNarration(narratorText.textContent);
+          showVoiceSource('system');
+        }
+      } else {
+        showToast('Audio unavailable \u2014 using system voice');
+        showVoiceSource('system');
+        // Try Web Speech fallback
+        if (ttsEnabled && synth) {
+          playFrameWithWebSpeech(currentFrame);
         }
       }
     },
@@ -319,7 +397,30 @@ function main(): void {
     synth.speak(utterance);
   }
 
-  function playFrameAudio(frameIndex: number): void {
+  /**
+   * Wait up to `timeoutMs` for audio_ready SSE event for this frame.
+   * Returns true if audio became available, false on timeout.
+   */
+  function waitForAudio(frameIndex: number, timeoutMs = 4000): Promise<boolean> {
+    // Already available?
+    const existing = audioMetadata.get(frameIndex);
+    if (existing?.status === 'ready') return Promise.resolve(true);
+    if (existing?.status === 'error') return Promise.resolve(false);
+
+    return new Promise<boolean>((resolve) => {
+      awaitingAudioForFrame = frameIndex;
+      audioReadyResolve = resolve;
+      setTimeout(() => {
+        if (awaitingAudioForFrame === frameIndex) {
+          awaitingAudioForFrame = -1;
+          audioReadyResolve = null;
+          resolve(false);
+        }
+      }, timeoutMs);
+    });
+  }
+
+  async function playFrameAudio(frameIndex: number): Promise<void> {
     if (autoAdvanceTimer) {
       clearTimeout(autoAdvanceTimer);
       autoAdvanceTimer = null;
@@ -329,16 +430,53 @@ function main(): void {
     clearFocusCueTimers();
     sceneController.shiftFocus(null);
 
-    const audio = audioMetadata.get(frameIndex);
-    if (audio?.status === 'ready' && audio.url && ttsEnabled) {
-      // ElevenLabs audio available — use AudioEngine (precise focus cues)
+    if (!ttsEnabled) {
+      updatePlayPauseUI(false);
+      return;
+    }
+
+    // Check if TTS audio is already available
+    let audio = audioMetadata.get(frameIndex);
+    if (audio?.status === 'ready' && audio.url) {
+      // HD audio available immediately
       audioEngine.play(audio.url, audio.focusCues);
       updatePlayPauseUI(true);
-    } else if (ttsEnabled && synth) {
-      // No ElevenLabs — fall back to Web Speech + timer-based focus cues
+      showVoiceSource('hd');
+      preloadNextFrame(frameIndex);
+      return;
+    }
+
+    // Audio not ready yet — show loading state and wait
+    setAudioLoadingUI(true);
+    const audioReady = await waitForAudio(frameIndex);
+    setAudioLoadingUI(false);
+
+    // Re-check in case frame changed while waiting
+    if (currentFrame !== frameIndex) return;
+
+    audio = audioMetadata.get(frameIndex);
+    if (audioReady && audio?.status === 'ready' && audio.url) {
+      audioEngine.play(audio.url, audio.focusCues);
+      updatePlayPauseUI(true);
+      showVoiceSource('hd');
+      preloadNextFrame(frameIndex);
+    } else if (synth) {
+      // Fall back to Web Speech + timer-based focus cues
+      showVoiceSource('system');
       playFrameWithWebSpeech(frameIndex);
     } else {
       updatePlayPauseUI(false);
+    }
+  }
+
+  /** Preload audio for the next frame if available. */
+  function preloadNextFrame(currentFrameIndex: number): void {
+    if (!currentScript) return;
+    const nextIdx = currentFrameIndex + 1;
+    if (nextIdx >= currentScript.frames.length) return;
+    const nextAudio = audioMetadata.get(nextIdx);
+    if (nextAudio?.status === 'ready' && nextAudio.url) {
+      audioEngine.preload(nextAudio.url);
     }
   }
 
@@ -717,10 +855,26 @@ function main(): void {
         const { frameIndex, audio } = event as { frameIndex: number; audio: FrameAudio };
         if (audio?.status === 'ready') {
           audioMetadata.set(frameIndex, audio);
-          // If we're on this frame and nothing is playing, play it
-          if (frameIndex === currentFrame && !audioEngine.isPlaying && ttsEnabled) {
+          // Resolve any pending wait-for-audio promise
+          if (awaitingAudioForFrame === frameIndex && audioReadyResolve) {
+            audioReadyResolve(true);
+            audioReadyResolve = null;
+            awaitingAudioForFrame = -1;
+          } else if (frameIndex === currentFrame && !audioEngine.isPlaying && ttsEnabled) {
+            // If we're on this frame and nothing is playing, play it
             stopTTS(); // Stop any Web Speech API narration
             playFrameAudio(frameIndex);
+          }
+        } else if (audio?.status === 'error') {
+          audioMetadata.set(frameIndex, audio);
+          // Resolve pending wait as failed
+          if (awaitingAudioForFrame === frameIndex && audioReadyResolve) {
+            audioReadyResolve(false);
+            audioReadyResolve = null;
+            awaitingAudioForFrame = -1;
+          }
+          if (frameIndex === currentFrame) {
+            showToast('Voice generation failed \u2014 using system voice');
           }
         }
         return;
