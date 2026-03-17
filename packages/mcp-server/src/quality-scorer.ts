@@ -61,11 +61,11 @@ const OVERLAP_THRESHOLD = 8;
 const WEIGHTS = {
   entityDensity: 0.12,
   layoutQuality: 0.12,
-  visualBalance: 0.06,
+  visualBalance: 0.10,       // ↑ from 0.06 — Pillar II (Compositional Structure) was under-represented
   entityPersistence: 0.12,
   narrationCoverage: 0.10,
-  formatCompliance: 0.06,
-  narrationQuality: 0.16,
+  formatCompliance: 0.04,    // ↓ from 0.06 — least impactful on design quality
+  narrationQuality: 0.14,    // ↓ from 0.16 — still high, but balance matters more
   narrativeArc: 0.14,
   connectionCompleteness: 0.12,
 } as const;
@@ -77,6 +77,14 @@ const CONNECTION_TYPES = new Set([
 ]);
 
 const HEADING_TYPES = new Set(['H1', 'H2', 'H3']);
+
+/** Labels considered generic/uninformative — penalized in quality scoring (Pillar III) */
+const GENERIC_LABEL_PATTERNS = [
+  /^(Node|Step|Component|Item|Element|Box|Block|Module|Part|Thing)\s*\d*$/i,
+  /^[A-Z]$/,           // Single letters: A, B, C
+  /^(Untitled|Label|Entity|Object)\s*\d*$/i,
+  /^\d+$/,             // Bare numbers
+];
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -449,8 +457,27 @@ export function scoreNarrationQuality(frames: IllustrationFrame[]): DimensionSco
       }
     }
 
-    // Combine: 50% word count, 50% specificity
-    frameScores.push(wordScore * 0.5 + specificityScore * 0.5);
+    // ── Narration-visual redundancy detection (Pillar III) ──
+    // If narration content words are >70% identical to entity labels, it's just restating the visual
+    const entityLabelWords = new Set(
+      frame.entities
+        .map((e) => ((e as any).label || '').toLowerCase())
+        .filter((l: string) => l.length > 0)
+        .flatMap((l: string) => l.split(/\s+/))
+        .filter((w: string) => !FILLER_WORDS.has(w)),
+    );
+    const narrationContentLower = contentWords.map((w: string) => w.toLowerCase().replace(/[^a-z]/g, ''));
+    const overlapCount = narrationContentLower.filter((w: string) => entityLabelWords.has(w)).length;
+    const redundancyRatio = narrationContentLower.length > 0
+      ? overlapCount / narrationContentLower.length
+      : 0;
+    // >70% overlap = narration is restating the visual, apply progressive penalty
+    const redundancyPenalty = redundancyRatio > 0.7
+      ? (redundancyRatio - 0.7) * 100 // 0.8 overlap = -10, 0.9 = -20, 1.0 = -30
+      : 0;
+
+    // Combine: 45% word count, 45% specificity, minus redundancy penalty
+    frameScores.push(Math.max(0, wordScore * 0.45 + specificityScore * 0.45 - redundancyPenalty));
   }
 
   const avgFrameScore = frameScores.reduce((s, v) => s + v, 0) / frameScores.length;
@@ -462,11 +489,28 @@ export function scoreNarrationQuality(frames: IllustrationFrame[]): DimensionSco
     alignmentBonus = alignmentRatio * 10; // Up to +10 bonus
   }
 
-  const finalScore = clamp(Math.round(avgFrameScore + alignmentBonus), 0, 100);
+  // ── Label specificity penalty (Pillar III) ──
+  // Detect generic labels across all frames
+  let genericLabelCount = 0;
+  let totalLabels = 0;
+  for (const frame of frames) {
+    for (const entity of frame.entities) {
+      const label = (entity as any).label;
+      if (!label || CONNECTION_TYPES.has(entity.type) || HEADING_TYPES.has(entity.type)) continue;
+      totalLabels++;
+      const isGeneric = GENERIC_LABEL_PATTERNS.some((p) => p.test(label.trim()));
+      if (isGeneric) genericLabelCount++;
+    }
+  }
+  // Each 10% generic labels reduces final score by 5 points (max -50 penalty)
+  const genericRatio = totalLabels > 0 ? genericLabelCount / totalLabels : 0;
+  const labelSpecificityPenalty = Math.round(genericRatio * 50);
+
+  const finalScore = clamp(Math.round(avgFrameScore + alignmentBonus - labelSpecificityPenalty), 0, 100);
 
   return {
     score: finalScore,
-    details: `Avg narration quality ${finalScore}, ${totalSpecificTerms} specific terms found, ${alignedFrames}/${framesWithHighlight} highlight-aligned`,
+    details: `Avg narration quality ${finalScore}, ${totalSpecificTerms} specific terms, ${alignedFrames}/${framesWithHighlight} hl-aligned, ${genericLabelCount}/${totalLabels} generic labels`,
   };
 }
 
@@ -511,8 +555,8 @@ export function scoreNarrativeArc(frames: IllustrationFrame[]): DimensionScore {
 
   let highlightScore: number;
   if (highlightsUsed.length === 0) {
-    // No highlights at all — missed cinematic opportunity
-    highlightScore = 30;
+    // No highlights at all — critical Pillar I failure (no focal point, no depth-of-field)
+    highlightScore = 15;
   } else {
     const uniqueHighlights = new Set(highlightsUsed);
     // More unique highlights = better progression
@@ -557,17 +601,39 @@ export function scoreNarrativeArc(frames: IllustrationFrame[]): DimensionScore {
     frameCountScore = clamp(100 - excess * 12, 0, 100);
   }
 
-  // Weighted combination
-  const score = Math.round(
+  // ── Front-loading penalty (Pillar IV: Emotional Resonance) ──
+  // Penalize if first frame has >1.3x the average entity count (dumps complexity upfront)
+  const avgEntityCount = entityCounts.reduce((s, v) => s + v, 0) / entityCounts.length;
+  let frontLoadPenalty = 0;
+  if (entityCounts.length > 1 && entityCounts[0] > avgEntityCount * 1.3) {
+    frontLoadPenalty = 15;
+  }
+
+  // ── Complexity peak position (Pillar II: Compositional Structure) ──
+  // Reward if peak complexity is in middle frames, penalize if at very start
+  const peakIndex = entityCounts.indexOf(Math.max(...entityCounts));
+  const normalizedPeakPosition = frames.length > 1
+    ? peakIndex / (frames.length - 1)
+    : 0.5; // single frame is neutral
+  let peakPositionBonus = 0;
+  if (normalizedPeakPosition >= 0.3 && normalizedPeakPosition <= 0.7) {
+    peakPositionBonus = 10;
+  } else if (normalizedPeakPosition < 0.15) {
+    peakPositionBonus = -10; // Peak at very start = bad
+  }
+
+  // Weighted combination + adjustments
+  const rawScore = Math.round(
     growthScore * 0.25 +
     highlightScore * 0.30 +
     avgIntroScore * 0.25 +
     frameCountScore * 0.20,
   );
+  const score = clamp(rawScore + peakPositionBonus - frontLoadPenalty, 0, 100);
 
   return {
-    score: clamp(score, 0, 100),
-    details: `growth=${Math.round(growthScore)}, highlights=${Math.round(highlightScore)}, introRate=${Math.round(avgIntroScore)}, frameCount=${Math.round(frameCountScore)} (${frames.length} frames)`,
+    score,
+    details: `growth=${Math.round(growthScore)}, highlights=${Math.round(highlightScore)}, introRate=${Math.round(avgIntroScore)}, frameCount=${Math.round(frameCountScore)}, peak=${peakPositionBonus > 0 ? '+' : ''}${peakPositionBonus}, frontLoad=${frontLoadPenalty > 0 ? '-' : ''}${frontLoadPenalty} (${frames.length} frames)`,
   };
 }
 

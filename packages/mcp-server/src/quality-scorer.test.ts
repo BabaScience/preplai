@@ -699,19 +699,151 @@ describe('scoreVisualScript', () => {
     ]);
     const report = scoreVisualScript(script);
 
-    // Manually compute expected weighted average
+    // Manually compute expected weighted average (updated weights)
     const d = report.dimensions;
     const expected = Math.round(
       d.entityDensity.score * 0.12 +
       d.layoutQuality.score * 0.12 +
-      d.visualBalance.score * 0.06 +
+      d.visualBalance.score * 0.10 +
       d.entityPersistence.score * 0.12 +
       d.narrationCoverage.score * 0.10 +
-      d.formatCompliance.score * 0.06 +
-      d.narrationQuality.score * 0.16 +
+      d.formatCompliance.score * 0.04 +
+      d.narrationQuality.score * 0.14 +
       d.narrativeArc.score * 0.14 +
       d.connectionCompleteness.score * 0.12,
     );
     expect(report.overall).toBe(expected);
+  });
+});
+
+// ── New: No-highlight harshness ──────────────────────────────────────────
+
+describe('scoreNarrativeArc — no-highlight penalty', () => {
+  it('scores lower when no frames have highlights', () => {
+    const withHighlights = [
+      makeFrame([
+        makeEntity({ id: 'a', highlight: true } as any),
+        makeEntity({ id: 'b' }),
+        makeEntity({ id: 'c' }),
+      ]),
+      makeFrame([
+        makeEntity({ id: 'a' }),
+        makeEntity({ id: 'b', highlight: true } as any),
+        makeEntity({ id: 'c' }),
+        makeEntity({ id: 'd' }),
+      ]),
+      makeFrame([
+        makeEntity({ id: 'a' }),
+        makeEntity({ id: 'b' }),
+        makeEntity({ id: 'c' }),
+        makeEntity({ id: 'd' }),
+        makeEntity({ id: 'e', highlight: true } as any),
+      ]),
+    ];
+    const withoutHighlights = [
+      makeFrame([makeEntity({ id: 'a' }), makeEntity({ id: 'b' }), makeEntity({ id: 'c' })]),
+      makeFrame([makeEntity({ id: 'a' }), makeEntity({ id: 'b' }), makeEntity({ id: 'c' }), makeEntity({ id: 'd' })]),
+      makeFrame([makeEntity({ id: 'a' }), makeEntity({ id: 'b' }), makeEntity({ id: 'c' }), makeEntity({ id: 'd' }), makeEntity({ id: 'e' })]),
+    ];
+    const hlScore = scoreNarrativeArc(withHighlights).score;
+    const noHlScore = scoreNarrativeArc(withoutHighlights).score;
+    expect(hlScore).toBeGreaterThan(noHlScore);
+  });
+});
+
+// ── New: Generic label detection ─────────────────────────────────────────
+
+describe('scoreNarrationQuality — generic labels', () => {
+  it('penalises generic labels like "Node 1", "Component"', () => {
+    const genericFrame = makeFrame(
+      [
+        makeEntity({ id: 'n1', label: 'Node 1' } as any),
+        makeEntity({ id: 'n2', label: 'Component' } as any),
+        makeEntity({ id: 'n3', label: 'Step 1' } as any),
+        makeEntity({ id: 'n4', label: 'A' } as any),
+        makeEntity({ id: 'n5', label: 'Item' } as any),
+      ],
+      'The system processes data through multiple layers of components with caching and load balancing across the infrastructure.',
+    );
+    const specificFrame = makeFrame(
+      [
+        makeEntity({ id: 'n1', label: 'PostgreSQL' } as any),
+        makeEntity({ id: 'n2', label: 'Auth Service' } as any),
+        makeEntity({ id: 'n3', label: 'Redis Cache' } as any),
+        makeEntity({ id: 'n4', label: 'API Gateway' } as any),
+        makeEntity({ id: 'n5', label: 'React App' } as any),
+      ],
+      'The system processes data through multiple layers of components with caching and load balancing across the infrastructure.',
+    );
+    const genericScore = scoreNarrationQuality([genericFrame]).score;
+    const specificScore = scoreNarrationQuality([specificFrame]).score;
+    expect(specificScore).toBeGreaterThan(genericScore);
+  });
+});
+
+// ── New: Narration-visual redundancy ─────────────────────────────────────
+
+describe('scoreNarrationQuality — redundancy detection', () => {
+  it('penalises narration that just restates entity labels', () => {
+    const redundantFrame = makeFrame(
+      [
+        makeEntity({ id: 'srv', label: 'Server' } as any),
+        makeEntity({ id: 'db', label: 'Database' } as any),
+        makeEntity({ id: 'cache', label: 'Cache' } as any),
+      ],
+      'Server connects to Database and Cache.',
+    );
+    const insightfulFrame = makeFrame(
+      [
+        makeEntity({ id: 'srv', label: 'Server' } as any),
+        makeEntity({ id: 'db', label: 'Database' } as any),
+        makeEntity({ id: 'cache', label: 'Cache' } as any),
+      ],
+      'Adding a caching layer reduces database load by 90%, cutting average latency from 200ms to under 5ms per request.',
+    );
+    const redundantScore = scoreNarrationQuality([redundantFrame]).score;
+    const insightfulScore = scoreNarrationQuality([insightfulFrame]).score;
+    expect(insightfulScore).toBeGreaterThan(redundantScore);
+  });
+});
+
+// ── New: Front-loading penalty ───────────────────────────────────────────
+
+describe('scoreNarrativeArc — front-loading penalty', () => {
+  it('penalises presentations that dump entities in the first frame', () => {
+    const frontLoaded = [
+      makeFrame(Array.from({ length: 8 }, (_, i) =>
+        makeEntity({ id: `e${i}`, position: { x: 10 + i * 10, y: 50 } }),
+      )),
+      makeFrame([
+        makeEntity({ id: 'e0', position: { x: 30, y: 50 } }),
+        makeEntity({ id: 'e1', position: { x: 50, y: 50 } }),
+        makeEntity({ id: 'e2', position: { x: 70, y: 50 } }),
+      ]),
+      makeFrame([
+        makeEntity({ id: 'e0', position: { x: 30, y: 50 } }),
+        makeEntity({ id: 'e1', position: { x: 50, y: 50 } }),
+      ]),
+    ];
+    const gradual = [
+      makeFrame([
+        makeEntity({ id: 'e0', position: { x: 30, y: 50 } }),
+        makeEntity({ id: 'e1', position: { x: 70, y: 50 } }),
+      ]),
+      makeFrame([
+        makeEntity({ id: 'e0', position: { x: 20, y: 50 } }),
+        makeEntity({ id: 'e1', position: { x: 50, y: 50 } }),
+        makeEntity({ id: 'e2', position: { x: 80, y: 50 } }),
+      ]),
+      makeFrame([
+        makeEntity({ id: 'e0', position: { x: 15, y: 50 } }),
+        makeEntity({ id: 'e1', position: { x: 38, y: 50 } }),
+        makeEntity({ id: 'e2', position: { x: 62, y: 50 } }),
+        makeEntity({ id: 'e3', position: { x: 85, y: 50 } }),
+      ]),
+    ];
+    const frontLoadedScore = scoreNarrativeArc(frontLoaded).score;
+    const gradualScore = scoreNarrativeArc(gradual).score;
+    expect(gradualScore).toBeGreaterThan(frontLoadedScore);
   });
 });

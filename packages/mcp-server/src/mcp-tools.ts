@@ -35,6 +35,7 @@ import { getUserPlayerPrefs } from './auth.js';
 import { withErrorBoundary, mcpForbidden, mcpUnauthorized } from './errors.js';
 import { verifySessionOwnership } from './session-utils.js';
 import { scoreVisualScript, type QualityReport } from './quality-scorer.js';
+import { runQualityGuards } from './quality-guards.js';
 import {
   qualityScoreOverall,
   qualityScoreDimension,
@@ -126,6 +127,44 @@ function generateQualityHints(report: QualityReport): string[] {
     hints.push(
       `- Entity Density (${d.entityDensity.score}/100): Frames have too few or too many entities. ` +
       `Aim for 5–7 content entities per frame (excluding connections and headings).`
+    );
+  }
+
+  if (d.narrationQuality.score < QUALITY_THRESHOLD) {
+    hints.push(
+      `- Narration Quality (${d.narrationQuality.score}/100): Narration is too generic or redundant. ` +
+      `Add specifics: metrics (e.g. '50ms latency'), technology names (e.g. 'PostgreSQL'), or quantities. ` +
+      `Good narration adds WHY and context, not restates WHAT the visual already shows. Use specific entity labels, not generic names.`
+    );
+  }
+
+  if (d.narrativeArc.score < QUALITY_THRESHOLD) {
+    hints.push(
+      `- Narrative Arc (${d.narrativeArc.score}/100): Presentation lacks narrative structure. ` +
+      `Start simple (3–4 entities in frame 1), build complexity across frames, and use highlight:true ` +
+      `on a different entity each frame to create cinematic focus pull. Aim for 3–7 total frames.`
+    );
+  }
+
+  if (d.narrationCoverage.score < QUALITY_THRESHOLD) {
+    hints.push(
+      `- Narration Coverage (${d.narrationCoverage.score}/100): Some frames are missing narration. ` +
+      `Every frame needs narrationSegment text — it drives the voice-over and subtitle display.`
+    );
+  }
+
+  if (d.layoutQuality.score < QUALITY_THRESHOLD) {
+    hints.push(
+      `- Layout Quality (${d.layoutQuality.score}/100): Entities overlap or are unevenly spaced. ` +
+      `Maintain at least 15% distance between entity positions and spread them evenly across the canvas.`
+    );
+  }
+
+  if (d.formatCompliance.score < QUALITY_THRESHOLD) {
+    hints.push(
+      `- Format Compliance (${d.formatCompliance.score}/100): Some entities have invalid positions or missing fields. ` +
+      `Ensure all positions are in 0–100 range and every entity has an id and type. ` +
+      `Connection entities (Arrow, DataFlow) need src and tgt references.`
     );
   }
 
@@ -286,6 +325,12 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       let qualityHints: string[] = [];
       if (session?.script) {
         try {
+          // Preventive quality guards (lightweight anti-pattern checks)
+          const guardWarnings = runQualityGuards(session.script);
+          if (guardWarnings.length > 0) {
+            qualityHints.push(...guardWarnings.map((w) => `- ${w.message}`));
+          }
+
           const report = scoreVisualScript(session.script);
 
           // Prometheus histograms
