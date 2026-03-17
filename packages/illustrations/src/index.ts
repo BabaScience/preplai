@@ -189,5 +189,23 @@ export { renderClassNode } from './components/class-node.js';
 export { renderSystemBoundary } from './components/system-boundary.js';
 export { renderCircuitBreaker } from './components/circuit-breaker.js';
 
+// ── Phase 2: Domain-Specific
+export { renderComponentNode } from './components/component-node.js';
+export { renderDataLake } from './components/data-lake.js';
+export { renderDataWarehouse } from './components/data-warehouse.js';
+export { renderMLModel } from './components/ml-model.js';
+export { renderFeatureStore } from './components/feature-store.js';
+export { renderMindMapNode } from './components/mindmap-node.js';
+export { renderUserJourneyStep } from './components/user-journey-step.js';
+export { renderDeploymentStrategy } from './components/deployment-strategy.js';
+
+// ── Phase 3: Microservices & Patterns
+export { renderSidecar } from './components/sidecar.js';
+export { renderDeadLetterQueue } from './components/dead-letter-queue.js';
+export { renderRateLimiter } from './components/rate-limiter.js';
+export { renderGPU } from './components/gpu.js';
+export { renderBundle } from './components/bundle.js';
+export { renderSagaStep } from './components/saga-step.js';
+
 // ── Generic component factory (for extending)
 export { createGenericRenderer } from './components/generic.js';

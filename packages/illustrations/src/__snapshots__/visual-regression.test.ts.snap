@@ -289,6 +289,26 @@ exports[`Visual Regression — SVG Snapshots > renders Build without crashing > 
 }
 `;
 
+exports[`Visual Regression — SVG Snapshots > renders Bundle without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "path": 2,
+    "text": 4,
+  },
+  "textLabels": [
+    "{ }",
+    "main.js",
+    "245 KB",
+    "Bundle",
+  ],
+  "totalElements": 7,
+}
+`;
+
 exports[`Visual Regression — SVG Snapshots > renders CDN without crashing > produces valid SVG group with stable structure 1`] = `
 {
   "defsCount": 0,
@@ -550,6 +570,27 @@ exports[`Visual Regression — SVG Snapshots > renders Comparison without crashi
 }
 `;
 
+exports[`Visual Regression — SVG Snapshots > renders ComponentNode without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "line": 1,
+    "rect": 1,
+    "text": 3,
+  },
+  "textLabels": [
+    "</>",
+    "ComponentNode",
+    "ComponentNode",
+  ],
+  "totalElements": 7,
+}
+`;
+
 exports[`Visual Regression — SVG Snapshots > renders Concept without crashing > produces valid SVG group with stable structure 1`] = `
 {
   "defsCount": 0,
@@ -733,6 +774,46 @@ exports[`Visual Regression — SVG Snapshots > renders Dashboard without crashin
 }
 `;
 
+exports[`Visual Regression — SVG Snapshots > renders DataLake without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "ellipse": 2,
+    "g": 2,
+    "line": 2,
+    "path": 3,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "DataLake",
+  ],
+  "totalElements": 11,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders DataWarehouse without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 12,
+    "ellipse": 2,
+    "g": 2,
+    "line": 5,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "DataWarehouse",
+  ],
+  "totalElements": 23,
+}
+`;
+
 exports[`Visual Regression — SVG Snapshots > renders Database without crashing > produces valid SVG group with stable structure 1`] = `
 {
   "defsCount": 0,
@@ -750,6 +831,28 @@ exports[`Visual Regression — SVG Snapshots > renders Database without crashing
     "Database",
   ],
   "totalElements": 18,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders DeadLetterQueue without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "line": 3,
+    "path": 1,
+    "rect": 1,
+    "text": 3,
+  },
+  "textLabels": [
+    "!",
+    "42",
+    "DeadLetterQueue",
+  ],
+  "totalElements": 10,
 }
 `;
 
@@ -865,6 +968,31 @@ exports[`Visual Regression — SVG Snapshots > renders Deployment without crashi
     "v2.4 · live",
   ],
   "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders DeploymentStrategy without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "line": 2,
+    "path": 1,
+    "polygon": 2,
+    "rect": 2,
+    "text": 6,
+  },
+  "textLabels": [
+    "Blue",
+    "50%",
+    "Green",
+    "50%",
+    "Router",
+    "DeploymentStrategy",
+  ],
+  "totalElements": 14,
 }
 `;
 
@@ -1079,6 +1207,28 @@ exports[`Visual Regression — SVG Snapshots > renders FSM without crashing > pr
 }
 `;
 
+exports[`Visual Regression — SVG Snapshots > renders FeatureStore without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "ellipse": 2,
+    "g": 2,
+    "line": 4,
+    "rect": 3,
+    "text": 4,
+  },
+  "textLabels": [
+    "F",
+    "Training",
+    "Inference",
+    "FeatureStore",
+  ],
+  "totalElements": 15,
+}
+`;
+
 exports[`Visual Regression — SVG Snapshots > renders File without crashing > produces valid SVG group with stable structure 1`] = `
 {
   "defsCount": 0,
@@ -1155,6 +1305,25 @@ exports[`Visual Regression — SVG Snapshots > renders FreeBodyDiagram without c
     "FreeBodyDiagram",
   ],
   "totalElements": 10,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders GPU without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 16,
+    "text": 3,
+  },
+  "textLabels": [
+    "A100",
+    "80GB",
+    "GPU",
+  ],
+  "totalElements": 20,
 }
 `;
 
@@ -1594,6 +1763,26 @@ exports[`Visual Regression — SVG Snapshots > renders LogicGate without crashin
 }
 `;
 
+exports[`Visual Regression — SVG Snapshots > renders MLModel without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "line": 1,
+    "path": 2,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "MLModel",
+  ],
+  "totalElements": 7,
+}
+`;
+
 exports[`Visual Regression — SVG Snapshots > renders Matrix without crashing > produces valid SVG group with stable structure 1`] = `
 {
   "defsCount": 0,
@@ -1731,6 +1920,24 @@ exports[`Visual Regression — SVG Snapshots > renders Migration without crashin
     "Add roles",
   ],
   "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders MindMapNode without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "text": 2,
+  },
+  "textLabels": [
+    "Topic",
+    "MindMapNode",
+  ],
+  "totalElements": 4,
 }
 `;
 
@@ -2046,6 +2253,26 @@ exports[`Visual Regression — SVG Snapshots > renders Quote without crashing > 
 }
 `;
 
+exports[`Visual Regression — SVG Snapshots > renders RateLimiter without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 3,
+    "g": 1,
+    "path": 1,
+    "text": 3,
+  },
+  "textLabels": [
+    "1000 req/s",
+    "token-bucket",
+    "RateLimiter",
+  ],
+  "totalElements": 8,
+}
+`;
+
 exports[`Visual Regression — SVG Snapshots > renders RecursionTree without crashing > produces valid SVG group with stable structure 1`] = `
 {
   "defsCount": 0,
@@ -2083,6 +2310,31 @@ exports[`Visual Regression — SVG Snapshots > renders Rollback without crashing
     "v2.4 → v2.3",
   ],
   "totalElements": 6,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders SagaStep without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 1,
+    "g": 1,
+    "line": 1,
+    "polygon": 1,
+    "rect": 2,
+    "text": 6,
+  },
+  "textLabels": [
+    "reserveItems()",
+    "releaseItems()",
+    "rollback",
+    "R",
+    "Reserve Inventory",
+    "SagaStep",
+  ],
+  "totalElements": 12,
 }
 `;
 
@@ -2249,6 +2501,26 @@ exports[`Visual Regression — SVG Snapshots > renders Set without crashing > pr
     "Set",
   ],
   "totalElements": 11,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Sidecar without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "circle": 3,
+    "g": 1,
+    "line": 6,
+    "rect": 2,
+    "text": 2,
+  },
+  "textLabels": [
+    "Envoy",
+    "Sidecar",
+  ],
+  "totalElements": 14,
 }
 `;
 
@@ -2599,6 +2871,19 @@ exports[`Visual Regression — SVG Snapshots > renders User without crashing > p
     "User",
   ],
   "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders UserJourneyStep without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+  },
+  "textLabels": [],
+  "totalElements": 1,
 }
 `;
 

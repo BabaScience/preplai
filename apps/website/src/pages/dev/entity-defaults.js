@@ -624,6 +624,75 @@ export const METADATA_DEFAULTS = {
     failureRate: '2%',
     threshold: '50%',
   },
+  // ── Phase 2: Domain-Specific
+  ComponentNode: {
+    framework: 'react',
+    props: ['data', 'onSubmit', 'className'],
+  },
+  DataLake: {
+    provider: 'S3',
+    format: 'parquet',
+  },
+  DataWarehouse: {
+    provider: 'BigQuery',
+  },
+  MLModel: {
+    framework: 'PyTorch',
+    status: 'deployed',
+    accuracy: '94.2%',
+    version: 'v3.1',
+  },
+  FeatureStore: {
+    provider: 'Feast',
+  },
+  MindMapNode: {
+    topic: 'Architecture',
+    branches: [
+      { label: 'Frontend' },
+      { label: 'Backend' },
+      { label: 'Database' },
+      { label: 'DevOps' },
+    ],
+  },
+  UserJourneyStep: {
+    steps: [
+      { step: 'Discover', sentiment: 4 },
+      { step: 'Sign Up', sentiment: 3 },
+      { step: 'Onboard', sentiment: 2 },
+      { step: 'Use', sentiment: 5 },
+      { step: 'Pay', sentiment: 3 },
+    ],
+  },
+  DeploymentStrategy: {
+    strategy: 'blue-green',
+    trafficSplit: 50,
+  },
+  // ── Phase 3: Microservices & Patterns
+  Sidecar: {
+    proxy: 'Envoy',
+  },
+  DeadLetterQueue: {
+    messageCount: 42,
+    retryPolicy: '3 retries',
+  },
+  RateLimiter: {
+    limit: '1000 req/s',
+    algorithm: 'token-bucket',
+  },
+  GPU: {
+    model: 'A100',
+    memory: '80GB',
+  },
+  Bundle: {
+    name: 'main.js',
+    size: '245 KB',
+    chunks: 3,
+  },
+  SagaStep: {
+    step: 'Reserve Inventory',
+    action: 'reserveItems()',
+    compensation: 'releaseItems()',
+  },
 };
 
 /** Entity-level defaults (not metadata) for types that need textContent etc. */
@@ -705,4 +774,20 @@ export const ENTITY_FIELD_DEFAULTS = {
   ClassNode: { label: 'UserService', size: 2.5 },
   SystemBoundary: { label: 'Payment System', size: 4 },
   CircuitBreaker: { label: 'Circuit Breaker' },
+  // Phase 2
+  ComponentNode: { label: 'SearchBar', size: 2 },
+  DataLake: { label: 'Raw Events Lake', size: 2.5 },
+  DataWarehouse: { label: 'Analytics DW', size: 2.5 },
+  MLModel: { label: 'Fraud Detector', size: 2 },
+  FeatureStore: { label: 'Feature Store', size: 2 },
+  MindMapNode: { label: 'Architecture', size: 3 },
+  UserJourneyStep: { label: 'Onboarding Flow', size: 3 },
+  DeploymentStrategy: { label: 'Blue-Green Deploy', size: 2.5 },
+  // Phase 3
+  Sidecar: { label: 'Envoy Proxy' },
+  DeadLetterQueue: { label: 'Failed Orders' },
+  RateLimiter: { label: 'API Throttle' },
+  GPU: { label: 'A100 GPU' },
+  Bundle: { label: 'main.js' },
+  SagaStep: { label: 'Reserve Inventory' },
 };

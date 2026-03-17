@@ -163,6 +163,24 @@ import { renderClassNode } from './components/class-node.js';
 import { renderSystemBoundary } from './components/system-boundary.js';
 import { renderCircuitBreaker } from './components/circuit-breaker.js';
 
+// ── Phase 2: Domain-Specific
+import { renderComponentNode } from './components/component-node.js';
+import { renderDataLake } from './components/data-lake.js';
+import { renderDataWarehouse } from './components/data-warehouse.js';
+import { renderMLModel } from './components/ml-model.js';
+import { renderFeatureStore } from './components/feature-store.js';
+import { renderMindMapNode } from './components/mindmap-node.js';
+import { renderUserJourneyStep } from './components/user-journey-step.js';
+import { renderDeploymentStrategy } from './components/deployment-strategy.js';
+
+// ── Phase 3: Microservices & Patterns
+import { renderSidecar } from './components/sidecar.js';
+import { renderDeadLetterQueue } from './components/dead-letter-queue.js';
+import { renderRateLimiter } from './components/rate-limiter.js';
+import { renderGPU } from './components/gpu.js';
+import { renderBundle } from './components/bundle.js';
+import { renderSagaStep } from './components/saga-step.js';
+
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
 import { getCategoryColor } from './design-tokens.js';
@@ -386,6 +404,24 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   ClassNode: renderClassNode,
   SystemBoundary: renderSystemBoundary,
   CircuitBreaker: renderCircuitBreaker,
+
+  // ── Phase 2: Domain-Specific
+  ComponentNode: renderComponentNode,
+  DataLake: renderDataLake,
+  DataWarehouse: renderDataWarehouse,
+  MLModel: renderMLModel,
+  FeatureStore: renderFeatureStore,
+  MindMapNode: renderMindMapNode,
+  UserJourneyStep: renderUserJourneyStep,
+  DeploymentStrategy: renderDeploymentStrategy,
+
+  // ── Phase 3: Microservices & Patterns
+  Sidecar: renderSidecar,
+  DeadLetterQueue: renderDeadLetterQueue,
+  RateLimiter: renderRateLimiter,
+  GPU: renderGPU,
+  Bundle: renderBundle,
+  SagaStep: renderSagaStep,
 };
 
 /**

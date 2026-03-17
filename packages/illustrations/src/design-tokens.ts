@@ -341,6 +341,24 @@ export const ENTITY_COLORS: Record<string, string> = {
   SystemBoundary: COLORS.teal,
   CircuitBreaker: COLORS.red,
 
+  // ── Phase 2: Domain-Specific ───────────────────────────────────
+  ComponentNode: COLORS.cyan,
+  DataLake: COLORS.blue,
+  DataWarehouse: COLORS.emerald,
+  MLModel: COLORS.violet,
+  FeatureStore: COLORS.blue,
+  MindMapNode: COLORS.gold,
+  UserJourneyStep: COLORS.orange,
+  DeploymentStrategy: COLORS.green,
+
+  // ── Phase 3: Microservices & Patterns ──────────────────────────
+  Sidecar: COLORS.teal,
+  DeadLetterQueue: COLORS.red,
+  RateLimiter: COLORS.orange,
+  GPU: COLORS.green,
+  Bundle: COLORS.violet,
+  SagaStep: COLORS.cyan,
+
   // ── White: Connectors ────────────────────────────────────────────
   Arrow: '#ffffff',
   DataFlow: '#ffffff',

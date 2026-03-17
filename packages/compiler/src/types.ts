@@ -95,6 +95,11 @@ export const KNOWN_ENTITY_TYPES: ReadonlySet<string> = new Set([
   'NeuralNetwork',
   // Phase 1: Core Architecture Diagrams (5)
   'SequenceDiagram', 'EREntity', 'ClassNode', 'SystemBoundary', 'CircuitBreaker',
+  // Phase 2: Domain-Specific (8)
+  'ComponentNode', 'DataLake', 'DataWarehouse', 'MLModel',
+  'FeatureStore', 'MindMapNode', 'UserJourneyStep', 'DeploymentStrategy',
+  // Phase 3: Microservices & Patterns (6)
+  'Sidecar', 'DeadLetterQueue', 'RateLimiter', 'GPU', 'Bundle', 'SagaStep',
 ]);
 
 // ── Type-specific Size Defaults (base pixel dimensions at size=1.0) ────
@@ -137,6 +142,22 @@ export const BASE_ENTITY_SIZES: ReadonlyMap<string, { w: number; h: number }> = 
   ['ClassNode',       { w: 180, h: 160 }],
   ['SystemBoundary',  { w: 300, h: 200 }],
   ['CircuitBreaker',  { w: 60,  h: 80  }],
+  // Phase 2: Domain-Specific
+  ['ComponentNode',      { w: 120, h: 70  }],
+  ['DataLake',           { w: 120, h: 60  }],
+  ['DataWarehouse',      { w: 90,  h: 100 }],
+  ['MLModel',            { w: 100, h: 70  }],
+  ['FeatureStore',       { w: 100, h: 80  }],
+  ['MindMapNode',        { w: 200, h: 200 }],
+  ['UserJourneyStep',    { w: 300, h: 80  }],
+  ['DeploymentStrategy', { w: 200, h: 120 }],
+  // Phase 3: Microservices & Patterns
+  ['Sidecar',         { w: 80,  h: 60  }],
+  ['DeadLetterQueue', { w: 80,  h: 60  }],
+  ['RateLimiter',     { w: 60,  h: 80  }],
+  ['GPU',             { w: 80,  h: 60  }],
+  ['Bundle',          { w: 80,  h: 60  }],
+  ['SagaStep',        { w: 100, h: 60  }],
 ]);
 
 // ── Arrow-like types (skip position clamping) ─────────────────────────

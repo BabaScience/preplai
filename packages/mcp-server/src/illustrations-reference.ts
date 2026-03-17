@@ -163,6 +163,24 @@ const TOPIC_HINTS: Record<string, string[]> = {
   'class diagram, oop, object oriented, uml class': ['ClassNode'],
   'system boundary, c4, context diagram, system context': ['SystemBoundary'],
   'circuit breaker, fault tolerance, resilience, bulkhead': ['CircuitBreaker'],
+
+  // ── Phase 2: Domain-Specific ──
+  'react component, vue component, angular component, frontend component tree': ['ComponentNode'],
+  'data lake, raw storage, s3, unstructured data': ['DataLake'],
+  'data warehouse, snowflake, bigquery, redshift, olap': ['DataWarehouse'],
+  'ml model, trained model, inference, prediction': ['MLModel'],
+  'feature store, feast, ml features, training features': ['FeatureStore'],
+  'mindmap, brainstorm, mind map, idea map': ['MindMapNode'],
+  'user journey, customer journey, ux flow, sentiment': ['UserJourneyStep'],
+  'blue green deployment, canary deployment, rolling update': ['DeploymentStrategy'],
+
+  // ── Phase 3: Microservices & Patterns ──
+  'sidecar, envoy, istio, service mesh proxy': ['Sidecar'],
+  'dead letter queue, dlq, failed messages, poison queue': ['DeadLetterQueue'],
+  'rate limiter, throttle, api limit, token bucket': ['RateLimiter'],
+  'gpu, cuda, a100, h100, accelerator, tpu': ['GPU'],
+  'bundle, chunk, webpack, code splitting, js bundle': ['Bundle'],
+  'saga, distributed transaction, compensation, choreography': ['SagaStep'],
 };
 
 // ── Metadata hints by type (from COMPACT_REFERENCE, METADATA_SCHEMAS) ───────
@@ -343,6 +361,24 @@ const METADATA_HINTS: Record<string, string> = {
   ClassNode: 'className?, stereotype?, attributes?: [{visibility?, name, type}], methods?: [{visibility?, name, params?, returnType?}]',
   SystemBoundary: 'label?, style?: "dashed"|"solid", description?',
   CircuitBreaker: 'state?: "closed"|"open"|"half-open", failureRate?, threshold?',
+
+  // Phase 2: Domain-Specific
+  ComponentNode: 'framework?: "react"|"vue"|"angular", props?: string[]',
+  DataLake: 'provider?: "S3"|"GCS"|"ADLS", format?: "parquet"|"json"|"csv"',
+  DataWarehouse: 'provider?: "Snowflake"|"BigQuery"|"Redshift"',
+  MLModel: 'framework?: "PyTorch"|"TensorFlow"|"scikit-learn", version?, accuracy?, status?: "training"|"deployed"|"archived"',
+  FeatureStore: 'provider?: "Feast"|"Hopsworks"|"Tecton"',
+  MindMapNode: 'topic?, branches: [{label}]',
+  UserJourneyStep: 'steps: [{step, sentiment: 1-5}]',
+  DeploymentStrategy: 'strategy?: "blue-green"|"canary"|"rolling", trafficSplit?: number',
+
+  // Phase 3: Microservices & Patterns
+  Sidecar: 'proxy?: "Envoy"|"Istio"|"Linkerd"',
+  DeadLetterQueue: 'messageCount?, retryPolicy?',
+  RateLimiter: 'limit?, algorithm?: "token-bucket"|"sliding-window"',
+  GPU: 'model?: "A100"|"H100"|"T4", memory?',
+  Bundle: 'name?, size?, chunks?',
+  SagaStep: 'step?, action?, compensation?',
 };
 
 // ── Public API ─────────────────────────────────────────────────────────────
