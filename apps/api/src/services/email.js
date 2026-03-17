@@ -23,8 +23,7 @@ export async function sendVerificationEmail({ to, name, verifyToken }) {
     return;
   }
 
-  // App uses HashRouter — path must be in hash: /#/verify-email?token=...
-  const verifyUrl = `${APP_URL}/#/verify-email?token=${encodeURIComponent(verifyToken)}`;
+  const verifyUrl = `${APP_URL}/verify-email?token=${encodeURIComponent(verifyToken)}`;
 
   await resend.emails.send({
     from: FROM_EMAIL,
