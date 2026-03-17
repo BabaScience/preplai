@@ -365,14 +365,19 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       // Attach full script + palette/theme + player URL for MCP App inline rendering
       const session = store.getSession(args.session_id);
       const prefs = await getUserPlayerPrefs(apiKey?.id);
-      const suffix = apiKey ? `?key=${apiKey.id}` : '';
+      const theme = prefs.theme || 'cinema';
+      const palette = prefs.palette || 'default';
+      const params = new URLSearchParams();
+      params.set('style', theme);
+      params.set('palette', palette);
+      if (apiKey) params.set('key', apiKey.id);
       return {
         content: result.content,
         _meta: {
           script: session?.script ?? null,
-          palette: prefs.palette || 'default',
-          theme: prefs.theme || 'cinema',
-          playerUrl: `${baseUrl}/player/${args.session_id}${suffix}`,
+          palette,
+          theme,
+          playerUrl: `${baseUrl}/player/${args.session_id}?${params.toString()}`,
         },
       };
     },
