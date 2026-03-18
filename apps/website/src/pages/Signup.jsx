@@ -61,9 +61,12 @@ export default function Signup() {
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
           <Logo showWordmark={false} />
         </div>
-        <h1 style={{ textAlign: 'center' }}>Create your account</h1>
+        <h1 style={{ textAlign: 'center' }}>Start watching, not reading.</h1>
         <p className="auth-sub" style={{ textAlign: 'center' }}>
-          Get started with preplai for free.
+          Create your free account. No credit card required.
+        </p>
+        <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-secondary)', opacity: 0.6, marginTop: -8, marginBottom: 16 }}>
+          Join thousands of professionals who watch their AI answers instead of reading them.
         </p>
         <Alert variant="error">{error}</Alert>
         <form className="auth-form" onSubmit={handleSubmit}>

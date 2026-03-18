@@ -1,67 +1,77 @@
 # Preplai Mission
 
-> **"The agent understands. The engine shows. The user learns."**
+> **"Don't read it. Watch it."**
 
-Preplai is the **most advanced cinematic illustration engine for AI agents**. We give any AI — ChatGPT, Claude, Cursor, autonomous agents — the power to *show* anything visually, with animated, voice-synced, interactive cinema. Not slides. Not PDFs. Not logs. Cinema.
+Preplai is **The Visual Layer for AI**. We turn any AI answer into animated, narrated visuals anyone can watch and share. Works with any MCP-compatible AI — ChatGPT, Claude, Cursor, autonomous agents. Not slides. Not PDFs. Not logs. Cinema.
 
 ---
 
 ## The Problem
 
-AI is brilliant at doing — but terrible at *showing what it did*.
+**AI is brilliant. Its output is unreadable.**
 
-**The black box problem is real.** 90% of AI agents may never leave the demo stage because nobody can see what they actually do. When something goes wrong, the question everyone asks is always the same: *"What did the agent actually do?"* — and nobody can answer.
+AI generates incredible analysis, explanations, and decisions — but delivers them as walls of text that nobody reads. The gap between what AI *knows* and what humans *absorb* is massive:
 
-Today, the options are:
-- **Logs** — Walls of text. "Logging is slowly bankrupting me." 40% of sprint time goes to investigating failures, not building features.
-- **Observability tools** (LangSmith, LangFuse) — "They didn't significantly save us time." Expensive, complex, and still don't answer the basic question.
-- **Dashboards** — Metrics without meaning. "Almost all metrics, about 99%, will likely go unnoticed."
+- **65% of people are visual learners** — yet AI output is almost entirely text
+- **95% retention from video vs 10% from text** — AI's best work gets ignored because of the format
+- **Reports go unread** — Stakeholders skim, miss critical insights, and make worse decisions
+- **Technical concepts stay opaque** — Engineers explain architecture in Slack threads that nobody follows
 
-None of these are *human-readable*. None of them *show* you what happened. They give you data, not understanding.
+The problem isn't AI intelligence. It's AI communication.
 
 ## The Solution
 
-Preplai is an MCP server that any AI agent can connect to. The agent becomes the *director* — it emits structured scene data. Preplai's engine becomes the *stage* — rendering cinematic, animated, voice-synced illustrations in real time. The human becomes the *audience* — watching, learning, understanding.
+Preplai is an MCP server that any AI can connect to. The AI becomes the *director* — it emits structured scene data. Preplai's engine becomes the *stage* — rendering cinematic, animated, voice-narrated visuals in real time. The human becomes the *audience* — watching, understanding, sharing.
 
-**Cinema, not logs. Accountability, not just observability.**
+85+ visual components. Voice narration. Shareable links. 2-minute setup. Cinema quality.
+
+**Don't read it. Watch it.**
 
 ---
 
-## MVP Target Users
+## Target Users
 
-### 1. CS Students
+### 1. Engineers & SRE Teams
 
-**Pain:** They use ChatGPT, Claude, or other LLMs to learn computer science. They ask "explain how quicksort works" and get paragraphs of text. They have to build the mental model themselves.
+**Pain:** Incident postmortems are 30-page docs nobody reads. PR reviews lack visual context. Architecture decisions get lost in text threads.
 
-**Fix:** The LLM connects our MCP and *presents* the explanation. Arrays animate as elements swap. Trees grow as nodes insert. Data flows through pipelines. The student watches a cinematic walkthrough instead of reading a textbook.
+**Fix:** AI connects to Preplai and *shows* the incident timeline, the architecture change, the data flow — animated, narrated, shareable. Postmortems become watchable. PR reviews become visual. Architecture is seen, not just described.
 
-**Where:** ChatGPT/Claude MCP marketplace, CS study communities, university tool lists.
+**Where:** AI coding tools (Cursor, Claude Code, Copilot), CI/CD integrations, incident response workflows.
 
-### 2. Programmers
+### 2. Product Managers
 
-**Pain:** They use AI coding assistants — Cursor, Copilot, Claude Code. "Your AI can write code but it can't see what happens when it runs." They say "refactor this module" and the AI does it, but they don't understand *what* the AI did. "I often find disagreeing with the solution and end up rewriting the code myself."
+**Pain:** They need to explain technical concepts to stakeholders — system architecture, data pipelines, feature implementations — but lack the tools to make it visual. They end up in endless meetings trying to bridge the technical-business gap.
 
-**Fix:** The coding assistant uses our MCP to *show* what it built. "Here's the architecture I created" — with servers, databases, auth flows animated step by step. The programmer understands the system, not just the code.
+**Fix:** AI generates visual explanations of technical concepts that stakeholders can watch and understand. No design skills needed. Ask AI to explain, and it *shows* it cinematically.
 
-**Where:** Cursor/Claude Code MCP integrations, developer tool directories.
+**Where:** MCP-enabled AI tools, product management workflows, stakeholder communication.
 
-### 3. AI Agent Owners
+### 3. Consultants & Strategists
 
-**Pain:** This is the deepest pain. "I kept asking 'what did the agent actually do?' after incidents. Nobody could answer." Autonomous agents execute complex workflows. Their owners "scrutinize logs in an effort to reconstruct the actions of an autonomous system with production credentials." Observability tools don't help — "accountability, not just observability" is what they need.
+**Pain:** They produce AI-powered analysis — market research, competitive landscapes, strategic recommendations — but deliver it as dense slide decks and reports that clients skim.
 
-**Fix:** The agent uses our MCP to *present* its work as cinema. "Here's what I did and why" — with process flows, decision trees, data transformations animated step by step. An auditable visual record of every decision. Zero-config: agent calls MCP, presentation appears.
+**Fix:** AI analysis becomes client-ready visual deliverables. Animated walkthroughs of market dynamics, competitive positioning, and strategic recommendations that clients actually watch and remember.
 
-**Where:** AI agent frameworks, MCP registries, agent builder communities.
+**Where:** Consulting firms using AI tools, strategy teams, client deliverable workflows.
+
+### 4. Financial Advisors & Legal
+
+**Pain:** Complex financial structures, legal frameworks, and regulatory flows are nearly impossible to explain in text. Clients nod along but don't truly understand what they're agreeing to.
+
+**Fix:** AI explains complex structures visually — fund flows, legal hierarchies, regulatory processes — with animated, narrated walkthroughs that clients can watch, rewatch, and share with their teams.
+
+**Where:** Advisory firms using AI tools, compliance teams, client education workflows.
 
 ---
 
 ## Core Principles
 
-1. **Cinema, not logs** — Every presentation is animated, immersive, voice-synced. Entities persist across frames, the camera moves, depth-of-field focuses attention. Not slides, not dashboards, not terminal output.
-2. **Human-readable, not machine-readable** — A non-engineer should be able to watch and understand what an agent did. No log parsing, no trace analysis.
+1. **Cinema, not documents** — Every presentation is animated, immersive, voice-narrated. Entities persist across frames, the camera moves, depth-of-field focuses attention. Not slides, not dashboards, not walls of text.
+2. **Visual-first communication** — Anyone should be able to watch and understand complex concepts. No technical background required. 65% of people are visual learners — we build for them.
 3. **Code over content** — Illustrations are programmatic SVG components, not static files. Every type = one render function. This scales infinitely.
-4. **Agent as director** — The agent emits structured JSON; the engine renders. No design tools, no templates, no human intervention.
-5. **Universal agent API** — Any AI agent can create presentations via MCP. One protocol, every agent.
+4. **Agent as director** — The AI emits structured JSON; the engine renders. No design tools, no templates, no human intervention.
+5. **Universal AI API** — Any MCP-compatible AI can create presentations. One protocol, every AI.
 
 ---
 

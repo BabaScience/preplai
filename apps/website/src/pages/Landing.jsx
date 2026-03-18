@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Cpu, Film, LinkIcon, Zap, Layers, Mic, Globe, MonitorPlay } from 'lucide-react';
+import { Cpu, Film, LinkIcon, Zap, Layers, Mic, Globe, MonitorPlay, Briefcase, Scale } from 'lucide-react';
 import LandingLayout from '../layouts/LandingLayout';
 import Logo from '../components/Logo';
 import HeroPlayer from '../components/HeroPlayer';
@@ -20,17 +20,19 @@ export default function Landing() {
         <div className="hero-cinema-inner">
           <div className="hero-cinema-text">
             <h1 className="hero-fade-in hero-fade-in-delay-1">
-              What did your agent<br />
-              actually do?
+              Don&rsquo;t read it.<br />
+              Watch it.
             </h1>
             <p className="hero-cinema-sub hero-fade-in hero-fade-in-delay-2">
-              Your AI agents execute complex workflows, make decisions, and call tools — but you never see what happened.
-              Preplai turns every agent run into a cinematic visual report. Animated, narrated, shareable. No more sifting through logs.
+              Your AI gives you walls of text. PreplAI turns every answer into an animated, narrated visual you can watch in minutes and share with anyone. Works with Claude, ChatGPT, Cursor, and any MCP-compatible tool.
             </p>
             <div className="hero-ctas hero-fade-in hero-fade-in-delay-3">
               <Link to="/signup" className="btn btn-primary btn-lg">Get started free</Link>
               <a href="#showcases" className="btn btn-ghost-light btn-lg">See it in action</a>
             </div>
+            <p className="hero-social-proof hero-fade-in hero-fade-in-delay-4" style={{ marginTop: 'var(--space-6)', opacity: 0.7, fontSize: '0.95rem' }}>
+              Works with any AI &middot; 85+ visual components &middot; Voice narration &middot; Shareable links &middot; 2-minute setup
+            </p>
           </div>
         </div>
 
@@ -39,18 +41,17 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 2. Problem Statement — VoC language */}
+      {/* 2. Problem Statement */}
       <section className="problem-section">
         <div className="section-block" style={{ borderTop: 'none' }}>
           <div className="section-label">The Problem</div>
-          <h2>90% of AI agents never leave demo stage.</h2>
+          <h2>AI is brilliant. Its output is unreadable.</h2>
           <div className="problem-statements">
-            <p>Your agent ran 47 steps overnight. You got a JSON log file and no explanation.</p>
-            <p>Something went wrong in production. You spent 40% of your sprint investigating, not building.</p>
-            <p>Your observability tools gave you traces and metrics. They still didn't answer the question: <em>what did the agent actually do?</em></p>
+            <p>You asked your AI a great question. It gave you 2,000 words of text. You skimmed the first paragraph. You missed the key insight. You forgot everything by tomorrow.</p>
+            <p>You&rsquo;re not alone. 65% of people are visual learners. We retain 95% of a message from video — but only 10% from text. Yet every AI chatbot in the world produces the same thing: text.</p>
           </div>
           <p className="problem-kicker">
-            The black box problem is real. Logs don't solve it. Dashboards don't solve it. Cinema does.
+            PreplAI closes the gap between what AI produces and what humans actually want to consume.
           </p>
         </div>
       </section>
@@ -59,37 +60,41 @@ export default function Landing() {
       <section id="showcases" className="section-block showcase-section" style={{ borderTop: 'none' }}>
         <div className="section-label">See It In Action</div>
         <h2>From explanation to presentation</h2>
-        <p className="section-desc">Every demo below is a live Preplai presentation. The same engine your AI will use.</p>
+        <p className="section-desc">Every demo below is a live PreplAI presentation. The same engine your AI will use.</p>
         <ShowcaseCarousel items={SHOWCASE_ITEMS} />
       </section>
 
       {/* 4. Who It's For — Persona bento cards */}
       <section className="section-block" style={{ borderTop: '1px solid var(--color-divider)' }}>
-        <div className="section-label">Who It's For</div>
-        <h2>Built for engineers who use AI every day</h2>
+        <div className="section-label">Who It&rsquo;s For</div>
+        <h2>Built for professionals who use AI every day</h2>
         <div className="bento-grid" style={{ marginTop: 'var(--space-10)' }}>
           <div className="bento-card">
-            <div className="bento-icon"><Film size={20} /></div>
-            <h3>Students and educators</h3>
-            <p>
-              Ask any LLM to explain quicksort, TCP handshakes, or B-trees — and watch the concepts animate.
-              Arrays sort themselves, trees grow, data flows through pipelines. Learning becomes visual.
-            </p>
-          </div>
-          <div className="bento-card">
             <div className="bento-icon"><Cpu size={20} /></div>
-            <h3>Programmers using AI coding tools</h3>
+            <h3>Engineers &amp; SRE Teams</h3>
             <p>
-              Cursor, Copilot, and Claude Code build complex systems in seconds. But what did they actually create?
-              Preplai lets your AI show the architecture it built — servers, data flows, dependencies — animated and narrated.
+              Turn incident postmortems into animated walkthroughs. Visualize pull request changes before code review. See what your AI coding assistant actually built — architecture diagrams, data flows, dependencies — narrated and shareable.
             </p>
           </div>
           <div className="bento-card">
-            <div className="bento-icon"><Layers size={20} /></div>
-            <h3>Teams running AI agents</h3>
+            <div className="bento-icon"><Film size={20} /></div>
+            <h3>Product Managers</h3>
             <p>
-              Your agent ran 47 steps, made 12 API calls, and hit a decision branch.
-              Instead of parsing logs, get a visual report: every action, every decision, every data source. Shareable with your team in one click.
+              You ask AI to explain how the recommendation engine works. You get 1,500 words. Now you need slides for the executive review. With PreplAI, ask your AI to explain it visually — and share the animated walkthrough directly. 30 seconds instead of 30 minutes.
+            </p>
+          </div>
+          <div className="bento-card">
+            <div className="bento-icon"><Briefcase size={20} /></div>
+            <h3>Consultants &amp; Strategists</h3>
+            <p>
+              Your AI researched the market, analyzed the data, and drafted recommendations. Now turn that analysis into a client-ready visual presentation — automatically.
+            </p>
+          </div>
+          <div className="bento-card">
+            <div className="bento-icon"><Scale size={20} /></div>
+            <h3>Financial Advisors &amp; Legal</h3>
+            <p>
+              Explain portfolio allocations, risk models, or contract structures to clients who don&rsquo;t speak your language. PreplAI turns complex AI analysis into visual walkthroughs your clients will actually understand.
             </p>
           </div>
         </div>
@@ -103,17 +108,17 @@ export default function Landing() {
           <div className="step-item">
             <div className="step-number">1</div>
             <h3>Connect your AI</h3>
-            <p>Add one config block to Claude, Cursor, or any AI tool. No SDK, no code changes.</p>
+            <p>Add one config block to Claude, ChatGPT, Cursor, or any MCP-compatible AI tool. No SDK. No code changes. No setup headaches.</p>
           </div>
           <div className="step-item">
             <div className="step-number">2</div>
             <h3>Ask your AI to present</h3>
-            <p>Tell your AI: &ldquo;Show me what you built.&rdquo; It creates animated presentations automatically.</p>
+            <p>Tell your AI: &ldquo;Explain this visually&rdquo; or &ldquo;Create a presentation.&rdquo; It generates animated, narrated visual walkthroughs automatically using PreplAI&rsquo;s 85+ visual components.</p>
           </div>
           <div className="step-item">
             <div className="step-number">3</div>
-            <h3>Share and review</h3>
-            <p>Every presentation gets a shareable link. Send it to your team or review it later.</p>
+            <h3>Watch and share</h3>
+            <p>Every presentation gets a shareable link. Watch it yourself, send it to your team, embed it in a doc, or present it in a meeting. No downloads, no installs, no friction.</p>
           </div>
         </div>
         <div className="setup-block" style={{ marginTop: 'var(--space-10)' }}>
@@ -137,15 +142,39 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 6. Capabilities strip — simplified language */}
-      <section id="features" className="capabilities-strip">
-        <div className="capabilities-inner">
-          <div className="capability-item fade-in"><Globe size={18} /><span>Works with any AI</span></div>
-          <div className="capability-item fade-in"><MonitorPlay size={18} /><span>Animated diagrams</span></div>
-          <div className="capability-item fade-in"><Mic size={18} /><span>Voice narration</span></div>
-          <div className="capability-item fade-in"><Layers size={18} /><span>85+ visual components</span></div>
-          <div className="capability-item fade-in"><LinkIcon size={18} /><span>Shareable links</span></div>
-          <div className="capability-item fade-in"><Zap size={18} /><span>2-minute setup</span></div>
+      {/* 6. Features grid */}
+      <section id="features" className="section-block" style={{ borderTop: '1px solid var(--color-divider)' }}>
+        <div className="bento-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+          <div className="bento-card">
+            <div className="bento-icon"><Globe size={20} /></div>
+            <h3>Works with any AI</h3>
+            <p>Claude, ChatGPT, Cursor, Gemini — any MCP-compatible tool.</p>
+          </div>
+          <div className="bento-card">
+            <div className="bento-icon"><MonitorPlay size={20} /></div>
+            <h3>Animated diagrams</h3>
+            <p>85+ visual components: servers, databases, queues, pipelines, and more.</p>
+          </div>
+          <div className="bento-card">
+            <div className="bento-icon"><Mic size={20} /></div>
+            <h3>Voice narration</h3>
+            <p>Every presentation is narrated automatically. Watch, don&rsquo;t read.</p>
+          </div>
+          <div className="bento-card">
+            <div className="bento-icon"><LinkIcon size={20} /></div>
+            <h3>Shareable links</h3>
+            <p>Every presentation gets a unique URL. Share with anyone, anywhere.</p>
+          </div>
+          <div className="bento-card">
+            <div className="bento-icon"><Zap size={20} /></div>
+            <h3>2-minute setup</h3>
+            <p>One config block. No SDK, no code changes, no onboarding calls.</p>
+          </div>
+          <div className="bento-card">
+            <div className="bento-icon"><Layers size={20} /></div>
+            <h3>Cinema quality</h3>
+            <p>Not static slides. Cinematic animations with depth-of-field focus, smooth transitions, and idle animations.</p>
+          </div>
         </div>
       </section>
 
@@ -157,9 +186,12 @@ export default function Landing() {
         </div>
         <div className="final-cta-inner">
           <h2>
-            Stop sifting through logs.<br />
-            Start seeing what your agent did.
+            Stop reading.<br />
+            Start watching.
           </h2>
+          <p className="hero-cinema-sub" style={{ maxWidth: '540px', margin: '0 auto var(--space-8)' }}>
+            Every AI answer, now in cinema. Set up in 2 minutes. Free to start.
+          </p>
           <div className="hero-ctas">
             <Link to="/signup" className="btn btn-primary btn-lg">Get started free</Link>
             <Link to="/docs" className="btn btn-ghost-light btn-lg">View docs</Link>
@@ -172,12 +204,15 @@ export default function Landing() {
         <div className="footer-inner">
           <div className="footer-brand">
             <Logo />
-            <p>See what your agent actually did.</p>
+            <p>Don&rsquo;t read it. Watch it.</p>
           </div>
           <div className="footer-links">
             <Link to="/docs">Docs</Link>
             <Link to="/blog">Blog</Link>
             <Link to="/dashboard/overview">Dashboard</Link>
+            <Link to="/pricing">Pricing</Link>
+            <Link to="/terms">Terms</Link>
+            <Link to="/privacy">Privacy</Link>
           </div>
         </div>
         <div className="footer-bottom">

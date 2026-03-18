@@ -213,16 +213,21 @@ export const SHOWCASE_ITEMS = [
   {
     script: CS_SCRIPT,
     label: 'Learn Visually',
-    description: 'Stop reading walls of text. Ask your LLM to explain B-trees, quicksort, or TCP — and watch it come alive. Arrays animate, trees grow, data flows.',
+    description: 'Stop reading walls of text. Ask your AI to explain binary search, TCP handshakes, or microservices — and watch the concepts animate step by step.',
+  },
+  {
+    script: ARCH_SCRIPT,
+    label: 'Explain to Stakeholders',
+    description: 'Your AI researched the topic. Now share a visual walkthrough with your team, your client, or your board — not a text dump.',
   },
   {
     script: ARCH_SCRIPT,
     label: 'See What AI Built',
-    description: 'Your coding assistant refactored the module. Now see the architecture it created — servers, queues, data flows, all animated step by step.',
+    description: 'Your coding assistant refactored a module. Now see the architecture it created — servers, queues, data flows — animated and narrated.',
   },
   {
     script: AGENT_SCRIPT,
-    label: 'What Did the Agent Do?',
-    description: 'Your agent ran a complex task. But what did it actually do? Watch a visual report of every action, decision, and data source — not logs.',
+    label: 'Review Incidents',
+    description: 'Your system went down at 2 AM. Instead of reading a 20-page postmortem, watch a 2-minute visual walkthrough of exactly what happened.',
   },
 ];

@@ -6,21 +6,22 @@
 
 ## Mission
 
-**"The agent understands. The engine shows. The user learns."**
+**"Don't read it. Watch it."**
 
-Preplai is the most advanced cinematic illustration engine for AI agents. Any AI — ChatGPT, Claude, Cursor, autonomous agents — can present anything visually via MCP. Not slides, not PDFs — cinema.
+PreplAI is **The Visual Layer for AI**. We turn any AI answer into an animated, narrated visual presentation anyone can watch and share. Works with Claude, ChatGPT, Cursor, and any MCP-compatible tool. Not slides, not PDFs — cinema.
 
 ---
 
-## Who We Build For (MVP)
+## Who We Build For
 
-Every code decision should serve one of these three users:
+Every code decision should serve one of these four users:
 
-1. **CS students** — Use LLMs to learn CS. Today they get text walls. Preplai gives them cinematic visual walkthroughs (arrays animate, trees grow, data flows through pipelines).
-2. **Programmers** — Use AI coding tools (Cursor, Copilot, Claude Code). They don't understand what the AI built. Preplai lets the AI *show* the architecture and logic step by step.
-3. **AI agent owners** — Run autonomous agents (OpenClaw, custom agents). They can't see what the agent did. Preplai lets agents present visual reports of their actions and decisions.
+1. **Engineers & SRE Teams** — Turn incident postmortems into animated walkthroughs. Visualize PR changes before code review. See what your AI coding assistant actually built — architecture diagrams, data flows, dependencies — narrated and shareable.
+2. **Product Managers** — Ask AI to explain how the recommendation engine works, get 1,500 words. With PreplAI, ask your AI to explain it visually — share the animated walkthrough directly. 30 seconds instead of 30 minutes.
+3. **Consultants & Strategists** — Turn AI research and analysis into client-ready visual presentations — automatically. No more converting text into slides.
+4. **Financial Advisors & Legal** — Explain portfolio allocations, risk models, or contract structures to clients who don't speak your language. Visual walkthroughs they'll actually understand.
 
-When in doubt, ask: *"Does this help a student understand, a programmer see what AI built, or an agent owner see what their agent did?"*
+When in doubt, ask: *"Does this help someone watch and understand instead of read and forget?"*
 
 ---
 

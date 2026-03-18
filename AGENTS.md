@@ -6,23 +6,24 @@
 
 ## Mission
 
-**"The agent understands. The engine shows. The user learns."**
+**"Don't read it. Watch it."**
 
-Preplai is the **most advanced cinematic illustration engine for AI agents**. Any AI — ChatGPT, Claude, Cursor, autonomous agents — can present anything visually via MCP. Not slides, not PDFs — cinema.
+Preplai is **The Visual Layer for AI**. We turn any AI answer into animated, narrated visuals anyone can watch and share. Any AI — ChatGPT, Claude, Cursor, autonomous agents — can present anything visually via MCP. Not slides, not PDFs — cinema.
 
-- **Agent** = director (emits structured JSON)
-- **Engine** = stage (renders programmatic SVG with voice sync)
-- **User** = audience (watches in browser)
+- **AI** = director (emits structured JSON)
+- **Engine** = stage (renders programmatic SVG with voice narration)
+- **User** = audience (watches in browser, shares via link)
 
-### Who We Build For (MVP)
+### Who We Build For
 
 | User | Problem | How Preplai Helps |
 |------|---------|-------------------|
-| **CS students** | Ask ChatGPT/Claude to explain CS concepts, get walls of text | LLM connects MCP → cinematic visual walkthrough (arrays animate, trees grow, data flows) |
-| **Programmers** | Use Cursor/Copilot/Claude Code, don't understand what the AI built | Coding assistant uses MCP → shows architecture, data flows, system design step by step |
-| **AI agent owners** | Deploy autonomous agents (OpenClaw, custom), can't see what the agent did | Agent uses MCP → visual report of actions, decisions, and results |
+| **Engineers & SRE Teams** | Incident postmortems are unreadable docs, PR reviews lack visual context, architecture decisions get lost in text | AI connects MCP → animated incident timelines, architecture walkthroughs, system design visualizations |
+| **Product Managers** | Need to explain technical concepts to stakeholders but lack visual tools | AI connects MCP → cinematic explanations of architecture, pipelines, and features that stakeholders watch and understand |
+| **Consultants & Strategists** | AI-powered analysis delivered as dense reports that clients skim | AI connects MCP → client-ready visual deliverables with animated walkthroughs clients actually watch |
+| **Financial Advisors & Legal** | Complex structures and regulatory flows are impossible to explain in text | AI connects MCP → animated, narrated visual explanations of fund flows, legal hierarchies, and compliance processes |
 
-Every feature decision should serve at least one of these three users. When in doubt, ask: "Does this help a CS student understand, a programmer see what AI built, or an agent owner see what their agent did?"
+Every feature decision should serve at least one of these users. When in doubt, ask: "Does this help someone *watch and understand* instead of *read and forget*?"
 
 ### Core Principle: Code Over Content
 
