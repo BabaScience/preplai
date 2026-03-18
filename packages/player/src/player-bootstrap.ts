@@ -866,7 +866,11 @@ function main(): void {
   // ── Loading state ─────────────────────────────────────────────
   function hideLoadingState(): void {
     const loadingState = document.getElementById('loading-state');
-    if (loadingState) loadingState.classList.add('hidden');
+    if (loadingState) {
+      loadingState.classList.add('hidden');
+      // Remove from DOM after fade-out completes so it never bleeds through
+      setTimeout(() => loadingState.remove(), 700);
+    }
   }
 
   // ── End screen ────────────────────────────────────────────────
