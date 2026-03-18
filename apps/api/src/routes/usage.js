@@ -222,34 +222,36 @@ router.get('/logs', async (req, res) => {
 });
 
 // GET /api/usage/illustrations — illustration demand tracking (admin only)
+// Query params: ?sort=requests|users (default: requests)
 router.get('/illustrations', authenticateAdmin, async (req, res) => {
   try {
+    const sortBy = req.query.sort === 'users' ? 'users' : 'requests';
+
+    // When sorting by users, use aggregation to sort by array length
+    const buildQuery = (source, limit = 20) => {
+      if (sortBy === 'users') {
+        return IllustrationDemand.aggregate([
+          { $match: { source } },
+          { $addFields: { uniqueUsersCount: { $size: { $ifNull: ['$uniqueUsers', []] } } } },
+          { $sort: { uniqueUsersCount: -1, requestCount: -1 } },
+          { $limit: limit },
+        ]);
+      }
+      return IllustrationDemand.find({ source }).sort({ requestCount: -1 }).limit(limit).lean();
+    };
+
     const [topRequested, topUsed, totalUnknown, totalKnown, genericFallbacks] = await Promise.all([
-      // Top 20 missing/unknown types by request count
-      IllustrationDemand.find({ source: 'unknown_type' })
-        .sort({ requestCount: -1 })
-        .limit(20)
-        .lean(),
-      // Top 20 known types by request count
-      IllustrationDemand.find({ source: 'known_type' })
-        .sort({ requestCount: -1 })
-        .limit(20)
-        .lean(),
-      // Total count of unknown types
+      buildQuery('unknown_type'),
+      buildQuery('known_type'),
       IllustrationDemand.countDocuments({ source: 'unknown_type' }),
-      // Total count of known types tracked
       IllustrationDemand.countDocuments({ source: 'known_type' }),
-      // Top 20 generic fallbacks
-      IllustrationDemand.find({ source: 'generic_fallback' })
-        .sort({ requestCount: -1 })
-        .limit(20)
-        .lean(),
+      buildQuery('generic_fallback'),
     ]);
 
     const format = (doc) => ({
       typeName: doc.typeName,
       requestCount: doc.requestCount,
-      uniqueUsers: doc.uniqueUsers?.length ?? 0,
+      uniqueUsers: doc.uniqueUsersCount ?? doc.uniqueUsers?.length ?? 0,
       source: doc.source,
       sampleLabels: doc.sampleLabels?.slice(0, 5) ?? [],
       firstSeen: doc.firstSeen,
@@ -262,9 +264,25 @@ router.get('/illustrations', authenticateAdmin, async (req, res) => {
       generic_fallbacks: genericFallbacks.map(format),
       total_unknown_types: totalUnknown,
       total_known_types: totalKnown,
+      sort: sortBy,
     });
   } catch (err) {
     req.log?.error({ err }, 'Illustration demand query failed');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// DELETE /api/usage/illustrations/:typeName — dismiss an illustration demand entry (admin only)
+router.delete('/illustrations/:typeName', authenticateAdmin, async (req, res) => {
+  try {
+    const { typeName } = req.params;
+    const result = await IllustrationDemand.deleteOne({ typeName });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: 'Type not found' });
+    }
+    res.json({ deleted: true, typeName });
+  } catch (err) {
+    req.log?.error({ err }, 'Illustration demand delete failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });

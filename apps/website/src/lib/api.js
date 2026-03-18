@@ -129,8 +129,13 @@ export async function apiGetUsage() {
   return data;
 }
 
-export async function apiGetIllustrationDemand() {
-  const { data } = await client.get('usage/illustrations');
+export async function apiGetIllustrationDemand(sort = 'requests') {
+  const { data } = await client.get(`usage/illustrations?sort=${sort}`);
+  return data;
+}
+
+export async function apiDismissIllustration(typeName) {
+  const { data } = await client.delete(`usage/illustrations/${encodeURIComponent(typeName)}`);
   return data;
 }
 
