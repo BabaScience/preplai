@@ -14,6 +14,7 @@
   --text-2xl:  clamp(2rem,     1.2rem  + 2.5vw,  3.5rem);
   --text-3xl:  clamp(2.5rem,   1rem    + 4vw,    5rem);
   --text-hero: clamp(3rem,     0.5rem  + 7vw,    8rem);
+  --text-md: clamp(1.0625rem, 0.95rem + 0.55vw, 1.25rem);
 
   /* Spacing (4px system) */
   --space-1:  0.25rem;
@@ -29,6 +30,8 @@
   --space-20: 5rem;
   --space-24: 6rem;
   --space-32: 8rem;
+  --space-40: 10rem;
+  --space-48: 12rem;
 
   /* Fonts */
   --font-display: 'Instrument Serif', 'Georgia', serif;
@@ -50,6 +53,7 @@
   --content-default: 960px;
   --content-wide: 1200px;
   --content-full: 100%;
+  --line-height-relaxed: 1.75;
 }
 
 /* ===== LIGHT MODE ===== */

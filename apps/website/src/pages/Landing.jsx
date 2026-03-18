@@ -30,8 +30,8 @@ export default function Landing() {
               <Link to="/signup" className="btn btn-primary btn-lg">Get started free</Link>
               <a href="#showcases" className="btn btn-ghost-light btn-lg">See it in action</a>
             </div>
-            <p className="hero-social-proof hero-fade-in hero-fade-in-delay-4" style={{ marginTop: 'var(--space-6)', opacity: 0.7, fontSize: '0.95rem' }}>
-              Works with any AI &middot; 85+ visual components &middot; Voice narration &middot; Shareable links &middot; 2-minute setup
+            <p className="hero-social-proof hero-fade-in hero-fade-in-delay-4">
+              Works with any AI &middot; Voice narration &middot; Shareable links &middot; 2-minute setup
             </p>
           </div>
         </div>
@@ -48,7 +48,7 @@ export default function Landing() {
           <h2>AI is brilliant. Its output is unreadable.</h2>
           <div className="problem-statements">
             <p>You asked your AI a great question. It gave you 2,000 words of text. You skimmed the first paragraph. You missed the key insight. You forgot everything by tomorrow.</p>
-            <p>You&rsquo;re not alone. 65% of people are visual learners. We retain 95% of a message from video — but only 10% from text. Yet every AI chatbot in the world produces the same thing: text.</p>
+            <p>You&rsquo;re not alone. <strong>65%</strong> of people are visual learners. We retain <strong>95%</strong> of a message from video — but only <strong>10%</strong> from text. Yet every AI chatbot in the world produces the same thing: text.</p>
           </div>
           <p className="problem-kicker">
             PreplAI closes the gap between what AI produces and what humans actually want to consume.
@@ -105,17 +105,17 @@ export default function Landing() {
         <div className="section-label">How It Works</div>
         <h2>Three steps. Two minutes.</h2>
         <div className="steps-grid">
-          <div className="step-item">
+          <div className="step-item" data-step="1">
             <div className="step-number">1</div>
             <h3>Connect your AI</h3>
             <p>Add one config block to Claude, ChatGPT, Cursor, or any MCP-compatible AI tool. No SDK. No code changes. No setup headaches.</p>
           </div>
-          <div className="step-item">
+          <div className="step-item" data-step="2">
             <div className="step-number">2</div>
             <h3>Ask your AI to present</h3>
-            <p>Tell your AI: &ldquo;Explain this visually&rdquo; or &ldquo;Create a presentation.&rdquo; It generates animated, narrated visual walkthroughs automatically using PreplAI&rsquo;s 85+ visual components.</p>
+            <p>Tell your AI: &ldquo;Explain this visually&rdquo; or &ldquo;Create a presentation.&rdquo; It generates animated, narrated visual walkthroughs automatically.</p>
           </div>
-          <div className="step-item">
+          <div className="step-item" data-step="3">
             <div className="step-number">3</div>
             <h3>Watch and share</h3>
             <p>Every presentation gets a shareable link. Watch it yourself, send it to your team, embed it in a doc, or present it in a meeting. No downloads, no installs, no friction.</p>
@@ -144,18 +144,18 @@ export default function Landing() {
 
       {/* 6. Features grid */}
       <section id="features" className="section-block" style={{ borderTop: '1px solid var(--color-divider)' }}>
-        <div className="bento-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+        <div className="bento-grid">
           <div className="bento-card">
             <div className="bento-icon"><Globe size={20} /></div>
             <h3>Works with any AI</h3>
             <p>Claude, ChatGPT, Cursor, Gemini — any MCP-compatible tool.</p>
           </div>
-          <div className="bento-card">
+          <div className="bento-card bento-wide">
             <div className="bento-icon"><MonitorPlay size={20} /></div>
             <h3>Animated diagrams</h3>
-            <p>85+ visual components: servers, databases, queues, pipelines, and more.</p>
+            <p>Servers, databases, queues, pipelines, charts, and more — all animated.</p>
           </div>
-          <div className="bento-card">
+          <div className="bento-card bento-wide">
             <div className="bento-icon"><Mic size={20} /></div>
             <h3>Voice narration</h3>
             <p>Every presentation is narrated automatically. Watch, don&rsquo;t read.</p>
@@ -206,13 +206,19 @@ export default function Landing() {
             <Logo />
             <p>Don&rsquo;t read it. Watch it.</p>
           </div>
-          <div className="footer-links">
-            <Link to="/docs">Docs</Link>
-            <Link to="/blog">Blog</Link>
-            <Link to="/dashboard/overview">Dashboard</Link>
-            <Link to="/pricing">Pricing</Link>
-            <Link to="/terms">Terms</Link>
-            <Link to="/privacy">Privacy</Link>
+          <div className="footer-columns">
+            <div className="footer-col">
+              <h4>Product</h4>
+              <a href="https://docs.preplai.com" target="_blank" rel="noopener noreferrer">Docs</a>
+              <Link to="/pricing">Pricing</Link>
+              <Link to="/dashboard/overview">Dashboard</Link>
+            </div>
+            <div className="footer-col">
+              <h4>Company</h4>
+              <Link to="/blog">Blog</Link>
+              <Link to="/terms">Terms</Link>
+              <Link to="/privacy">Privacy</Link>
+            </div>
           </div>
         </div>
         <div className="footer-bottom">
