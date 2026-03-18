@@ -19,11 +19,15 @@ const DEMO_SCRIPT = {
     {
       narrationSegment: 'A user asks an AI agent: "Explain how microservices communicate."',
       entities: [
-        { id: 'user1', type: 'User', position: { x: 50, y: 55 }, label: 'User', size: 2.5, highlight: true, color: '#C9A84C' },
+        { id: 'user1', type: 'User', position: { x: 15, y: 50 }, label: 'User', size: 2, color: '#C9A84C' },
+        { id: 'srv1', type: 'Server', position: { x: 45, y: 40 }, label: 'API Gateway', size: 2.5, highlight: true },
+        { id: 'db1', type: 'Database', position: { x: 75, y: 40 }, label: 'PostgreSQL', size: 2.5 },
+        { id: 'arrow1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'user1', targetEntityId: 'srv1', label: 'request' },
+        { id: 'arrow2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'srv1', targetEntityId: 'db1', label: 'query' },
       ],
     },
     {
-      narrationSegment: 'The agent creates a visual scene with a server and database.',
+      narrationSegment: 'The gateway routes requests to backend services and queries the database.',
       entities: [
         { id: 'user1', type: 'User', position: { x: 15, y: 75 }, label: 'User', size: 2, color: '#C9A84C' },
         { id: 'srv1', type: 'Server', position: { x: 40, y: 40 }, label: 'API Server', size: 2.5, highlight: true },
@@ -33,7 +37,7 @@ const DEMO_SCRIPT = {
       ],
     },
     {
-      narrationSegment: 'A cache layer is added for faster reads. The architecture evolves live.',
+      narrationSegment: 'A Redis cache layer intercepts frequent reads — reducing database load by 90%.',
       entities: [
         { id: 'user1', type: 'User', position: { x: 15, y: 75 }, label: 'User', size: 2, color: '#C9A84C' },
         { id: 'srv1', type: 'Server', position: { x: 40, y: 40 }, label: 'API Server', size: 2.5 },
@@ -45,7 +49,7 @@ const DEMO_SCRIPT = {
       ],
     },
     {
-      narrationSegment: 'A load balancer distributes traffic across multiple services.',
+      narrationSegment: 'A load balancer distributes traffic across Service A and Service B.',
       entities: [
         { id: 'user1', type: 'User', position: { x: 10, y: 50 }, label: 'User', size: 2, color: '#C9A84C' },
         { id: 'lb1', type: 'LoadBalancer', position: { x: 30, y: 50 }, label: 'Load Balancer', size: 2, highlight: true },
@@ -62,7 +66,7 @@ const DEMO_SCRIPT = {
       ],
     },
     {
-      narrationSegment: 'Every step explained visually. Not slides — cinema.',
+      narrationSegment: 'The complete system: gateway, load balancer, services, cache, and database — all connected.',
       entities: [
         { id: 'user1', type: 'User', position: { x: 10, y: 50 }, label: 'User', size: 2, color: '#C9A84C' },
         { id: 'lb1', type: 'LoadBalancer', position: { x: 30, y: 50 }, label: 'Load Balancer', size: 2 },

@@ -8,6 +8,8 @@ import Docs from './pages/Docs';
 import Blog from './pages/Blog';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -44,6 +46,8 @@ export default function App() {
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
       <Route path="/docs/*" element={<Docs />} />
       <Route path="/blog/*" element={<Blog />} />
       <Route path="/dashboard" element={<Navigate to="/dashboard/overview" replace />} />
