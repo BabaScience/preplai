@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Key, BarChart3, Film, Settings, LogOut, Menu, Plug, Palette } from 'lucide-react';
 import Logo from '../components/Logo';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
+import { apiGetSettings } from '../lib/api';
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/dashboard/overview' },
@@ -11,15 +12,25 @@ const NAV_ITEMS = [
   { id: 'connectors', label: 'Connectors', icon: Plug, path: '/dashboard/connectors' },
   { id: 'sessions', label: 'Sessions', icon: Film, path: '/dashboard/sessions' },
   { id: 'usage', label: 'Usage', icon: BarChart3, path: '/dashboard/usage' },
-  { id: 'illustrations', label: 'Illustrations', icon: Palette, path: '/dashboard/illustrations' },
+  { id: 'illustrations', label: 'Illustrations', icon: Palette, path: '/dashboard/illustrations', adminOnly: true },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/dashboard/settings' },
 ];
 
 export default function DashboardLayout({ children, title }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userRole, setUserRole] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { email, logout } = useAuth();
+
+  useEffect(() => {
+    apiGetSettings()
+      .then((data) => setUserRole(data.user?.role ?? 'user'))
+      .catch(() => setUserRole('user'));
+  }, []);
+
+  const isAdmin = userRole === 'admin';
+  const visibleNavItems = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 
   const handleLogout = () => {
     logout();
@@ -44,7 +55,7 @@ export default function DashboardLayout({ children, title }) {
           </Link>
         </div>
         <nav className="sidebar-nav">
-          {NAV_ITEMS.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path || location.pathname.startsWith(item.path);
             return (

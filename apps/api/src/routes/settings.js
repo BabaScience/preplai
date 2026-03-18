@@ -12,7 +12,7 @@ router.use(authenticate);
 router.get('/', async (req, res) => {
   try {
     const user = await User.findById(toObjectId(req.user.userId))
-      .select('_id email name createdAt playerTheme playerPalette')
+      .select('_id email name role createdAt playerTheme playerPalette')
       .lean();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -23,6 +23,7 @@ router.get('/', async (req, res) => {
         email: user.email,
         name: user.name,
         created_at: user.createdAt,
+        role: user.role ?? 'user',
         player_theme: user.playerTheme ?? 'cinema',
         player_palette: user.playerPalette ?? 'default',
       },

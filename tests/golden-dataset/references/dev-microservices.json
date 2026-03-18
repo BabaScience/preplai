@@ -7,15 +7,17 @@
       "startTime": 0,
       "endTime": 5000,
       "description": "Client and API Gateway",
-      "narrationSegment": "In a microservices architecture, all client requests flow through an API gateway. The gateway handles authentication, rate limiting, and routes requests to the appropriate backend service. This decouples clients from knowing which service handles each endpoint.",
+      "narrationSegment": "In a microservices architecture, all client requests flow through an API gateway. The gateway handles authentication via JWT tokens, enforces rate limits of 1000 requests per minute per client, and routes requests to the appropriate backend service. This decouples clients from knowing which service handles each endpoint.",
       "entities": [
         { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "Microservices Architecture" },
-        { "id": "client", "type": "User", "position": { "x": 20, "y": 40 }, "label": "Client" },
-        { "id": "gw", "type": "Service", "position": { "x": 50, "y": 40 }, "label": "API Gateway", "metadata": { "kind": "APIGateway" }, "highlight": true },
-        { "id": "a1", "type": "Arrow", "position": { "x": 35, "y": 40 }, "sourceEntityId": "client", "targetEntityId": "gw", "label": "HTTPS" },
-        { "id": "auth", "type": "Firewall", "position": { "x": 50, "y": 68 }, "label": "Auth + Rate Limit" },
-        { "id": "a2", "type": "Arrow", "position": { "x": 50, "y": 54 }, "sourceEntityId": "gw", "targetEntityId": "auth" },
-        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 88 }, "label": "Single entry point for all client requests" }
+        { "id": "client", "type": "User", "position": { "x": 18, "y": 42 }, "label": "Client" },
+        { "id": "gw", "type": "Service", "position": { "x": 42, "y": 42 }, "label": "API Gateway", "metadata": { "kind": "APIGateway" }, "highlight": true },
+        { "id": "auth", "type": "Firewall", "position": { "x": 68, "y": 42 }, "label": "Auth + Rate Limit" },
+        { "id": "auth-svc", "type": "Service", "position": { "x": 68, "y": 68 }, "label": "Auth Service", "metadata": { "kind": "Service" } },
+        { "id": "a1", "type": "Arrow", "position": { "x": 30, "y": 42 }, "sourceEntityId": "client", "targetEntityId": "gw", "label": "HTTPS" },
+        { "id": "a2", "type": "Arrow", "position": { "x": 55, "y": 42 }, "sourceEntityId": "gw", "targetEntityId": "auth" },
+        { "id": "a3", "type": "DottedArrow", "position": { "x": 68, "y": 55 }, "sourceEntityId": "auth", "targetEntityId": "auth-svc", "label": "validate JWT" },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 88 }, "label": "Single entry point — 1000 req/min rate limit per client" }
       ]
     },
     {
@@ -23,20 +25,20 @@
       "startTime": 5000,
       "endTime": 10000,
       "description": "Backend services",
-      "narrationSegment": "Behind the gateway, each domain has its own service with its own database — this is the database-per-service pattern. The auth service manages JWT tokens and user sessions. The user service handles profiles and preferences. Each service is independently deployable.",
+      "narrationSegment": "Behind the gateway, each domain has its own service with its own database — this is the database-per-service pattern. The auth service manages JWT tokens and user sessions in Redis. The user service handles profiles and preferences in PostgreSQL. Each service is independently deployable with its own CI/CD pipeline.",
       "entities": [
         { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "Microservices Architecture" },
-        { "id": "client", "type": "User", "position": { "x": 10, "y": 40 }, "label": "Client" },
-        { "id": "gw", "type": "Service", "position": { "x": 30, "y": 40 }, "label": "API Gateway", "metadata": { "kind": "APIGateway" } },
+        { "id": "client", "type": "User", "position": { "x": 12, "y": 42 }, "label": "Client" },
+        { "id": "gw", "type": "Service", "position": { "x": 30, "y": 42 }, "label": "API Gateway", "metadata": { "kind": "APIGateway" } },
         { "id": "auth-svc", "type": "Service", "position": { "x": 55, "y": 30 }, "label": "Auth Service", "metadata": { "kind": "Service" }, "highlight": true },
-        { "id": "user-svc", "type": "Service", "position": { "x": 55, "y": 55 }, "label": "User Service", "metadata": { "kind": "Service" } },
-        { "id": "auth-db", "type": "Database", "position": { "x": 80, "y": 30 }, "label": "Auth DB" },
-        { "id": "user-db", "type": "Database", "position": { "x": 80, "y": 55 }, "label": "User DB" },
-        { "id": "a1", "type": "Arrow", "position": { "x": 20, "y": 40 }, "sourceEntityId": "client", "targetEntityId": "gw" },
-        { "id": "a2", "type": "Arrow", "position": { "x": 42, "y": 35 }, "sourceEntityId": "gw", "targetEntityId": "auth-svc", "label": "/auth/*" },
-        { "id": "a3", "type": "Arrow", "position": { "x": 42, "y": 48 }, "sourceEntityId": "gw", "targetEntityId": "user-svc", "label": "/users/*" },
+        { "id": "user-svc", "type": "Service", "position": { "x": 55, "y": 58 }, "label": "User Service", "metadata": { "kind": "Service" } },
+        { "id": "auth-db", "type": "Database", "position": { "x": 80, "y": 30 }, "label": "Redis (Sessions)" },
+        { "id": "user-db", "type": "Database", "position": { "x": 80, "y": 58 }, "label": "PostgreSQL" },
+        { "id": "a1", "type": "Arrow", "position": { "x": 21, "y": 42 }, "sourceEntityId": "client", "targetEntityId": "gw" },
+        { "id": "a2", "type": "Arrow", "position": { "x": 42, "y": 36 }, "sourceEntityId": "gw", "targetEntityId": "auth-svc", "label": "/auth/*" },
+        { "id": "a3", "type": "Arrow", "position": { "x": 42, "y": 50 }, "sourceEntityId": "gw", "targetEntityId": "user-svc", "label": "/users/*" },
         { "id": "a4", "type": "Arrow", "position": { "x": 67, "y": 30 }, "sourceEntityId": "auth-svc", "targetEntityId": "auth-db" },
-        { "id": "a5", "type": "Arrow", "position": { "x": 67, "y": 55 }, "sourceEntityId": "user-svc", "targetEntityId": "user-db" }
+        { "id": "a5", "type": "Arrow", "position": { "x": 67, "y": 58 }, "sourceEntityId": "user-svc", "targetEntityId": "user-db" }
       ]
     },
     {
@@ -44,17 +46,17 @@
       "startTime": 10000,
       "endTime": 15000,
       "description": "Inter-service communication",
-      "narrationSegment": "Services communicate asynchronously through a message broker like Kafka. When a user signs up, the auth service publishes a user.created event. The user service consumes it to create a profile. This loose coupling means services don't need to call each other directly.",
+      "narrationSegment": "Services communicate asynchronously through Kafka. When a user signs up, the auth service publishes a user.created event to the users topic. The user service consumes it to create a profile. This loose coupling means services don't call each other directly — if the user service is down, events queue up and are processed when it recovers.",
       "entities": [
         { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "Microservices Architecture" },
-        { "id": "gw", "type": "Service", "position": { "x": 15, "y": 40 }, "label": "API Gateway", "metadata": { "kind": "APIGateway" } },
-        { "id": "auth-svc", "type": "Service", "position": { "x": 35, "y": 40 }, "label": "Auth Service", "metadata": { "kind": "Service" } },
-        { "id": "kafka", "type": "Queue", "position": { "x": 55, "y": 40 }, "label": "Kafka", "highlight": true },
-        { "id": "user-svc", "type": "Service", "position": { "x": 75, "y": 40 }, "label": "User Service", "metadata": { "kind": "Service" } },
-        { "id": "a1", "type": "DataFlow", "position": { "x": 45, "y": 40 }, "sourceEntityId": "auth-svc", "targetEntityId": "kafka", "label": "user.created" },
-        { "id": "a2", "type": "DataFlow", "position": { "x": 65, "y": 40 }, "sourceEntityId": "kafka", "targetEntityId": "user-svc", "label": "consume" },
-        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 68 }, "label": "Event-driven: services publish events, others subscribe" },
-        { "id": "event", "type": "Event", "position": { "x": 55, "y": 68 }, "label": "user.created" }
+        { "id": "gw", "type": "Service", "position": { "x": 15, "y": 42 }, "label": "API Gateway", "metadata": { "kind": "APIGateway" } },
+        { "id": "auth-svc", "type": "Service", "position": { "x": 35, "y": 42 }, "label": "Auth Service", "metadata": { "kind": "Service" } },
+        { "id": "kafka", "type": "Queue", "position": { "x": 55, "y": 42 }, "label": "Kafka", "highlight": true },
+        { "id": "user-svc", "type": "Service", "position": { "x": 75, "y": 42 }, "label": "User Service", "metadata": { "kind": "Service" } },
+        { "id": "a0", "type": "Arrow", "position": { "x": 25, "y": 42 }, "sourceEntityId": "gw", "targetEntityId": "auth-svc" },
+        { "id": "a1", "type": "DataFlow", "position": { "x": 45, "y": 42 }, "sourceEntityId": "auth-svc", "targetEntityId": "kafka", "label": "user.created" },
+        { "id": "a2", "type": "DataFlow", "position": { "x": 65, "y": 42 }, "sourceEntityId": "kafka", "targetEntityId": "user-svc", "label": "consume" },
+        { "id": "l1", "type": "Label", "position": { "x": 55, "y": 70 }, "label": "Async events — if user service is down, messages queue until recovery" }
       ]
     },
     {
@@ -62,17 +64,22 @@
       "startTime": 15000,
       "endTime": 20000,
       "description": "Full architecture with monitoring",
-      "narrationSegment": "The complete architecture includes centralized monitoring. Prometheus collects metrics from all services, Grafana visualizes dashboards, and PagerDuty alerts on anomalies. Each service is containerized in Docker and orchestrated with Kubernetes for automatic scaling and self-healing.",
+      "narrationSegment": "The complete architecture adds centralized observability. Prometheus scrapes metrics from all services every 15 seconds, Grafana renders real-time dashboards, and PagerDuty alerts on-call engineers when error rates exceed thresholds. Each service runs as a Docker container orchestrated by Kubernetes for automatic horizontal scaling and self-healing restarts.",
       "entities": [
         { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "Microservices Architecture" },
         { "id": "gw", "type": "Service", "position": { "x": 15, "y": 35 }, "label": "API Gateway", "metadata": { "kind": "APIGateway" } },
         { "id": "auth-svc", "type": "Service", "position": { "x": 38, "y": 35 }, "label": "Auth Service", "metadata": { "kind": "Service" } },
         { "id": "kafka", "type": "Queue", "position": { "x": 60, "y": 35 }, "label": "Kafka" },
         { "id": "user-svc", "type": "Service", "position": { "x": 82, "y": 35 }, "label": "User Service", "metadata": { "kind": "Service" } },
-        { "id": "monitor", "type": "Monitor", "position": { "x": 50, "y": 65 }, "label": "Prometheus + Grafana", "highlight": true },
-        { "id": "k8s", "type": "Container", "position": { "x": 20, "y": 65 }, "label": "Kubernetes" },
-        { "id": "alert", "type": "Alert", "position": { "x": 80, "y": 65 }, "label": "PagerDuty", "metadata": { "severity": "critical", "status": "resolved" } },
-        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 88 }, "label": "Containerized, orchestrated, and fully observable" }
+        { "id": "monitor", "type": "Monitor", "position": { "x": 50, "y": 62 }, "label": "Prometheus + Grafana", "highlight": true },
+        { "id": "k8s", "type": "Container", "position": { "x": 22, "y": 62 }, "label": "Kubernetes" },
+        { "id": "alert", "type": "Alert", "position": { "x": 78, "y": 62 }, "label": "PagerDuty", "metadata": { "severity": "critical", "status": "resolved" } },
+        { "id": "a1", "type": "Arrow", "position": { "x": 26, "y": 35 }, "sourceEntityId": "gw", "targetEntityId": "auth-svc" },
+        { "id": "a2", "type": "DataFlow", "position": { "x": 49, "y": 35 }, "sourceEntityId": "auth-svc", "targetEntityId": "kafka" },
+        { "id": "a3", "type": "DataFlow", "position": { "x": 71, "y": 35 }, "sourceEntityId": "kafka", "targetEntityId": "user-svc" },
+        { "id": "a4", "type": "DottedArrow", "position": { "x": 36, "y": 48 }, "sourceEntityId": "auth-svc", "targetEntityId": "monitor", "label": "metrics" },
+        { "id": "a5", "type": "Arrow", "position": { "x": 64, "y": 62 }, "sourceEntityId": "monitor", "targetEntityId": "alert" },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 85 }, "label": "Containerized, orchestrated, and fully observable — 15s scrape interval" }
       ]
     }
   ]

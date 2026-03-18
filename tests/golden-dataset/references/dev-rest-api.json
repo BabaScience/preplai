@@ -7,17 +7,19 @@
       "startTime": 0,
       "endTime": 5000,
       "description": "Basic request flow",
-      "narrationSegment": "A REST API architecture starts with a load balancer distributing traffic across multiple API server instances. Each server handles HTTP requests, validates input, and executes business logic before returning JSON responses.",
+      "narrationSegment": "A REST API architecture starts with a load balancer distributing traffic across multiple API server instances. Nginx uses round-robin to balance requests, each server handles HTTP input validation and executes business logic before returning JSON responses with sub-50ms latency.",
       "entities": [
         { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "REST API Architecture" },
-        { "id": "client", "type": "User", "position": { "x": 15, "y": 45 }, "label": "Client" },
-        { "id": "lb", "type": "LoadBalancer", "position": { "x": 35, "y": 45 }, "label": "Nginx LB", "highlight": true },
-        { "id": "srv1", "type": "Server", "position": { "x": 58, "y": 30 }, "label": "API Server 1" },
-        { "id": "srv2", "type": "Server", "position": { "x": 58, "y": 60 }, "label": "API Server 2" },
-        { "id": "a1", "type": "Arrow", "position": { "x": 25, "y": 45 }, "sourceEntityId": "client", "targetEntityId": "lb", "label": "HTTPS" },
-        { "id": "a2", "type": "Arrow", "position": { "x": 46, "y": 37 }, "sourceEntityId": "lb", "targetEntityId": "srv1" },
-        { "id": "a3", "type": "Arrow", "position": { "x": 46, "y": 53 }, "sourceEntityId": "lb", "targetEntityId": "srv2" },
-        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 85 }, "label": "Round-robin distribution across server instances" }
+        { "id": "client", "type": "User", "position": { "x": 18, "y": 45 }, "label": "Client" },
+        { "id": "lb", "type": "LoadBalancer", "position": { "x": 40, "y": 45 }, "label": "Nginx LB", "highlight": true },
+        { "id": "srv1", "type": "Server", "position": { "x": 62, "y": 32 }, "label": "API Server 1" },
+        { "id": "srv2", "type": "Server", "position": { "x": 62, "y": 58 }, "label": "API Server 2" },
+        { "id": "db", "type": "Database", "position": { "x": 82, "y": 45 }, "label": "PostgreSQL" },
+        { "id": "a1", "type": "Arrow", "position": { "x": 29, "y": 45 }, "sourceEntityId": "client", "targetEntityId": "lb", "label": "HTTPS" },
+        { "id": "a2", "type": "Arrow", "position": { "x": 51, "y": 38 }, "sourceEntityId": "lb", "targetEntityId": "srv1" },
+        { "id": "a3", "type": "Arrow", "position": { "x": 51, "y": 52 }, "sourceEntityId": "lb", "targetEntityId": "srv2" },
+        { "id": "a4", "type": "Arrow", "position": { "x": 72, "y": 38 }, "sourceEntityId": "srv1", "targetEntityId": "db" },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 82 }, "label": "Round-robin distribution with direct database queries per request" }
       ]
     },
     {
@@ -28,15 +30,15 @@
       "narrationSegment": "Adding Redis as a caching layer dramatically reduces database load. The API server checks Redis first — cache hits return in under 1 millisecond. Cache misses fall through to PostgreSQL, and the result is cached for subsequent requests. This typically reduces database queries by 80 to 90 percent.",
       "entities": [
         { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "REST API Architecture" },
-        { "id": "lb", "type": "LoadBalancer", "position": { "x": 15, "y": 45 }, "label": "Nginx LB" },
-        { "id": "srv1", "type": "Server", "position": { "x": 35, "y": 45 }, "label": "API Server" },
-        { "id": "cache", "type": "Cache", "position": { "x": 55, "y": 45 }, "label": "Redis", "highlight": true },
-        { "id": "db", "type": "Database", "position": { "x": 75, "y": 45 }, "label": "PostgreSQL" },
-        { "id": "a1", "type": "Arrow", "position": { "x": 25, "y": 45 }, "sourceEntityId": "lb", "targetEntityId": "srv1" },
-        { "id": "a2", "type": "Arrow", "position": { "x": 45, "y": 45 }, "sourceEntityId": "srv1", "targetEntityId": "cache", "label": "Check cache" },
-        { "id": "a3", "type": "Arrow", "position": { "x": 65, "y": 45 }, "sourceEntityId": "cache", "targetEntityId": "db", "label": "Miss → query" },
-        { "id": "metric", "type": "Metric", "position": { "x": 55, "y": 75 }, "label": "Hit Rate", "metadata": { "value": "90", "unit": "%", "trend": "up" } },
-        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 90 }, "label": "Cache hit: <1ms | DB query: ~50ms" }
+        { "id": "lb", "type": "LoadBalancer", "position": { "x": 18, "y": 45 }, "label": "Nginx LB" },
+        { "id": "srv1", "type": "Server", "position": { "x": 38, "y": 45 }, "label": "API Server" },
+        { "id": "cache", "type": "Cache", "position": { "x": 58, "y": 45 }, "label": "Redis", "highlight": true },
+        { "id": "db", "type": "Database", "position": { "x": 78, "y": 45 }, "label": "PostgreSQL" },
+        { "id": "a1", "type": "Arrow", "position": { "x": 28, "y": 45 }, "sourceEntityId": "lb", "targetEntityId": "srv1" },
+        { "id": "a2", "type": "Arrow", "position": { "x": 48, "y": 45 }, "sourceEntityId": "srv1", "targetEntityId": "cache", "label": "Check cache" },
+        { "id": "a3", "type": "Arrow", "position": { "x": 68, "y": 45 }, "sourceEntityId": "cache", "targetEntityId": "db", "label": "Miss → query" },
+        { "id": "metric", "type": "Metric", "position": { "x": 58, "y": 72 }, "label": "Hit Rate", "metadata": { "value": "90", "unit": "%", "trend": "up" } },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 88 }, "label": "Cache hit: <1ms | DB query: ~50ms — 90% hit rate in production" }
       ]
     },
     {
@@ -44,19 +46,21 @@
       "startTime": 10000,
       "endTime": 15000,
       "description": "Complete architecture",
-      "narrationSegment": "The complete architecture adds rate limiting at the gateway, JWT authentication middleware, request validation, and structured logging. Every request is traced end-to-end for observability. This pattern handles thousands of requests per second while maintaining sub-100ms p95 latency.",
+      "narrationSegment": "The complete architecture adds rate limiting at the gateway, JWT authentication middleware, request validation, and structured logging. Every request is traced end-to-end with Datadog for observability — tracking p50, p95, and p99 latencies across all services. This pattern handles 5,000 requests per second while maintaining sub-100ms p95 latency.",
       "entities": [
         { "id": "h1", "type": "H1", "position": { "x": 50, "y": 8 }, "label": "REST API Architecture" },
-        { "id": "lb", "type": "LoadBalancer", "position": { "x": 12, "y": 40 }, "label": "Nginx" },
-        { "id": "srv1", "type": "Server", "position": { "x": 30, "y": 40 }, "label": "API Server" },
-        { "id": "cache", "type": "Cache", "position": { "x": 50, "y": 40 }, "label": "Redis" },
-        { "id": "db", "type": "Database", "position": { "x": 70, "y": 40 }, "label": "PostgreSQL" },
-        { "id": "auth", "type": "Token", "position": { "x": 30, "y": 68 }, "label": "JWT Auth", "metadata": { "tokenType": "JWT" } },
-        { "id": "monitor", "type": "Monitor", "position": { "x": 88, "y": 40 }, "label": "Tracing", "highlight": true },
-        { "id": "a1", "type": "Arrow", "position": { "x": 21, "y": 40 }, "sourceEntityId": "lb", "targetEntityId": "srv1" },
-        { "id": "a2", "type": "Arrow", "position": { "x": 40, "y": 40 }, "sourceEntityId": "srv1", "targetEntityId": "cache" },
-        { "id": "a3", "type": "Arrow", "position": { "x": 60, "y": 40 }, "sourceEntityId": "cache", "targetEntityId": "db" },
-        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 88 }, "label": "Sub-100ms p95 latency at thousands of requests per second" }
+        { "id": "lb", "type": "LoadBalancer", "position": { "x": 15, "y": 42 }, "label": "Nginx" },
+        { "id": "srv1", "type": "Server", "position": { "x": 35, "y": 42 }, "label": "API Server" },
+        { "id": "cache", "type": "Cache", "position": { "x": 55, "y": 42 }, "label": "Redis" },
+        { "id": "db", "type": "Database", "position": { "x": 75, "y": 42 }, "label": "PostgreSQL" },
+        { "id": "auth", "type": "Token", "position": { "x": 35, "y": 68 }, "label": "JWT Auth", "metadata": { "tokenType": "JWT" } },
+        { "id": "monitor", "type": "Monitor", "position": { "x": 85, "y": 68 }, "label": "Datadog", "highlight": true },
+        { "id": "a1", "type": "Arrow", "position": { "x": 25, "y": 42 }, "sourceEntityId": "lb", "targetEntityId": "srv1" },
+        { "id": "a2", "type": "Arrow", "position": { "x": 45, "y": 42 }, "sourceEntityId": "srv1", "targetEntityId": "cache" },
+        { "id": "a3", "type": "Arrow", "position": { "x": 65, "y": 42 }, "sourceEntityId": "cache", "targetEntityId": "db" },
+        { "id": "a4", "type": "DottedArrow", "position": { "x": 80, "y": 55 }, "sourceEntityId": "db", "targetEntityId": "monitor", "label": "metrics" },
+        { "id": "a5", "type": "DottedArrow", "position": { "x": 35, "y": 55 }, "sourceEntityId": "srv1", "targetEntityId": "auth" },
+        { "id": "l1", "type": "Label", "position": { "x": 50, "y": 88 }, "label": "Sub-100ms p95 latency at 5,000 requests per second" }
       ]
     }
   ]

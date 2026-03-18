@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { TIER_LIMITS } from '@preplai/shared';
 import { ApiKey, UsageLog, Session, IllustrationDemand } from '../db.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, authenticateAdmin } from '../middleware/auth.js';
 import { toObjectId } from '../utils/helpers.js';
 
 function resolveBestTier(tiers) {
@@ -221,8 +221,8 @@ router.get('/logs', async (req, res) => {
   }
 });
 
-// GET /api/usage/illustrations — illustration demand tracking
-router.get('/illustrations', async (req, res) => {
+// GET /api/usage/illustrations — illustration demand tracking (admin only)
+router.get('/illustrations', authenticateAdmin, async (req, res) => {
   try {
     const [topRequested, topUsed, totalUnknown, totalKnown, genericFallbacks] = await Promise.all([
       // Top 20 missing/unknown types by request count
