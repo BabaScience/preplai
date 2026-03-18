@@ -100,6 +100,35 @@ export const KNOWN_ENTITY_TYPES: ReadonlySet<string> = new Set([
   'FeatureStore', 'MindMapNode', 'UserJourneyStep', 'DeploymentStrategy',
   // Phase 3: Microservices & Patterns (6)
   'Sidecar', 'DeadLetterQueue', 'RateLimiter', 'GPU', 'Bundle', 'SagaStep',
+  // Software Architecture: API & Web (6)
+  'APIEndpoint', 'HTTPRequest', 'HTTPResponse', 'WebSocket', 'GraphQLSchema', 'Webhook',
+  // Software Architecture: Auth & Security (4)
+  'AuthFlow', 'Token', 'Certificate', 'Secret',
+  // Software Architecture: Data & Messaging (4)
+  'Schema', 'Migration', 'Event', 'Stream',
+  // Software Architecture: CI/CD & DevOps (6)
+  'GitBranch', 'GitCommit', 'PullRequest', 'Build', 'Deployment', 'Rollback',
+  // Software Architecture: Cloud Infrastructure (3)
+  'CDN', 'StorageBucket', 'MessageBroker',
+  // Software Architecture: Observability (4)
+  'LogEntry', 'Alert', 'Trace', 'Dashboard',
+  // Software Architecture: Code & Architecture (6)
+  'Module', 'Interface', 'ErrorState', 'ConfigFile', 'Dependency', 'CronJob',
+  // Software Architecture: Collaboration (3)
+  'Notification', 'Task', 'File',
+  // Data Structures: Extended (5)
+  'BTree', 'Dict', 'List', 'Tuple', 'Set',
+  // Algorithm Visualization: Extended (2)
+  'SortAnimation', 'BigO',
+  // CS Concepts: Extended (7)
+  'CallStack', 'SymbolTable', 'TuringMachine', 'ProcessState',
+  'DeadlockGraph', 'GanttChart', 'Semaphore', 'Mutex',
+  // Computer Architecture: Extended (3)
+  'CacheHierarchy', 'PipelineStage', 'MemoryLayout',
+  // Extended Infrastructure (3)
+  'DNSResolver', 'Decorator', 'DockerImage', 'DockerRegistry',
+  // Machine Learning: Extended (1)
+  'ConfusionMatrix',
 ]);
 
 // ── Type-specific Size Defaults (base pixel dimensions at size=1.0) ────

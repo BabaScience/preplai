@@ -287,4 +287,43 @@ router.delete('/illustrations/:typeName', authenticateAdmin, async (req, res) =>
   }
 });
 
+// GET /api/usage/categories — presentation category distribution (admin only)
+router.get('/categories', authenticateAdmin, async (req, res) => {
+  try {
+    // Aggregate sessions by category
+    const categories = await Session.aggregate([
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+
+    // Get uncategorized sessions with titles for discovery
+    const uncategorized = await Session.find({ category: { $in: ['uncategorized', null] } })
+      .select('id title entityDistribution createdAt')
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+
+    const distribution = categories.map((c) => ({
+      category: c._id || 'uncategorized',
+      count: c.count,
+    }));
+
+    const totalSessions = distribution.reduce((s, d) => s + d.count, 0);
+
+    res.json({
+      distribution,
+      totalSessions,
+      uncategorized: uncategorized.map((s) => ({
+        id: s.id,
+        title: s.title,
+        entityDistribution: s.entityDistribution ?? {},
+        createdAt: s.createdAt,
+      })),
+    });
+  } catch (err) {
+    req.log?.error({ err }, 'Category distribution query failed');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

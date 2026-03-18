@@ -139,6 +139,11 @@ export async function apiDismissIllustration(typeName) {
   return data;
 }
 
+export async function apiGetCategories() {
+  const { data } = await client.get('usage/categories');
+  return data;
+}
+
 // OAuth Clients (for Claude Web connector)
 export async function apiGetOAuthClients() {
   const { data } = await client.get('oauth/clients');

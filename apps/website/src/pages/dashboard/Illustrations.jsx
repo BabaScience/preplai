@@ -8,11 +8,13 @@ import {
   ResponsiveContainer,
   CartesianGrid,
   Cell,
+  PieChart,
+  Pie,
 } from 'recharts';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import Alert from '../../components/Alert';
 import { useTheme } from '../../context/ThemeContext';
-import { apiGetIllustrationDemand, apiDismissIllustration } from '../../lib/api';
+import { apiGetIllustrationDemand, apiDismissIllustration, apiGetCategories } from '../../lib/api';
 
 const BAR_COLORS = {
   unknown_type: '#ff6b6b',
@@ -20,17 +22,20 @@ const BAR_COLORS = {
   known_type: '#4ECDC4',
 };
 
+const PIE_COLORS = ['#4ECDC4', '#F39C12', '#E74C3C', '#9B59B6', '#3498DB', '#2ECC71', '#ff6b6b', '#F1C40F', '#1ABC9C', '#95a5a6'];
+
 export default function Illustrations() {
   const { currentTheme } = useTheme();
   const [data, setData] = useState(null);
+  const [catData, setCatData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [sort, setSort] = useState('requests');
 
   const fetchData = useCallback((sortBy) => {
     setLoading(true);
-    apiGetIllustrationDemand(sortBy)
-      .then(setData)
+    Promise.all([apiGetIllustrationDemand(sortBy), apiGetCategories()])
+      .then(([demand, categories]) => { setData(demand); setCatData(categories); })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
@@ -102,7 +107,79 @@ export default function Illustrations() {
             <div style={{ display: 'flex', gap: 16, marginBottom: 32 }}>
               <StatCard label="Known Types Used" value={data.total_known_types} color="#4ECDC4" isDark={isDark} />
               <StatCard label="Missing Types Requested" value={data.total_unknown_types} color="#ff6b6b" isDark={isDark} />
+              {catData && <StatCard label="Total Sessions" value={catData.totalSessions} color="#9B59B6" isDark={isDark} />}
             </div>
+
+            {/* Presentation Categories */}
+            {catData && catData.distribution.length > 0 && (
+              <Section title="Presentation Categories" isDark={isDark}>
+                <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+                  <div style={{ flex: '0 0 280px' }}>
+                    <ResponsiveContainer width={280} height={280}>
+                      <PieChart>
+                        <Pie
+                          data={catData.distribution}
+                          dataKey="count"
+                          nameKey="category"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={110}
+                          innerRadius={50}
+                          paddingAngle={2}
+                          label={({ category, percent }) => `${category} ${(percent * 100).toFixed(0)}%`}
+                          labelLine={{ stroke: isDark ? '#555' : '#bbb', strokeWidth: 1 }}
+                          style={{ fontSize: 11, fill: textColor }}
+                        >
+                          {catData.distribution.map((entry, i) => (
+                            <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} fillOpacity={0.85} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            background: isDark ? '#1a1b26' : '#fff',
+                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                            borderRadius: 8,
+                            color: textColor,
+                          }}
+                          formatter={(value, name) => [`${value} sessions`, name]}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    {catData.uncategorized.length > 0 && (
+                      <>
+                        <h4 style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#e0e0e8' : '#2d2d3a', marginBottom: 8 }}>
+                          Uncategorized ({catData.uncategorized.length}) — new use cases to discover
+                        </h4>
+                        <div style={{ maxHeight: 220, overflowY: 'auto' }}>
+                          {catData.uncategorized.map((s) => (
+                            <div
+                              key={s.id}
+                              style={{
+                                padding: '6px 10px',
+                                marginBottom: 4,
+                                borderRadius: 6,
+                                background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                                fontSize: 12,
+                                color: textColor,
+                              }}
+                            >
+                              <span style={{ fontWeight: 600 }}>{s.title}</span>
+                              {Object.keys(s.entityDistribution).length > 0 && (
+                                <span style={{ opacity: 0.5, marginLeft: 8 }}>
+                                  {Object.keys(s.entityDistribution).slice(0, 4).join(', ')}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </Section>
+            )}
 
             {/* Most Requested (Missing) */}
             {data.top_requested.length > 0 && (

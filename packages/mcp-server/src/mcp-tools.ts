@@ -37,6 +37,7 @@ import { verifySessionOwnership } from './session-utils.js';
 import { scoreVisualScript, type QualityReport } from './quality-scorer.js';
 import { runQualityGuards } from './quality-guards.js';
 import { trackEntityTypes } from './entity-tracker.js';
+import { classifySession } from './session-classifier.js';
 import {
   qualityScoreOverall,
   qualityScoreDimension,
@@ -323,9 +324,10 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       const session = store.getSession(args.session_id);
       sceneAddedTotal.inc({ mode });
 
-      // Track entity type usage (fire-and-forget, don't block response)
+      // Track entity type usage + classify session (fire-and-forget, don't block response)
       if (session?.script && apiKey) {
         trackEntityTypes(session.script, apiKey.id).catch(() => {});
+        classifySession(args.session_id, session.script).catch(() => {});
       }
 
       let qualityHints: string[] = [];
