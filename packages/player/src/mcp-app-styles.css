@@ -250,10 +250,9 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 }
 
 #narrator-text {
-  position: relative;
   max-width: 800px;
-  max-height: 2.2em;
-  overflow: hidden;
+  max-height: calc(5.5em + 48px);
+  overflow-y: auto;
   scrollbar-gutter: stable;
   padding: 20px 36px;
   background: rgba(18, 20, 28, 0.45);
@@ -277,45 +276,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   opacity: 0;
   transform: translateY(12px);
   transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-              max-height 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-              background 0.2s ease;
-}
-
-#narrator-text.expanded {
-  max-height: calc(5.5em + 48px);
-  overflow-y: auto;
-}
-
-#narrator-text:hover {
-  max-height: calc(5.5em + 48px);
-  overflow-y: auto;
-  background: rgba(18, 20, 28, 0.65);
-  pointer-events: auto;
-}
-
-#narrator-overlay:not(.hidden) {
-  pointer-events: auto;
-}
-
-/* Gradient fade hint when collapsed */
-#narrator-text::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 24px;
-  background: linear-gradient(transparent, rgba(18, 20, 28, 0.6));
-  border-radius: 0 0 16px 16px;
-  pointer-events: none;
-  opacity: 1;
-  transition: opacity 0.2s ease;
-}
-
-#narrator-text.expanded::after,
-#narrator-text:hover::after {
-  opacity: 0;
+              transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #narrator-text.visible,
@@ -621,7 +582,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 
 .frame-segment:hover {
   background: rgba(255, 255, 255, 0.25);
-  transform: scaleY(1.8);
+  transform: scaleY(1.3);
 }
 
 .frame-segment.visited {
@@ -635,7 +596,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 }
 
 .frame-segment.current:hover {
-  transform: scaleY(2);
+  transform: scaleY(1.5);
 }
 
 /* Tooltip preview on hover */
@@ -1087,14 +1048,6 @@ body.controls-hidden .progress-bar {
     0 0 0 1px rgba(0, 0, 0, 0.02) inset,
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
   color: #3a3a4e;
-}
-
-[data-theme="light"] #narrator-text:hover {
-  background: rgba(255, 255, 255, 0.82);
-}
-
-[data-theme="light"] #narrator-text::after {
-  background: linear-gradient(transparent, rgba(255, 255, 255, 0.7));
 }
 
 /* ── Light frame nav ──────────────────────────────────────────── */
