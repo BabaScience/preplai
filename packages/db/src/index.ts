@@ -14,3 +14,4 @@ export { McpUsageLog } from './models/McpUsageLog.js';
 export { OAuthClient } from './models/OAuthClient.js';
 export { OAuthAuthCode } from './models/OAuthAuthCode.js';
 export { OAuthRefreshToken } from './models/OAuthRefreshToken.js';
+export { IllustrationDemand } from './models/IllustrationDemand.js';

@@ -36,6 +36,7 @@ import { withErrorBoundary, mcpForbidden, mcpUnauthorized } from './errors.js';
 import { verifySessionOwnership } from './session-utils.js';
 import { scoreVisualScript, type QualityReport } from './quality-scorer.js';
 import { runQualityGuards } from './quality-guards.js';
+import { trackEntityTypes } from './entity-tracker.js';
 import {
   qualityScoreOverall,
   qualityScoreDimension,
@@ -321,6 +322,11 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       // Quality scoring: run synchronously so we can return feedback to the agent
       const session = store.getSession(args.session_id);
       sceneAddedTotal.inc({ mode });
+
+      // Track entity type usage (fire-and-forget, don't block response)
+      if (session?.script && apiKey) {
+        trackEntityTypes(session.script, apiKey.id).catch(() => {});
+      }
 
       let qualityHints: string[] = [];
       if (session?.script) {

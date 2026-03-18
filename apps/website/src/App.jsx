@@ -16,6 +16,7 @@ import ApiKeys from './pages/dashboard/ApiKeys';
 import Connectors from './pages/dashboard/Connectors';
 import Sessions from './pages/dashboard/Sessions';
 import Usage from './pages/dashboard/Usage';
+import Illustrations from './pages/dashboard/Illustrations';
 import Settings from './pages/dashboard/Settings';
 
 const IllustrationDebugPage = lazy(() => import('./pages/dev/IllustrationDebugPage'));
@@ -83,6 +84,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <Usage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/illustrations"
+        element={
+          <ProtectedRoute>
+            <Illustrations />
           </ProtectedRoute>
         }
       />

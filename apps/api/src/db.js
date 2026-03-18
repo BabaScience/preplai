@@ -15,6 +15,7 @@ import {
   OAuthClient,
   OAuthAuthCode,
   OAuthRefreshToken,
+  IllustrationDemand,
 } from '@preplai/db';
 
 export {
@@ -31,4 +32,5 @@ export {
   OAuthClient,
   OAuthAuthCode,
   OAuthRefreshToken,
+  IllustrationDemand,
 };

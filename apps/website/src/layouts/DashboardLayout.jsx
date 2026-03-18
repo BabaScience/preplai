@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Key, BarChart3, Film, Settings, LogOut, Menu, Plug } from 'lucide-react';
+import { LayoutDashboard, Key, BarChart3, Film, Settings, LogOut, Menu, Plug, Palette } from 'lucide-react';
 import Logo from '../components/Logo';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { id: 'connectors', label: 'Connectors', icon: Plug, path: '/dashboard/connectors' },
   { id: 'sessions', label: 'Sessions', icon: Film, path: '/dashboard/sessions' },
   { id: 'usage', label: 'Usage', icon: BarChart3, path: '/dashboard/usage' },
+  { id: 'illustrations', label: 'Illustrations', icon: Palette, path: '/dashboard/illustrations' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/dashboard/settings' },
 ];
 

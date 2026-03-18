@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { TIER_LIMITS } from '@preplai/shared';
-import { ApiKey, UsageLog, Session } from '../db.js';
+import { ApiKey, UsageLog, Session, IllustrationDemand } from '../db.js';
 import { authenticate } from '../middleware/auth.js';
 import { toObjectId } from '../utils/helpers.js';
 
@@ -217,6 +217,54 @@ router.get('/logs', async (req, res) => {
     });
   } catch (err) {
     req.log?.error({ err }, 'Usage logs failed');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/usage/illustrations — illustration demand tracking
+router.get('/illustrations', async (req, res) => {
+  try {
+    const [topRequested, topUsed, totalUnknown, totalKnown, genericFallbacks] = await Promise.all([
+      // Top 20 missing/unknown types by request count
+      IllustrationDemand.find({ source: 'unknown_type' })
+        .sort({ requestCount: -1 })
+        .limit(20)
+        .lean(),
+      // Top 20 known types by request count
+      IllustrationDemand.find({ source: 'known_type' })
+        .sort({ requestCount: -1 })
+        .limit(20)
+        .lean(),
+      // Total count of unknown types
+      IllustrationDemand.countDocuments({ source: 'unknown_type' }),
+      // Total count of known types tracked
+      IllustrationDemand.countDocuments({ source: 'known_type' }),
+      // Top 20 generic fallbacks
+      IllustrationDemand.find({ source: 'generic_fallback' })
+        .sort({ requestCount: -1 })
+        .limit(20)
+        .lean(),
+    ]);
+
+    const format = (doc) => ({
+      typeName: doc.typeName,
+      requestCount: doc.requestCount,
+      uniqueUsers: doc.uniqueUsers?.length ?? 0,
+      source: doc.source,
+      sampleLabels: doc.sampleLabels?.slice(0, 5) ?? [],
+      firstSeen: doc.firstSeen,
+      lastSeen: doc.lastSeen,
+    });
+
+    res.json({
+      top_requested: topRequested.map(format),
+      top_used: topUsed.map(format),
+      generic_fallbacks: genericFallbacks.map(format),
+      total_unknown_types: totalUnknown,
+      total_known_types: totalKnown,
+    });
+  } catch (err) {
+    req.log?.error({ err }, 'Illustration demand query failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
