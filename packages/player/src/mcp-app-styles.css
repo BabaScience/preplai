@@ -8,7 +8,15 @@
   box-sizing: border-box;
 }
 
-html, body {
+html {
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  overflow: hidden;
+  background: transparent;
+}
+
+body {
   width: 100%;
   height: 100%;
   min-height: 480px;
@@ -590,13 +598,35 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 }
 
 .frame-segment.current {
-  background: #C9A84C;
+  background: rgba(201, 168, 76, 0.3);
   box-shadow: 0 0 8px rgba(201, 168, 76, 0.4);
   transform: scaleY(1.5);
+  overflow: hidden;
+  position: relative;
 }
 
 .frame-segment.current:hover {
   transform: scaleY(1.5);
+}
+
+/* Progress fill animates left-to-right during auto-play */
+.segment-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #C9A84C;
+  border-radius: 2px;
+  animation: segmentFill linear forwards;
+  animation-duration: 5000ms; /* overridden inline */
+  width: 100%;
+  transform-origin: left;
+  animation-name: segmentFill;
+}
+
+@keyframes segmentFill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
 /* Tooltip preview on hover */
@@ -1013,7 +1043,7 @@ body.controls-hidden .progress-bar {
    Warm cream background, white-glass UI chrome, dark text.
    ══════════════════════════════════════════════════════════════════ */
 
-[data-theme="light"] {
+body[data-theme="light"] {
   background: radial-gradient(ellipse at center, #faf7f2 0%, #f3ede4 70%) !important;
   color: #1a1a2e;
 }

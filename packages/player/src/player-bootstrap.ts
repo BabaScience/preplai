@@ -538,6 +538,16 @@ function main(): void {
           }
         }
 
+        // Add progress fill bar inside current segment
+        if (i === currentFrame && autoPlayEnabled) {
+          const fill = document.createElement('div');
+          fill.className = 'segment-fill';
+          // Estimate frame duration from script or default 5s
+          const frameDur = currentScript ? (currentScript.totalDuration || 5000) / total : 5000;
+          fill.style.animationDuration = `${frameDur}ms`;
+          seg.appendChild(fill);
+        }
+
         const idx = i;
         seg.addEventListener('click', () => {
           if (currentScript && idx >= 0 && idx < currentScript.frames.length) {
@@ -802,12 +812,15 @@ function main(): void {
   const progressBar = document.getElementById('progress-bar');
   const keyboardHint = document.getElementById('keyboard-hint');
   let hideTimer: ReturnType<typeof setTimeout> | null = null;
-  const AUTO_HIDE_DELAY = 3000; // 3 seconds of inactivity
+  let userHasInteracted = false;
+  const AUTO_HIDE_DELAY = 3000;
+  const FIRST_VISIT_DELAY = 6000; // Keep controls visible longer for first-time users
 
   function showControls(): void {
     frameNav?.classList.remove('auto-hidden');
     if (progressBar) progressBar.style.removeProperty('opacity');
-    if (keyboardHint) keyboardHint.style.removeProperty('opacity');
+    // Only show keyboard hint if user hasn't interacted yet
+    if (!userHasInteracted && keyboardHint) keyboardHint.style.removeProperty('opacity');
   }
 
   function hideControls(): void {
@@ -818,6 +831,14 @@ function main(): void {
   }
 
   function resetHideTimer(): void {
+    // Once user interacts, permanently hide keyboard hint and use shorter delay
+    if (!userHasInteracted) {
+      userHasInteracted = true;
+      if (keyboardHint) {
+        keyboardHint.style.transition = 'opacity 0.6s ease';
+        keyboardHint.style.opacity = '0';
+      }
+    }
     showControls();
     if (hideTimer) clearTimeout(hideTimer);
     hideTimer = setTimeout(hideControls, AUTO_HIDE_DELAY);
@@ -826,7 +847,11 @@ function main(): void {
   document.addEventListener('mousemove', resetHideTimer);
   document.addEventListener('touchstart', resetHideTimer);
   document.addEventListener('keydown', resetHideTimer);
-  resetHideTimer();
+  // Start with longer delay so first-time users see controls + hint
+  showControls();
+  hideTimer = setTimeout(hideControls, FIRST_VISIT_DELAY);
+
+  // Touch gestures already handled above (swipe nav at line ~752)
 
   // ── Empty state ──────────────────────────────────────────────────
   let emptyState: SVGGElement | null = null;
@@ -907,15 +932,37 @@ function main(): void {
   });
 
   document.getElementById('end-share')?.addEventListener('click', () => {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      const btn = document.getElementById('end-share');
+    const shareUrl = window.location.href;
+    const btn = document.getElementById('end-share');
+    const showCopied = () => {
       if (btn) {
         btn.textContent = 'Copied!';
         setTimeout(() => {
           btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Share';
         }, 2000);
       }
-    });
+    };
+    // Try modern clipboard API first, fall back to execCommand for HTTP
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(shareUrl).then(showCopied).catch(() => {
+        // Fallback: create temporary input, select, copy
+        const tmp = document.createElement('input');
+        tmp.value = shareUrl;
+        document.body.appendChild(tmp);
+        tmp.select();
+        document.execCommand('copy');
+        document.body.removeChild(tmp);
+        showCopied();
+      });
+    } else {
+      const tmp = document.createElement('input');
+      tmp.value = shareUrl;
+      document.body.appendChild(tmp);
+      tmp.select();
+      document.execCommand('copy');
+      document.body.removeChild(tmp);
+      showCopied();
+    }
   });
 
   showEmptyState();

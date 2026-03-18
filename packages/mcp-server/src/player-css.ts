@@ -21,7 +21,14 @@ export const PLAYER_CSS = `/* ── PRE Player — Cinematic Dark Theme v4 ─�
   box-sizing: border-box;
 }
 
-html, body {
+html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+}
+
+body {
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -509,13 +516,34 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 }
 
 .frame-segment.current {
-  background: #C9A84C;
+  background: rgba(201, 168, 76, 0.3);
   box-shadow: 0 0 8px rgba(201, 168, 76, 0.4);
   transform: scaleY(1.5);
+  overflow: hidden;
+  position: relative;
 }
 
 .frame-segment.current:hover {
-  transform: scaleY(2);
+  transform: scaleY(1.5);
+}
+
+.segment-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #C9A84C;
+  border-radius: 2px;
+  animation: segmentFill linear forwards;
+  animation-duration: 5000ms;
+  width: 100%;
+  transform-origin: left;
+  animation-name: segmentFill;
+}
+
+@keyframes segmentFill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
 .frame-segment .segment-tooltip {
@@ -970,8 +998,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 
 /* ── Light theme overrides ──────────────────────────────────────── */
 
-[data-theme="light"] html,
-[data-theme="light"] body {
+body[data-theme="light"] {
   background: radial-gradient(ellipse at center, #faf7f2 0%, #f3ede4 70%);
   color: #1a1a2e;
 }
