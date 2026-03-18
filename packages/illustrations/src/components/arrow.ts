@@ -10,9 +10,20 @@
 
 import { SVG_NS, getSizeParam } from '../utils.js';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@preplai/shared';
-import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
-import { ensureDropShadowFilter } from '../visual-utils.js';
+import { getCategoryColor, TYPOGRAPHY, getLabelFontSize, colorWithAlpha } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
+
+/**
+ * Arrow stroke widths — balanced for 1920x1080 canvas at typical display sizes.
+ * At 700px display: 8px canvas → ~2.9px screen (polished, not heavy).
+ */
+const ARROW_STROKE = 4;
+/** DataFlow stroke — slightly thicker for dashes to read clearly */
+const DATAFLOW_STROKE = 4.5;
+/** Dotted arrow dash pattern */
+const DOTTED_DASH = '14,8';
+/** DataFlow flowing dash pattern */
+const DATAFLOW_DASH = '16,7';
 
 /** Rect in SVG coordinates */
 interface Rect {
@@ -151,14 +162,16 @@ function ensureArrowheadMarker(markerId: string, color: string, svgEl: SVGElemen
 
   const marker = document.createElementNS(SVG_NS, 'marker');
   marker.setAttribute('id', markerId);
-  marker.setAttribute('markerWidth', '12');
+  marker.setAttribute('markerWidth', '16');
   marker.setAttribute('markerHeight', '12');
-  marker.setAttribute('refX', '11');
-  marker.setAttribute('refY', '4');
+  marker.setAttribute('refX', '14');
+  marker.setAttribute('refY', '6');
   marker.setAttribute('orient', 'auto-start-reverse');
+  marker.setAttribute('markerUnits', 'userSpaceOnUse');
 
+  // Sleek triangular arrowhead
   const polygon = document.createElementNS(SVG_NS, 'polygon');
-  polygon.setAttribute('points', '0 0, 12 4, 0 8');
+  polygon.setAttribute('points', '0 1, 16 6, 0 11, 3 6');
   polygon.setAttribute('fill', color);
 
   marker.appendChild(polygon);
@@ -197,10 +210,18 @@ export function renderArrow(
   const sourceExit = lineRectIntersection(sx, sy, tx, ty, sourceRect, true);
   const targetEntry = lineRectIntersection(sx, sy, tx, ty, targetRect, false);
 
-  const x1 = sourceExit?.x ?? sx;
-  const y1 = sourceExit?.y ?? sy;
-  const x2 = targetEntry?.x ?? tx;
-  const y2 = targetEntry?.y ?? ty;
+  // Add gap so arrow doesn't touch entity edges
+  const GAP = 12;
+  const dx0 = tx - sx;
+  const dy0 = ty - sy;
+  const totalLen = Math.sqrt(dx0 * dx0 + dy0 * dy0) || 1;
+  const ux = dx0 / totalLen;
+  const uy = dy0 / totalLen;
+
+  const x1 = (sourceExit?.x ?? sx) + ux * GAP;
+  const y1 = (sourceExit?.y ?? sy) + uy * GAP;
+  const x2 = (targetEntry?.x ?? tx) - ux * GAP;
+  const y2 = (targetEntry?.y ?? ty) - uy * GAP;
 
   const color = entity.color ?? getCategoryColor('Arrow');
   const hasOpposing = hasOpposingArrow(entity, allEntities, source.id, target.id);
@@ -238,12 +259,14 @@ export function renderArrow(
   const strokeAttrs: Record<string, string> = {
     fill: 'none',
     stroke: color,
-    'stroke-width': '3.5',
-    opacity: '0.9',
+    'stroke-width': String(ARROW_STROKE),
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'round',
+    opacity: '0.7',
     'marker-end': `url(#${markerId})`,
   };
   if (isBidirect) strokeAttrs['marker-start'] = `url(#${markerId})`;
-  if (isDotted) strokeAttrs['stroke-dasharray'] = '6,4';
+  if (isDotted) strokeAttrs['stroke-dasharray'] = DOTTED_DASH;
 
   // Build the path/line element
   const pathD = useCurved
@@ -254,33 +277,31 @@ export function renderArrow(
   mainLine.setAttribute('d', pathD);
   for (const [k, v] of Object.entries(strokeAttrs)) mainLine.setAttribute(k, v);
 
-  // Subtle drop shadow for depth
-  const shadowFilter = ensureDropShadowFilter(svgRoot);
-  mainLine.setAttribute('filter', shadowFilter);
-
   g.appendChild(mainLine);
 
   // Optional midpoint label with background pill
   if (entity.label) {
     const midX = useCurved ? 0.25 * x1 + 0.5 * ctrlX + 0.25 * x2 : (x1 + x2) / 2;
     const midY = useCurved ? 0.25 * y1 + 0.5 * ctrlY + 0.25 * y2 : (y1 + y2) / 2;
-    const labelY = midY - 6;
-    const labelFontSize = 12;
-    const padH = 8;
-    const padV = 4;
-    // Estimate text width: ~7px per character at 12px font
-    const pillW = entity.label.length * 7 + padH * 2;
+    const labelY = midY - 24;
+    const labelFontSize = getLabelFontSize('label');
+    const padH = 12;
+    const padV = 6;
+    // Estimate text width: ~8px per character at label font size
+    const pillW = entity.label.length * (labelFontSize * 0.6) + padH * 2;
     const pillH = labelFontSize + padV * 2;
 
-    // Background pill for readability
+    // Background pill — uses color with transparency for theme-adaptive look
     const pill = document.createElementNS(SVG_NS, 'rect');
     pill.setAttribute('x', String(midX - pillW / 2));
     pill.setAttribute('y', String(labelY - pillH / 2));
     pill.setAttribute('width', String(pillW));
     pill.setAttribute('height', String(pillH));
-    pill.setAttribute('rx', '6');
-    pill.setAttribute('ry', '6');
-    pill.setAttribute('fill', 'rgba(12, 13, 20, 0.75)');
+    pill.setAttribute('rx', '8');
+    pill.setAttribute('ry', '8');
+    pill.setAttribute('fill', colorWithAlpha(color, '1f'));
+    pill.setAttribute('stroke', colorWithAlpha(color, '40'));
+    pill.setAttribute('stroke-width', '1');
     g.appendChild(pill);
 
     const text = document.createElementNS(SVG_NS, 'text');
@@ -290,7 +311,7 @@ export function renderArrow(
     text.setAttribute('dominant-baseline', 'central');
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(labelFontSize));
-    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;
     g.appendChild(text);
@@ -360,7 +381,7 @@ export function renderArrow(
       mainLine.style.transition = '';
       // Restore original dasharray if dotted
       if (isDotted) {
-        mainLine.setAttribute('stroke-dasharray', '6,4');
+        mainLine.setAttribute('stroke-dasharray', DOTTED_DASH);
       }
     }, delayMs + 1200);
   } else if (delayMs > 0) {
@@ -402,18 +423,30 @@ export function renderDataFlow(
   const sourceExit = lineRectIntersection(sx, sy, tx, ty, sourceRect, true);
   const targetEntry = lineRectIntersection(sx, sy, tx, ty, targetRect, false);
 
-  const x1 = sourceExit?.x ?? sx;
-  const y1 = sourceExit?.y ?? sy;
-  const x2 = targetEntry?.x ?? tx;
-  const y2 = targetEntry?.y ?? ty;
+  const DF_GAP = 12;
+  const dfdx = tx - sx;
+  const dfdy = ty - sy;
+  const dfLen = Math.sqrt(dfdx * dfdx + dfdy * dfdy) || 1;
+  const dfux = dfdx / dfLen;
+  const dfuy = dfdy / dfLen;
+
+  const x1 = (sourceExit?.x ?? sx) + dfux * DF_GAP;
+  const y1 = (sourceExit?.y ?? sy) + dfuy * DF_GAP;
+  const x2 = (targetEntry?.x ?? tx) - dfux * DF_GAP;
+  const y2 = (targetEntry?.y ?? ty) - dfuy * DF_GAP;
   const color = entity.color ?? getCategoryColor('DataFlow');
   const hasOpposing = hasOpposingArrow(entity, allEntities, source.id, target.id);
   const useCurved = entity.metadata?.curved === true || hasOpposing;
   const curvatureSign = 1;
 
+  // Arrowhead for DataFlow
+  const dfMarkerId = `arrowhead-${entity.id}`;
+  ensureArrowheadMarker(dfMarkerId, color, svgRoot);
+
   const g = document.createElementNS(SVG_NS, 'g');
   g.setAttribute('id', entity.id);
   g.setAttribute('data-type', 'DataFlow');
+  g.style.willChange = 'opacity';
 
   // Build path geometry
   let pathD: string;
@@ -435,14 +468,12 @@ export function renderDataFlow(
   mainLine.setAttribute('d', pathD);
   mainLine.setAttribute('fill', 'none');
   mainLine.setAttribute('stroke', color);
-  mainLine.setAttribute('stroke-width', '4.5');
-  mainLine.setAttribute('stroke-dasharray', '8,4');
+  mainLine.setAttribute('stroke-width', String(DATAFLOW_STROKE));
+  mainLine.setAttribute('stroke-linecap', 'round');
+  mainLine.setAttribute('stroke-dasharray', DATAFLOW_DASH);
   mainLine.setAttribute('stroke-dashoffset', '0');
-  mainLine.setAttribute('opacity', '0.7');
-
-  // Subtle drop shadow for depth
-  const dfShadowFilter = ensureDropShadowFilter(svgRoot);
-  mainLine.setAttribute('filter', dfShadowFilter);
+  mainLine.setAttribute('opacity', '0.85');
+  mainLine.setAttribute('marker-end', `url(#${dfMarkerId})`);
 
   // ── Draw-on animation for DataFlow ──
   const delayMs = entity.animation?.delay ?? 0;
@@ -472,11 +503,11 @@ export function renderDataFlow(
       mainLine.style.strokeDasharray = '';
       mainLine.style.strokeDashoffset = '';
       mainLine.style.transition = '';
-      mainLine.setAttribute('stroke-dasharray', '8,4');
+      mainLine.setAttribute('stroke-dasharray', DATAFLOW_DASH);
       mainLine.setAttribute('stroke-dashoffset', '0');
       const anim = document.createElementNS(SVG_NS, 'animate');
       anim.setAttribute('attributeName', 'stroke-dashoffset');
-      anim.setAttribute('from', '12');
+      anim.setAttribute('from', '17');
       anim.setAttribute('to', '0');
       anim.setAttribute('dur', '0.8s');
       anim.setAttribute('repeatCount', 'indefinite');

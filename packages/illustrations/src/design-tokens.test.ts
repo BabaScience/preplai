@@ -43,13 +43,16 @@ describe('palette system', () => {
     expect(getCategoryColor('Database')).toBe(PALETTES.sunset.data);
   });
 
-  it('connectors stay white regardless of palette', () => {
+  it('connectors use palette accent when active, white otherwise', () => {
     setActivePalette('sunset');
+    expect(getCategoryColor('Arrow')).toBe(PALETTES.sunset.accent);
+    expect(getCategoryColor('DataFlow')).toBe(PALETTES.sunset.accent);
+    expect(getCategoryColor('BidirectArrow')).toBe(PALETTES.sunset.accent);
+    expect(getCategoryColor('DottedArrow')).toBe(PALETTES.sunset.accent);
+    expect(getCategoryColor('Transition')).toBe(PALETTES.sunset.accent);
+    // Without palette, connectors fall back to white (cinema default)
+    setActivePalette('default');
     expect(getCategoryColor('Arrow')).toBe('#ffffff');
-    expect(getCategoryColor('DataFlow')).toBe('#ffffff');
-    expect(getCategoryColor('BidirectArrow')).toBe('#ffffff');
-    expect(getCategoryColor('DottedArrow')).toBe('#ffffff');
-    expect(getCategoryColor('Transition')).toBe('#ffffff');
   });
 
   it('unknown type falls back to generic palette category', () => {

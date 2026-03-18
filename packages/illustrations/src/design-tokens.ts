@@ -522,8 +522,10 @@ export function getParticleColors(): string[] {
 
 /** Get default color for an entity type. Falls back to cyan. */
 export function getCategoryColor(type: string): string {
-  // Connectors always use white regardless of palette
-  if (ENTITY_COLORS[type] === '#ffffff') return '#ffffff';
+  // Connectors: use palette accent when available, fall back to white (cinema default)
+  if (ENTITY_COLORS[type] === '#ffffff') {
+    return _activePalette?.accent ?? '#ffffff';
+  }
   // If a non-default palette is active, use semantic category mapping
   if (_activePalette) {
     const category = getSemanticCategory(type);

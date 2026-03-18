@@ -45,6 +45,8 @@ function buildDefaultEntity(type, overrides = {}) {
   if (isConnectionType(type)) {
     base.sourceEntityId = base.sourceEntityId ?? 'debug-src';
     base.targetEntityId = base.targetEntityId ?? 'debug-tgt';
+    // Don't override color for connections — let the palette/design-tokens decide
+    delete base.color;
   }
 
   if (METADATA_DEFAULTS[type]) {

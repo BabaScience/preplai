@@ -308,11 +308,11 @@ describe('renderArrow', () => {
     expect(nums!.length).toBeGreaterThanOrEqual(4);
     const x1 = Number(nums![0]);
     const x2 = Number(nums![nums!.length - 2]);
-    // Arrows connect at entity edges, not centers. Source exit (right edge): ~534, target entry (left edge): ~1386
+    // Arrows connect at entity edges + gap, not centers. Source exit + gap: ~546, target entry - gap: ~1374
     expect(x1).toBeGreaterThan(384);
-    expect(x1).toBeLessThanOrEqual(560);
+    expect(x1).toBeLessThanOrEqual(580);
     expect(x2).toBeLessThan(1536);
-    expect(x2).toBeGreaterThanOrEqual(1380);
+    expect(x2).toBeGreaterThanOrEqual(1360);
   });
 
   it('should return null when source is not resolvable', () => {
