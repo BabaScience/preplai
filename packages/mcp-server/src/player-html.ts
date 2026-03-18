@@ -196,12 +196,6 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
     </svg>
   </div>
 
-  <!-- GSAP 3.13 — animation engine -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
-
-  <!-- Player bootstrap -->
-  <script src="/player.js"></script>
-
   <div id="end-screen" class="end-screen">
     <div class="end-content">
       <div class="end-logo">
@@ -225,6 +219,12 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
       <p class="end-stats" id="end-stats"></p>
     </div>
   </div>
+
+  <!-- GSAP 3.13 — animation engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+
+  <!-- Player bootstrap -->
+  <script src="/player.js"></script>
 
   <div id="keyboard-hint" class="keyboard-hint">← → navigate · Space play/pause · N narrator</div>
 </body>

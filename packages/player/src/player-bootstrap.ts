@@ -573,6 +573,9 @@ function main(): void {
       sceneController.seekToFrame(currentFrame);
       playFrameAudio(currentFrame);
       trackPlayerEvent('frame_navigate', { direction: 'next', frame_index: currentFrame });
+    } else if (currentFrame >= currentScript.frames.length - 1) {
+      // Already on last frame — show end screen
+      showEndScreen();
     }
   }
 
