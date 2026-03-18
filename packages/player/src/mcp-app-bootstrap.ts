@@ -112,8 +112,9 @@ async function main(): Promise<void> {
   let autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null;
   let ttsEnabled = true; // controlled by TTS toggle button
 
-  // Web Speech API fallback (used when no server audio is available)
-  const synth = window.speechSynthesis;
+  // Web Speech API fallback disabled — only HD audio (Inworld/ElevenLabs) is used.
+  // When no HD audio is available, the player stays silent with text narration only.
+  const synth = null as SpeechSynthesis | null;
   let isSpeakingFallback = false;
 
   const audioEngine = new AudioEngine({

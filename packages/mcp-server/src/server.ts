@@ -206,8 +206,8 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     ttsService = new TtsService(ttsProvider, ttsServiceConfig, audioStore, store, sse);
     console.log('[preplai] TTS enabled — provider: %s', ttsProvider.name);
   } else {
-    console.log('[preplai] TTS disabled — no API key set. Player uses Web Speech API fallback.');
-    console.log('[preplai]   Set INWORLD_API_KEY or ELEVENLABS_API_KEY to enable TTS.');
+    console.log('[preplai] TTS disabled — no API key set. Presentations will have text narration only (no audio).');
+    console.log('[preplai]   Set INWORLD_API_KEY or ELEVENLABS_API_KEY to enable narration audio.');
   }
 
   // ── Fastify app ───────────────────────────────────────────────────

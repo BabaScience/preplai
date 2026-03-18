@@ -82,7 +82,9 @@ function main(): void {
   }
 
   // ── TTS (must be defined before SceneController for closure) ───────
-  const synth = typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis : null;
+  // Web Speech API fallback disabled — only HD audio (Inworld/ElevenLabs) is used.
+  // When no HD audio is available, the player stays silent with text narration only.
+  const synth = null as SpeechSynthesis | null;
   let ttsEnabled = (() => {
     try {
       const stored = localStorage.getItem('preplai-tts-enabled');
