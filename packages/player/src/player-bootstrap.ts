@@ -244,12 +244,17 @@ function main(): void {
       updatePlayPauseUI(false);
       // Auto-advance to next frame after a short pause
       if (autoPlayEnabled && currentScript) {
-        autoAdvanceTimer = setTimeout(() => {
-          autoAdvanceTimer = null;
-          if (currentScript && currentFrame < currentScript.frames.length - 1) {
-            goNext();
-          }
-        }, 1200);
+        if (currentFrame >= currentScript.frames.length - 1) {
+          // Last frame — show end screen
+          setTimeout(() => showEndScreen(), 800);
+        } else {
+          autoAdvanceTimer = setTimeout(() => {
+            autoAdvanceTimer = null;
+            if (currentScript && currentFrame < currentScript.frames.length - 1) {
+              goNext();
+            }
+          }, 1200);
+        }
       }
     },
     onAudioError: (error) => {
@@ -350,12 +355,16 @@ function main(): void {
     if (!narrationText?.trim()) {
       // No narration — just schedule auto-advance after a short pause
       if (autoPlayEnabled) {
-        autoAdvanceTimer = setTimeout(() => {
-          autoAdvanceTimer = null;
-          if (currentScript && currentFrame < currentScript.frames.length - 1) {
-            goNext();
-          }
-        }, 2000);
+        if (currentScript && currentFrame >= currentScript.frames.length - 1) {
+          setTimeout(() => showEndScreen(), 800);
+        } else {
+          autoAdvanceTimer = setTimeout(() => {
+            autoAdvanceTimer = null;
+            if (currentScript && currentFrame < currentScript.frames.length - 1) {
+              goNext();
+            }
+          }, 2000);
+        }
       }
       return;
     }
@@ -381,12 +390,17 @@ function main(): void {
 
       // Auto-advance to next frame
       if (autoPlayEnabled && currentScript) {
-        autoAdvanceTimer = setTimeout(() => {
-          autoAdvanceTimer = null;
-          if (currentScript && currentFrame < currentScript.frames.length - 1) {
-            goNext();
-          }
-        }, 1200);
+        if (currentFrame >= currentScript.frames.length - 1) {
+          // Last frame — show end screen
+          setTimeout(() => showEndScreen(), 800);
+        } else {
+          autoAdvanceTimer = setTimeout(() => {
+            autoAdvanceTimer = null;
+            if (currentScript && currentFrame < currentScript.frames.length - 1) {
+              goNext();
+            }
+          }, 1200);
+        }
       }
     };
 
@@ -507,19 +521,33 @@ function main(): void {
     if (dotsContainer) {
       dotsContainer.innerHTML = '';
       for (let i = 0; i < total; i++) {
-        const dot = document.createElement('div');
-        dot.className = 'frame-dot';
-        if (i < currentFrame) dot.classList.add('visited');
-        if (i === currentFrame) dot.classList.add('current');
+        const seg = document.createElement('div');
+        seg.className = 'frame-segment';
+        if (i <= currentFrame) seg.classList.add('visited');
+        if (i === currentFrame) seg.classList.add('current');
+
+        // Add tooltip with frame title (H1 entity label)
+        const frame = currentScript?.frames[i];
+        if (frame) {
+          const h1 = (frame as any).entities?.find((e: any) => e.type === 'H1');
+          if (h1) {
+            const tooltip = document.createElement('span');
+            tooltip.className = 'segment-tooltip';
+            tooltip.textContent = (h1 as any).label || `Frame ${i + 1}`;
+            seg.appendChild(tooltip);
+          }
+        }
+
         const idx = i;
-        dot.addEventListener('click', () => {
+        seg.addEventListener('click', () => {
           if (currentScript && idx >= 0 && idx < currentScript.frames.length) {
+            hideEndScreen();
             currentFrame = idx;
             sceneController.seekToFrame(idx);
             playFrameAudio(idx);
           }
         });
-        dotsContainer.appendChild(dot);
+        dotsContainer.appendChild(seg);
       }
     }
   }
@@ -527,6 +555,8 @@ function main(): void {
   function applyScript(script: VisualScript | null): void {
     if (!script?.frames?.length) return;
     hideEmptyState();
+    hideLoadingState();
+    hideEndScreen();
     currentScript = script;
     currentFrame = 0;
     populateAudioFromScript(script);
@@ -537,6 +567,7 @@ function main(): void {
 
   function goNext(): void {
     if (!currentScript) return;
+    hideEndScreen();
     if (currentFrame < currentScript.frames.length - 1) {
       currentFrame++;
       sceneController.seekToFrame(currentFrame);
@@ -547,6 +578,7 @@ function main(): void {
 
   function goPrev(): void {
     if (!currentScript) return;
+    hideEndScreen();
     if (currentFrame > 0) {
       currentFrame--;
       sceneController.seekToFrame(currentFrame);
@@ -830,6 +862,54 @@ function main(): void {
       emptyState = null;
     }
   }
+
+  // ── Loading state ─────────────────────────────────────────────
+  function hideLoadingState(): void {
+    const loadingState = document.getElementById('loading-state');
+    if (loadingState) loadingState.classList.add('hidden');
+  }
+
+  // ── End screen ────────────────────────────────────────────────
+  function showEndScreen(): void {
+    const endScreen = document.getElementById('end-screen');
+    const endStats = document.getElementById('end-stats');
+    if (endScreen) {
+      endScreen.classList.add('visible');
+      if (endStats && currentScript) {
+        const frames = currentScript.frames.length;
+        const mins = Math.round((currentScript.totalDuration || 0) / 60000);
+        endStats.textContent = `${frames} frames · ${mins > 0 ? mins + ' min' : 'under 1 min'}`;
+      }
+    }
+  }
+
+  function hideEndScreen(): void {
+    const endScreen = document.getElementById('end-screen');
+    if (endScreen) endScreen.classList.remove('visible');
+  }
+
+  // Wire end screen buttons
+  document.getElementById('end-replay')?.addEventListener('click', () => {
+    hideEndScreen();
+    if (currentScript) {
+      currentFrame = 0;
+      sceneController.seekToFrame(0);
+      playFrameAudio(0);
+      updateFrameCounter();
+    }
+  });
+
+  document.getElementById('end-share')?.addEventListener('click', () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      const btn = document.getElementById('end-share');
+      if (btn) {
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+          btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Share';
+        }, 2000);
+      }
+    });
+  });
 
   showEmptyState();
 

@@ -90,6 +90,18 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
     <button id="rotate-fullscreen-btn" type="button">Go Fullscreen</button>
   </div>
 
+  <div id="loading-state">
+    <div class="loading-logo">
+      <svg width="48" height="48" viewBox="0 0 32 32">
+        <rect width="32" height="32" rx="6" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.3)" stroke-width="1"/>
+        <path d="M8 8h6a6 6 0 0 1 0 12H8z" fill="none" stroke="#C9A84C" stroke-width="2.5"/>
+        <circle cx="22" cy="22" r="3" fill="#C9A84C"/>
+      </svg>
+    </div>
+    <p class="loading-text">Preparing your presentation\u2026</p>
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+  </div>
+
   <div id="canvas-wrapper">
     <!--
       viewBox="0 0 1920 1080"  — 16:9, 1920×1080 coordinate space
@@ -189,6 +201,30 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
 
   <!-- Player bootstrap -->
   <script src="/player.js"></script>
+
+  <div id="end-screen" class="end-screen">
+    <div class="end-content">
+      <div class="end-logo">
+        <svg width="40" height="40" viewBox="0 0 32 32">
+          <rect width="32" height="32" rx="6" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.3)" stroke-width="1"/>
+          <path d="M8 8h6a6 6 0 0 1 0 12H8z" fill="none" stroke="#C9A84C" stroke-width="2.5"/>
+          <circle cx="22" cy="22" r="3" fill="#C9A84C"/>
+        </svg>
+      </div>
+      <p class="end-title">Presentation complete</p>
+      <div class="end-actions">
+        <button id="end-replay" type="button" aria-label="Replay presentation">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Replay
+        </button>
+        <button id="end-share" type="button" aria-label="Copy share link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          Share
+        </button>
+      </div>
+      <p class="end-stats" id="end-stats"></p>
+    </div>
+  </div>
 
   <div id="keyboard-hint" class="keyboard-hint">← → navigate · Space play/pause · N narrator</div>
 </body>
