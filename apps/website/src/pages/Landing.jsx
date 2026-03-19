@@ -27,7 +27,7 @@ export default function Landing() {
               Your AI gives you walls of text. PreplAI turns every answer into an animated, narrated visual you can watch.
             </p>
             <div className="hero-ctas hero-fade-in hero-fade-in-delay-3">
-              <Link to="/signup" className="btn btn-primary btn-lg">Get started free</Link>
+              <Link to="/signup" className="btn btn-primary btn-lg">Get started</Link>
               <a href="#showcases" className="btn btn-ghost-light btn-lg">See it in action</a>
             </div>
           </div>
@@ -160,7 +160,7 @@ export default function Landing() {
 }`}</pre>
           </div>
           <div style={{ marginTop: 'var(--space-6)', display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
-            <Link to="/signup" className="btn btn-primary">Get started free</Link>
+            <Link to="/signup" className="btn btn-primary">Get started</Link>
             <Link to="/docs" className="btn btn-ghost">Read the docs</Link>
           </div>
         </div>
@@ -257,7 +257,7 @@ export default function Landing() {
             Every AI answer, now in cinema. Set up in 2 minutes. Free to start.
           </p>
           <div className="hero-ctas">
-            <Link to="/signup" className="btn btn-primary btn-lg">Get started free</Link>
+            <Link to="/signup" className="btn btn-primary btn-lg">Get started</Link>
             <Link to="/docs" className="btn btn-ghost-light btn-lg">View docs</Link>
           </div>
         </div>
