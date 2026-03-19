@@ -768,6 +768,10 @@ function main(): void {
   }, { passive: true });
 
   document.addEventListener('keydown', (e) => {
+    // Skip all shortcuts when feedback overlay is open (user is typing)
+    const feedbackOverlay = document.getElementById('feedback-overlay');
+    if (feedbackOverlay && !feedbackOverlay.classList.contains('hidden')) return;
+
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
       e.preventDefault();
       goNext();
@@ -1124,6 +1128,11 @@ function main(): void {
 
     btn.addEventListener('click', () => {
       overlay.classList.toggle('hidden');
+      // Auto-focus the first input when opening
+      if (!overlay.classList.contains('hidden')) {
+        const firstInput = (authenticatedEmail ? descInput : emailInput) as HTMLElement | null;
+        firstInput?.focus();
+      }
     });
 
     closeBtn?.addEventListener('click', () => {
@@ -1132,6 +1141,13 @@ function main(): void {
 
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) overlay.classList.add('hidden');
+    });
+
+    // Escape key closes feedback overlay
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && overlay && !overlay.classList.contains('hidden')) {
+        overlay.classList.add('hidden');
+      }
     });
 
     // Type selector
