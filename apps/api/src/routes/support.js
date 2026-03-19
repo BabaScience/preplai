@@ -2,6 +2,7 @@ import { Router } from 'express';
 import express from 'express';
 import { FeedbackReport, ContactSubmission } from '../db.js';
 import { authenticate, authenticateAdmin } from '../middleware/auth.js';
+import { notifyAdmin } from '../utils/email-notify.js';
 
 const router = Router();
 
@@ -30,6 +31,12 @@ router.post('/feedback', authenticate, async (req, res) => {
       imageData: imageData || null,
       source: 'dashboard',
     });
+
+    notifyAdmin({
+      subject: `[PreplAI] New ${type} feedback`,
+      body: `Type: ${type}\nFrom: ${req.user.email || 'anonymous'}\nDescription: ${description}\nSource: dashboard`,
+    }).catch(() => {});
+
     res.json({ success: true, id: report._id });
   } catch (err) {
     req.log?.error({ err }, 'Feedback submission failed');
@@ -44,6 +51,12 @@ router.post('/contact', async (req, res) => {
     if (!name || !email || !message) return res.status(400).json({ error: 'name, email, and message required' });
 
     const submission = await ContactSubmission.create({ name, email, company, useCase, message });
+
+    notifyAdmin({
+      subject: `[PreplAI] New contact: ${useCase}`,
+      body: `Name: ${name}\nEmail: ${email}\nCompany: ${company || 'N/A'}\nUse Case: ${useCase}\nMessage: ${message}`,
+    }).catch(() => {});
+
     res.json({ success: true, id: submission._id });
   } catch (err) {
     req.log?.error({ err }, 'Contact submission failed');

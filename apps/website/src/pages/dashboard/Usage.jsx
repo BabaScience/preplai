@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
+import { Layers, Database, LayoutGrid } from 'lucide-react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import ProgressBar from '../../components/ProgressBar';
 import Alert from '../../components/Alert';
@@ -58,19 +59,162 @@ export default function Usage() {
 
   return (
     <DashboardLayout title="Usage">
+      <style>{`
+        .usg-stats {
+          display: flex;
+          gap: 16px;
+          margin-bottom: 32px;
+        }
+        .usg-stat {
+          flex: 1;
+          padding: 22px 24px;
+          border-radius: var(--radius-xl, 16px);
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
+          border-left: 4px solid var(--stat-accent);
+          transition: box-shadow 180ms;
+        }
+        .usg-stat:hover {
+          box-shadow: var(--shadow-md);
+        }
+        .usg-stat-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          background: var(--stat-bg);
+          margin-bottom: 14px;
+          color: var(--stat-accent);
+        }
+        .usg-stat-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 10px;
+        }
+        .usg-stat-label {
+          font-size: var(--text-xs);
+          font-weight: 500;
+          color: var(--color-text-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+        .usg-stat-value {
+          font-size: 14px;
+          font-weight: 600;
+          font-family: var(--font-body);
+          color: var(--color-text);
+          font-variant-numeric: tabular-nums;
+        }
+        .usg-stat-hint {
+          font-size: var(--text-sm);
+          color: var(--color-text-muted);
+          margin-top: var(--space-2);
+        }
+
+        /* Chart card */
+        .usg-chart-card {
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-xl, 16px);
+          padding: 24px;
+          margin-bottom: 32px;
+        }
+        .usg-chart-title {
+          font-size: 15px;
+          font-weight: 600;
+          color: var(--color-text);
+          margin-bottom: 20px;
+        }
+
+        /* Logs table */
+        .usg-table-card {
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-xl, 16px);
+          overflow: hidden;
+        }
+        .usg-table-title {
+          font-size: 15px;
+          font-weight: 600;
+          color: var(--color-text);
+          padding: 20px 24px 0;
+          margin-bottom: 16px;
+        }
+        .usg-table-scroll {
+          overflow-x: auto;
+        }
+        .usg-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 13px;
+        }
+        .usg-table thead {
+          background: var(--color-surface-offset);
+        }
+        .usg-table th {
+          text-align: left;
+          padding: 12px 16px;
+          font-weight: 600;
+          color: var(--color-text-muted);
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          border-bottom: 1px solid var(--color-divider);
+          white-space: nowrap;
+        }
+        .usg-table td {
+          text-align: left;
+          padding: 14px 16px;
+          color: var(--color-text);
+          border-bottom: 1px solid var(--color-divider);
+          vertical-align: middle;
+        }
+        .usg-table tbody tr {
+          transition: background 150ms;
+        }
+        .usg-table tbody tr:nth-child(even) {
+          background: var(--color-surface-offset);
+        }
+        .usg-table tbody tr:hover {
+          background: var(--color-surface-dynamic);
+        }
+        .usg-table tbody tr:last-child td {
+          border-bottom: none;
+        }
+
+        .usg-empty {
+          color: var(--color-text-muted);
+          font-size: var(--text-sm);
+          text-align: center;
+          padding: 40px 20px;
+        }
+
+        @media (max-width: 640px) {
+          .usg-stats {
+            flex-direction: column;
+          }
+        }
+      `}</style>
+
       {loading ? (
         <p style={{ color: 'var(--color-text-muted)' }}>Loading...</p>
       ) : error ? (
         <Alert variant="error">{error}</Alert>
       ) : (
         <>
-          {/* Limits */}
-          <div className="limits-grid">
-            <div className="limit-card">
-              <div className="limit-header">
-                <span className="limit-label">Scenes This Month</span>
-                <span className="limit-value">
-                  {data?.month_scenes ?? 0} / {data?.limits?.max_scenes_month ?? '—'}
+          {/* Stat cards with progress bars */}
+          <div className="usg-stats">
+            <div className="usg-stat" style={{ '--stat-accent': 'var(--color-primary)', '--stat-bg': 'var(--color-primary-highlight)' }}>
+              <div className="usg-stat-icon">
+                <Layers size={18} />
+              </div>
+              <div className="usg-stat-header">
+                <span className="usg-stat-label">Scenes This Month</span>
+                <span className="usg-stat-value">
+                  {data?.month_scenes ?? 0} / {data?.limits?.max_scenes_month ?? '--'}
                 </span>
               </div>
               <ProgressBar
@@ -78,11 +222,14 @@ export default function Usage() {
                 max={data?.limits?.max_scenes_month ?? 100}
               />
             </div>
-            <div className="limit-card">
-              <div className="limit-header">
-                <span className="limit-label">Sessions</span>
-                <span className="limit-value">
-                  {data?.session_count ?? 0} / {data?.limits?.max_sessions ?? '—'}
+            <div className="usg-stat" style={{ '--stat-accent': '#3498DB', '--stat-bg': 'rgba(52, 152, 219, 0.1)' }}>
+              <div className="usg-stat-icon">
+                <Database size={18} />
+              </div>
+              <div className="usg-stat-header">
+                <span className="usg-stat-label">Sessions</span>
+                <span className="usg-stat-value">
+                  {data?.session_count ?? 0} / {data?.limits?.max_sessions ?? '--'}
                 </span>
               </div>
               <ProgressBar
@@ -90,22 +237,25 @@ export default function Usage() {
                 max={data?.limits?.max_sessions ?? 100}
               />
             </div>
-            <div className="limit-card">
-              <div className="limit-header">
-                <span className="limit-label">Scenes Per Session</span>
-                <span className="limit-value">
-                  Up to {data?.limits?.max_scenes_session ?? '—'} per session
+            <div className="usg-stat" style={{ '--stat-accent': '#4ECDC4', '--stat-bg': 'rgba(78, 205, 196, 0.1)' }}>
+              <div className="usg-stat-icon">
+                <LayoutGrid size={18} />
+              </div>
+              <div className="usg-stat-header">
+                <span className="usg-stat-label">Scenes Per Session</span>
+                <span className="usg-stat-value">
+                  Up to {data?.limits?.max_scenes_session ?? '--'}
                 </span>
               </div>
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginTop: 'var(--space-2)' }}>
+              <p className="usg-stat-hint">
                 Maximum frames allowed in a single presentation.
               </p>
             </div>
           </div>
 
           {/* Chart */}
-          <div className="chart-container">
-            <h3>Daily Scene Usage (Last 30 Days)</h3>
+          <div className="usg-chart-card">
+            <h3 className="usg-chart-title">Daily Scene Usage (Last 30 Days)</h3>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={buildChartData(data?.daily)} barCategoryGap="30%">
                 <CartesianGrid
@@ -150,57 +300,53 @@ export default function Usage() {
 
           {/* Recent API Calls */}
           {data?.recent?.length > 0 ? (
-            <div className="card" style={{ overflowX: 'auto' }}>
-              <h3 style={{
-                fontSize: 'var(--text-base)',
-                fontWeight: 600,
-                marginBottom: 'var(--space-4)',
-              }}>
-                Recent API Calls
-              </h3>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Timestamp</th>
-                    <th>Endpoint</th>
-                    <th>Key</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.recent.map((r, i) => (
-                    <tr key={i}>
-                      <td style={{
-                        fontSize: 'var(--text-xs)',
-                        color: 'var(--color-text-muted)',
-                        fontVariantNumeric: 'tabular-nums',
-                      }}>
-                        {formatDate(r.created_at)}
-                      </td>
-                      <td>
-                        <code style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: 'var(--text-xs)',
-                          color: 'var(--color-primary)',
-                        }}>
-                          {r.endpoint}
-                        </code>
-                      </td>
-                      <td>
-                        <code style={{
-                          fontFamily: 'var(--font-mono)',
+            <div className="usg-table-card">
+              <h3 className="usg-table-title">Recent API Calls</h3>
+              <div className="usg-table-scroll">
+                <table className="usg-table">
+                  <thead>
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>Endpoint</th>
+                      <th>Key</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.recent.map((r, i) => (
+                      <tr key={i}>
+                        <td style={{
                           fontSize: 'var(--text-xs)',
                           color: 'var(--color-text-muted)',
+                          fontVariantNumeric: 'tabular-nums',
                         }}>
-                          {r.key_display}
-                        </code>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          {formatDate(r.created_at)}
+                        </td>
+                        <td>
+                          <code style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: 'var(--text-xs)',
+                            color: 'var(--color-primary)',
+                          }}>
+                            {r.endpoint}
+                          </code>
+                        </td>
+                        <td>
+                          <code style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: 'var(--text-xs)',
+                            color: 'var(--color-text-muted)',
+                          }}>
+                            {r.key_display}
+                          </code>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : (
-            <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
+            <p className="usg-empty">
               No API calls recorded yet.
             </p>
           )}

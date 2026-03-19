@@ -591,12 +591,47 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     }
   });
 
+  // ── Player feedback rate limiting (in-memory, per IP) ────────────
+  const feedbackRateLimit = new Map<string, { count: number; resetAt: number }>();
+  const FEEDBACK_RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
+  const FEEDBACK_RATE_LIMIT_MAX = 5;
+
+  // Cleanup old entries every 15 minutes
+  const feedbackRateLimitCleanup = setInterval(() => {
+    const now = Date.now();
+    for (const [ip, data] of feedbackRateLimit) {
+      if (now > data.resetAt) feedbackRateLimit.delete(ip);
+    }
+  }, FEEDBACK_RATE_LIMIT_WINDOW);
+
   // ── Player feedback endpoint — public, no auth required ───────────
   app.post<{ Body: { type: string; description: string; email: string; sessionId?: string; presentationTitle?: string; imageData?: string; browserInfo?: string; pageUrl?: string } }>(
     '/api/player-feedback',
     { bodyLimit: 6 * 1024 * 1024 },
     async (request, reply) => {
       try {
+        // Rate limit check
+        const ip = request.ip;
+        const now = Date.now();
+        const entry = feedbackRateLimit.get(ip);
+
+        if (entry && now < entry.resetAt) {
+          if (entry.count >= FEEDBACK_RATE_LIMIT_MAX) {
+            const retryAfterSec = Math.ceil((entry.resetAt - now) / 1000);
+            reply
+              .status(429)
+              .header('Retry-After', String(retryAfterSec))
+              .send({
+                error: 'Too many feedback submissions. Please wait before submitting again.',
+                retryAfterSeconds: retryAfterSec,
+              });
+            return;
+          }
+          entry.count++;
+        } else {
+          feedbackRateLimit.set(ip, { count: 1, resetAt: now + FEEDBACK_RATE_LIMIT_WINDOW });
+        }
+
         const { type, description, email, sessionId, presentationTitle, imageData, browserInfo, pageUrl } = request.body;
 
         if (!type || !description || !email) {
@@ -837,8 +872,9 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     },
   );
 
-  // Store cleanup interval for graceful shutdown
+  // Store cleanup intervals for graceful shutdown
   (app as any).__cleanupInterval = cleanupInterval;
+  (app as any).__feedbackRateLimitCleanup = feedbackRateLimitCleanup;
 
   return { app, store, sse, ttsService, audioStore };
 }
@@ -861,6 +897,8 @@ export async function startServer(config: Partial<ServerConfig> = {}): Promise<S
     ctx.app.log.info({ signal }, 'Shutting down gracefully');
     const interval = (ctx.app as any).__cleanupInterval;
     if (interval) clearInterval(interval);
+    const fbInterval = (ctx.app as any).__feedbackRateLimitCleanup;
+    if (fbInterval) clearInterval(fbInterval);
     await ctx.app.close();
     await closeDb();
     process.exit(0);

@@ -375,19 +375,28 @@
 }
 .hero-cinema h1 {
   font-family: var(--font-display);
-  font-size: var(--text-3xl);
+  font-size: clamp(3rem, 1.5rem + 5.5vw, 6rem);
   font-style: italic;
   line-height: 1.05;
+  letter-spacing: -0.02em;
   margin-bottom: var(--space-8);
   color: var(--_cinema-text);
 }
+.hero-line-setup {
+  opacity: 0.45;
+}
+.hero-line-payoff {
+  opacity: 1;
+}
 .hero-accent { color: var(--_cinema-primary); }
 .hero-cinema-sub {
-  font-size: var(--text-lg);
+  font-size: var(--text-sm);
   color: var(--_cinema-text-muted);
-  max-width: 560px;
+  opacity: 0.55;
+  max-width: 420px;
   margin-bottom: var(--space-10);
-  line-height: 1.55;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
 }
 .hero-ctas {
   display: flex;
@@ -2406,7 +2415,7 @@
   .mobile-nav-overlay { display: block; }
 
   /* --- Hero --- */
-  .hero-cinema h1 { font-size: var(--text-2xl); }
+  .hero-cinema h1 { font-size: clamp(2.5rem, 8vw, 3.5rem); }
   .hero-cinema-sub { font-size: var(--text-sm); max-width: 100%; }
   .hero-player-preview { margin-top: var(--space-10); }
   .hero-ctas { justify-content: center; flex-wrap: wrap; }
@@ -3154,14 +3163,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: var(--space-8);
+  margin-top: var(--space-12);
   gap: var(--space-3);
 }
 .trust-subtitle {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  opacity: 0.7;
+  font-size: clamp(1.1rem, 0.8rem + 1.5vw, 1.6rem);
+  color: var(--color-text);
+  opacity: 0.5;
   text-align: center;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  margin-bottom: var(--space-2);
 }
 .trust-strip {
   display: flex;
@@ -3213,4 +3226,84 @@
     animation: none;
     opacity: 1;
   }
+}
+
+/* ===== FEATURE GRID ANIMATED SVG ICONS ===== */
+
+/* 1. Works with any AI — pulsing connection line */
+.feat-pulse-line {
+  animation: feat-pulse 2s ease-in-out infinite;
+}
+@keyframes feat-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* 2. Animated diagrams — sequential draw-in */
+.feat-draw-box1, .feat-draw-arrow1, .feat-draw-box2, .feat-draw-arrow2, .feat-draw-box3 {
+  stroke-dasharray: 34;
+  stroke-dashoffset: 34;
+  animation: feat-draw 3s ease-in-out infinite;
+}
+.feat-draw-box1  { animation-delay: 0s; }
+.feat-draw-arrow1 { stroke-dasharray: 4; stroke-dashoffset: 4; animation-delay: 0.4s; animation-name: feat-draw-short; }
+.feat-draw-box2  { animation-delay: 0.8s; }
+.feat-draw-arrow2 { stroke-dasharray: 4; stroke-dashoffset: 4; animation-delay: 1.2s; animation-name: feat-draw-short; }
+.feat-draw-box3  { animation-delay: 1.6s; }
+@keyframes feat-draw {
+  0%, 10% { stroke-dashoffset: 34; }
+  30%, 80% { stroke-dashoffset: 0; }
+  95%, 100% { stroke-dashoffset: 34; }
+}
+@keyframes feat-draw-short {
+  0%, 10% { stroke-dashoffset: 4; }
+  30%, 80% { stroke-dashoffset: 0; }
+  95%, 100% { stroke-dashoffset: 4; }
+}
+
+/* 3. Voice narration — waveform bars */
+.feat-wave-bar1, .feat-wave-bar2, .feat-wave-bar3, .feat-wave-bar4, .feat-wave-bar5 {
+  transform-origin: center bottom;
+  animation: feat-waveform 2s ease-in-out infinite;
+}
+.feat-wave-bar1 { animation-delay: 0s; }
+.feat-wave-bar2 { animation-delay: 0.15s; }
+.feat-wave-bar3 { animation-delay: 0.3s; }
+.feat-wave-bar4 { animation-delay: 0.45s; }
+.feat-wave-bar5 { animation-delay: 0.6s; }
+@keyframes feat-waveform {
+  0%, 100% { y1: 23; y2: 17; }
+  25% { y1: 28; y2: 12; }
+  50% { y1: 22; y2: 18; }
+  75% { y1: 26; y2: 14; }
+}
+
+/* 4. Shareable links — glow pulse */
+.feat-link-glow {
+  animation: feat-glow 2.5s ease-in-out infinite;
+}
+@keyframes feat-glow {
+  0%, 100% { opacity: 0.5; filter: drop-shadow(0 0 0px currentColor); }
+  50% { opacity: 1; filter: drop-shadow(0 0 4px currentColor); }
+}
+
+/* 5. 2-minute setup — progress ring fill */
+.feat-progress-ring {
+  transform-origin: center;
+  transform: rotate(-90deg);
+  animation: feat-ring 3s ease-in-out infinite;
+}
+@keyframes feat-ring {
+  0% { stroke-dashoffset: 75.4; }
+  50%, 70% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 75.4; }
+}
+
+/* 6. Cinema quality — star twinkle */
+.feat-star-twinkle {
+  animation: feat-twinkle 2.5s ease-in-out infinite;
+}
+@keyframes feat-twinkle {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.15); }
 }

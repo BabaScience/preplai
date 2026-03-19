@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Cpu, Film, LinkIcon, Zap, Layers, Mic, Globe, MonitorPlay, Briefcase, Scale } from 'lucide-react';
+import { Cpu, Film, Briefcase, Scale } from 'lucide-react';
 import LandingLayout from '../layouts/LandingLayout';
 import Logo from '../components/Logo';
 import HeroPlayer from '../components/HeroPlayer';
@@ -20,19 +20,16 @@ export default function Landing() {
         <div className="hero-cinema-inner">
           <div className="hero-cinema-text">
             <h1 className="hero-fade-in hero-fade-in-delay-1">
-              Don&rsquo;t read it.<br />
-              Watch it.
+              <span className="hero-line-setup">Don&rsquo;t read it,</span><br />
+              <span className="hero-line-payoff">Just watch it.</span>
             </h1>
             <p className="hero-cinema-sub hero-fade-in hero-fade-in-delay-2">
-              Your AI gives you walls of text. PreplAI turns every answer into an animated, narrated visual you can watch in minutes and share with anyone. Works with Claude, ChatGPT, Cursor, and any MCP-compatible tool.
+              Your AI gives you walls of text. PreplAI turns every answer into an animated, narrated visual you can watch.
             </p>
             <div className="hero-ctas hero-fade-in hero-fade-in-delay-3">
               <Link to="/signup" className="btn btn-primary btn-lg">Get started free</Link>
               <a href="#showcases" className="btn btn-ghost-light btn-lg">See it in action</a>
             </div>
-            <p className="hero-social-proof hero-fade-in hero-fade-in-delay-4">
-              Works with any AI &middot; Voice narration &middot; Shareable links &middot; 2-minute setup
-            </p>
           </div>
         </div>
 
@@ -179,32 +176,72 @@ export default function Landing() {
       <section id="features" className="section-block" style={{ borderTop: '1px solid var(--color-divider)' }}>
         <div className="bento-grid">
           <div className="bento-card">
-            <div className="bento-icon"><Globe size={20} /></div>
+            <div className="bento-icon">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="20" r="6" stroke="currentColor" strokeWidth="1.5" />
+                <circle cx="28" cy="20" r="6" stroke="currentColor" strokeWidth="1.5" />
+                <line x1="18" y1="20" x2="22" y2="20" stroke="currentColor" strokeWidth="1.5" className="feat-pulse-line" />
+              </svg>
+            </div>
             <h3>Works with any AI</h3>
             <p>Claude, ChatGPT, Cursor, Gemini — any MCP-compatible tool.</p>
           </div>
           <div className="bento-card bento-wide">
-            <div className="bento-icon"><MonitorPlay size={20} /></div>
+            <div className="bento-icon">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="14" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5" className="feat-draw-box1" />
+                <rect x="16" y="14" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5" className="feat-draw-box2" />
+                <rect x="28" y="14" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5" className="feat-draw-box3" />
+                <line x1="12" y1="18" x2="16" y2="18" stroke="currentColor" strokeWidth="1.5" className="feat-draw-arrow1" />
+                <line x1="24" y1="18" x2="28" y2="18" stroke="currentColor" strokeWidth="1.5" className="feat-draw-arrow2" />
+              </svg>
+            </div>
             <h3>Animated diagrams</h3>
             <p>Servers, databases, queues, pipelines, charts, and more — all animated.</p>
           </div>
           <div className="bento-card bento-wide">
-            <div className="bento-icon"><Mic size={20} /></div>
+            <div className="bento-icon">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <line x1="8" y1="28" x2="8" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="feat-wave-bar1" />
+                <line x1="14" y1="28" x2="14" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="feat-wave-bar2" />
+                <line x1="20" y1="28" x2="20" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="feat-wave-bar3" />
+                <line x1="26" y1="28" x2="26" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="feat-wave-bar4" />
+                <line x1="32" y1="28" x2="32" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="feat-wave-bar5" />
+              </svg>
+            </div>
             <h3>Voice narration</h3>
             <p>Every presentation is narrated automatically. Watch, don&rsquo;t read.</p>
           </div>
           <div className="bento-card">
-            <div className="bento-icon"><LinkIcon size={20} /></div>
+            <div className="bento-icon">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16 15a5 5 0 0 1 0 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="feat-link-glow" />
+                <path d="M24 25a5 5 0 0 1 0-10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="feat-link-glow" />
+                <line x1="15" y1="20" x2="25" y2="20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </div>
             <h3>Shareable links</h3>
             <p>Every presentation gets a unique URL. Share with anyone, anywhere.</p>
           </div>
           <div className="bento-card">
-            <div className="bento-icon"><Zap size={20} /></div>
+            <div className="bento-icon">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="20" r="12" stroke="currentColor" strokeWidth="1.5" opacity="0.25" />
+                <circle cx="20" cy="20" r="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" strokeDasharray="75.4" strokeDashoffset="75.4" className="feat-progress-ring" />
+              </svg>
+            </div>
             <h3>2-minute setup</h3>
             <p>One config block. No SDK, no code changes, no onboarding calls.</p>
           </div>
           <div className="bento-card">
-            <div className="bento-icon"><Layers size={20} /></div>
+            <div className="bento-icon">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="6" y="10" width="28" height="20" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                <line x1="6" y1="16" x2="34" y2="16" stroke="currentColor" strokeWidth="1" opacity="0.4" />
+                <line x1="6" y1="24" x2="34" y2="24" stroke="currentColor" strokeWidth="1" opacity="0.4" />
+                <polygon points="20,18 18,22 19.2,22 18.5,26 22,21 20.8,21 21.5,18" fill="currentColor" className="feat-star-twinkle" />
+              </svg>
+            </div>
             <h3>Cinema quality</h3>
             <p>Not static slides. Cinematic animations with depth-of-field focus, smooth transitions, and idle animations.</p>
           </div>
@@ -237,7 +274,7 @@ export default function Landing() {
         <div className="footer-inner">
           <div className="footer-brand">
             <Logo />
-            <p>Don&rsquo;t read it. Watch it.</p>
+            <p>Don&rsquo;t read it, just watch it.</p>
           </div>
           <div className="footer-columns">
             <div className="footer-col">
@@ -248,6 +285,7 @@ export default function Landing() {
             <div className="footer-col">
               <h4>Company</h4>
               <Link to="/blog">Blog</Link>
+              <Link to="/contact">Contact</Link>
               <Link to="/terms">Terms</Link>
               <Link to="/privacy">Privacy</Link>
             </div>
