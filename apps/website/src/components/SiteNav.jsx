@@ -44,6 +44,7 @@ export default function SiteNav({ links }) {
   return (
     <>
       <nav className="landing-nav">
+        <div className="nav-inner">
         <Link to="/" className="nav-logo">
           <Logo />
         </Link>
@@ -78,6 +79,7 @@ export default function SiteNav({ links }) {
             </button>
           </li>
         </ul>
+        </div>
       </nav>
 
       {/* Mobile drawer overlay */}
