@@ -39,6 +39,19 @@ export default function Landing() {
         <div className="hero-fade-in hero-fade-in-delay-4">
           <HeroPlayer />
         </div>
+
+        <div className="trust-section hero-fade-in hero-fade-in-delay-4">
+          <p className="trust-subtitle">The Visual Layer For Your AI</p>
+          <div className="trust-strip">
+            <span className="trust-dot" style={{ background: '#D4A574' }} /> <span className="trust-name">Claude</span>
+            <span className="trust-dot" style={{ background: '#6B9E78' }} /> <span className="trust-name">ChatGPT</span>
+            <span className="trust-dot" style={{ background: '#7B8EC4' }} /> <span className="trust-name">Cursor</span>
+            <span className="trust-dot" style={{ background: '#E8A87C' }} /> <span className="trust-name">Windsurf</span>
+            <span className="trust-dot" style={{ background: '#9B8EC4' }} /> <span className="trust-name">Gemini</span>
+            <span className="trust-dot" style={{ background: '#E57373' }} /> <span className="trust-name">OpenClaw</span>
+            <span className="trust-dot" style={{ background: '#8A8B95' }} /> <span className="trust-name">Any AI Agent</span>
+          </div>
+        </div>
       </section>
 
       {/* 2. Problem Statement */}
@@ -69,33 +82,53 @@ export default function Landing() {
         <div className="section-label">Who It&rsquo;s For</div>
         <h2>Built for professionals who use AI every day</h2>
         <div className="bento-grid" style={{ marginTop: 'var(--space-10)' }}>
-          <div className="bento-card">
+          <div className="bento-card persona-card" style={{ borderTopColor: '#4ECDC4' }}>
             <div className="bento-icon"><Cpu size={20} /></div>
             <h3>Engineers &amp; SRE Teams</h3>
             <p>
               Turn incident postmortems into animated walkthroughs. Visualize pull request changes before code review. See what your AI coding assistant actually built — architecture diagrams, data flows, dependencies — narrated and shareable.
             </p>
+            <div className="persona-tags">
+              <span className="persona-tag">Incident postmortems</span>
+              <span className="persona-tag">PR reviews</span>
+              <span className="persona-tag">Architecture viz</span>
+            </div>
           </div>
-          <div className="bento-card">
+          <div className="bento-card persona-card" style={{ borderTopColor: '#9B59B6' }}>
             <div className="bento-icon"><Film size={20} /></div>
             <h3>Product Managers</h3>
             <p>
               You ask AI to explain how the recommendation engine works. You get 1,500 words. Now you need slides for the executive review. With PreplAI, ask your AI to explain it visually — and share the animated walkthrough directly. 30 seconds instead of 30 minutes.
             </p>
+            <div className="persona-tags">
+              <span className="persona-tag">Stakeholder decks</span>
+              <span className="persona-tag">Feature planning</span>
+              <span className="persona-tag">Cross-team alignment</span>
+            </div>
           </div>
-          <div className="bento-card">
+          <div className="bento-card persona-card" style={{ borderTopColor: '#C9A84C' }}>
             <div className="bento-icon"><Briefcase size={20} /></div>
             <h3>Consultants &amp; Strategists</h3>
             <p>
               Your AI researched the market, analyzed the data, and drafted recommendations. Now turn that analysis into a client-ready visual presentation — automatically.
             </p>
+            <div className="persona-tags">
+              <span className="persona-tag">Client deliverables</span>
+              <span className="persona-tag">Market analysis</span>
+              <span className="persona-tag">Strategy walkthroughs</span>
+            </div>
           </div>
-          <div className="bento-card">
+          <div className="bento-card persona-card" style={{ borderTopColor: '#2ECC71' }}>
             <div className="bento-icon"><Scale size={20} /></div>
             <h3>Financial Advisors &amp; Legal</h3>
             <p>
               Explain portfolio allocations, risk models, or contract structures to clients who don&rsquo;t speak your language. PreplAI turns complex AI analysis into visual walkthroughs your clients will actually understand.
             </p>
+            <div className="persona-tags">
+              <span className="persona-tag">Portfolio reviews</span>
+              <span className="persona-tag">Compliance audits</span>
+              <span className="persona-tag">Contract structures</span>
+            </div>
           </div>
         </div>
       </section>
