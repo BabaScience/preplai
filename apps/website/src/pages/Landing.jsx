@@ -54,15 +54,9 @@ export default function Landing() {
       {/* 2. Problem Statement */}
       <section className="problem-section">
         <div className="section-block" style={{ borderTop: 'none' }}>
-          <div className="section-label">The Problem</div>
-          <h2>AI is brilliant. Its output is unreadable.</h2>
-          <div className="problem-statements">
-            <p>You asked your AI a great question. It gave you 2,000 words of text. You skimmed the first paragraph. You missed the key insight. You forgot everything by tomorrow.</p>
-            <p>You&rsquo;re not alone. <strong>65%</strong> of people are visual learners. We retain <strong>95%</strong> of a message from video — but only <strong>10%</strong> from text. Yet every AI chatbot in the world produces the same thing: text.</p>
-          </div>
-          <p className="problem-kicker">
-            PreplAI closes the gap between what AI produces and what humans actually want to consume.
-          </p>
+          <h2 className="problem-headline">AI is brilliant.<br />Its output is unreadable.</h2>
+          <p className="problem-stat">We retain <strong>95%</strong> from visual — but only <strong>10%</strong> from text.</p>
+          <p className="problem-kicker">PreplAI turns every AI answer into something you can actually watch.</p>
         </div>
       </section>
 

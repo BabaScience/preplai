@@ -1213,56 +1213,33 @@
   padding-top: 0;
   text-align: center;
 }
-.problem-section h2 {
+.problem-headline {
   font-family: var(--font-display);
-  font-size: var(--text-2xl);
-  margin-bottom: var(--space-10);
+  font-size: clamp(2.2rem, 1rem + 4.5vw, 4.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-8);
 }
-.problem-statements {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  max-width: 680px;
-  margin: 0 auto;
-  border-left: 3px solid var(--_cinema-primary);
-  padding-left: var(--space-8);
-  text-align: left;
-}
-.problem-statements::before {
-  content: '\201C';
-  font-family: var(--font-display);
-  font-size: 4rem;
-  color: var(--_cinema-primary);
-  opacity: 0.3;
-  line-height: 1;
-  display: block;
-  margin-bottom: var(--space-2);
-}
-.problem-statements strong {
-  color: var(--_cinema-primary);
-  font-style: normal;
-  font-weight: 700;
-}
-.problem-statements p {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: var(--text-lg);
+.problem-stat {
+  font-size: var(--text-sm);
   color: var(--_cinema-text-muted);
-  line-height: 1.6;
-  text-align: center;
+  opacity: 0.55;
+  max-width: 420px;
+  margin: 0 auto var(--space-8);
+  line-height: 1.5;
 }
-.problem-statements em {
-  color: var(--_cinema-text);
-  font-style: italic;
+.problem-stat strong {
+  color: var(--_cinema-primary);
+  font-weight: 700;
+  opacity: 1;
 }
 .problem-kicker {
-  margin-top: var(--space-10);
-  font-size: var(--text-xl);
+  font-size: clamp(1.1rem, 0.7rem + 1.5vw, 1.5rem);
   color: var(--_cinema-text);
-  max-width: 680px;
+  max-width: 600px;
   margin-left: auto;
   margin-right: auto;
-  line-height: 1.5;
+  line-height: 1.4;
   font-weight: 600;
 }
 
@@ -2427,8 +2404,7 @@
   .hero-terminal { margin: 0 auto; }
 
   /* --- Problem section --- */
-  .problem-section .section-block h2 { font-size: var(--text-xl); }
-  .problem-kicker { font-size: var(--text-base) !important; }
+  .problem-headline { font-size: clamp(2rem, 7vw, 2.8rem); }
 
   /* --- Bento cards --- */
   .bento-grid { grid-template-columns: 1fr !important; }
@@ -2448,16 +2424,6 @@
   .footer-links { gap: var(--space-4); }
   .site-footer { margin-top: var(--space-8); }
 
-  /* --- Problem statements --- */
-  .problem-statements {
-    text-align: center;
-    border-left: none;
-    padding-left: 0;
-  }
-  .problem-statements::before {
-    text-align: center;
-    font-size: 3rem;
-  }
 
   /* --- Trust strip --- */
   .trust-section {
