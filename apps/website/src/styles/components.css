@@ -2440,6 +2440,49 @@
     border-left: none;
     padding-left: 0;
   }
+  .problem-statements::before {
+    text-align: center;
+    font-size: 3rem;
+  }
+
+  /* --- Trust strip --- */
+  .trust-section {
+    margin-top: var(--space-6);
+  }
+  .trust-subtitle {
+    font-size: var(--text-xs);
+  }
+  .trust-strip {
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+  }
+  .trust-dot {
+    margin-left: var(--space-3);
+    width: 6px;
+    height: 6px;
+  }
+  .trust-name {
+    font-size: 11px;
+  }
+
+  /* --- Showcase tabs overflow --- */
+  .showcase-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    justify-content: flex-start;
+    padding: 0 var(--space-4);
+  }
+  .showcase-tabs::-webkit-scrollbar { display: none; }
+  .showcase-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* --- Bento wide cards reset to single column --- */
+  .bento-card.bento-wide {
+    grid-column: span 1;
+  }
 
   /* --- Footer columns --- */
   .footer-columns {
@@ -2455,6 +2498,14 @@
   /* --- Bento card mobile --- */
   .bento-card {
     padding: var(--space-6);
+  }
+
+  /* --- Section spacing reduce on mobile --- */
+  .section-block {
+    padding: var(--space-10) var(--space-4);
+  }
+  .section-block h2 {
+    font-size: var(--text-xl);
   }
 
   /* --- Dashboard --- */
@@ -2484,6 +2535,41 @@
   .kpi-grid { grid-template-columns: 1fr; }
   .hero-ctas { flex-direction: column; align-items: center; }
   .landing-nav { padding: var(--space-3) var(--space-3); }
+
+  /* Hero social proof pill wraps */
+  .hero-social-proof {
+    font-size: 11px;
+    padding: var(--space-2) var(--space-4);
+  }
+
+  /* Trust strip stacks more tightly */
+  .trust-strip {
+    gap: var(--space-1);
+  }
+  .trust-dot {
+    margin-left: var(--space-2);
+  }
+  .trust-name {
+    font-size: 10px;
+  }
+
+  /* Persona tags smaller */
+  .persona-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  /* Code block scroll */
+  .setup-block .code-block {
+    padding: var(--space-4);
+    font-size: 11px;
+    border-radius: var(--radius-lg);
+  }
+
+  /* Section labels */
+  .section-block .section-label::before {
+    width: 14px;
+  }
 }
 
 /* Theme toggle icon button */
