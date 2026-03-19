@@ -80,6 +80,15 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
     </button>
   </div>
 
+  <!-- Feedback trigger — fixed bottom-right, subtle circle with question mark -->
+  <button id="feedback-btn" title="Send feedback" aria-label="Send feedback">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  </button>
+
   <!-- Tooltip for entity hover -->
   <div id="entity-tooltip" class="entity-tooltip"></div>
 
@@ -217,6 +226,41 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
         </button>
       </div>
       <p class="end-stats" id="end-stats"></p>
+    </div>
+  </div>
+
+  <!-- Feedback overlay -->
+  <div id="feedback-overlay" class="hidden">
+    <div id="feedback-panel">
+      <div id="feedback-header">
+        <span>Send Feedback</span>
+        <button id="feedback-close" aria-label="Close feedback">&times;</button>
+      </div>
+      <form id="feedback-form">
+        <div id="feedback-types">
+          <button type="button" class="fb-type-btn fb-type-active" data-type="bug">Bug</button>
+          <button type="button" class="fb-type-btn" data-type="suggestion">Suggestion</button>
+          <button type="button" class="fb-type-btn" data-type="other">Other</button>
+        </div>
+        <input id="feedback-email" type="email" placeholder="Your email" required />
+        <textarea id="feedback-desc" placeholder="Describe the issue or suggestion..." rows="3" required></textarea>
+        <div id="feedback-image-area">
+          <label id="feedback-image-label" for="feedback-image-input">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span>Attach screenshot</span>
+          </label>
+          <input id="feedback-image-input" type="file" accept="image/*" style="display:none" />
+          <div id="feedback-image-preview" class="hidden">
+            <img id="feedback-image-thumb" alt="Preview" />
+            <button type="button" id="feedback-image-remove">&times;</button>
+          </div>
+        </div>
+        <button type="submit" id="feedback-submit">Send Feedback</button>
+      </form>
+      <div id="feedback-success" class="hidden">
+        <div id="feedback-success-icon">&#10003;</div>
+        <p>Thank you for your feedback!</p>
+      </div>
     </div>
   </div>
 

@@ -19,7 +19,9 @@ import Connectors from './pages/dashboard/Connectors';
 import Sessions from './pages/dashboard/Sessions';
 import Usage from './pages/dashboard/Usage';
 import Illustrations from './pages/dashboard/Illustrations';
+import Support from './pages/dashboard/Support';
 import Settings from './pages/dashboard/Settings';
+import Contact from './pages/Contact';
 
 const IllustrationDebugPage = lazy(() => import('./pages/dev/IllustrationDebugPage'));
 
@@ -50,6 +52,7 @@ export default function App() {
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/docs/*" element={<Docs />} />
       <Route path="/blog/*" element={<Blog />} />
+      <Route path="/contact" element={<Contact />} />
       <Route path="/dashboard" element={<Navigate to="/dashboard/overview" replace />} />
       <Route
         path="/dashboard/overview"
@@ -96,6 +99,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <Illustrations />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/support"
+        element={
+          <ProtectedRoute>
+            <Support />
           </ProtectedRoute>
         }
       />

@@ -15,3 +15,5 @@ export { OAuthClient } from './models/OAuthClient.js';
 export { OAuthAuthCode } from './models/OAuthAuthCode.js';
 export { OAuthRefreshToken } from './models/OAuthRefreshToken.js';
 export { IllustrationDemand } from './models/IllustrationDemand.js';
+export { FeedbackReport } from './models/FeedbackReport.js';
+export { ContactSubmission } from './models/ContactSubmission.js';

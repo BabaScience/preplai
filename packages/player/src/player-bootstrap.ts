@@ -1067,6 +1067,169 @@ function main(): void {
     loadScript: applyScript,
   };
 
+  // ── Feedback panel ──────────────────────────────────────────────
+  function initFeedback(): void {
+    const btn = document.getElementById('feedback-btn');
+    const overlay = document.getElementById('feedback-overlay');
+    const panel = document.getElementById('feedback-panel');
+    const closeBtn = document.getElementById('feedback-close');
+    const form = document.getElementById('feedback-form') as HTMLFormElement | null;
+    const emailInput = document.getElementById('feedback-email') as HTMLInputElement | null;
+    const descInput = document.getElementById('feedback-desc') as HTMLTextAreaElement | null;
+    const imageInput = document.getElementById('feedback-image-input') as HTMLInputElement | null;
+    const imagePreview = document.getElementById('feedback-image-preview');
+    const imageThumb = document.getElementById('feedback-image-thumb') as HTMLImageElement | null;
+    const imageRemove = document.getElementById('feedback-image-remove');
+    const imageLabel = document.getElementById('feedback-image-label');
+    const submitBtn = document.getElementById('feedback-submit') as HTMLButtonElement | null;
+    const successDiv = document.getElementById('feedback-success');
+    const typeBtns = document.querySelectorAll('.fb-type-btn');
+
+    if (!btn || !overlay || !form) return;
+
+    // Detect authenticated user from lightweight identity cookie
+    // preplai_user is set on login (non-httpOnly, contains only the email)
+    let authenticatedEmail: string | null = null;
+    try {
+      const cookies = document.cookie.split(';').map(c => c.trim());
+      const userCookie = cookies.find(c => c.startsWith('preplai_user='));
+      if (userCookie) {
+        const email = decodeURIComponent(userCookie.split('=')[1]);
+        if (email && email.includes('@')) {
+          authenticatedEmail = email;
+        }
+      }
+    } catch { /* ignore */ }
+
+    // If authenticated, hide email input and show identity badge
+    if (authenticatedEmail && emailInput) {
+      const emailWrapper = emailInput.parentElement || emailInput;
+      emailInput.style.display = 'none';
+      emailInput.value = authenticatedEmail;
+      emailInput.removeAttribute('required');
+      // Insert identity badge
+      const badge = document.createElement('div');
+      badge.id = 'feedback-identity';
+      badge.style.cssText = 'font-size:12px;color:rgba(255,255,255,0.5);padding:6px 0;';
+      badge.textContent = `Sending as ${authenticatedEmail}`;
+      emailWrapper.insertAdjacentElement('afterend', badge);
+      // Light theme adjustment
+      if (document.documentElement.dataset.theme === 'light') {
+        badge.style.color = 'rgba(0,0,0,0.4)';
+      }
+    }
+
+    let selectedType = 'bug';
+    let feedbackImageData: string | null = null;
+
+    btn.addEventListener('click', () => {
+      overlay.classList.toggle('hidden');
+    });
+
+    closeBtn?.addEventListener('click', () => {
+      overlay.classList.add('hidden');
+    });
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.classList.add('hidden');
+    });
+
+    // Type selector
+    typeBtns.forEach(b => {
+      b.addEventListener('click', () => {
+        typeBtns.forEach(x => x.classList.remove('fb-type-active'));
+        b.classList.add('fb-type-active');
+        selectedType = (b as HTMLElement).dataset.type || 'bug';
+      });
+    });
+
+    // Image handling
+    imageInput?.addEventListener('change', () => {
+      const file = imageInput.files?.[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image must be under 5MB');
+        imageInput.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        feedbackImageData = reader.result as string;
+        if (imageThumb) imageThumb.src = feedbackImageData;
+        imagePreview?.classList.remove('hidden');
+        imageLabel?.classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    imageRemove?.addEventListener('click', () => {
+      feedbackImageData = null;
+      if (imageInput) imageInput.value = '';
+      imagePreview?.classList.add('hidden');
+      imageLabel?.classList.remove('hidden');
+    });
+
+    // Submit
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (submitBtn) {
+        submitBtn.textContent = 'Sending...';
+        submitBtn.disabled = true;
+      }
+
+      try {
+        const fbSessionId = window.location.pathname.split('/player/')[1]?.split('?')[0] || '';
+        const titleEl = document.querySelector('#entity-layer text');
+        const presentationTitle = titleEl?.textContent || document.title || '';
+
+        const res = await fetch('/api/player-feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: selectedType === 'suggestion' ? 'feature' : selectedType,
+            description: descInput?.value || '',
+            email: authenticatedEmail || emailInput?.value || '',
+            sessionId: fbSessionId,
+            presentationTitle,
+            imageData: feedbackImageData,
+            browserInfo: navigator.userAgent,
+            pageUrl: window.location.href,
+          }),
+        });
+
+        if (!res.ok) throw new Error('Failed');
+
+        // Show success
+        form.classList.add('hidden');
+        successDiv?.classList.remove('hidden');
+
+        // Auto-close after 2s
+        setTimeout(() => {
+          overlay.classList.add('hidden');
+          form.classList.remove('hidden');
+          successDiv?.classList.add('hidden');
+          if (descInput) descInput.value = '';
+          feedbackImageData = null;
+          if (imageInput) imageInput.value = '';
+          imagePreview?.classList.add('hidden');
+          imageLabel?.classList.remove('hidden');
+          if (submitBtn) {
+            submitBtn.textContent = 'Send Feedback';
+            submitBtn.disabled = false;
+          }
+        }, 2000);
+      } catch (err) {
+        alert('Failed to send feedback. Please try again.');
+        if (submitBtn) {
+          submitBtn.textContent = 'Send Feedback';
+          submitBtn.disabled = false;
+        }
+      }
+    });
+  }
+
+  initFeedback();
+
   console.log('[PRE] Player (illustrations) initialized for session:', sessionId);
 }
 

@@ -31,6 +31,7 @@ import settingsRoutes from './routes/settings.js';
 import sessionsRoutes from './routes/sessions.js';
 import oauthRoutes from './routes/oauth.js';
 import oauthClientsRoutes from './routes/oauth-clients.js';
+import supportRoutes from './routes/support.js';
 
 const PORT = process.env.PORT || 5000;
 
@@ -106,6 +107,7 @@ export function createApp() {
   app.use('/api/usage', usageRoutes);
   app.use('/api/settings', settingsRoutes);
   app.use('/api/sessions', sessionsRoutes);
+  app.use('/api/support', supportRoutes);
 
   if (process.env.SENTRY_DSN) {
     app.use(Sentry.Handlers.errorHandler());

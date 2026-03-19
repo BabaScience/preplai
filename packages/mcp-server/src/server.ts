@@ -290,6 +290,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     '/player.css',
     '/player.js',
     '/favicon.ico',
+    '/api/player-feedback',
     '/.well-known/oauth-protected-resource',
   ]);
 
@@ -589,6 +590,46 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       reply.type('text/javascript').send(PLAYER_JS);
     }
   });
+
+  // ── Player feedback endpoint — public, no auth required ───────────
+  app.post<{ Body: { type: string; description: string; email: string; sessionId?: string; presentationTitle?: string; imageData?: string; browserInfo?: string; pageUrl?: string } }>(
+    '/api/player-feedback',
+    { bodyLimit: 6 * 1024 * 1024 },
+    async (request, reply) => {
+      try {
+        const { type, description, email, sessionId, presentationTitle, imageData, browserInfo, pageUrl } = request.body;
+
+        if (!type || !description || !email) {
+          reply.status(400).send({ error: 'type, description, and email are required' });
+          return;
+        }
+
+        // Validate image size (max 5MB base64)
+        if (imageData && imageData.length > 7_000_000) {
+          reply.status(400).send({ error: 'Image too large (max 5MB)' });
+          return;
+        }
+
+        const { FeedbackReport } = await import('@preplai/db');
+        await FeedbackReport.create({
+          type,
+          description,
+          email,
+          sessionId: sessionId || null,
+          presentationTitle: presentationTitle || null,
+          imageData: imageData || null,
+          browserInfo: browserInfo || null,
+          pageUrl: pageUrl || null,
+          source: 'player',
+        });
+
+        reply.send({ success: true });
+      } catch (err) {
+        console.error('[player-feedback] Failed:', err);
+        reply.status(500).send({ error: 'Failed to submit feedback' });
+      }
+    },
+  );
 
   // ── MCP-style API routes ──────────────────────────────────────────
   const sceneDeps = { store, sse, ttsService };

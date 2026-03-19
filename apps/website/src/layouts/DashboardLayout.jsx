@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Key, BarChart3, Film, Settings, LogOut, Menu, Plug, Palette } from 'lucide-react';
+import { LayoutDashboard, Key, BarChart3, Film, Settings, LogOut, Menu, Plug, Palette, MessageCircle } from 'lucide-react';
 import Logo from '../components/Logo';
+import FeedbackWidget from '../components/FeedbackWidget';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 import { apiGetSettings } from '../lib/api';
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
   { id: 'sessions', label: 'Sessions', icon: Film, path: '/dashboard/sessions' },
   { id: 'usage', label: 'Usage', icon: BarChart3, path: '/dashboard/usage' },
   { id: 'illustrations', label: 'Illustrations', icon: Palette, path: '/dashboard/illustrations', adminOnly: true },
+  { id: 'support', label: 'Support', icon: MessageCircle, path: '/dashboard/support', adminOnly: true },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/dashboard/settings' },
 ];
 
@@ -99,6 +101,8 @@ export default function DashboardLayout({ children, title }) {
       <main className="dash-main">
         {children}
       </main>
+
+      <FeedbackWidget />
     </div>
   );
 }

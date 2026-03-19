@@ -104,6 +104,18 @@ router.post('/login', async (req, res) => {
       path: '/',
     });
 
+    // Lightweight identity cookie readable by player JS for feedback auto-fill.
+    // Contains only the email (not sensitive) — no token, no userId.
+    // domain=.preplai.com in prod so player.preplai.com can read it.
+    res.cookie('preplai_user', user.email, {
+      httpOnly: false,
+      secure: isProd,
+      sameSite: isProd ? 'lax' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+      ...(isProd ? { domain: '.preplai.com' } : {}),
+    });
+
     res.json({
       token,
       user: { id: user._id.toString(), email: user.email, name: user.name }
@@ -257,6 +269,13 @@ router.post('/logout', (req, res) => {
     secure: isProd,
     sameSite: isProd ? 'lax' : 'lax',
     path: '/',
+  });
+  res.clearCookie('preplai_user', {
+    httpOnly: false,
+    secure: isProd,
+    sameSite: isProd ? 'lax' : 'lax',
+    path: '/',
+    ...(isProd ? { domain: '.preplai.com' } : {}),
   });
   res.json({ ok: true });
 });

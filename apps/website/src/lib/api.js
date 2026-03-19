@@ -165,6 +165,39 @@ export async function apiDeleteOAuthClient(clientId) {
   return data;
 }
 
+// Support
+export async function apiSubmitFeedback(data) {
+  const { data: result } = await client.post('support/feedback', data);
+  return result;
+}
+
+export async function apiSubmitContact(data) {
+  const { data: result } = await client.post('support/contact', data);
+  return result;
+}
+
+export async function apiGetFeedback(status) {
+  const params = status ? `?status=${status}` : '';
+  const { data } = await client.get(`support/feedback${params}`);
+  return data;
+}
+
+export async function apiUpdateFeedbackStatus(id, status) {
+  const { data } = await client.patch(`support/feedback/${id}/status`, { status });
+  return data;
+}
+
+export async function apiGetContacts(status) {
+  const params = status ? `?status=${status}` : '';
+  const { data } = await client.get(`support/contacts${params}`);
+  return data;
+}
+
+export async function apiUpdateContactStatus(id, status) {
+  const { data } = await client.patch(`support/contacts/${id}/status`, { status });
+  return data;
+}
+
 // Settings
 export async function apiGetSettings() {
   const { data } = await client.get('settings');

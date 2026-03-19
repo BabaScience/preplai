@@ -16,6 +16,8 @@ import {
   OAuthAuthCode,
   OAuthRefreshToken,
   IllustrationDemand,
+  FeedbackReport,
+  ContactSubmission,
 } from '@preplai/db';
 
 export {
@@ -33,4 +35,6 @@ export {
   OAuthAuthCode,
   OAuthRefreshToken,
   IllustrationDemand,
+  FeedbackReport,
+  ContactSubmission,
 };
