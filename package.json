@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "dev": "concurrently -n api,mcp -c blue,magenta \"pnpm --filter preplai-api run dev\" \"pnpm --filter @preplai/mcp-server run dev\"",
+    "dev": "concurrently -n api,mcp -c blue,magenta \"pnpm --filter preplai-api run dev\" \"PORT=5005 pnpm --filter @preplai/mcp-server run dev\"",
     "test:oauth": "node scripts/test-oauth-local.mjs",
     "test": "vitest run",
     "test:watch": "vitest",

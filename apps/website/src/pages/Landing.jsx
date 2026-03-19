@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Cpu, Film, Briefcase, Scale } from 'lucide-react';
 import LandingLayout from '../layouts/LandingLayout';
@@ -7,6 +8,7 @@ import ShowcaseCarousel from '../components/ShowcaseCarousel';
 import { SHOWCASE_ITEMS } from '../components/showcase-scripts';
 
 export default function Landing() {
+  const [setupTab, setSetupTab] = useState('oauth');
   return (
     <LandingLayout>
       {/* 1. Hero — Agent-owner focused */}
@@ -132,7 +134,7 @@ export default function Landing() {
           <div className="step-item" data-step="1">
             <div className="step-number">1</div>
             <h3>Connect your AI</h3>
-            <p>Add one config block to Claude, ChatGPT, Cursor, or any MCP-compatible AI tool. No SDK. No code changes. No setup headaches.</p>
+            <p>Add one config block or authorize through your browser — works with any MCP-compatible tool.</p>
           </div>
           <div className="step-item" data-step="2">
             <div className="step-number">2</div>
@@ -142,12 +144,42 @@ export default function Landing() {
           <div className="step-item" data-step="3">
             <div className="step-number">3</div>
             <h3>Watch and share</h3>
-            <p>Every presentation gets a shareable link. Watch it yourself, send it to your team, embed it in a doc, or present it in a meeting. No downloads, no installs, no friction.</p>
+            <p>Every presentation gets a shareable link. Watch it yourself, send it to your team, embed it in a doc, or present it in a meeting.</p>
           </div>
         </div>
         <div className="setup-block" style={{ marginTop: 'var(--space-10)' }}>
-          <div className="code-block">
-            <pre>{`{
+          <div className="setup-tabs">
+            <button className={`setup-tab ${setupTab === 'oauth' ? 'active' : ''}`} onClick={() => setSetupTab('oauth')}>
+              OAuth
+              <span className="setup-tab-hint">Web &amp; Mobile</span>
+            </button>
+            <button className={`setup-tab ${setupTab === 'token' ? 'active' : ''}`} onClick={() => setSetupTab('token')}>
+              API Token
+              <span className="setup-tab-hint">Desktop &amp; IDE</span>
+            </button>
+          </div>
+          {setupTab === 'oauth' ? (
+            <div className="code-block">
+              <p className="setup-caption">Connect from Claude Web or ChatGPT in three clicks:</p>
+              <div className="setup-oauth-steps">
+                <div className="setup-oauth-step">
+                  <span className="setup-oauth-num">1</span>
+                  <span>Create an OAuth client at <strong>Dashboard → Connectors</strong></span>
+                </div>
+                <div className="setup-oauth-step">
+                  <span className="setup-oauth-num">2</span>
+                  <span>Copy your <strong>Client ID</strong> and <strong>Client Secret</strong></span>
+                </div>
+                <div className="setup-oauth-step">
+                  <span className="setup-oauth-num">3</span>
+                  <span>In your AI app: <strong>Settings → Connectors → Add</strong><br />URL: <code>https://player.preplai.com/mcp</code></span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="code-block">
+              <p className="setup-caption">Paste into Claude Desktop, Cursor, or Windsurf config:</p>
+              <pre>{`{
   `}<span className="ck">&quot;mcpServers&quot;</span>{`: {
     `}<span className="ck">&quot;preplai&quot;</span>{`: {
       `}<span className="ck">&quot;url&quot;</span>{`: `}<span className="cs">&quot;https://player.preplai.com/mcp&quot;</span>{`,
@@ -158,7 +190,8 @@ export default function Landing() {
     }
   }
 }`}</pre>
-          </div>
+            </div>
+          )}
           <div style={{ marginTop: 'var(--space-6)', display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
             <Link to="/signup" className="btn btn-primary">Get started</Link>
             <Link to="/docs" className="btn btn-ghost">Read the docs</Link>
