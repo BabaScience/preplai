@@ -13,7 +13,7 @@ const tiers = [
     features: [
       '5 presentations / month',
       'No voice narration',
-      'PreplAI watermark',
+      'Preplai watermark',
       'Shareable links',
       'Community support',
     ],
@@ -78,7 +78,7 @@ const faqs = [
   },
   {
     q: 'What counts as a presentation?',
-    a: 'A presentation is a single session created through the PreplAI MCP. Each session can contain multiple frames and scenes. Viewing and sharing a presentation does not count against your limit.',
+    a: 'A presentation is a single session created through the Preplai MCP. Each session can contain multiple frames and scenes. Viewing and sharing a presentation does not count against your limit.',
   },
   {
     q: 'Do you offer annual billing?',
@@ -90,7 +90,7 @@ const faqs = [
   },
   {
     q: 'Is there a free trial for paid plans?',
-    a: 'The Free plan lets you try PreplAI with no time limit. For paid features like voice narration and custom branding, we offer a 14-day free trial on the Creator and Team plans.',
+    a: 'The Free plan lets you try Preplai with no time limit. For paid features like voice narration and custom branding, we offer a 14-day free trial on the Creator and Team plans.',
   },
 ];
 
@@ -120,7 +120,7 @@ export default function Pricing() {
           Simple pricing. Start free.
         </h1>
         <p className="section-desc" style={{ maxWidth: '540px', margin: '0 auto' }}>
-          Every plan includes the full PreplAI engine. Upgrade when you need more.
+          Every plan includes the full Preplai engine. Upgrade when you need more.
         </p>
       </section>
 

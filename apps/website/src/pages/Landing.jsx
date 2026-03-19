@@ -24,7 +24,7 @@ export default function Landing() {
               <span className="hero-line-payoff">Just watch it.</span>
             </h1>
             <p className="hero-cinema-sub hero-fade-in hero-fade-in-delay-2">
-              Your AI gives you walls of text. PreplAI turns every answer into an animated, narrated visual you can watch.
+              Your AI gives you walls of text. Preplai turns every answer into an animated, narrated visual you can watch.
             </p>
             <div className="hero-ctas hero-fade-in hero-fade-in-delay-3">
               <Link to="/signup" className="btn btn-primary btn-lg">Get started</Link>
@@ -56,7 +56,7 @@ export default function Landing() {
         <div className="section-block" style={{ borderTop: 'none' }}>
           <h2 className="problem-headline">AI is brilliant.<br />Its output is unreadable.</h2>
           <p className="problem-stat">We retain <strong>95%</strong> from visual — but only <strong>10%</strong> from text.</p>
-          <p className="problem-kicker">PreplAI turns every AI answer into something you can actually watch.</p>
+          <p className="problem-kicker">Preplai turns every AI answer into something you can actually watch.</p>
         </div>
       </section>
 
@@ -64,7 +64,7 @@ export default function Landing() {
       <section id="showcases" className="section-block showcase-section" style={{ borderTop: 'none' }}>
         <div className="section-label">See It In Action</div>
         <h2>From explanation to presentation</h2>
-        <p className="section-desc">Every demo below is a live PreplAI presentation. The same engine your AI will use.</p>
+        <p className="section-desc">Every demo below is a live Preplai presentation. The same engine your AI will use.</p>
         <ShowcaseCarousel items={SHOWCASE_ITEMS} />
       </section>
 
@@ -89,7 +89,7 @@ export default function Landing() {
             <div className="bento-icon"><Film size={20} /></div>
             <h3>Product Managers</h3>
             <p>
-              You ask AI to explain how the recommendation engine works. You get 1,500 words. Now you need slides for the executive review. With PreplAI, ask your AI to explain it visually — and share the animated walkthrough directly. 30 seconds instead of 30 minutes.
+              You ask AI to explain how the recommendation engine works. You get 1,500 words. Now you need slides for the executive review. With Preplai, ask your AI to explain it visually — and share the animated walkthrough directly. 30 seconds instead of 30 minutes.
             </p>
             <div className="persona-tags">
               <span className="persona-tag">Stakeholder decks</span>
@@ -113,7 +113,7 @@ export default function Landing() {
             <div className="bento-icon"><Scale size={20} /></div>
             <h3>Financial Advisors &amp; Legal</h3>
             <p>
-              Explain portfolio allocations, risk models, or contract structures to clients who don&rsquo;t speak your language. PreplAI turns complex AI analysis into visual walkthroughs your clients will actually understand.
+              Explain portfolio allocations, risk models, or contract structures to clients who don&rsquo;t speak your language. Preplai turns complex AI analysis into visual walkthroughs your clients will actually understand.
             </p>
             <div className="persona-tags">
               <span className="persona-tag">Portfolio reviews</span>

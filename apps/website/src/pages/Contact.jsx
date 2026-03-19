@@ -176,7 +176,7 @@ export default function Contact() {
             <div className="section-label">Get In Touch</div>
             <h1 style={{ fontSize: 'var(--text-3xl)', marginBottom: 'var(--space-3)' }}>Contact Us</h1>
             <p style={{ color: 'var(--color-text-faint)', maxWidth: 420, margin: '0 auto', lineHeight: 'var(--line-height-relaxed)' }}>
-              Have a question about PreplAI? Want to explore enterprise plans or a custom integration? We would love to hear from you.
+              Have a question about Preplai? Want to explore enterprise plans or a custom integration? We would love to hear from you.
             </p>
           </div>
 

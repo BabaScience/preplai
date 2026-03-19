@@ -84,7 +84,7 @@ export default function Privacy() {
         <section>
           <h2>8.8 Children&rsquo;s Privacy</h2>
           <p>
-            PreplAI is not intended for children under the age of 13. We do not knowingly collect personal
+            Preplai is not intended for children under the age of 13. We do not knowingly collect personal
             information from children under 13. If we become aware that we have collected personal information
             from a child under 13, we will take steps to delete such information promptly.
           </p>

@@ -2393,8 +2393,8 @@
   .mobile-nav-overlay { display: block; }
 
   /* --- Hero --- */
-  .hero-cinema h1 { font-size: clamp(2.5rem, 8vw, 3.5rem); }
-  .hero-cinema-sub { font-size: var(--text-sm); max-width: 100%; }
+  .hero-cinema h1 { font-size: clamp(3rem, 11vw, 4rem); }
+  .hero-cinema-sub { font-size: var(--text-xs); max-width: 220px; }
   .hero-player-preview { margin-top: var(--space-10); }
   .hero-ctas { justify-content: center; flex-wrap: wrap; }
 

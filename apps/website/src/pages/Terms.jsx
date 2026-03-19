@@ -12,7 +12,7 @@ export default function Terms() {
         <section>
           <h2>7.1 Account Registration</h2>
           <p>
-            To access certain features of PreplAI, you must create an account. You agree to provide accurate,
+            To access certain features of Preplai, you must create an account. You agree to provide accurate,
             current, and complete information during registration and to keep your account information up to date.
             You are responsible for safeguarding your password and for all activities that occur under your account.
             You must notify us immediately of any unauthorized use of your account.
@@ -22,7 +22,7 @@ export default function Terms() {
         <section>
           <h2>7.2 Use of the Service</h2>
           <p>
-            PreplAI grants you a limited, non-exclusive, non-transferable, revocable license to use the service
+            Preplai grants you a limited, non-exclusive, non-transferable, revocable license to use the service
             in accordance with these terms. You agree not to use the service for any unlawful purpose or in any way
             that could damage, disable, overburden, or impair the service. You may not attempt to gain unauthorized
             access to any part of the service or its related systems.
@@ -32,7 +32,7 @@ export default function Terms() {
         <section>
           <h2>7.3 Subscription Plans and Payment</h2>
           <p>
-            PreplAI offers free and paid subscription plans. Paid plans are billed on a monthly or annual basis
+            Preplai offers free and paid subscription plans. Paid plans are billed on a monthly or annual basis
             as selected at the time of purchase. All fees are non-refundable except as required by law. We reserve
             the right to change pricing with 30 days notice. Your subscription will automatically renew unless you
             cancel before the end of your current billing period.
@@ -42,9 +42,9 @@ export default function Terms() {
         <section>
           <h2>7.4 Intellectual Property</h2>
           <p>
-            The service and its original content, features, and functionality are owned by PreplAI and are protected
+            The service and its original content, features, and functionality are owned by Preplai and are protected
             by international copyright, trademark, patent, trade secret, and other intellectual property laws.
-            Presentations you create using PreplAI are yours. We do not claim ownership of your content. However,
+            Presentations you create using Preplai are yours. We do not claim ownership of your content. However,
             you grant us a limited license to host, display, and distribute your presentations as necessary to
             provide the service.
           </p>
@@ -53,7 +53,7 @@ export default function Terms() {
         <section>
           <h2>7.5 Content Guidelines</h2>
           <p>
-            You are solely responsible for the content you create and share through PreplAI. You agree not to
+            You are solely responsible for the content you create and share through Preplai. You agree not to
             create or distribute content that is illegal, harmful, threatening, abusive, harassing, defamatory,
             vulgar, obscene, or otherwise objectionable. We reserve the right to remove content that violates
             these guidelines and to suspend or terminate accounts of repeat offenders.
@@ -63,7 +63,7 @@ export default function Terms() {
         <section>
           <h2>7.6 Privacy</h2>
           <p>
-            Your use of PreplAI is also governed by our <Link to="/privacy">Privacy Policy</Link>, which is
+            Your use of Preplai is also governed by our <Link to="/privacy">Privacy Policy</Link>, which is
             incorporated into these terms by reference. Please review the Privacy Policy to understand our
             practices regarding the collection, use, and disclosure of your personal information.
           </p>
@@ -81,7 +81,7 @@ export default function Terms() {
         <section>
           <h2>7.8 Limitation of Liability</h2>
           <p>
-            To the maximum extent permitted by applicable law, PreplAI and its affiliates, officers, directors,
+            To the maximum extent permitted by applicable law, Preplai and its affiliates, officers, directors,
             employees, and agents shall not be liable for any indirect, incidental, special, consequential, or
             punitive damages, including but not limited to loss of profits, data, use, or goodwill, arising out
             of or in connection with your use of the service.
@@ -91,7 +91,7 @@ export default function Terms() {
         <section>
           <h2>7.9 Indemnification</h2>
           <p>
-            You agree to indemnify, defend, and hold harmless PreplAI and its affiliates from and against any
+            You agree to indemnify, defend, and hold harmless Preplai and its affiliates from and against any
             claims, liabilities, damages, losses, and expenses, including reasonable legal fees, arising out of
             or in any way connected with your access to or use of the service, your violation of these terms,
             or your violation of any rights of a third party.
