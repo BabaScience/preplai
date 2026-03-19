@@ -6,13 +6,14 @@
 
 ## Product Context
 
-Preplai is the most advanced cinematic illustration engine for AI agents. We serve three MVP users:
+**"Don't read it. Watch it."** Preplai is **The Visual Layer for AI** — turning any AI answer into animated, narrated visuals anyone can watch and share. We serve four target users:
 
-1. **CS students** — LLMs connect our MCP to *show* CS concepts (arrays animate, trees grow, data flows) instead of text walls
-2. **Programmers** — AI coding tools (Cursor, Copilot) use our MCP to *show* the architecture they built, step by step
-3. **AI agent owners** — Autonomous agents use our MCP to *present* visual reports of their actions and decisions
+1. **Engineers & SRE Teams** — AI connects our MCP to *show* incident timelines, architecture changes, and system designs instead of unreadable postmortem docs
+2. **Product Managers** — AI connects our MCP to *show* technical concepts to stakeholders cinematically, bridging the technical-business gap
+3. **Consultants & Strategists** — AI connects our MCP to turn analysis into client-ready visual deliverables that clients actually watch and remember
+4. **Financial Advisors & Legal** — AI connects our MCP to *show* complex fund flows, legal hierarchies, and regulatory processes to clients visually
 
-Every design decision should make these presentations more cinematic, clear, and immersive.
+Every design decision should make these presentations more cinematic, clear, and shareable.
 
 ---
 
