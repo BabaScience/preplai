@@ -2739,8 +2739,8 @@
 .logo-text {
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: var(--text-base);
-  letter-spacing: -0.02em;
+  font-size: var(--text-lg);
+  letter-spacing: -0.04em;
   color: var(--color-text);
 }
 
