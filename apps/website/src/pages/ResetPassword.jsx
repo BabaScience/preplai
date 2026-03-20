@@ -20,7 +20,7 @@ export default function ResetPassword() {
       <div className="auth-page">
         <div className="auth-card">
           <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
-            <Logo showWordmark={false} />
+            <Logo />
           </div>
           <h1 style={{ textAlign: 'center' }}>Invalid link</h1>
           <p className="auth-sub" style={{ textAlign: 'center' }}>
@@ -60,7 +60,7 @@ export default function ResetPassword() {
     <div className="auth-page">
       <div className="auth-card">
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
-          <Logo showWordmark={false} />
+          <Logo />
         </div>
         <h1 style={{ textAlign: 'center' }}>Reset your password</h1>
         <p className="auth-sub" style={{ textAlign: 'center' }}>

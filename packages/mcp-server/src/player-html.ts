@@ -27,7 +27,7 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Preplai Player</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b0c10'/%3E%3Cpath d='M8 8h6a6 6 0 0 1 0 12H8z' fill='none' stroke='%23C9A84C' stroke-width='2.5'/%3E%3Ccircle cx='22' cy='22' r='3' fill='%23C9A84C'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' rx='20' fill='%23C9A84C'/%3E%3Cdefs%3E%3Cfilter id='f' x='-18%25' y='-18%25' width='136%25' height='136%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.018 0.022' numOctaves='4' seed='7' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='1.8' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M 137.79,38.71 A 72,72 0 1,0 169.97,118.50 L 30.03,115.80' fill='none' stroke='%230b0c10' stroke-width='22' stroke-linecap='round' stroke-linejoin='round' filter='url(%23f)'/%3E%3C/svg%3E">
 
   <!-- Fonts: Inter for UI, JetBrains Mono for code/technical -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -101,10 +101,9 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
 
   <div id="loading-state">
     <div class="loading-logo">
-      <svg width="48" height="48" viewBox="0 0 32 32">
-        <rect width="32" height="32" rx="6" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.3)" stroke-width="1"/>
-        <path d="M8 8h6a6 6 0 0 1 0 12H8z" fill="none" stroke="#C9A84C" stroke-width="2.5"/>
-        <circle cx="22" cy="22" r="3" fill="#C9A84C"/>
+      <svg width="48" height="48" viewBox="0 0 200 200">
+        <rect width="200" height="200" rx="20" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.3)" stroke-width="4"/>
+        <path d="M 137.79,38.71 A 72,72 0 1,0 169.97,118.50 L 30.03,115.80" fill="none" stroke="#C9A84C" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
     <p class="loading-text">Preparing your presentation\u2026</p>
@@ -208,10 +207,9 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
   <div id="end-screen" class="end-screen">
     <div class="end-content">
       <div class="end-logo">
-        <svg width="40" height="40" viewBox="0 0 32 32">
-          <rect width="32" height="32" rx="6" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.3)" stroke-width="1"/>
-          <path d="M8 8h6a6 6 0 0 1 0 12H8z" fill="none" stroke="#C9A84C" stroke-width="2.5"/>
-          <circle cx="22" cy="22" r="3" fill="#C9A84C"/>
+        <svg width="40" height="40" viewBox="0 0 200 200">
+          <rect width="200" height="200" rx="20" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.3)" stroke-width="4"/>
+          <path d="M 137.79,38.71 A 72,72 0 1,0 169.97,118.50 L 30.03,115.80" fill="none" stroke="#C9A84C" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
       <p class="end-title">Presentation complete</p>
@@ -287,7 +285,7 @@ export const PLAYER_NOT_FOUND_HTML = `<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Presentation Not Found — Preplai</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b0c10'/%3E%3Cpath d='M8 8h6a6 6 0 0 1 0 12H8z' fill='none' stroke='%23C9A84C' stroke-width='2.5'/%3E%3Ccircle cx='22' cy='22' r='3' fill='%23C9A84C'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' rx='20' fill='%23C9A84C'/%3E%3Cdefs%3E%3Cfilter id='f' x='-18%25' y='-18%25' width='136%25' height='136%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.018 0.022' numOctaves='4' seed='7' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='1.8' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M 137.79,38.71 A 72,72 0 1,0 169.97,118.50 L 30.03,115.80' fill='none' stroke='%230b0c10' stroke-width='22' stroke-linecap='round' stroke-linejoin='round' filter='url(%23f)'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">

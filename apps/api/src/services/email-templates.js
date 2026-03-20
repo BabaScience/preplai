@@ -61,7 +61,7 @@ function baseLayout({ preheader, content, appUrl }) {
                 <tr>
                   <td>
                     <a href="${logoUrl}" style="text-decoration: none;">
-                      <span style="font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; font-weight: 400; color: #e8e6e3; letter-spacing: -0.02em;">preplai</span>
+                      <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 22px; font-weight: 600; color: #e8e6e3; letter-spacing: -0.04em;">pr<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath d='M 137.79,38.71 A 72,72 0 1,0 169.97,118.50 L 30.03,115.80' fill='none' stroke='%23e8e6e3' stroke-width='22' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" width="16" height="16" alt="e" style="vertical-align: -1px; margin: 0 -1px;" />plai</span>
                     </a>
                   </td>
                 </tr>

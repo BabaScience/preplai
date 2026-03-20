@@ -2202,6 +2202,9 @@
   padding: var(--space-10);
   width: min(420px, 100%);
 }
+.auth-card .logo {
+  opacity: 0.4;
+}
 .auth-card h1 {
   font-family: var(--font-display);
   font-size: var(--text-xl);

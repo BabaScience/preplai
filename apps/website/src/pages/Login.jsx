@@ -56,7 +56,7 @@ export default function Login() {
     <div className="auth-page">
       <div className="auth-card">
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
-          <Logo showWordmark={false} />
+          <Logo />
         </div>
         <h1 style={{ textAlign: 'center' }}>Welcome back</h1>
         <p className="auth-sub" style={{ textAlign: 'center' }}>
