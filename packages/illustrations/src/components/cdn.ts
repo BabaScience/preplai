@@ -1,88 +1,101 @@
 /**
  * @preplai/illustrations — CDN Component
- * Content Delivery Network: globe with distribution arrows
- * Metadata: { provider?: string, regions?: number }
+ *
+ * Clean rect with globe icon inside (circle + cross lines).
+ * Use for: CDNs, content delivery, edge networks.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor, getStrokeWidth, getLabelFontSize,
-  TYPOGRAPHY, STROKE,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderCDN(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('CDN');
   const defs = ensureDefs(parentEl);
-  const gradId = `grad-cdn-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const gradId = `grad-cdn-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const label = entity.label ?? 'CDN';
-  const r = s * 0.35;
+  const w = s * 0.85;
+  const h = s * 0.7;
+  const hw = w / 2;
+  const hh = h / 2;
 
-  // Globe circle
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Body
+  const card = document.createElementNS(SVG_NS, 'rect');
+  card.setAttribute('x', String(-hw));
+  card.setAttribute('y', String(-hh));
+  card.setAttribute('width', String(w));
+  card.setAttribute('height', String(h));
+  card.setAttribute('rx', String(SHAPES.borderRadius));
+  card.setAttribute('fill', `url(#${gradId})`);
+  card.setAttribute('stroke', color);
+  card.setAttribute('stroke-width', String(STROKE.default));
+  innerG.appendChild(card);
+
+  // Globe icon (circle + horizontal ellipse + vertical ellipse)
+  const ir = s * 0.1;
   const globe = document.createElementNS(SVG_NS, 'circle');
   globe.setAttribute('cx', '0');
   globe.setAttribute('cy', '0');
-  globe.setAttribute('r', String(r));
-  globe.setAttribute('fill', `url(#${gradId})`);
+  globe.setAttribute('r', String(ir));
+  globe.setAttribute('fill', 'none');
   globe.setAttribute('stroke', color);
-  globe.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
+  globe.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(globe);
 
-  // Horizontal line (equator)
-  const equator = document.createElementNS(SVG_NS, 'ellipse');
-  equator.setAttribute('cx', '0');
-  equator.setAttribute('cy', '0');
-  equator.setAttribute('rx', String(r));
-  equator.setAttribute('ry', String(r * 0.3));
-  equator.setAttribute('fill', 'none');
-  equator.setAttribute('stroke', color);
-  equator.setAttribute('stroke-width', String(STROKE.thin));
-  equator.setAttribute('opacity', '0.4');
-  innerG.appendChild(equator);
+  // Horizontal line
+  const hLine = document.createElementNS(SVG_NS, 'line');
+  hLine.setAttribute('x1', String(-ir));
+  hLine.setAttribute('y1', '0');
+  hLine.setAttribute('x2', String(ir));
+  hLine.setAttribute('y2', '0');
+  hLine.setAttribute('stroke', color);
+  hLine.setAttribute('stroke-width', String(STROKE.thin));
+  innerG.appendChild(hLine);
 
-  // Vertical meridian
+  // Vertical ellipse (meridian)
   const meridian = document.createElementNS(SVG_NS, 'ellipse');
   meridian.setAttribute('cx', '0');
   meridian.setAttribute('cy', '0');
-  meridian.setAttribute('rx', String(r * 0.3));
-  meridian.setAttribute('ry', String(r));
+  meridian.setAttribute('rx', String(ir * 0.4));
+  meridian.setAttribute('ry', String(ir));
   meridian.setAttribute('fill', 'none');
   meridian.setAttribute('stroke', color);
   meridian.setAttribute('stroke-width', String(STROKE.thin));
-  meridian.setAttribute('opacity', '0.4');
   innerG.appendChild(meridian);
 
-  // Distribution dots around globe (edge nodes)
-  const edgeAngles = [30, 150, 270];
-  for (const angle of edgeAngles) {
-    const rad = (angle * Math.PI) / 180;
-    const edgeDot = document.createElementNS(SVG_NS, 'circle');
-    edgeDot.setAttribute('cx', String((r + 8) * Math.cos(rad)));
-    edgeDot.setAttribute('cy', String((r + 8) * Math.sin(rad)));
-    edgeDot.setAttribute('r', '3');
-    edgeDot.setAttribute('fill', color);
-    edgeDot.setAttribute('opacity', '0.6');
-    innerG.appendChild(edgeDot);
-  }
-
   // Label below
-  if (label) {
+  if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(r + 24));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(getLabelFontSize('label', scale)));
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    text.textContent = label;
+    text.textContent = entity.label;
     innerG.appendChild(text);
   }
 

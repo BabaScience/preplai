@@ -1,39 +1,47 @@
 /**
  * @preplai/illustrations — Interface Component
- * TypeScript/Java interface: card with "I" badge + interface name + methods list
- * Metadata: { methods?: string[] }
+ *
+ * Clean dashed rect with "I" text inside.
+ * Use for: TypeScript/Java interfaces, API contracts.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor, getStrokeWidth, getLabelFontSize,
-  TYPOGRAPHY, SHAPES,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderInterface(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Interface');
   const defs = ensureDefs(parentEl);
-  const gradId = `grad-iface-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const gradId = `grad-iface-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const label = entity.label ?? 'IUserService';
-  const meta = entity.metadata ?? {};
-  const methods = (meta.methods as string[]) ?? ['getUser()', 'createUser()', 'deleteUser()'];
-
-  const w = s * 1.4;
-  const rowH = 13;
-  const headerH = 22;
-  const h = Math.max(s * 0.7, headerH + methods.length * rowH + 8);
+  const w = s * 0.85;
+  const h = s * 0.7;
   const hw = w / 2;
   const hh = h / 2;
 
-  // Card
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Body (dashed = interface contract)
   const card = document.createElementNS(SVG_NS, 'rect');
   card.setAttribute('x', String(-hw));
   card.setAttribute('y', String(-hh));
@@ -42,68 +50,35 @@ export function renderInterface(entity: VisualEntity, parentEl: SVGElement): SVG
   card.setAttribute('rx', String(SHAPES.borderRadius));
   card.setAttribute('fill', `url(#${gradId})`);
   card.setAttribute('stroke', color);
-  card.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
+  card.setAttribute('stroke-width', String(STROKE.default));
   card.setAttribute('stroke-dasharray', '6,3');
   innerG.appendChild(card);
 
-  // Header with "I" badge
-  const headerBar = document.createElementNS(SVG_NS, 'rect');
-  headerBar.setAttribute('x', String(-hw));
-  headerBar.setAttribute('y', String(-hh));
-  headerBar.setAttribute('width', String(w));
-  headerBar.setAttribute('height', String(headerH));
-  headerBar.setAttribute('rx', String(SHAPES.borderRadius));
-  headerBar.setAttribute('fill', color);
-  headerBar.setAttribute('opacity', '0.15');
-  innerG.appendChild(headerBar);
+  // "I" text centered
+  const iText = document.createElementNS(SVG_NS, 'text');
+  iText.setAttribute('x', '0');
+  iText.setAttribute('y', '2');
+  iText.setAttribute('text-anchor', 'middle');
+  iText.setAttribute('dominant-baseline', 'central');
+  iText.setAttribute('fill', color);
+  iText.setAttribute('font-size', String(s * 0.3));
+  iText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
+  iText.setAttribute('font-family', TYPOGRAPHY.fontCode);
+  iText.textContent = 'I';
+  innerG.appendChild(iText);
 
-  // "I" badge
-  const badgeCircle = document.createElementNS(SVG_NS, 'circle');
-  badgeCircle.setAttribute('cx', String(-hw + 14));
-  badgeCircle.setAttribute('cy', String(-hh + headerH / 2));
-  badgeCircle.setAttribute('r', '7');
-  badgeCircle.setAttribute('fill', color);
-  badgeCircle.setAttribute('opacity', '0.3');
-  innerG.appendChild(badgeCircle);
-
-  const badgeI = document.createElementNS(SVG_NS, 'text');
-  badgeI.setAttribute('x', String(-hw + 14));
-  badgeI.setAttribute('y', String(-hh + headerH / 2 + 4));
-  badgeI.setAttribute('text-anchor', 'middle');
-  badgeI.setAttribute('fill', color);
-  badgeI.setAttribute('font-size', String(getLabelFontSize('value', scale)));
-  badgeI.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
-  badgeI.setAttribute('font-family', TYPOGRAPHY.fontCode);
-  badgeI.textContent = 'I';
-  innerG.appendChild(badgeI);
-
-  // Interface name
-  const nameText = document.createElementNS(SVG_NS, 'text');
-  nameText.setAttribute('x', String(-hw + 26));
-  nameText.setAttribute('y', String(-hh + 15));
-  nameText.setAttribute('text-anchor', 'start');
-  nameText.setAttribute('fill', color);
-  nameText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
-  nameText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
-  nameText.setAttribute('font-family', TYPOGRAPHY.fontCode);
-  nameText.textContent = label;
-  innerG.appendChild(nameText);
-
-  // Methods list
-  const fontSize = getLabelFontSize('inline', scale);
-  const maxMethods = Math.min(methods.length, 5);
-  for (let i = 0; i < maxMethods; i++) {
-    const y = -hh + headerH + 12 + i * rowH;
-    const methodText = document.createElementNS(SVG_NS, 'text');
-    methodText.setAttribute('x', String(-hw + 12));
-    methodText.setAttribute('y', String(y));
-    methodText.setAttribute('text-anchor', 'start');
-    methodText.setAttribute('fill', color);
-    methodText.setAttribute('font-size', String(fontSize));
-    methodText.setAttribute('font-family', TYPOGRAPHY.fontCode);
-    methodText.setAttribute('opacity', '0.7');
-    methodText.textContent = methods[i];
-    innerG.appendChild(methodText);
+  // Label below
+  if (entity.label) {
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    text.textContent = entity.label;
+    innerG.appendChild(text);
   }
 
   applyEntranceAnimation(innerG, entity);

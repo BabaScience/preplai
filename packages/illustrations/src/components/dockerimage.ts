@@ -1,11 +1,15 @@
 /**
  * @preplai/illustrations — Docker Image Component
- * Stacked layers (3-4 horizontal bands) — layered image
+ *
+ * Clean rounded rectangle with stacked-layers icon inside.
+ * Use for: Docker images, container images, OCI images.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderDockerImage(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -17,31 +21,60 @@ export function renderDockerImage(entity: VisualEntity, parentEl: SVGElement): S
   const gradId = `grad-dockerimg-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const w = s * 1.4;
-  const layerCount = 4;
-  const layerH = (s * 0.9) / layerCount;
-  const startY = -s * 0.45;
+  const w = s * 0.85;
+  const h = s * 0.7;
+  const hw = w / 2;
+  const hh = h / 2;
+  const rx = 6;
 
-  for (let i = 0; i < layerCount; i++) {
-    const y = startY + i * layerH;
-    const layer = document.createElementNS(SVG_NS, 'rect');
-    layer.setAttribute('x', String(-w / 2));
-    layer.setAttribute('y', String(y));
-    layer.setAttribute('width', String(w));
-    layer.setAttribute('height', String(layerH - 2));
-    layer.setAttribute('rx', '2');
-    const alphas = ['15', '20', '28', '35'];
-    layer.setAttribute('fill', `${color}${alphas[i] ?? '25'}`);
-    layer.setAttribute('stroke', color);
-    layer.setAttribute('stroke-width', String(SHAPES.strokeWidthThin));
-    innerG.appendChild(layer);
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(rx + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
   }
 
+  // Body
+  const body = document.createElementNS(SVG_NS, 'rect');
+  body.setAttribute('x', String(-hw));
+  body.setAttribute('y', String(-hh));
+  body.setAttribute('width', String(w));
+  body.setAttribute('height', String(h));
+  body.setAttribute('rx', String(rx));
+  body.setAttribute('fill', `url(#${gradId})`);
+  body.setAttribute('stroke', color);
+  body.setAttribute('stroke-width', String(STROKE.default));
+  innerG.appendChild(body);
+
+  // Layers icon: 3 horizontal lines (stacked layers)
+  const iconW = w * 0.35;
+  const lineSpacing = h * 0.14;
+  for (let i = -1; i <= 1; i++) {
+    const line = document.createElementNS(SVG_NS, 'line');
+    line.setAttribute('x1', String(-iconW / 2));
+    line.setAttribute('y1', String(i * lineSpacing));
+    line.setAttribute('x2', String(iconW / 2));
+    line.setAttribute('y2', String(i * lineSpacing));
+    line.setAttribute('stroke', color);
+    line.setAttribute('stroke-width', String(STROKE.default));
+    line.setAttribute('stroke-linecap', 'round');
+    innerG.appendChild(line);
+  }
+
+  // Label below
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(s / 2 + 18));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));

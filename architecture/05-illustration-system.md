@@ -983,7 +983,68 @@ All 88 entity types currently in the system, organized by category. Each row sho
 | `NeuralNetwork` | `#b388ff` | Neural network layer diagram — columns of circle neurons per layer (input, hidden×N, output), weighted edge lines between layers, activation labels |
 | `DecisionBoundary` | `#00e5ff` | 2D classification plot — coordinate plane with colored point clusters and decision boundary line/curve separating classes |
 
-**Total: 89 entity types** across 13 categories.
+**Total: 153 dedicated entity types** across 13+ categories, plus **Composable** for unlimited domain coverage.
+
+---
+
+## 8.14 Composable Engine (Tier 2 + Tier 3)
+
+The Composable engine handles entity types without dedicated renderers — covering finance, legal, healthcare, education, consulting, and any future domain.
+
+### Architecture
+
+```
+Registry lookup (Tier 1)
+    → miss → check metadata.shape or metadata.icon (Tier 2: Composable)
+    → miss → resolveSemanticType(entity.type) (Tier 3: auto-map)
+    → miss → return null
+```
+
+### Tier 2: Explicit Composable
+
+Agent specifies `type: "Composable"` with metadata:
+
+```json
+{
+  "type": "Composable",
+  "label": "Fund Vehicle",
+  "metadata": {
+    "shape": "shield",
+    "icon": "landmark",
+    "style": "default",
+    "iconColor": "#4A90D9",
+    "badgeLabel": "PE"
+  }
+}
+```
+
+**Shapes** (15): rect, circle, hexagon, diamond, shield, cylinder, document, stadium, pill, parallelogram, pentagon, octagon, triangle, trapezoid, cloud
+
+**Icons** (200+): Categorized into finance, business, product, general, tech, healthcare, education, manufacturing, marketing, HR, sustainability, communication, data
+
+**Styles**: default, minimal, emphasized, outlined
+
+### Tier 3: Semantic Resolver
+
+Unknown type names are auto-mapped via substring matching:
+
+```
+"FundVehicle"     → shield + landmark (keyword: "fund")
+"ContractReview"  → document + scroll (keyword: "contract")
+"MarketAnalysis"  → hexagon + globe (keyword: "market")
+"PatientRecord"   → circle + heart-pulse (keyword: "patient")
+```
+
+~100+ keyword mappings across finance, legal, business, product, healthcare, education, infrastructure, and workflow domains.
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `composable-shapes.ts` | 15 shape primitives with gradient fill + highlight |
+| `icon-paths.ts` | 200+ SVG icon paths (24×24 viewBox) |
+| `composable.ts` | Main renderer: shape + icon + label + badge |
+| `semantic-resolver.ts` | Tier 3 auto-mapping: type name → shape + icon |
 
 ---
 

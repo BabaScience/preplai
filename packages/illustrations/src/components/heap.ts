@@ -1,8 +1,12 @@
 /**
  * @preplai/illustrations — Heap Component
- * Binary heap (min/max) as complete binary tree in level-order
+ *
+ * Clean binary heap as tree with circles and edges.
+ * Use for: min-heaps, max-heaps, priority queues.
  *
  * Metadata: { nodes: number[] } — level-order values
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
@@ -17,14 +21,6 @@ import {
 import { treeLayout, treeFromFlatNodes, type FlatNodeSpec } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
 
-function parseNodes(meta: Record<string, unknown>): (string | number | FlatNodeSpec)[] {
-  const raw = meta.nodes as (string | number)[] | undefined;
-  if (!Array.isArray(raw) || raw.length === 0) {
-    return [10, 8, 6, 5, 3, 2];
-  }
-  return raw.slice(0, 15).map((v) => (typeof v === 'number' || typeof v === 'string' ? v : { value: 0 }));
-}
-
 export function renderHeap(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
@@ -36,7 +32,11 @@ export function renderHeap(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   createRadialGradient(gradId, color, defs);
 
   const meta = entity.metadata ?? {};
-  const nodesArr = parseNodes(meta);
+  const raw = (meta.nodes as (string | number)[]) ?? [10, 8, 6, 5, 3, 2];
+  const nodesArr = raw.slice(0, 15).map((v) =>
+    typeof v === 'number' || typeof v === 'string' ? v : ({ value: 0 } as FlatNodeSpec)
+  );
+
   const tree = treeFromFlatNodes(nodesArr);
   if (!tree) {
     const fallback = document.createElementNS(SVG_NS, 'text');
@@ -54,10 +54,10 @@ export function renderHeap(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   const nodeR = 9 * scale;
   const dx = s * 0.85;
   const dy = s * 0.55;
-  const layoutResult = treeLayout(tree, 0, -s / 3, dx, dy, { nodeRadius: nodeR });
-  const { nodes, edges } = layoutResult;
+  const { nodes, edges } = treeLayout(tree, 0, -s / 3, dx, dy, { nodeRadius: nodeR });
   const bottomY = nodes.length > 0 ? Math.max(...nodes.map((n) => n.y)) : s / 2;
 
+  // Edges
   edges.forEach(({ x1, y1, x2, y2 }) => {
     const line = document.createElementNS(SVG_NS, 'line');
     line.setAttribute('x1', String(x1));
@@ -70,6 +70,7 @@ export function renderHeap(entity: VisualEntity, parentEl: SVGElement): SVGGElem
     innerG.appendChild(line);
   });
 
+  // Nodes
   nodes.forEach(({ x, y, value }) => {
     const circle = document.createElementNS(SVG_NS, 'circle');
     circle.setAttribute('cx', String(x));
@@ -93,6 +94,7 @@ export function renderHeap(entity: VisualEntity, parentEl: SVGElement): SVGGElem
     innerG.appendChild(text);
   });
 
+  // Label below
   if (entity.label) {
     const label = document.createElementNS(SVG_NS, 'text');
     label.setAttribute('x', '0');

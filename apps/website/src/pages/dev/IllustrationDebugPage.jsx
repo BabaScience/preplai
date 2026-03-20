@@ -1,14 +1,18 @@
 import { useState, useCallback, useEffect } from 'react';
 import { registry } from '@preplai/illustrations';
 import { ENTITY_DEFAULTS, isConnectionType } from '@preplai/shared';
-import { METADATA_DEFAULTS, ENTITY_FIELD_DEFAULTS } from './entity-defaults';
+import { METADATA_DEFAULTS, ENTITY_FIELD_DEFAULTS, COMPOSABLE_SHOWCASE } from './entity-defaults';
 import IllustrationPreview from './IllustrationPreview';
 import EntityParamPanel from './EntityParamPanel';
 
-const EXCLUDED_TYPES = new Set(['Label', 'GraphDS', 'GraphTraversal', 'LogicGate', 'Mutex', 'NumberLine', 'ProcessBlock', 'Proof', 'QueryPlan', 'Register', 'Registry', 'StateNode']);
-const ENTITY_TYPES = Object.keys(registry)
-  .filter((type) => !EXCLUDED_TYPES.has(type))
-  .sort();
+const EXCLUDED_TYPES = new Set(['Label', 'GraphDS', 'GraphTraversal', 'NumberLine', 'ProcessBlock', 'Proof', 'QueryPlan', 'Register', 'Registry', 'StateNode']);
+const COMPOSABLE_VARIANTS = Object.keys(COMPOSABLE_SHOWCASE);
+const ENTITY_TYPES = [
+  ...Object.keys(registry)
+    .filter((type) => !EXCLUDED_TYPES.has(type))
+    .sort(),
+  ...COMPOSABLE_VARIANTS,
+];
 
 const STORAGE_KEY = 'preplai-illustration-debug-reviewed';
 
@@ -32,6 +36,22 @@ function saveReviewedToStorage(checked) {
 }
 
 function buildDefaultEntity(type, overrides = {}) {
+  // Handle composable showcase variants (e.g. "Composable: Fund Vehicle")
+  const showcase = COMPOSABLE_SHOWCASE[type];
+  if (showcase) {
+    const base = {
+      ...ENTITY_DEFAULTS,
+      id: 'debug-1',
+      type: 'Composable',
+      position: { x: 50, y: 50 },
+      label: showcase.label,
+      size: 2.5,
+      metadata: JSON.parse(JSON.stringify(showcase.metadata)),
+      ...overrides,
+    };
+    return base;
+  }
+
   const base = {
     ...ENTITY_DEFAULTS,
     id: 'debug-1',

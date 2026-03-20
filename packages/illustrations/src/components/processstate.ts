@@ -1,8 +1,8 @@
 /**
  * @preplai/illustrations — ProcessState Component
  *
- * Process state diagram: Ready / Running / Blocked with transitions.
- * State-specific colors: ready=amber, running=green, blocked=red.
+ * Process state diagram with clean circles and transition arrows.
+ * Use for: Ready/Running/Blocked diagrams, state machines.
  *
  * Metadata: { states: [{ name, type }], transitions?: [{ from, to }] }
  */
@@ -20,15 +20,8 @@ import {
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
-interface StateDef {
-  name: string;
-  type?: 'ready' | 'running' | 'blocked';
-}
-
-interface TransitionDef {
-  from: string;
-  to: string;
-}
+interface StateDef { name: string; type?: 'ready' | 'running' | 'blocked'; }
+interface TransitionDef { from: string; to: string; }
 
 const STATE_COLORS: Record<string, string> = {
   ready: '#ffab00',
@@ -36,30 +29,21 @@ const STATE_COLORS: Record<string, string> = {
   blocked: '#ff5252',
 };
 
-function getStateColor(st: StateDef, defaultColor: string): string {
-  const t = (st.type ?? '').toLowerCase();
-  return STATE_COLORS[t] ?? defaultColor;
-}
-
 export function renderProcessState(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
   const scale = s / 50;
-  const strokeWidth = getStrokeWidth('default', scale);
-  const stateFontSize = getLabelFontSize('value', scale);
+  const strokeWidth = getStrokeWidth('thin', scale);
   const defaultColor = entity.color ?? getCategoryColor('ProcessState');
 
   const meta = entity.metadata ?? {};
-  const statesData = meta.states as StateDef[] | undefined;
-  const transitionsData = meta.transitions as TransitionDef[] | undefined;
-
-  const states: StateDef[] = statesData ?? [
+  const states: StateDef[] = (meta.states as StateDef[]) ?? [
     { name: 'Ready', type: 'ready' },
     { name: 'Running', type: 'running' },
     { name: 'Blocked', type: 'blocked' },
   ];
-  const transitions: TransitionDef[] = transitionsData ?? [
+  const transitions: TransitionDef[] = (meta.transitions as TransitionDef[]) ?? [
     { from: 'Ready', to: 'Running' },
     { from: 'Running', to: 'Ready' },
     { from: 'Running', to: 'Blocked' },
@@ -67,13 +51,14 @@ export function renderProcessState(entity: VisualEntity, parentEl: SVGElement): 
   ];
 
   const defs = ensureDefs(parentEl);
+  const r = s * 0.28;
+  const spacing = s * 0.6;
 
-  const r = s * 0.32;
-  const spacing = s * 0.65;
+  // Position states
   const positions: Record<string, { x: number; y: number }> = {};
   if (states.length === 3) {
     positions[states[0].name] = { x: -spacing, y: 0 };
-    positions[states[1].name] = { x: 0, y: -spacing * 0.65 };
+    positions[states[1].name] = { x: 0, y: -spacing * 0.6 };
     positions[states[2].name] = { x: spacing, y: 0 };
   } else {
     states.forEach((st, i) => {
@@ -82,22 +67,24 @@ export function renderProcessState(entity: VisualEntity, parentEl: SVGElement): 
     });
   }
 
+  // Arrow marker
   const markerId = `arrow-ps-${entity.id.replace(/[^a-z0-9]/gi, '')}`;
   if (!defs.querySelector(`#${markerId}`)) {
     const marker = document.createElementNS(SVG_NS, 'marker');
     marker.setAttribute('id', markerId);
-    marker.setAttribute('markerWidth', '10');
-    marker.setAttribute('markerHeight', '8');
-    marker.setAttribute('refX', '9');
-    marker.setAttribute('refY', '4');
+    marker.setAttribute('markerWidth', '8');
+    marker.setAttribute('markerHeight', '6');
+    marker.setAttribute('refX', '7');
+    marker.setAttribute('refY', '3');
     marker.setAttribute('orient', 'auto');
     const poly = document.createElementNS(SVG_NS, 'polygon');
-    poly.setAttribute('points', '0 0, 10 4, 0 8');
-    poly.setAttribute('fill', colorWithAlpha(defaultColor, OPACITY.strokeSoft));
+    poly.setAttribute('points', '0 0, 8 3, 0 6');
+    poly.setAttribute('fill', colorWithAlpha(defaultColor, OPACITY.strokeMuted));
     marker.appendChild(poly);
     defs.appendChild(marker);
   }
 
+  // Transition lines
   transitions.forEach(({ from, to }) => {
     const p1 = positions[from];
     const p2 = positions[to];
@@ -107,67 +94,51 @@ export function renderProcessState(entity: VisualEntity, parentEl: SVGElement): 
     const len = Math.sqrt(dx * dx + dy * dy) || 1;
     const nx = dx / len;
     const ny = dy / len;
-    const trim = r + 6;
-    const x1 = p1.x + nx * trim;
-    const y1 = p1.y + ny * trim;
-    const x2 = p2.x - nx * trim;
-    const y2 = p2.y - ny * trim;
+    const trim = r + 5;
 
     const line = document.createElementNS(SVG_NS, 'line');
-    line.setAttribute('x1', String(x1));
-    line.setAttribute('y1', String(y1));
-    line.setAttribute('x2', String(x2));
-    line.setAttribute('y2', String(y2));
-    line.setAttribute('stroke', colorWithAlpha(defaultColor, OPACITY.strokeSoft));
+    line.setAttribute('x1', String(p1.x + nx * trim));
+    line.setAttribute('y1', String(p1.y + ny * trim));
+    line.setAttribute('x2', String(p2.x - nx * trim));
+    line.setAttribute('y2', String(p2.y - ny * trim));
+    line.setAttribute('stroke', colorWithAlpha(defaultColor, OPACITY.strokeMuted));
     line.setAttribute('stroke-width', String(strokeWidth));
     line.setAttribute('stroke-linecap', 'round');
     line.setAttribute('marker-end', `url(#${markerId})`);
     innerG.appendChild(line);
   });
 
+  // State circles
   states.forEach((st) => {
     const pos = positions[st.name] ?? { x: 0, y: 0 };
-    const stateColor = getStateColor(st, defaultColor);
-    const gradId = `grad-ps-${entity.id.replace(/[^a-z0-9]/gi, '')}-${st.name}`;
-    if (!defs.querySelector(`#${gradId}`)) {
-      createLinearGradient(gradId, stateColor, 'vertical', defs);
+    const stateColor = STATE_COLORS[(st.type ?? '').toLowerCase()] ?? defaultColor;
+    const gId = `grad-ps-${entity.id.replace(/[^a-z0-9]/gi, '')}-${st.name}`;
+    if (!defs.querySelector(`#${gId}`)) {
+      createLinearGradient(gId, stateColor, 'vertical', defs);
     }
 
     const circle = document.createElementNS(SVG_NS, 'circle');
     circle.setAttribute('cx', String(pos.x));
     circle.setAttribute('cy', String(pos.y));
     circle.setAttribute('r', String(r));
-    circle.setAttribute('fill', `url(#${gradId})`);
+    circle.setAttribute('fill', `url(#${gId})`);
     circle.setAttribute('stroke', stateColor);
     circle.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(circle);
 
-    const dotR = r * 0.2;
-    const dot = document.createElementNS(SVG_NS, 'circle');
-    dot.setAttribute('cx', String(pos.x));
-    dot.setAttribute('cy', String(pos.y - r * 0.4));
-    dot.setAttribute('r', String(dotR));
-    if (st.type === 'running') {
-      dot.setAttribute('fill', stateColor);
-    } else {
-      dot.setAttribute('fill', 'none');
-      dot.setAttribute('stroke', stateColor);
-      dot.setAttribute('stroke-width', String(strokeWidth * 0.6));
-    }
-    innerG.appendChild(dot);
-
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', String(pos.x));
-    text.setAttribute('y', String(pos.y + r * 0.5 + 4));
+    text.setAttribute('y', String(pos.y + r + LABEL_DEFAULTS.offsetBelow * 0.7));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', stateColor);
-    text.setAttribute('font-size', String(stateFontSize));
-    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
+    text.setAttribute('font-size', String(getLabelFontSize('value', scale)));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     text.textContent = st.name;
     innerG.appendChild(text);
   });
 
+  // Label below
   if (entity.label) {
     const labelEl = document.createElementNS(SVG_NS, 'text');
     labelEl.setAttribute('x', '0');

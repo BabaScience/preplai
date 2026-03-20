@@ -1,7 +1,12 @@
 /**
  * @preplai/illustrations — HashTable / Dict Component
- * Grid of key→value pairs; bucket slots with key:value labels.
- * Used for both HashTable and Dict entity types.
+ *
+ * Clean grid of key→value pairs.
+ * Use for: hash tables, dictionaries, maps, key-value stores.
+ *
+ * Metadata: { pairs: [string, string][], cols?: number }
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
@@ -14,127 +19,103 @@ import {
   OPACITY,
   TYPOGRAPHY,
   SHAPES,
+  STROKE,
   LABEL_DEFAULTS,
 } from '../design-tokens.js';
-import { gridLayoutFromPairs } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
-
-/** Truncate text to fit within pixel width; ~0.6em per char for typical bold font */
-function truncateToFit(text: string, maxWidth: number, fontSize: number): string {
-  const approxCharWidth = fontSize * 0.6;
-  const maxChars = Math.max(1, Math.floor(maxWidth / approxCharWidth));
-  if (text.length <= maxChars) return text;
-  return text.slice(0, maxChars - 1) + '…';
-}
 
 export function renderHashTable(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
   const scale = s / 50;
-  const strokeWidth = getStrokeWidth('minimal', 1);
   const color = entity.color ?? getCategoryColor(entity.type);
   const defs = ensureDefs(parentEl);
   const gradId = `grad-ht-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
-  const pairs = (meta.pairs as [string, string][]) ?? [
-    ['a', '1'],
-    ['b', '2'],
-    ['k', 'v'],
-  ];
+  const pairs = ((meta.pairs as [string, string][]) ?? [['a', '1'], ['b', '2'], ['k', 'v']]).slice(0, 8);
   const cols = Math.max(1, Math.min(4, (meta.cols as number) ?? 2));
-  const visiblePairs = pairs.slice(0, 8);
 
-  const cellW = 44;
-  const cellH = 22;
-  const gap = 4;
-  const cells = gridLayoutFromPairs(visiblePairs, {
-    cols,
-    cellWidth: cellW,
-    cellHeight: cellH,
-    gap,
-  });
+  const cellW = 44 * scale;
+  const cellH = 22 * scale;
+  const gap = 4 * scale;
 
-  const scaleGroup = document.createElementNS(SVG_NS, 'g');
-  scaleGroup.setAttribute('transform', `scale(${scale})`);
+  const rows = Math.ceil(pairs.length / cols);
+  const totalW = cols * cellW + (cols - 1) * gap;
+  const totalH = rows * cellH + (rows - 1) * gap;
 
-  const fontSize = getLabelFontSize('value', 1) / scale;
-  const keyColor = colorWithAlpha(color, OPACITY.strokeSoft);
-  const halfW = cellW / scale / 2;
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-totalW / 2 - 3));
+    glow.setAttribute('y', String(-totalH / 2 - 3));
+    glow.setAttribute('width', String(totalW + 6));
+    glow.setAttribute('height', String(totalH + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
 
-  cells.forEach(({ x, y, width, height }, i) => {
-    const [key, val] = visiblePairs[i] ?? ['', ''];
-    const cellLeft = x - width / 2;
-    const cellTop = y - height / 2;
+  pairs.forEach(([key, val], i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const x = -totalW / 2 + col * (cellW + gap) + cellW / 2;
+    const y = -totalH / 2 + row * (cellH + gap) + cellH / 2;
 
     const cell = document.createElementNS(SVG_NS, 'rect');
-    cell.setAttribute('x', String(cellLeft));
-    cell.setAttribute('y', String(cellTop));
-    cell.setAttribute('width', String(width));
-    cell.setAttribute('height', String(height));
+    cell.setAttribute('x', String(x - cellW / 2));
+    cell.setAttribute('y', String(y - cellH / 2));
+    cell.setAttribute('width', String(cellW));
+    cell.setAttribute('height', String(cellH));
     cell.setAttribute('rx', String(Math.max(1, SHAPES.borderRadius - 2)));
     cell.setAttribute('fill', `url(#${gradId})`);
     cell.setAttribute('stroke', color);
-    cell.setAttribute('stroke-width', String(strokeWidth));
-    cell.setAttribute('stroke-linejoin', 'round');
-    scaleGroup.appendChild(cell);
+    cell.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
+    innerG.appendChild(cell);
 
+    // Divider
     const divider = document.createElementNS(SVG_NS, 'line');
     divider.setAttribute('x1', String(x));
-    divider.setAttribute('y1', String(cellTop + 2));
+    divider.setAttribute('y1', String(y - cellH / 2 + 2));
     divider.setAttribute('x2', String(x));
-    divider.setAttribute('y2', String(cellTop + height - 2));
+    divider.setAttribute('y2', String(y + cellH / 2 - 2));
     divider.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
-    divider.setAttribute('stroke-width', String(strokeWidth * 0.5));
-    scaleGroup.appendChild(divider);
+    divider.setAttribute('stroke-width', String(getStrokeWidth('minimal', scale) * 0.5));
+    innerG.appendChild(divider);
 
-    const usableHalf = width / 2 - 4;
-    const displayKey = truncateToFit(key, usableHalf, fontSize);
-    const displayVal = truncateToFit(val, usableHalf, fontSize);
+    const fontSize = getLabelFontSize('value', scale);
 
-    const clipId = `clip-dict-${entity.id.replace(/[^a-z0-9]/gi, '')}-${i}`;
-    const clipPath = document.createElementNS(SVG_NS, 'clipPath');
-    clipPath.setAttribute('id', clipId);
-    const clipRect = document.createElementNS(SVG_NS, 'rect');
-    clipRect.setAttribute('x', String(cellLeft + 2));
-    clipRect.setAttribute('y', String(cellTop + 2));
-    clipRect.setAttribute('width', String(width - 4));
-    clipRect.setAttribute('height', String(height - 4));
-    clipPath.appendChild(clipRect);
-    defs.appendChild(clipPath);
-
+    // Key (left)
     const keyText = document.createElementNS(SVG_NS, 'text');
-    keyText.setAttribute('x', String(x - halfW / 2));
+    keyText.setAttribute('x', String(x - cellW / 4));
     keyText.setAttribute('y', String(y + 4));
-    keyText.setAttribute('text-anchor', 'end');
-    keyText.setAttribute('fill', keyColor);
+    keyText.setAttribute('text-anchor', 'middle');
+    keyText.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
     keyText.setAttribute('font-size', String(fontSize));
     keyText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     keyText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-    keyText.setAttribute('clip-path', `url(#${clipId})`);
-    keyText.textContent = displayKey;
-    scaleGroup.appendChild(keyText);
+    keyText.textContent = key.slice(0, 6);
+    innerG.appendChild(keyText);
 
+    // Value (right)
     const valText = document.createElementNS(SVG_NS, 'text');
-    valText.setAttribute('x', String(x + halfW / 2));
+    valText.setAttribute('x', String(x + cellW / 4));
     valText.setAttribute('y', String(y + 4));
-    valText.setAttribute('text-anchor', 'start');
+    valText.setAttribute('text-anchor', 'middle');
     valText.setAttribute('fill', color);
     valText.setAttribute('font-size', String(fontSize));
     valText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
     valText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-    valText.setAttribute('clip-path', `url(#${clipId})`);
-    valText.textContent = displayVal;
-    scaleGroup.appendChild(valText);
+    valText.textContent = val.slice(0, 6);
+    innerG.appendChild(valText);
   });
 
-  innerG.appendChild(scaleGroup);
-
-  const rows = Math.ceil(visiblePairs.length / cols);
-  const totalH = (rows * cellH + 8) * scale;
-
+  // Label below
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');

@@ -1,38 +1,47 @@
 /**
  * @preplai/illustrations — Deployment Component
- * Deployment target: card with rocket/upload icon + environment + version
- * Metadata: { environment?: string, version?: string, status?: 'live'|'rolling'|'failed' }
+ *
+ * Clean rect with upward arrow icon inside.
+ * Use for: deployment targets, releases, environments.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor, getStrokeWidth, getLabelFontSize,
-  TYPOGRAPHY, SHAPES, COLORS, STROKE,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderDeployment(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Deployment');
   const defs = ensureDefs(parentEl);
-  const gradId = `grad-deploy-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const gradId = `grad-deploy-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const meta = entity.metadata ?? {};
-  const env = (meta.environment as string) ?? entity.label ?? 'production';
-  const version = (meta.version as string) ?? '';
-  const status = (meta.status as string) ?? 'live';
-
-  const w = s * 1.4;
+  const w = s * 0.85;
   const h = s * 0.7;
   const hw = w / 2;
   const hh = h / 2;
 
-  // Card
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Body
   const card = document.createElementNS(SVG_NS, 'rect');
   card.setAttribute('x', String(-hw));
   card.setAttribute('y', String(-hh));
@@ -41,56 +50,39 @@ export function renderDeployment(entity: VisualEntity, parentEl: SVGElement): SV
   card.setAttribute('rx', String(SHAPES.borderRadius));
   card.setAttribute('fill', `url(#${gradId})`);
   card.setAttribute('stroke', color);
-  card.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
+  card.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(card);
 
-  // Upload/rocket icon (upward arrow)
-  const rocketG = document.createElementNS(SVG_NS, 'g');
-  rocketG.setAttribute('transform', `translate(${-hw + 18}, 0)`);
-  const rocketArrow = document.createElementNS(SVG_NS, 'path');
-  rocketArrow.setAttribute('d', 'M 0 8 L 0 -6 M -4 -2 L 0 -6 L 4 -2');
-  rocketArrow.setAttribute('stroke', color);
-  rocketArrow.setAttribute('stroke-width', String(STROKE.emphasized));
-  rocketArrow.setAttribute('fill', 'none');
-  rocketArrow.setAttribute('stroke-linecap', 'round');
-  rocketG.appendChild(rocketArrow);
-  // Base line
-  const base = document.createElementNS(SVG_NS, 'line');
-  base.setAttribute('x1', '-5');
-  base.setAttribute('y1', '8');
-  base.setAttribute('x2', '5');
-  base.setAttribute('y2', '8');
-  base.setAttribute('stroke', color);
-  base.setAttribute('stroke-width', String(STROKE.default));
-  base.setAttribute('opacity', '0.5');
-  rocketG.appendChild(base);
-  innerG.appendChild(rocketG);
+  // Upload arrow icon (stroke-based)
+  const is = s * 0.12;
+  const arrow = document.createElementNS(SVG_NS, 'path');
+  arrow.setAttribute('d', [
+    `M 0 ${is}`,
+    `L 0 ${-is}`,
+    `M ${-is * 0.6} ${-is * 0.3}`,
+    `L 0 ${-is}`,
+    `L ${is * 0.6} ${-is * 0.3}`,
+  ].join(' '));
+  arrow.setAttribute('fill', 'none');
+  arrow.setAttribute('stroke', color);
+  arrow.setAttribute('stroke-width', String(STROKE.default));
+  arrow.setAttribute('stroke-linecap', 'round');
+  arrow.setAttribute('stroke-linejoin', 'round');
+  innerG.appendChild(arrow);
 
-  // Environment name
-  const envText = document.createElementNS(SVG_NS, 'text');
-  envText.setAttribute('x', String(-hw + 34));
-  envText.setAttribute('y', String(-2));
-  envText.setAttribute('text-anchor', 'start');
-  envText.setAttribute('fill', color);
-  envText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
-  envText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
-  envText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-  envText.textContent = env;
-  innerG.appendChild(envText);
-
-  // Version + status
-  const statusColor = status === 'live' ? COLORS.green : status === 'failed' ? COLORS.red : COLORS.orange;
-  const infoStr = version ? `${version} · ${status}` : status;
-  const infoText = document.createElementNS(SVG_NS, 'text');
-  infoText.setAttribute('x', String(-hw + 34));
-  infoText.setAttribute('y', String(12));
-  infoText.setAttribute('text-anchor', 'start');
-  infoText.setAttribute('fill', statusColor);
-  infoText.setAttribute('font-size', String(getLabelFontSize('inline', scale)));
-  infoText.setAttribute('font-family', TYPOGRAPHY.fontCode);
-  infoText.setAttribute('opacity', '0.8');
-  infoText.textContent = infoStr;
-  innerG.appendChild(infoText);
+  // Label below
+  if (entity.label) {
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    text.textContent = entity.label;
+    innerG.appendChild(text);
+  }
 
   applyEntranceAnimation(innerG, entity);
   parentEl.appendChild(outerG);

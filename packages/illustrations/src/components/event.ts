@@ -1,31 +1,45 @@
 /**
  * @preplai/illustrations — Event Component
- * Domain event / message: hexagon with lightning bolt + event name
- * Metadata: { eventName?: string, payload?: string }
+ *
+ * Clean hexagon with lightning bolt icon inside.
+ * Use for: domain events, messages, signals.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor, getStrokeWidth, getLabelFontSize,
-  TYPOGRAPHY,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderEvent(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Event');
   const defs = ensureDefs(parentEl);
-  const gradId = `grad-event-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const gradId = `grad-event-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const label = entity.label ?? 'Event';
-  const r = s * 0.45;
+  const r = s * 0.38;
 
-  // Hexagon shape (event = signal)
+  // Highlight glow
+  if (entity.highlight) {
+    const glowHex = document.createElementNS(SVG_NS, 'polygon');
+    const glowPts: string[] = [];
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI / 3) * i - Math.PI / 6;
+      glowPts.push(`${(r + 3) * Math.cos(angle)},${(r + 3) * Math.sin(angle)}`);
+    }
+    glowHex.setAttribute('points', glowPts.join(' '));
+    glowHex.setAttribute('fill', 'none');
+    glowHex.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glowHex.setAttribute('stroke-width', String(STROKE.default));
+    glowHex.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glowHex);
+  }
+
+  // Hexagon
   const hex = document.createElementNS(SVG_NS, 'polygon');
   const points: string[] = [];
   for (let i = 0; i < 6; i++) {
@@ -35,27 +49,31 @@ export function renderEvent(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   hex.setAttribute('points', points.join(' '));
   hex.setAttribute('fill', `url(#${gradId})`);
   hex.setAttribute('stroke', color);
-  hex.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
+  hex.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(hex);
 
-  // Lightning bolt icon (small, centered)
+  // Lightning bolt icon (stroke-based)
+  const is = s * 0.08;
   const bolt = document.createElementNS(SVG_NS, 'path');
-  bolt.setAttribute('d', 'M 2,-8 L -3,-1 L 1,-1 L -2,8 L 3,1 L -1,1 Z');
-  bolt.setAttribute('fill', color);
-  bolt.setAttribute('opacity', '0.5');
+  bolt.setAttribute('d', `M ${is * 0.3} ${-is * 1.5} L ${-is * 0.5} ${is * 0.2} L ${is * 0.3} ${is * 0.2} L ${-is * 0.3} ${is * 1.5}`);
+  bolt.setAttribute('fill', 'none');
+  bolt.setAttribute('stroke', color);
+  bolt.setAttribute('stroke-width', String(STROKE.default));
+  bolt.setAttribute('stroke-linecap', 'round');
+  bolt.setAttribute('stroke-linejoin', 'round');
   innerG.appendChild(bolt);
 
   // Label below
-  if (label) {
+  if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(r + 18));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(r + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(getLabelFontSize('label', scale)));
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    text.textContent = label;
+    text.textContent = entity.label;
     innerG.appendChild(text);
   }
 

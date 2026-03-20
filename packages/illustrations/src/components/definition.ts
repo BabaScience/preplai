@@ -1,113 +1,85 @@
 /**
  * @preplai/illustrations — Definition Component
- * Term + definition card with left accent bar
+ *
+ * Clean rect with "Df" text inside.
+ * Use for: term definitions, glossary entries.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
-import {
-  SVG_NS,
-  buildEntityGroup,
-  applyEntranceAnimation,
-  getSizeParam,
-  wrapBodyText,
-  CHAR_WIDTH_RATIO,
-} from '../utils.js';
+import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor,
-  TYPOGRAPHY,
-  SHAPES,
-  getLabelFontSize,
-  getStrokeWidth,
-  colorWithAlpha,
-  OPACITY,
-  LABEL_DEFAULTS,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderDefinition(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Definition');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-def-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const meta = entity.metadata ?? {};
-  const term = (meta.term as string) ?? entity.label ?? 'Term';
-  const definition = (meta.definition as string) ?? entity.textContent ?? 'Definition goes here.';
+  const w = s * 0.85;
+  const h = s * 0.7;
+  const hw = w / 2;
+  const hh = h / 2;
 
-  const w = s * 2.2;
-  const h = s * 1.6;
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
 
+  // Body
   const card = document.createElementNS(SVG_NS, 'rect');
-  card.setAttribute('x', String(-w / 2));
-  card.setAttribute('y', String(-h / 2));
+  card.setAttribute('x', String(-hw));
+  card.setAttribute('y', String(-hh));
   card.setAttribute('width', String(w));
   card.setAttribute('height', String(h));
   card.setAttribute('rx', String(SHAPES.borderRadius));
   card.setAttribute('fill', `url(#${gradId})`);
   card.setAttribute('stroke', color);
-  card.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
+  card.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(card);
 
-  const clipId = `clip-def-${entity.id.replace(/[^a-zA-Z0-9-]/g, '')}`;
-  const clipPathEl = document.createElementNS(SVG_NS, 'clipPath');
-  clipPathEl.setAttribute('id', clipId);
-  const clipRect = document.createElementNS(SVG_NS, 'rect');
-  clipRect.setAttribute('x', String(-w / 2));
-  clipRect.setAttribute('y', String(-h / 2));
-  clipRect.setAttribute('width', String(w));
-  clipRect.setAttribute('height', String(h));
-  clipRect.setAttribute('rx', String(SHAPES.borderRadius));
-  clipPathEl.appendChild(clipRect);
-  defs.appendChild(clipPathEl);
-  innerG.setAttribute('clip-path', `url(#${clipId})`);
+  // "Df" text centered
+  const dfText = document.createElementNS(SVG_NS, 'text');
+  dfText.setAttribute('x', '0');
+  dfText.setAttribute('y', '2');
+  dfText.setAttribute('text-anchor', 'middle');
+  dfText.setAttribute('dominant-baseline', 'central');
+  dfText.setAttribute('fill', color);
+  dfText.setAttribute('font-size', String(s * 0.22));
+  dfText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
+  dfText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+  dfText.setAttribute('font-style', 'italic');
+  dfText.textContent = 'Df';
+  innerG.appendChild(dfText);
 
-  const accentBar = document.createElementNS(SVG_NS, 'rect');
-  accentBar.setAttribute('x', String(-w / 2));
-  accentBar.setAttribute('y', String(-h / 2));
-  accentBar.setAttribute('width', '4');
-  accentBar.setAttribute('height', String(h));
-  accentBar.setAttribute('rx', '2');
-  accentBar.setAttribute('fill', color);
-  accentBar.setAttribute('opacity', '0.8');
-  innerG.appendChild(accentBar);
-
-  const termText = document.createElementNS(SVG_NS, 'text');
-  termText.setAttribute('x', String(-w / 2 + 16));
-  termText.setAttribute('y', String(-h / 2 + 22));
-  termText.setAttribute('fill', color);
-  termText.setAttribute('font-size', String(TYPOGRAPHY.fontSizeTitle));
-  termText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightTitle));
-  termText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-  termText.textContent = term;
-  innerG.appendChild(termText);
-
-  const defFontSize = getLabelFontSize('value', scale);
-  const defStartX = -w / 2 + 16;
-  const defStartY = -h / 2 + 44;
-  const availableWidth = Math.max(60, w - 32);
-  const maxCharsPerLine = Math.max(8, Math.floor(availableWidth / (defFontSize * CHAR_WIDTH_RATIO)));
-  const { lines: defLines } = wrapBodyText(definition, maxCharsPerLine, 8);
-  const defLineHeight = defFontSize * LABEL_DEFAULTS.lineHeight;
-
-  const defGroup = document.createElementNS(SVG_NS, 'text');
-  defGroup.setAttribute('text-anchor', 'start');
-  defGroup.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
-  defGroup.setAttribute('font-size', String(defFontSize));
-  defGroup.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-  defGroup.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-
-  defLines.forEach((line, i) => {
-    const tspan = document.createElementNS(SVG_NS, 'tspan');
-    tspan.setAttribute('x', String(defStartX));
-    tspan.setAttribute('y', String(defStartY + i * defLineHeight));
-    tspan.textContent = line;
-    defGroup.appendChild(tspan);
-  });
-  innerG.appendChild(defGroup);
+  // Label below
+  if (entity.label) {
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    text.textContent = entity.label;
+    innerG.appendChild(text);
+  }
 
   applyEntranceAnimation(innerG, entity);
   parentEl.appendChild(outerG);

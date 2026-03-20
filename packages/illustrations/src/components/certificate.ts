@@ -1,36 +1,47 @@
 /**
  * @preplai/illustrations — Certificate Component
- * SSL/TLS certificate: card with shield icon + issuer + validity
- * Metadata: { issuer?: string, domain?: string, valid?: boolean }
+ *
+ * Clean rect with shield icon inside.
+ * Use for: SSL/TLS certificates, security credentials, trust certificates.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor, getStrokeWidth, getLabelFontSize,
-  TYPOGRAPHY, SHAPES, COLORS, STROKE,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderCertificate(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Certificate');
   const defs = ensureDefs(parentEl);
-  const gradId = `grad-cert-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const gradId = `grad-cert-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const meta = entity.metadata ?? {};
-  const domain = (meta.domain as string) ?? entity.label ?? '*.example.com';
-  const valid = meta.valid !== false;
-
-  const w = s * 1.4;
-  const h = s * 0.8;
+  const w = s * 0.85;
+  const h = s * 0.7;
   const hw = w / 2;
   const hh = h / 2;
 
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Body
   const card = document.createElementNS(SVG_NS, 'rect');
   card.setAttribute('x', String(-hw));
   card.setAttribute('y', String(-hh));
@@ -39,50 +50,40 @@ export function renderCertificate(entity: VisualEntity, parentEl: SVGElement): S
   card.setAttribute('rx', String(SHAPES.borderRadius));
   card.setAttribute('fill', `url(#${gradId})`);
   card.setAttribute('stroke', color);
-  card.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
+  card.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(card);
 
-  // Shield icon
+  // Shield icon (pointed bottom)
+  const is = s * 0.1;
   const shield = document.createElementNS(SVG_NS, 'path');
-  shield.setAttribute('d', `M ${-hw + 18} ${-8} L ${-hw + 10} ${-5} L ${-hw + 10} ${3} Q ${-hw + 10} ${8} ${-hw + 18} ${10} Q ${-hw + 26} ${8} ${-hw + 26} ${3} L ${-hw + 26} ${-5} Z`);
+  shield.setAttribute('d', [
+    `M 0 ${-is}`,
+    `L ${is * 0.8} ${-is * 0.5}`,
+    `L ${is * 0.8} ${is * 0.3}`,
+    `Q ${is * 0.8} ${is * 0.8} 0 ${is}`,
+    `Q ${-is * 0.8} ${is * 0.8} ${-is * 0.8} ${is * 0.3}`,
+    `L ${-is * 0.8} ${-is * 0.5}`,
+    'Z',
+  ].join(' '));
   shield.setAttribute('fill', 'none');
-  shield.setAttribute('stroke', valid ? COLORS.green : COLORS.red);
+  shield.setAttribute('stroke', color);
   shield.setAttribute('stroke-width', String(STROKE.default));
+  shield.setAttribute('stroke-linejoin', 'round');
   innerG.appendChild(shield);
 
-  // Checkmark or X
-  if (valid) {
-    const check = document.createElementNS(SVG_NS, 'path');
-    check.setAttribute('d', `M ${-hw + 14} ${0} L ${-hw + 17} ${3} L ${-hw + 22} ${-3}`);
-    check.setAttribute('fill', 'none');
-    check.setAttribute('stroke', COLORS.green);
-    check.setAttribute('stroke-width', String(STROKE.emphasized));
-    innerG.appendChild(check);
+  // Label below
+  if (entity.label) {
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    text.textContent = entity.label;
+    innerG.appendChild(text);
   }
-
-  // Domain name
-  const domainText = document.createElementNS(SVG_NS, 'text');
-  domainText.setAttribute('x', String(-hw + 34));
-  domainText.setAttribute('y', String(-2));
-  domainText.setAttribute('text-anchor', 'start');
-  domainText.setAttribute('fill', color);
-  domainText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
-  domainText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
-  domainText.setAttribute('font-family', TYPOGRAPHY.fontCode);
-  domainText.textContent = domain;
-  innerG.appendChild(domainText);
-
-  // SSL/TLS label
-  const sslText = document.createElementNS(SVG_NS, 'text');
-  sslText.setAttribute('x', String(-hw + 34));
-  sslText.setAttribute('y', String(12));
-  sslText.setAttribute('text-anchor', 'start');
-  sslText.setAttribute('fill', color);
-  sslText.setAttribute('font-size', String(getLabelFontSize('inline', scale)));
-  sslText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-  sslText.setAttribute('opacity', '0.6');
-  sslText.textContent = 'TLS Certificate';
-  innerG.appendChild(sslText);
 
   applyEntranceAnimation(innerG, entity);
   parentEl.appendChild(outerG);

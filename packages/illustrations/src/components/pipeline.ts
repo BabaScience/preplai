@@ -1,11 +1,15 @@
 /**
  * @preplai/illustrations — Pipeline Component
- * CI/CD pipeline: 4 chevron segments in sequence
+ *
+ * Clean horizontal row of chevron segments.
+ * Use for: CI/CD pipelines, data pipelines, processing stages.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderPipeline(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -17,47 +21,52 @@ export function renderPipeline(entity: VisualEntity, parentEl: SVGElement): SVGG
   const gradId = `grad-pipeline-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const segW = s * 0.35;
-  const segH = s * 0.5;
-  const gap = s * 0.08;
-  const totalW = segW * 4 + gap * 3;
+  const segCount = 3;
+  const segW = s * 0.28;
+  const segH = s * 0.4;
+  const gap = s * 0.06;
+  const totalW = segCount * segW + (segCount - 1) * gap;
 
-  for (let i = 0; i < 4; i++) {
-    const x = -totalW / 2 + i * (segW + gap) + segW / 2 + gap / 2;
-    // Chevron shape (simplified as a path)
-    const chevronPath = [
-      `M ${x - segW / 2} 0`,
-      `L ${x} ${-segH / 2}`,
-      `L ${x + segW / 2} 0`,
-      `L ${x} ${segH / 2}`,
-      'Z',
-    ].join(' ');
-    const seg = document.createElementNS(SVG_NS, 'path');
-    seg.setAttribute('d', chevronPath);
-    seg.setAttribute('fill', `url(#${gradId})`);
-    seg.setAttribute('stroke', color);
-    seg.setAttribute('stroke-width', '2');
-    seg.setAttribute('opacity', String(1 - i * 0.08));
-    innerG.appendChild(seg);
-
-    if (i < 3) {
-      const conn = document.createElementNS(SVG_NS, 'line');
-      conn.setAttribute('x1', String(x + segW / 2));
-      conn.setAttribute('y1', '0');
-      conn.setAttribute('x2', String(x + segW / 2 + gap));
-      conn.setAttribute('y2', '0');
-      conn.setAttribute('stroke', color);
-      conn.setAttribute('stroke-width', '1.5');
-      conn.setAttribute('opacity', '0.6');
-      innerG.appendChild(conn);
-    }
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-totalW / 2 - 5));
+    glow.setAttribute('y', String(-segH / 2 - 5));
+    glow.setAttribute('width', String(totalW + 10));
+    glow.setAttribute('height', String(segH + 10));
+    glow.setAttribute('rx', '5');
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
   }
 
+  for (let i = 0; i < segCount; i++) {
+    const cx = -totalW / 2 + segW / 2 + i * (segW + gap);
+    const chevron = document.createElementNS(SVG_NS, 'path');
+    chevron.setAttribute('d', [
+      `M ${cx - segW / 2} ${-segH / 2}`,
+      `L ${cx + segW / 4} ${-segH / 2}`,
+      `L ${cx + segW / 2} 0`,
+      `L ${cx + segW / 4} ${segH / 2}`,
+      `L ${cx - segW / 2} ${segH / 2}`,
+      `L ${cx - segW / 4} 0`,
+      'Z',
+    ].join(' '));
+    chevron.setAttribute('fill', `url(#${gradId})`);
+    chevron.setAttribute('stroke', color);
+    chevron.setAttribute('stroke-width', String(STROKE.default));
+    chevron.setAttribute('stroke-linejoin', 'round');
+    innerG.appendChild(chevron);
+  }
+
+  // Label below
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(s / 2 + 20));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(segH / 2 + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));

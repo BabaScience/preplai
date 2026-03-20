@@ -7,15 +7,14 @@ exports[`Visual Regression — SVG Snapshots > renders APIEndpoint without crash
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "rect": 2,
-    "text": 3,
+    "rect": 1,
+    "text": 2,
   },
   "textLabels": [
-    "GET",
-    "/api/users",
-    "200",
+    "API",
+    "APIEndpoint",
   ],
-  "totalElements": 6,
+  "totalElements": 4,
 }
 `;
 
@@ -25,16 +24,15 @@ exports[`Visual Regression — SVG Snapshots > renders APIGateway without crashi
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 4,
     "g": 1,
-    "line": 3,
     "path": 1,
+    "rect": 1,
     "text": 1,
   },
   "textLabels": [
     "APIGateway",
   ],
-  "totalElements": 10,
+  "totalElements": 4,
 }
 `;
 
@@ -45,16 +43,15 @@ exports[`Visual Regression — SVG Snapshots > renders Alert without crashing > 
   "rendered": true,
   "tagCounts": {
     "circle": 1,
-    "g": 2,
+    "g": 1,
     "path": 1,
-    "rect": 2,
-    "text": 2,
+    "rect": 1,
+    "text": 1,
   },
   "textLabels": [
     "Alert",
-    "FIRING",
   ],
-  "totalElements": 8,
+  "totalElements": 5,
 }
 `;
 
@@ -84,15 +81,15 @@ exports[`Visual Regression — SVG Snapshots > renders Annotation without crashi
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 2,
-    "path": 3,
+    "g": 1,
+    "path": 1,
+    "rect": 1,
     "text": 1,
-    "tspan": 1,
   },
   "textLabels": [
-    "Note text.",
+    "Annotation",
   ],
-  "totalElements": 7,
+  "totalElements": 4,
 }
 `;
 
@@ -276,16 +273,15 @@ exports[`Visual Regression — SVG Snapshots > renders Build without crashing > 
   "rendered": true,
   "tagCounts": {
     "circle": 1,
-    "g": 2,
-    "line": 4,
+    "g": 1,
+    "path": 1,
     "rect": 1,
-    "text": 2,
+    "text": 1,
   },
   "textLabels": [
-    "Build #847",
-    "success · 2m",
+    "Build",
   ],
-  "totalElements": 10,
+  "totalElements": 5,
 }
 `;
 
@@ -296,16 +292,14 @@ exports[`Visual Regression — SVG Snapshots > renders Bundle without crashing >
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "path": 2,
-    "text": 4,
+    "line": 2,
+    "rect": 2,
+    "text": 1,
   },
   "textLabels": [
-    "{ }",
-    "main.js",
-    "245 KB",
     "Bundle",
   ],
-  "totalElements": 7,
+  "totalElements": 6,
 }
 `;
 
@@ -315,15 +309,17 @@ exports[`Visual Regression — SVG Snapshots > renders CDN without crashing > pr
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 4,
-    "ellipse": 2,
+    "circle": 1,
+    "ellipse": 1,
     "g": 1,
+    "line": 1,
+    "rect": 1,
     "text": 1,
   },
   "textLabels": [
     "CDN",
   ],
-  "totalElements": 8,
+  "totalElements": 6,
 }
 `;
 
@@ -334,14 +330,13 @@ exports[`Visual Regression — SVG Snapshots > renders CPU without crashing > pr
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "rect": 13,
-    "text": 2,
+    "rect": 5,
+    "text": 1,
   },
   "textLabels": [
     "CPU",
-    "CPU",
   ],
-  "totalElements": 16,
+  "totalElements": 7,
 }
 `;
 
@@ -352,16 +347,16 @@ exports[`Visual Regression — SVG Snapshots > renders Cache without crashing > 
   "rendered": true,
   "tagCounts": {
     "ellipse": 2,
-    "g": 2,
-    "line": 4,
-    "path": 2,
+    "g": 1,
+    "line": 2,
+    "path": 1,
     "rect": 1,
     "text": 1,
   },
   "textLabels": [
     "Cache",
   ],
-  "totalElements": 12,
+  "totalElements": 8,
 }
 `;
 
@@ -411,17 +406,16 @@ exports[`Visual Regression — SVG Snapshots > renders Callout without crashing 
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 2,
-    "path": 2,
-    "rect": 2,
-    "text": 2,
-    "tspan": 1,
+    "circle": 2,
+    "g": 1,
+    "line": 1,
+    "rect": 1,
+    "text": 1,
   },
   "textLabels": [
-    "Note",
-    "Callout text.",
+    "Callout",
   ],
-  "totalElements": 9,
+  "totalElements": 6,
 }
 `;
 
@@ -432,15 +426,14 @@ exports[`Visual Regression — SVG Snapshots > renders Certificate without crash
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "path": 2,
+    "path": 1,
     "rect": 1,
-    "text": 2,
+    "text": 1,
   },
   "textLabels": [
-    "*.example.com",
-    "TLS Certificate",
+    "Certificate",
   ],
-  "totalElements": 6,
+  "totalElements": 4,
 }
 `;
 
@@ -450,16 +443,16 @@ exports[`Visual Regression — SVG Snapshots > renders CircuitBreaker without cr
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 5,
-    "g": 2,
-    "line": 3,
-    "text": 2,
+    "circle": 2,
+    "g": 1,
+    "line": 1,
+    "rect": 1,
+    "text": 1,
   },
   "textLabels": [
-    "CLOSED",
     "CircuitBreaker",
   ],
-  "totalElements": 12,
+  "totalElements": 6,
 }
 `;
 
@@ -470,23 +463,14 @@ exports[`Visual Regression — SVG Snapshots > renders ClassNode without crashin
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "line": 2,
-    "rect": 3,
-    "text": 13,
+    "rect": 1,
+    "text": 2,
   },
   "textLabels": [
+    "C",
     "ClassNode",
-    "-",
-    "id: string",
-    "-",
-    "name: string",
-    "+",
-    "email: string",
-    "+",
-    "save(): void",
-    "+",
   ],
-  "totalElements": 19,
+  "totalElements": 4,
 }
 `;
 
@@ -497,14 +481,13 @@ exports[`Visual Regression — SVG Snapshots > renders Cloud without crashing > 
   "rendered": true,
   "tagCounts": {
     "ellipse": 4,
-    "g": 2,
-    "line": 2,
+    "g": 1,
     "text": 1,
   },
   "textLabels": [
     "Cloud",
   ],
-  "totalElements": 9,
+  "totalElements": 6,
 }
 `;
 
@@ -576,18 +559,32 @@ exports[`Visual Regression — SVG Snapshots > renders ComponentNode without cra
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 1,
     "g": 1,
-    "line": 1,
     "rect": 1,
-    "text": 3,
+    "text": 2,
   },
   "textLabels": [
     "</>",
     "ComponentNode",
-    "ComponentNode",
   ],
-  "totalElements": 7,
+  "totalElements": 4,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Composable without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "rect": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Composable",
+  ],
+  "totalElements": 3,
 }
 `;
 
@@ -598,15 +595,14 @@ exports[`Visual Regression — SVG Snapshots > renders Concept without crashing 
   "rendered": true,
   "tagCounts": {
     "g": 2,
-    "path": 1,
-    "rect": 2,
+    "rect": 1,
     "text": 1,
     "tspan": 1,
   },
   "textLabels": [
     "Recursion",
   ],
-  "totalElements": 7,
+  "totalElements": 5,
 }
 `;
 
@@ -617,17 +613,15 @@ exports[`Visual Regression — SVG Snapshots > renders ConfigFile without crashi
   "rendered": true,
   "tagCounts": {
     "circle": 1,
-    "g": 2,
+    "g": 1,
     "line": 4,
-    "rect": 2,
-    "text": 3,
+    "rect": 1,
+    "text": 1,
   },
   "textLabels": [
-    ".env",
-    "PORT",
-    "3000",
+    "ConfigFile",
   ],
-  "totalElements": 12,
+  "totalElements": 8,
 }
 `;
 
@@ -664,13 +658,13 @@ exports[`Visual Regression — SVG Snapshots > renders Container without crashin
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "rect": 3,
+    "rect": 1,
     "text": 1,
   },
   "textLabels": [
     "Container",
   ],
-  "totalElements": 5,
+  "totalElements": 3,
 }
 `;
 
@@ -702,18 +696,16 @@ exports[`Visual Regression — SVG Snapshots > renders CronJob without crashing 
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 2,
-    "g": 2,
+    "circle": 1,
+    "g": 1,
     "line": 2,
-    "path": 1,
     "rect": 1,
-    "text": 2,
+    "text": 1,
   },
   "textLabels": [
     "CronJob",
-    "0 */6 * * *",
   ],
-  "totalElements": 10,
+  "totalElements": 6,
 }
 `;
 
@@ -741,18 +733,17 @@ exports[`Visual Regression — SVG Snapshots > renders DNSResolver without crash
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 10,
+    "circle": 1,
+    "ellipse": 1,
     "g": 1,
-    "line": 5,
-    "path": 1,
-    "polygon": 1,
+    "line": 1,
     "rect": 1,
     "text": 1,
   },
   "textLabels": [
     "DNSResolver",
   ],
-  "totalElements": 20,
+  "totalElements": 6,
 }
 `;
 
@@ -820,9 +811,8 @@ exports[`Visual Regression — SVG Snapshots > renders Database without crashing
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 9,
-    "ellipse": 3,
-    "g": 2,
+    "ellipse": 2,
+    "g": 1,
     "line": 2,
     "rect": 1,
     "text": 1,
@@ -830,7 +820,7 @@ exports[`Visual Regression — SVG Snapshots > renders Database without crashing
   "textLabels": [
     "Database",
   ],
-  "totalElements": 18,
+  "totalElements": 7,
 }
 `;
 
@@ -887,7 +877,7 @@ exports[`Visual Regression — SVG Snapshots > renders Decision without crashing
     "text": 2,
   },
   "textLabels": [
-    "Decision",
+    "?",
     "?",
   ],
   "totalElements": 4,
@@ -901,15 +891,13 @@ exports[`Visual Regression — SVG Snapshots > renders Decorator without crashin
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "line": 2,
     "rect": 2,
-    "text": 2,
+    "text": 1,
   },
   "textLabels": [
-    "fn",
     "Decorator",
   ],
-  "totalElements": 7,
+  "totalElements": 4,
 }
 `;
 
@@ -920,15 +908,14 @@ exports[`Visual Regression — SVG Snapshots > renders Definition without crashi
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "rect": 2,
+    "rect": 1,
     "text": 2,
-    "tspan": 1,
   },
   "textLabels": [
-    "Binary Search",
-    "A divide-and-conquer algorithm.",
+    "Df",
+    "Definition",
   ],
-  "totalElements": 6,
+  "totalElements": 4,
 }
 `;
 
@@ -938,16 +925,14 @@ exports[`Visual Regression — SVG Snapshots > renders Dependency without crashi
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 2,
-    "line": 2,
-    "rect": 2,
-    "text": 2,
+    "g": 1,
+    "rect": 1,
+    "text": 1,
   },
   "textLabels": [
     "Dependency",
-    "^4.18.2",
   ],
-  "totalElements": 8,
+  "totalElements": 3,
 }
 `;
 
@@ -957,17 +942,15 @@ exports[`Visual Regression — SVG Snapshots > renders Deployment without crashi
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 2,
-    "line": 1,
+    "g": 1,
     "path": 1,
     "rect": 1,
-    "text": 2,
+    "text": 1,
   },
   "textLabels": [
-    "production",
-    "v2.4 · live",
+    "Deployment",
   ],
-  "totalElements": 7,
+  "totalElements": 4,
 }
 `;
 
@@ -978,21 +961,14 @@ exports[`Visual Regression — SVG Snapshots > renders DeploymentStrategy withou
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "line": 2,
     "path": 1,
-    "polygon": 2,
-    "rect": 2,
-    "text": 6,
+    "rect": 1,
+    "text": 1,
   },
   "textLabels": [
-    "Blue",
-    "50%",
-    "Green",
-    "50%",
-    "Router",
     "DeploymentStrategy",
   ],
-  "totalElements": 14,
+  "totalElements": 4,
 }
 `;
 
@@ -1003,14 +979,13 @@ exports[`Visual Regression — SVG Snapshots > renders Device without crashing >
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "line": 3,
-    "rect": 3,
+    "rect": 2,
     "text": 1,
   },
   "textLabels": [
     "Device",
   ],
-  "totalElements": 8,
+  "totalElements": 4,
 }
 `;
 
@@ -1020,7 +995,7 @@ exports[`Visual Regression — SVG Snapshots > renders Dict without crashing > p
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 2,
+    "g": 1,
     "line": 2,
     "rect": 2,
     "text": 5,
@@ -1032,7 +1007,7 @@ exports[`Visual Regression — SVG Snapshots > renders Dict without crashing > p
     "30",
     "Dict",
   ],
-  "totalElements": 11,
+  "totalElements": 10,
 }
 `;
 
@@ -1043,7 +1018,8 @@ exports[`Visual Regression — SVG Snapshots > renders DockerImage without crash
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "rect": 4,
+    "line": 3,
+    "rect": 1,
     "text": 1,
   },
   "textLabels": [
@@ -1059,15 +1035,14 @@ exports[`Visual Regression — SVG Snapshots > renders DockerRegistry without cr
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "ellipse": 3,
     "g": 1,
-    "path": 1,
+    "rect": 5,
     "text": 1,
   },
   "textLabels": [
     "DockerRegistry",
   ],
-  "totalElements": 6,
+  "totalElements": 7,
 }
 `;
 
@@ -1138,17 +1113,15 @@ exports[`Visual Regression — SVG Snapshots > renders ErrorState without crashi
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 1,
-    "g": 2,
+    "g": 1,
     "line": 2,
-    "rect": 2,
-    "text": 2,
+    "rect": 1,
+    "text": 1,
   },
   "textLabels": [
-    "TypeError (500)",
-    "Cannot read property",
+    "ErrorState",
   ],
-  "totalElements": 9,
+  "totalElements": 5,
 }
 `;
 
@@ -1255,15 +1228,15 @@ exports[`Visual Regression — SVG Snapshots > renders Firewall without crashing
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 2,
-    "line": 2,
+    "g": 1,
+    "path": 1,
     "rect": 1,
     "text": 1,
   },
   "textLabels": [
     "Firewall",
   ],
-  "totalElements": 6,
+  "totalElements": 4,
 }
 `;
 
@@ -1435,14 +1408,13 @@ exports[`Visual Regression — SVG Snapshots > renders Group without crashing > 
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "line": 8,
     "rect": 1,
     "text": 1,
   },
   "textLabels": [
     "Group",
   ],
-  "totalElements": 11,
+  "totalElements": 3,
 }
 `;
 
@@ -1503,15 +1475,14 @@ exports[`Visual Regression — SVG Snapshots > renders HTTPRequest without crash
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "line": 1,
-    "rect": 2,
-    "text": 2,
+    "path": 1,
+    "rect": 1,
+    "text": 1,
   },
   "textLabels": [
-    "→",
-    "POST /api/auth",
+    "HTTPRequest",
   ],
-  "totalElements": 6,
+  "totalElements": 4,
 }
 `;
 
@@ -1522,16 +1493,14 @@ exports[`Visual Regression — SVG Snapshots > renders HTTPResponse without cras
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "line": 1,
-    "rect": 2,
-    "text": 3,
+    "path": 1,
+    "rect": 1,
+    "text": 1,
   },
   "textLabels": [
-    "←",
     "HTTPResponse",
-    "{"ok":true}",
   ],
-  "totalElements": 7,
+  "totalElements": 4,
 }
 `;
 
@@ -1541,7 +1510,7 @@ exports[`Visual Regression — SVG Snapshots > renders HashTable without crashin
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 2,
+    "g": 1,
     "line": 2,
     "rect": 2,
     "text": 5,
@@ -1553,7 +1522,7 @@ exports[`Visual Regression — SVG Snapshots > renders HashTable without crashin
     "v2",
     "HashTable",
   ],
-  "totalElements": 11,
+  "totalElements": 10,
 }
 `;
 
@@ -1608,18 +1577,15 @@ exports[`Visual Regression — SVG Snapshots > renders Interface without crashin
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 1,
     "g": 1,
-    "rect": 2,
-    "text": 4,
+    "rect": 1,
+    "text": 2,
   },
   "textLabels": [
     "I",
     "Interface",
-    "getUser()",
-    "createUser()",
   ],
-  "totalElements": 8,
+  "totalElements": 4,
 }
 `;
 
@@ -1630,15 +1596,14 @@ exports[`Visual Regression — SVG Snapshots > renders Label without crashing > 
   "rendered": true,
   "tagCounts": {
     "g": 2,
-    "path": 1,
-    "rect": 2,
+    "rect": 1,
     "text": 1,
     "tspan": 1,
   },
   "textLabels": [
     "Label",
   ],
-  "totalElements": 7,
+  "totalElements": 5,
 }
 `;
 
@@ -1666,7 +1631,7 @@ exports[`Visual Regression — SVG Snapshots > renders LinkedList without crashi
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 2,
+    "g": 1,
     "line": 2,
     "rect": 3,
     "text": 4,
@@ -1677,7 +1642,7 @@ exports[`Visual Regression — SVG Snapshots > renders LinkedList without crashi
     "3",
     "LinkedList",
   ],
-  "totalElements": 11,
+  "totalElements": 10,
 }
 `;
 
@@ -1731,13 +1696,12 @@ exports[`Visual Regression — SVG Snapshots > renders LogEntry without crashing
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "rect": 2,
-    "text": 3,
+    "line": 3,
+    "rect": 1,
+    "text": 1,
   },
   "textLabels": [
-    "INFO",
-    "12:34",
-    "OK",
+    "LogEntry",
   ],
   "totalElements": 6,
 }
@@ -1749,9 +1713,7 @@ exports[`Visual Regression — SVG Snapshots > renders LogicGate without crashin
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 3,
     "g": 1,
-    "line": 3,
     "rect": 1,
     "text": 2,
   },
@@ -1759,7 +1721,7 @@ exports[`Visual Regression — SVG Snapshots > renders LogicGate without crashin
     "AND",
     "LogicGate",
   ],
-  "totalElements": 10,
+  "totalElements": 4,
 }
 `;
 
@@ -1796,6 +1758,8 @@ exports[`Visual Regression — SVG Snapshots > renders Matrix without crashing >
   "textLabels": [
     "1",
     "0",
+    "0",
+    "1",
     "Matrix",
   ],
   "totalElements": 10,
@@ -1872,9 +1836,10 @@ exports[`Visual Regression — SVG Snapshots > renders MessageBroker without cra
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
+    "circle": 1,
     "g": 1,
-    "path": 4,
-    "rect": 2,
+    "line": 4,
+    "rect": 1,
     "text": 1,
   },
   "textLabels": [
@@ -1890,17 +1855,16 @@ exports[`Visual Regression — SVG Snapshots > renders Metric without crashing >
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 2,
+    "g": 1,
     "polygon": 1,
-    "rect": 2,
-    "text": 3,
+    "rect": 1,
+    "text": 2,
   },
   "textLabels": [
-    "Metric",
     "99 ms",
-    "12%",
+    "Metric",
   ],
-  "totalElements": 8,
+  "totalElements": 5,
 }
 `;
 
@@ -1949,14 +1913,13 @@ exports[`Visual Regression — SVG Snapshots > renders Module without crashing >
   "tagCounts": {
     "g": 1,
     "rect": 1,
-    "text": 3,
+    "text": 2,
   },
   "textLabels": [
     "{ }",
     "Module",
-    "5 exports",
   ],
-  "totalElements": 5,
+  "totalElements": 4,
 }
 `;
 
@@ -1967,14 +1930,14 @@ exports[`Visual Regression — SVG Snapshots > renders Monitor without crashing 
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "path": 1,
-    "rect": 2,
+    "polyline": 1,
+    "rect": 1,
     "text": 1,
   },
   "textLabels": [
     "Monitor",
   ],
-  "totalElements": 5,
+  "totalElements": 4,
 }
 `;
 
@@ -1987,13 +1950,12 @@ exports[`Visual Regression — SVG Snapshots > renders Mutex without crashing > 
     "g": 1,
     "path": 1,
     "rect": 2,
-    "text": 2,
+    "text": 1,
   },
   "textLabels": [
-    "Thread-1",
     "Mutex",
   ],
-  "totalElements": 6,
+  "totalElements": 5,
 }
 `;
 
@@ -2003,15 +1965,15 @@ exports[`Visual Regression — SVG Snapshots > renders Network without crashing 
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 7,
+    "circle": 4,
     "g": 1,
-    "line": 6,
+    "line": 3,
     "text": 1,
   },
   "textLabels": [
     "Network",
   ],
-  "totalElements": 15,
+  "totalElements": 9,
 }
 `;
 
@@ -2042,17 +2004,16 @@ exports[`Visual Regression — SVG Snapshots > renders Notification without cras
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 2,
-    "g": 2,
+    "circle": 1,
+    "g": 1,
     "path": 1,
     "rect": 1,
-    "text": 2,
+    "text": 1,
   },
   "textLabels": [
     "Notification",
-    "push",
   ],
-  "totalElements": 8,
+  "totalElements": 5,
 }
 `;
 
@@ -2064,17 +2025,15 @@ exports[`Visual Regression — SVG Snapshots > renders Packet without crashing >
   "tagCounts": {
     "g": 1,
     "rect": 2,
-    "text": 6,
+    "text": 4,
   },
   "textLabels": [
     "Src",
     "192.168.…",
-    "Payload",
     "data",
-    "TCP",
     "Packet",
   ],
-  "totalElements": 9,
+  "totalElements": 7,
 }
 `;
 
@@ -2104,14 +2063,13 @@ exports[`Visual Regression — SVG Snapshots > renders Pipeline without crashing
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "line": 3,
-    "path": 4,
+    "path": 3,
     "text": 1,
   },
   "textLabels": [
     "Pipeline",
   ],
-  "totalElements": 9,
+  "totalElements": 5,
 }
 `;
 
@@ -2139,17 +2097,15 @@ exports[`Visual Regression — SVG Snapshots > renders Pod without crashing > pr
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 1,
+    "circle": 2,
     "g": 1,
-    "rect": 3,
-    "text": 3,
+    "rect": 1,
+    "text": 1,
   },
   "textLabels": [
-    "app",
-    "sidecar",
     "Pod",
   ],
-  "totalElements": 8,
+  "totalElements": 5,
 }
 `;
 
@@ -2177,7 +2133,7 @@ exports[`Visual Regression — SVG Snapshots > renders ProcessState without cras
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 4,
+    "circle": 2,
     "g": 1,
     "line": 1,
     "text": 3,
@@ -2187,7 +2143,7 @@ exports[`Visual Regression — SVG Snapshots > renders ProcessState without cras
     "Running",
     "ProcessState",
   ],
-  "totalElements": 9,
+  "totalElements": 7,
 }
 `;
 
@@ -2218,8 +2174,6 @@ exports[`Visual Regression — SVG Snapshots > renders Queue without crashing > 
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "line": 2,
-    "polygon": 1,
     "rect": 3,
     "text": 4,
   },
@@ -2229,7 +2183,7 @@ exports[`Visual Regression — SVG Snapshots > renders Queue without crashing > 
     "3",
     "Queue",
   ],
-  "totalElements": 11,
+  "totalElements": 8,
 }
 `;
 
@@ -2239,17 +2193,15 @@ exports[`Visual Regression — SVG Snapshots > renders Quote without crashing > 
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 2,
-    "rect": 2,
-    "text": 3,
-    "tspan": 1,
+    "g": 1,
+    "rect": 1,
+    "text": 2,
   },
   "textLabels": [
-    """,
-    "To be or not to be.",
-    "Shakespeare",
+    "“",
+    "Quote",
   ],
-  "totalElements": 8,
+  "totalElements": 4,
 }
 `;
 
@@ -2259,17 +2211,15 @@ exports[`Visual Regression — SVG Snapshots > renders RateLimiter without crash
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 3,
     "g": 1,
     "path": 1,
-    "text": 3,
+    "rect": 1,
+    "text": 1,
   },
   "textLabels": [
-    "1000 req/s",
-    "token-bucket",
     "RateLimiter",
   ],
-  "totalElements": 8,
+  "totalElements": 4,
 }
 `;
 
@@ -2408,14 +2358,13 @@ exports[`Visual Regression — SVG Snapshots > renders Semaphore without crashin
   "tagCounts": {
     "g": 1,
     "rect": 1,
-    "text": 3,
+    "text": 2,
   },
   "textLabels": [
     "2/3",
-    "permits",
-    "sem",
+    "Semaphore",
   ],
-  "totalElements": 5,
+  "totalElements": 4,
 }
 `;
 
@@ -2451,16 +2400,15 @@ exports[`Visual Regression — SVG Snapshots > renders Server without crashing >
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 3,
     "g": 1,
-    "line": 5,
+    "line": 3,
     "rect": 1,
     "text": 1,
   },
   "textLabels": [
     "Server",
   ],
-  "totalElements": 11,
+  "totalElements": 6,
 }
 `;
 
@@ -2470,15 +2418,16 @@ exports[`Visual Regression — SVG Snapshots > renders Service without crashing 
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 2,
+    "circle": 1,
+    "g": 1,
+    "line": 4,
     "polygon": 1,
-    "text": 2,
+    "text": 1,
   },
   "textLabels": [
-    "{ Service }",
     "Auth Service",
   ],
-  "totalElements": 5,
+  "totalElements": 8,
 }
 `;
 
@@ -2555,7 +2504,7 @@ exports[`Visual Regression — SVG Snapshots > renders Stack without crashing > 
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 4,
+    "g": 1,
     "rect": 3,
     "text": 4,
   },
@@ -2565,7 +2514,7 @@ exports[`Visual Regression — SVG Snapshots > renders Stack without crashing > 
     "Network",
     "Stack",
   ],
-  "totalElements": 11,
+  "totalElements": 8,
 }
 `;
 
@@ -2640,14 +2589,13 @@ exports[`Visual Regression — SVG Snapshots > renders Subnet without crashing >
   "tagCounts": {
     "g": 1,
     "rect": 1,
-    "text": 3,
+    "text": 2,
   },
   "textLabels": [
     "10.0.0.0/24",
-    "private",
     "Subnet",
   ],
-  "totalElements": 5,
+  "totalElements": 4,
 }
 `;
 
@@ -2861,16 +2809,15 @@ exports[`Visual Regression — SVG Snapshots > renders User without crashing > p
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 1,
+    "circle": 2,
     "g": 1,
-    "path": 3,
-    "rect": 1,
+    "path": 1,
     "text": 1,
   },
   "textLabels": [
     "User",
   ],
-  "totalElements": 7,
+  "totalElements": 5,
 }
 `;
 
@@ -2933,15 +2880,15 @@ exports[`Visual Regression — SVG Snapshots > renders Volume without crashing >
   "rendered": true,
   "tagCounts": {
     "ellipse": 2,
-    "g": 2,
-    "line": 4,
+    "g": 1,
+    "line": 2,
     "rect": 1,
     "text": 1,
   },
   "textLabels": [
     "Volume",
   ],
-  "totalElements": 10,
+  "totalElements": 7,
 }
 `;
 
@@ -2990,13 +2937,13 @@ exports[`Visual Regression — SVG Snapshots > renders Webhook without crashing 
   "rendered": true,
   "tagCounts": {
     "g": 1,
+    "line": 1,
     "path": 1,
     "rect": 2,
-    "text": 2,
+    "text": 1,
   },
   "textLabels": [
-    "user.created",
-    "https://example.com",
+    "Webhook",
   ],
   "totalElements": 6,
 }

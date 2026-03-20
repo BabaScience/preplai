@@ -1,74 +1,88 @@
 /**
  * @preplai/illustrations — Process Component
  *
- * Process box: rounded rect + play-triangle icon.
- * Use for: flow diagrams, workflow steps, generic "run/execute" process nodes.
+ * Clean rounded rectangle with a play-triangle icon inside.
+ * Use for: processes, workflow steps, execution nodes.
  *
- * Metadata: label (or entity.label) — process name
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor,
-  getStrokeWidth,
-  getLabelFontSize,
-  TYPOGRAPHY,
-  SHAPES,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderProcess(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
-  const strokeWidth = getStrokeWidth('default', scale);
   const color = entity.color ?? getCategoryColor('Process');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-process-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const w = s * 1.5;
-  const h = s * 1.0;
+  const w = s * 0.85;
+  const h = s * 0.7;
+  const hw = w / 2;
+  const hh = h / 2;
+  const rx = 6;
 
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(rx + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Body
   const rect = document.createElementNS(SVG_NS, 'rect');
-  rect.setAttribute('x', String(-w / 2));
-  rect.setAttribute('y', String(-h / 2));
+  rect.setAttribute('x', String(-hw));
+  rect.setAttribute('y', String(-hh));
   rect.setAttribute('width', String(w));
   rect.setAttribute('height', String(h));
-  rect.setAttribute('rx', String(SHAPES.borderRadius));
+  rect.setAttribute('rx', String(rx));
   rect.setAttribute('fill', `url(#${gradId})`);
   rect.setAttribute('stroke', color);
-  rect.setAttribute('stroke-width', String(strokeWidth));
+  rect.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(rect);
 
-  const triSize = s * 0.35;
-  const playPath = [
-    `M ${-triSize / 2} ${-triSize / 2}`,
-    `L ${-triSize / 2} ${triSize / 2}`,
-    `L ${triSize / 2} 0`,
-    'Z',
-  ].join(' ');
+  // Play triangle icon (stroke-based)
+  const triH = Math.min(w, h) * 0.28;
+  const triW = triH * 0.85;
   const play = document.createElementNS(SVG_NS, 'path');
-  play.setAttribute('d', playPath);
-  play.setAttribute('fill', color);
+  play.setAttribute('d', [
+    `M ${-triW / 2} ${-triH / 2}`,
+    `L ${-triW / 2} ${triH / 2}`,
+    `L ${triW / 2} 0`,
+    'Z',
+  ].join(' '));
+  play.setAttribute('fill', 'none');
   play.setAttribute('stroke', color);
-  play.setAttribute('stroke-width', String(strokeWidth * 0.5));
-  play.setAttribute('transform', `translate(0, -${triSize * 0.2})`);
+  play.setAttribute('stroke-width', String(STROKE.default));
+  play.setAttribute('stroke-linejoin', 'round');
   innerG.appendChild(play);
 
-  const label = entity.label ?? (entity.metadata?.label as string) ?? 'Process';
-  const labelText = document.createElementNS(SVG_NS, 'text');
-  labelText.setAttribute('x', '0');
-  labelText.setAttribute('y', String(triSize * 0.6));
-  labelText.setAttribute('text-anchor', 'middle');
-  labelText.setAttribute('fill', color);
-  labelText.setAttribute('font-size', String(getLabelFontSize('label', scale)));
-  labelText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
-  labelText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-  labelText.textContent = label.length > 14 ? label.slice(0, 12) + '…' : label;
-  innerG.appendChild(labelText);
+  // Label below
+  if (entity.label) {
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    text.textContent = entity.label;
+    innerG.appendChild(text);
+  }
 
   applyEntranceAnimation(innerG, entity);
   parentEl.appendChild(outerG);

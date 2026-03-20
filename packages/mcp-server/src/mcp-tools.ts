@@ -177,7 +177,7 @@ function generateQualityHints(report: QualityReport): string[] {
 
 export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
   const { store, sse, baseUrl, getApiKey, openPlayerInBrowser, ttsService } = deps;
-  const sceneDeps = { store, sse, ttsService };
+  const sceneDeps = { store, sse, ttsService, audioStore: deps.audioStore };
   const createDeps = { store, baseUrl };
 
   // ── Tool 1: create_session ──────────────────────────────────────────

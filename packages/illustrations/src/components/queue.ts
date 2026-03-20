@@ -1,11 +1,20 @@
 /**
  * @preplai/illustrations — Queue Component
- * Horizontal FIFO: items entering left, exiting right; arrow flow
+ *
+ * Clean horizontal cells with values. No directional arrows.
+ * Use for: message queues, task queues, FIFO buffers.
+ *
+ * Minimalist style matching the Composable engine aesthetic:
+ * - Horizontal row of clean rounded cells
+ * - Subtle gradient fill
+ * - Thin stroke
+ * - Label below
+ * - Optional highlight glow
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, getLabelFontSize, getStrokeWidth, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -20,29 +29,28 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
 
   const meta = entity.metadata ?? {};
   const values = (meta.values as (string | number)[]) ?? [1, 2, 3];
-  const visibleValues = values.slice(0, 4);
+  const visibleValues = values.slice(0, 5);
 
-  const cellW = 28;
-  const cellH = 24;
-  const gap = 12;
-  const totalW = visibleValues.length * (cellW + gap) - gap + 40;
-  const startX = -totalW / 2 + 20 + cellW / 2;
+  const cellW = 26;
+  const cellH = 22;
+  const gap = 6;
+  const totalW = visibleValues.length * cellW + (visibleValues.length - 1) * gap;
+  const startX = -totalW / 2 + cellW / 2;
 
-  // ── In arrow (left) — arrowhead via polygon
-  const inArrow = document.createElementNS(SVG_NS, 'line');
-  inArrow.setAttribute('x1', String(-totalW / 2));
-  inArrow.setAttribute('y1', '0');
-  inArrow.setAttribute('x2', String(-totalW / 2 + 15));
-  inArrow.setAttribute('y2', '0');
-  inArrow.setAttribute('stroke', color);
-  inArrow.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
-  inArrow.setAttribute('opacity', '0.8');
-  innerG.appendChild(inArrow);
-  const inHead = document.createElementNS(SVG_NS, 'polygon');
-  inHead.setAttribute('points', `${-totalW / 2 + 15},-4 ${-totalW / 2 + 22},0 ${-totalW / 2 + 15},4`);
-  inHead.setAttribute('fill', color);
-  inHead.setAttribute('opacity', '0.8');
-  innerG.appendChild(inHead);
+  // Highlight glow (behind cells)
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-totalW / 2 - 5));
+    glow.setAttribute('y', String(-cellH / 2 - 5));
+    glow.setAttribute('width', String(totalW + 10));
+    glow.setAttribute('height', String(cellH + 10));
+    glow.setAttribute('rx', '6');
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
 
   visibleValues.forEach((val, i) => {
     const x = startX + i * (cellW + gap);
@@ -64,28 +72,18 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     valueText.setAttribute('text-anchor', 'middle');
     valueText.setAttribute('fill', color);
     valueText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
-    valueText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
+    valueText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     valueText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     valueText.textContent = String(val);
     innerG.appendChild(valueText);
   });
 
-  // ── Out arrow (right)
-  const outArrow = document.createElementNS(SVG_NS, 'line');
-  outArrow.setAttribute('x1', String(totalW / 2 - 15));
-  outArrow.setAttribute('y1', '0');
-  outArrow.setAttribute('x2', String(totalW / 2));
-  outArrow.setAttribute('y2', '0');
-  outArrow.setAttribute('stroke', color);
-  outArrow.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
-  outArrow.setAttribute('opacity', '0.8');
-  innerG.appendChild(outArrow);
-
+  // Label below
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(cellH / 2 + 18));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(cellH / 2 + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));

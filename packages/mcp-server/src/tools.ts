@@ -24,6 +24,7 @@ interface SceneDeps {
   store: SessionStore;
   sse: SseRegistry;
   ttsService?: TtsService;
+  audioStore?: import('./audio-store.js').AudioStore;
 }
 
 interface SessionUrlDeps {
@@ -300,6 +301,11 @@ export async function handleUpdateScene(
   const validationError = validateVisualScriptStructure(expandedScript);
   if (validationError) {
     return mcpValidationError(validationError);
+  }
+
+  // Clear old audio before replacing script (prevents stale audio from previous version)
+  if (deps.audioStore) {
+    await deps.audioStore.deleteSession(session_id);
   }
 
   await store.appendFrames(session_id, expandedScript, 0);

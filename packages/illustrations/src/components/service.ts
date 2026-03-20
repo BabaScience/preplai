@@ -1,28 +1,19 @@
 /**
  * @preplai/illustrations — Service Component
  *
- * Service endpoint icon: hexagon with { } parameter brackets inside.
- * Suggests API/configuration/parameters rather than a sun/cogwheel.
- * Second level: metadata.kind specifies variant (API, Service, APIGateway, or custom).
- * - Hub text: metadata.hubLabel ?? metadata.kind ?? "Service"
- * - Label below: entity.label (the actual name, e.g. "Auth Service", "REST API")
- * - kind === "API": subtle pulse; otherwise static
+ * Clean hexagon with a simple gear icon inside.
+ * Use for: microservices, service endpoints, APIs.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
-
-/** Resolve the "kind" of service (API, Service, APIGateway, or custom). */
-function getServiceKind(entity: VisualEntity): string {
-  return (entity.metadata?.kind as string) ?? 'Service';
-}
 
 export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
-  const kind = getServiceKind(entity);
-  const pulse = kind === 'API';
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Service');
@@ -30,24 +21,33 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
   const gradId = `grad-service-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  // ── Hexagon (service endpoint shape; distinct from LoadBalancer's Y-fork)
+  const r = s * 0.45;
+
+  // Highlight glow
+  if (entity.highlight) {
+    const glowR = r + 4;
+    const glowPoints = [0, 1, 2, 3, 4, 5]
+      .map(i => {
+        const angle = (Math.PI / 3) * i - Math.PI / 6;
+        return `${(Math.cos(angle) * glowR).toFixed(1)},${(Math.sin(angle) * glowR).toFixed(1)}`;
+      })
+      .join(' ');
+    const glow = document.createElementNS(SVG_NS, 'polygon');
+    glow.setAttribute('points', glowPoints);
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Hexagon shape
   const hexPoints = [0, 1, 2, 3, 4, 5]
-    .map((i) => {
+    .map(i => {
       const angle = (Math.PI / 3) * i - Math.PI / 6;
-      return `${(Math.cos(angle) * s * 0.5).toFixed(1)},${(Math.sin(angle) * s * 0.5).toFixed(1)}`;
+      return `${(Math.cos(angle) * r).toFixed(1)},${(Math.sin(angle) * r).toFixed(1)}`;
     })
     .join(' ');
-
-  const contentG = document.createElementNS(SVG_NS, 'g');
-  if (pulse) {
-    contentG.setAttribute('transform-origin', '0 0');
-    const animate = document.createElementNS(SVG_NS, 'animate');
-    animate.setAttribute('attributeName', 'opacity');
-    animate.setAttribute('values', '1;0.85;1');
-    animate.setAttribute('dur', '2s');
-    animate.setAttribute('repeatCount', 'indefinite');
-    contentG.appendChild(animate);
-  }
 
   const polygon = document.createElementNS(SVG_NS, 'polygon');
   polygon.setAttribute('points', hexPoints);
@@ -55,42 +55,50 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
   polygon.setAttribute('stroke', color);
   polygon.setAttribute('stroke-width', String(STROKE.default));
   polygon.setAttribute('stroke-linejoin', 'round');
-  contentG.appendChild(polygon);
+  innerG.appendChild(polygon);
 
-  // ── { Service } parameter-style text inside (suggests API/endpoint/configuration)
-  const hubText = (entity.metadata?.hubLabel as string) ?? kind;
-  const paramText = `{ ${hubText} }`;
-  const paramFontSize = Math.min(
-    TYPOGRAPHY.fontSizeValue,
-    Math.floor(s * LABEL_DEFAULTS.hubScaleFactor),
-  );
-  const param = document.createElementNS(SVG_NS, 'text');
-  param.setAttribute('x', '0');
-  param.setAttribute('y', String(LABEL_DEFAULTS.hubOffsetY));
-  param.setAttribute('text-anchor', 'middle');
-  param.setAttribute('fill', color);
-  param.setAttribute('font-size', String(paramFontSize));
-  param.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-  param.setAttribute('font-family', TYPOGRAPHY.fontCode);
-  param.setAttribute('opacity', '0.95');
-  param.textContent = paramText;
-  contentG.appendChild(param);
+  // Gear icon (stroke-based): circle with 4 tick marks at N/E/S/W
+  const gearR = r * 0.22;
+  const tickLen = r * 0.12;
 
-  innerG.appendChild(contentG);
+  const gearCircle = document.createElementNS(SVG_NS, 'circle');
+  gearCircle.setAttribute('cx', '0');
+  gearCircle.setAttribute('cy', '0');
+  gearCircle.setAttribute('r', String(gearR));
+  gearCircle.setAttribute('fill', 'none');
+  gearCircle.setAttribute('stroke', color);
+  gearCircle.setAttribute('stroke-width', String(STROKE.default));
+  innerG.appendChild(gearCircle);
 
-  // ── Label below: the actual name of the service (e.g. "Auth Service", "User Service")
-  const serviceName = entity.label ?? (entity.metadata?.label as string);
-  if (serviceName) {
-    const label = document.createElementNS(SVG_NS, 'text');
-    label.setAttribute('x', '0');
-    label.setAttribute('y', String(s / 2 + LABEL_DEFAULTS.offsetBelow));
-    label.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    label.setAttribute('fill', color);
-    label.setAttribute('font-size', String(TYPOGRAPHY.fontSizeDefault));
-    label.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-    label.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    label.textContent = serviceName;
-    innerG.appendChild(label);
+  for (let i = 0; i < 4; i++) {
+    const angle = (Math.PI / 2) * i;
+    const x1 = Math.cos(angle) * gearR;
+    const y1 = Math.sin(angle) * gearR;
+    const x2 = Math.cos(angle) * (gearR + tickLen);
+    const y2 = Math.sin(angle) * (gearR + tickLen);
+    const tick = document.createElementNS(SVG_NS, 'line');
+    tick.setAttribute('x1', String(x1));
+    tick.setAttribute('y1', String(y1));
+    tick.setAttribute('x2', String(x2));
+    tick.setAttribute('y2', String(y2));
+    tick.setAttribute('stroke', color);
+    tick.setAttribute('stroke-width', String(STROKE.default));
+    tick.setAttribute('stroke-linecap', 'round');
+    innerG.appendChild(tick);
+  }
+
+  // Label below
+  if (entity.label) {
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(r + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    text.textContent = entity.label;
+    innerG.appendChild(text);
   }
 
   applyEntranceAnimation(innerG, entity);

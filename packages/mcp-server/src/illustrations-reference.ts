@@ -4,7 +4,7 @@
  * Builds the get_illustrations response: entity types, aliases, short keys,
  * topic hints, metadata hints. Single source for agent discovery.
  */
-import { registry } from '@preplai/illustrations';
+import { registry, COMPOSABLE_SHAPES, ICON_CATEGORIES } from '@preplai/illustrations';
 import { ENTITY_TYPE_ALIASES, AGENT_SHORT_KEYS } from '@preplai/compiler';
 import { ENTITY_DEFAULTS } from '@preplai/shared';
 
@@ -181,6 +181,52 @@ const TOPIC_HINTS: Record<string, string[]> = {
   'gpu, cuda, a100, h100, accelerator, tpu': ['GPU'],
   'bundle, chunk, webpack, code splitting, js bundle': ['Bundle'],
   'saga, distributed transaction, compensation, choreography': ['SagaStep'],
+
+  // ── Finance & Investment (Composable) ──
+  'fund structure, PE, VC, capital, LP, GP, fund vehicle': ['Composable'],
+  'portfolio, allocation, asset class, diversification': ['Composable'],
+  'financial flow, capital flow, cash flow, money flow': ['Composable', 'Arrow', 'DataFlow'],
+  'investment, returns, yield, dividend, interest': ['Composable'],
+  'risk model, risk assessment, var, volatility': ['Composable'],
+  'balance sheet, income statement, financial statement': ['Composable', 'Table'],
+  'stock, equity, bond, derivative, option, futures': ['Composable'],
+  'bank, fintech, insurance, underwriting': ['Composable'],
+
+  // ── Legal & Compliance (Composable) ──
+  'contract, agreement, terms, clause, NDA': ['Composable'],
+  'compliance, regulation, audit, governance': ['Composable'],
+  'legal entity, jurisdiction, filing, license': ['Composable'],
+  'intellectual property, patent, trademark, copyright': ['Composable'],
+
+  // ── Business & Strategy (Composable) ──
+  'strategy, strategic plan, OKR, KPI, initiative': ['Composable'],
+  'market analysis, TAM, SAM, SOM, competitive': ['Composable'],
+  'org chart, team structure, department, division': ['Composable'],
+  'business model, revenue model, pricing': ['Composable'],
+  'swot, pest, porter, framework, matrix': ['Composable', 'Table'],
+  'stakeholder, decision maker, sponsor, champion': ['Composable'],
+  'supply chain, logistics, procurement, vendor': ['Composable'],
+
+  // ── Product & Design (Composable) ──
+  'product roadmap, feature, milestone, release plan': ['Composable', 'Timeline'],
+  'persona, user segment, cohort, demographic': ['Composable'],
+  'funnel, conversion, retention, churn, growth': ['Composable', 'BarChart'],
+  'a/b test, experiment, hypothesis, variant': ['Composable'],
+
+  // ── Healthcare (Composable) ──
+  'patient, diagnosis, treatment, clinical': ['Composable'],
+  'hospital, clinic, pharmacy, lab': ['Composable'],
+  'medical device, imaging, scan, test': ['Composable'],
+
+  // ── Education (Composable) ──
+  'curriculum, course, lesson, module, learning': ['Composable'],
+  'student, teacher, classroom, school': ['Composable'],
+
+  // ── Composite non-engineering hints ──
+  'fund architecture, investment structure': ['Composable', 'Arrow', 'DataFlow'],
+  'legal hierarchy, corporate structure': ['Composable', 'Arrow'],
+  'business strategy overview': ['Composable', 'Timeline', 'BarChart', 'Arrow'],
+  'product strategy': ['Composable', 'Timeline', 'BarChart', 'Arrow'],
 };
 
 // ── Metadata hints by type (from COMPACT_REFERENCE, METADATA_SCHEMAS) ───────
@@ -379,6 +425,9 @@ const METADATA_HINTS: Record<string, string> = {
   GPU: 'model?: "A100"|"H100"|"T4", memory?',
   Bundle: 'name?, size?, chunks?',
   SagaStep: 'step?, action?, compensation?',
+
+  // ── Composable (Tier 2: Shape + Icon composition) ──
+  Composable: 'shape: rect|circle|hexagon|diamond|shield|cylinder|document|stadium|pill|parallelogram|pentagon|octagon|triangle|trapezoid|cloud, icon?: landmark|briefcase|coins|chart-line|...(100+ icons), style?: default|minimal|emphasized|outlined, iconColor?, badgeLabel?',
 };
 
 // ── Public API ─────────────────────────────────────────────────────────────
@@ -389,6 +438,8 @@ export interface IllustrationsReference {
   shortKeys: Record<string, string>;
   topicHints: Record<string, string[]>;
   metadataHints: Record<string, string>;
+  composableShapes: string[];
+  composableIcons: Record<string, string[]>;
   positionFormat: string;
   defaultSize: number;
 }
@@ -400,6 +451,8 @@ export function getIllustrationsReference(): IllustrationsReference {
     shortKeys: { ...AGENT_SHORT_KEYS },
     topicHints: { ...TOPIC_HINTS },
     metadataHints: { ...METADATA_HINTS },
+    composableShapes: [...COMPOSABLE_SHAPES],
+    composableIcons: { ...ICON_CATEGORIES },
     positionFormat: '[x,y]',
     defaultSize: ENTITY_DEFAULTS.size,
   };

@@ -1,8 +1,12 @@
 /**
  * @preplai/illustrations — LinkedList Component
- * Chain of node boxes (value + next pointer) with arrow connectors
  *
- * Layout in design units; uniform scale transform so size changes scale the whole illustration.
+ * Clean chain of node boxes with arrow connectors.
+ * Use for: linked lists, chains, sequences.
+ *
+ * Metadata: { values: (string|number)[] }
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
@@ -11,68 +15,67 @@ import {
   getCategoryColor,
   TYPOGRAPHY,
   SHAPES,
+  STROKE,
+  LABEL_DEFAULTS,
+  colorWithAlpha,
+  OPACITY,
   getLabelFontSize,
   getStrokeWidth,
-  LABEL_DEFAULTS,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
-
-const DESIGN_NODE_W = 48;
-const DESIGN_NODE_H = 28;
-const DESIGN_GAP = 24;
-
-/** Truncate node value to fit within node width (approx 6px per char). */
-function truncateNodeValue(text: string, maxWidth: number): string {
-  const maxChars = Math.max(1, Math.floor((maxWidth - 16) / 6));
-  const s = String(text);
-  if (s.length <= maxChars) return s;
-  return s.slice(0, maxChars - 1) + '…';
-}
 
 export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('LinkedList');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-ll-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
-  const values = (meta.values as (string | number)[]) ?? [1, 2, 3];
-  const visibleValues = values.slice(0, 6);
+  const values = ((meta.values as (string | number)[]) ?? [1, 2, 3]).slice(0, 6);
 
-  const nodeW = DESIGN_NODE_W;
-  const nodeH = DESIGN_NODE_H;
-  const gap = DESIGN_GAP;
-  const totalW = visibleValues.length * (nodeW + gap) - gap;
-  const startX = -totalW / 2 + (nodeW + gap) / 2;
+  const nodeW = 28 * scale;
+  const nodeH = 20 * scale;
+  const gap = 16 * scale;
+  const totalW = values.length * nodeW + (values.length - 1) * gap;
+  const startX = -totalW / 2 + nodeW / 2;
 
-  const scale = s / 50;
-  const strokeWidth = getStrokeWidth('minimal', 1);
-  const connectorStrokeWidth = getStrokeWidth('minimal', 1) * 0.67;
-  const fontSize = getLabelFontSize('value', 1) / scale;
-
+  // Arrow marker
   const markerId = `arrow-ll-${entity.id.replace(/[^a-z0-9]/gi, '')}`;
   if (!defs.querySelector(`#${markerId}`)) {
     const marker = document.createElementNS(SVG_NS, 'marker');
     marker.setAttribute('id', markerId);
-    marker.setAttribute('markerWidth', '8');
-    marker.setAttribute('markerHeight', '6');
-    marker.setAttribute('refX', '7');
-    marker.setAttribute('refY', '3');
+    marker.setAttribute('markerWidth', '6');
+    marker.setAttribute('markerHeight', '4');
+    marker.setAttribute('refX', '5');
+    marker.setAttribute('refY', '2');
     marker.setAttribute('orient', 'auto');
     const poly = document.createElementNS(SVG_NS, 'polygon');
-    poly.setAttribute('points', '0 0, 8 3, 0 6');
+    poly.setAttribute('points', '0 0, 6 2, 0 4');
     poly.setAttribute('fill', color);
     marker.appendChild(poly);
     defs.appendChild(marker);
   }
 
-  const scaleGroup = document.createElementNS(SVG_NS, 'g');
-  scaleGroup.setAttribute('transform', `scale(${scale})`);
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-totalW / 2 - 3));
+    glow.setAttribute('y', String(-nodeH / 2 - 3));
+    glow.setAttribute('width', String(totalW + 6));
+    glow.setAttribute('height', String(nodeH + 6));
+    glow.setAttribute('rx', '6');
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
 
-  visibleValues.forEach((val, i) => {
+  values.forEach((val, i) => {
     const x = startX + i * (nodeW + gap);
 
     const node = document.createElementNS(SVG_NS, 'rect');
@@ -83,50 +86,48 @@ export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SV
     node.setAttribute('rx', String(SHAPES.borderRadius));
     node.setAttribute('fill', `url(#${gradId})`);
     node.setAttribute('stroke', color);
-    node.setAttribute('stroke-width', String(strokeWidth));
-    node.setAttribute('stroke-linejoin', 'round');
-    scaleGroup.appendChild(node);
+    node.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
+    innerG.appendChild(node);
 
-    const displayVal = truncateNodeValue(String(val), nodeW);
     const valueText = document.createElementNS(SVG_NS, 'text');
     valueText.setAttribute('x', String(x));
     valueText.setAttribute('y', String(4));
     valueText.setAttribute('text-anchor', 'middle');
     valueText.setAttribute('fill', color);
-    valueText.setAttribute('font-size', String(fontSize));
+    valueText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
     valueText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
     valueText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-    valueText.textContent = displayVal;
-    scaleGroup.appendChild(valueText);
+    valueText.textContent = String(val).slice(0, 6);
+    innerG.appendChild(valueText);
 
-    if (i < visibleValues.length - 1) {
+    // Arrow to next node
+    if (i < values.length - 1) {
       const line = document.createElementNS(SVG_NS, 'line');
       line.setAttribute('x1', String(x + nodeW / 2));
       line.setAttribute('y1', '0');
       line.setAttribute('x2', String(x + nodeW / 2 + gap));
       line.setAttribute('y2', '0');
       line.setAttribute('stroke', color);
-      line.setAttribute('stroke-width', String(connectorStrokeWidth));
+      line.setAttribute('stroke-width', String(getStrokeWidth('minimal', scale)));
       line.setAttribute('stroke-linecap', 'round');
       line.setAttribute('marker-end', `url(#${markerId})`);
-      scaleGroup.appendChild(line);
+      innerG.appendChild(line);
     }
   });
 
+  // Label below
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
     text.setAttribute('y', String(nodeH / 2 + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(getLabelFontSize('label', 1) / scale));
+    text.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;
-    scaleGroup.appendChild(text);
+    innerG.appendChild(text);
   }
-
-  innerG.appendChild(scaleGroup);
 
   applyEntranceAnimation(innerG, entity);
   parentEl.appendChild(outerG);

@@ -1,162 +1,85 @@
 /**
  * @preplai/illustrations — Quote Component
  *
- * Blockquote-style illustration with left accent bar, optional decorative quote mark,
- * and optional attribution (author/source).
+ * Clean rect with quotation mark icon inside.
+ * Use for: blockquotes, citations, testimonials.
  *
- * Metadata:
- *   label?: string — quote text (or use entity.label)
- *   author?: string — attribution (e.g. "— Albert Einstein")
- *   source?: string — alternative to author (e.g. "— RFC 2616")
- *   width?: number — card width in design units (default 200)
- *   maxLines?: number — max lines for quote text (default 6)
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
-import {
-  SVG_NS,
-  buildEntityGroup,
-  applyEntranceAnimation,
-  getSizeParam,
-  wrapBodyText,
-  CHAR_WIDTH_RATIO,
-} from '../utils.js';
+import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor,
-  getStrokeWidth,
-  getLabelFontSize,
-  colorWithAlpha,
-  OPACITY,
-  TYPOGRAPHY,
-  SHAPES,
-  LABEL_DEFAULTS,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderQuote(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Quote');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-quote-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const meta = entity.metadata ?? {};
-  const quoteText = (meta.label as string) ?? entity.label ?? 'Quote';
-  const author = meta.author as string | undefined;
-  const source = meta.source as string | undefined;
-  const attribution = author ?? source;
-  const widthUnits = (meta.width as number) ?? 200;
-  const maxLines = Math.max(1, Math.min(8, ((meta.maxLines as number) ?? 6) | 0));
+  const w = s * 0.85;
+  const h = s * 0.7;
+  const hw = w / 2;
+  const hh = h / 2;
 
-  const padX = 14;
-  const padY = 10;
-  const accentWidth = 4;
-  const quoteMarkSize = 28;
-  const w = widthUnits;
-  const availableWidth = Math.max(60, w - 2 * padX - accentWidth - 8);
-
-  const quoteFontSize = Math.min(14, getLabelFontSize('value', scale));
-  const maxCharsPerLine = Math.max(10, Math.floor(availableWidth / (quoteFontSize * CHAR_WIDTH_RATIO)));
-  const { lines } = wrapBodyText(quoteText, maxCharsPerLine, maxLines);
-  const lineHeight = quoteFontSize * LABEL_DEFAULTS.lineHeight;
-
-  const quoteHeight = lines.length * lineHeight;
-  const attributionHeight = attribution ? quoteFontSize * 1.1 + 6 : 0;
-  const h = 2 * padY + quoteHeight + attributionHeight;
-
-  const sizeScale = 0.7;
-  const scaleTransform = (s / 50) * sizeScale;
-  const scaleGroup = document.createElementNS(SVG_NS, 'g');
-  scaleGroup.setAttribute('transform', `scale(${scaleTransform})`);
-
-  const clipId = `clip-quote-${entity.id.replace(/[^a-zA-Z0-9-]/g, '')}`;
-  let clipEl = defs.querySelector(`#${clipId}`) as SVGClipPathElement | null;
-  if (!clipEl) {
-    clipEl = document.createElementNS(SVG_NS, 'clipPath');
-    clipEl.setAttribute('id', clipId);
-    defs.appendChild(clipEl);
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
   }
-  clipEl.innerHTML = '';
-  const clipRect = document.createElementNS(SVG_NS, 'rect');
-  clipRect.setAttribute('x', String((-w / 2) * scaleTransform));
-  clipRect.setAttribute('y', String((-h / 2) * scaleTransform));
-  clipRect.setAttribute('width', String(w * scaleTransform));
-  clipRect.setAttribute('height', String(h * scaleTransform));
-  clipRect.setAttribute('rx', String(SHAPES.borderRadius * scaleTransform));
-  clipEl.appendChild(clipRect);
 
-  innerG.setAttribute('clip-path', `url(#${clipId})`);
-
+  // Body
   const card = document.createElementNS(SVG_NS, 'rect');
-  card.setAttribute('x', String(-w / 2));
-  card.setAttribute('y', String(-h / 2));
+  card.setAttribute('x', String(-hw));
+  card.setAttribute('y', String(-hh));
   card.setAttribute('width', String(w));
   card.setAttribute('height', String(h));
   card.setAttribute('rx', String(SHAPES.borderRadius));
   card.setAttribute('fill', `url(#${gradId})`);
   card.setAttribute('stroke', color);
-  card.setAttribute('stroke-width', String(getStrokeWidth('minimal', scale)));
-  card.setAttribute('stroke-linejoin', 'round');
-  scaleGroup.appendChild(card);
+  card.setAttribute('stroke-width', String(STROKE.default));
+  innerG.appendChild(card);
 
-  const accentBar = document.createElementNS(SVG_NS, 'rect');
-  accentBar.setAttribute('x', String(-w / 2));
-  accentBar.setAttribute('y', String(-h / 2));
-  accentBar.setAttribute('width', String(accentWidth));
-  accentBar.setAttribute('height', String(h));
-  accentBar.setAttribute('rx', '2');
-  accentBar.setAttribute('fill', color);
-  accentBar.setAttribute('opacity', String(OPACITY.strokeSoft));
-  scaleGroup.appendChild(accentBar);
+  // Quote mark icon
+  const qText = document.createElementNS(SVG_NS, 'text');
+  qText.setAttribute('x', '0');
+  qText.setAttribute('y', '2');
+  qText.setAttribute('text-anchor', 'middle');
+  qText.setAttribute('dominant-baseline', 'central');
+  qText.setAttribute('fill', color);
+  qText.setAttribute('font-size', String(s * 0.35));
+  qText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
+  qText.setAttribute('font-family', 'Georgia, serif');
+  qText.textContent = '\u201C';
+  innerG.appendChild(qText);
 
-  const quoteMark = document.createElementNS(SVG_NS, 'text');
-  quoteMark.setAttribute('x', String(-w / 2 + accentWidth + 6));
-  quoteMark.setAttribute('y', String(-h / 2 + padY + quoteMarkSize * 0.75));
-  quoteMark.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
-  quoteMark.setAttribute('font-size', String(quoteMarkSize));
-  quoteMark.setAttribute('font-family', 'Georgia, serif');
-  quoteMark.setAttribute('font-weight', '700');
-  quoteMark.textContent = '"';
-  scaleGroup.appendChild(quoteMark);
-
-  const textStartX = -w / 2 + accentWidth + 12;
-  const textStartY = -h / 2 + padY + 4;
-
-  const quoteGroup = document.createElementNS(SVG_NS, 'text');
-  quoteGroup.setAttribute('text-anchor', 'start');
-  quoteGroup.setAttribute('fill', color);
-  quoteGroup.setAttribute('font-size', String(quoteFontSize));
-  quoteGroup.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-  quoteGroup.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-  quoteGroup.setAttribute('font-style', 'italic');
-
-  lines.forEach((line, i) => {
-    const tspan = document.createElementNS(SVG_NS, 'tspan');
-    tspan.setAttribute('x', String(textStartX));
-    tspan.setAttribute('y', String(textStartY + i * lineHeight));
-    tspan.textContent = line;
-    quoteGroup.appendChild(tspan);
-  });
-  scaleGroup.appendChild(quoteGroup);
-
-  if (attribution) {
-    const attrText = document.createElementNS(SVG_NS, 'text');
-    attrText.setAttribute('x', String(textStartX));
-    attrText.setAttribute('y', String(textStartY + quoteHeight + 10));
-    attrText.setAttribute('text-anchor', 'start');
-    attrText.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
-    attrText.setAttribute('font-size', String(quoteFontSize * 0.9));
-    attrText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    attrText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-    attrText.setAttribute('font-style', 'normal');
-    attrText.textContent = attribution.length > 35 ? attribution.slice(0, 33) + '…' : attribution;
-    scaleGroup.appendChild(attrText);
+  // Label below
+  if (entity.label) {
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    text.textContent = entity.label;
+    innerG.appendChild(text);
   }
 
-  innerG.appendChild(scaleGroup);
   applyEntranceAnimation(innerG, entity);
   parentEl.appendChild(outerG);
   return outerG;

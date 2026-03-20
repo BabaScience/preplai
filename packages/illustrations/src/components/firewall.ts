@@ -1,80 +1,89 @@
 /**
  * @preplai/illustrations — Firewall Component
  *
- * Vertical brick wall — a barrier between networks. Use for: security boundaries, network firewalls.
+ * Clean vertical rectangle with a shield icon inside.
+ * Use for: firewalls, security boundaries, network barriers.
  *
- * @see METADATA_SCHEMAS.md#firewall
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor,
-  getStrokeWidth,
-  getLabelFontSize,
-  TYPOGRAPHY,
-  STROKE,
-  LABEL_DEFAULTS,
-  colorWithAlpha,
-  OPACITY,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderFirewall(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Firewall');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-fw-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'horizontal', defs);
+  createLinearGradient(gradId, color, 'vertical', defs);
 
-  const scaleGroup = document.createElementNS(SVG_NS, 'g');
-  scaleGroup.setAttribute('transform', `scale(${scale})`);
+  const w = s * 0.5;
+  const h = s * 0.75;
+  const hw = w / 2;
+  const hh = h / 2;
 
-  const strokeWidth = getStrokeWidth('default', 1);
-  const wallW = s * 0.22;
-  const wallH = s * 0.75;
-
-  const outerRect = document.createElementNS(SVG_NS, 'rect');
-  outerRect.setAttribute('x', String(-wallW / 2));
-  outerRect.setAttribute('y', String(-wallH / 2));
-  outerRect.setAttribute('width', String(wallW));
-  outerRect.setAttribute('height', String(wallH));
-  outerRect.setAttribute('rx', '2');
-  outerRect.setAttribute('fill', `url(#${gradId})`);
-  outerRect.setAttribute('stroke', color);
-  outerRect.setAttribute('stroke-width', String(strokeWidth));
-  scaleGroup.appendChild(outerRect);
-
-  const brickH = wallH / 3;
-  const mortar = colorWithAlpha(color, OPACITY.strokeMuted);
-  for (let row = 1; row < 3; row++) {
-    const y = -wallH / 2 + row * brickH;
-    const line = document.createElementNS(SVG_NS, 'line');
-    line.setAttribute('x1', String(-wallW / 2));
-    line.setAttribute('y1', String(y));
-    line.setAttribute('x2', String(wallW / 2));
-    line.setAttribute('y2', String(y));
-    line.setAttribute('stroke', mortar);
-    line.setAttribute('stroke-width', String(STROKE.minimal));
-    scaleGroup.appendChild(line);
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', '5');
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
   }
 
-  innerG.appendChild(scaleGroup);
+  // Wall body
+  const body = document.createElementNS(SVG_NS, 'rect');
+  body.setAttribute('x', String(-hw));
+  body.setAttribute('y', String(-hh));
+  body.setAttribute('width', String(w));
+  body.setAttribute('height', String(h));
+  body.setAttribute('rx', '3');
+  body.setAttribute('fill', `url(#${gradId})`);
+  body.setAttribute('stroke', color);
+  body.setAttribute('stroke-width', String(STROKE.default));
+  innerG.appendChild(body);
 
+  // Shield icon (stroke-based path)
+  const iconH = h * 0.3;
+  const iconW = w * 0.4;
+  const shield = document.createElementNS(SVG_NS, 'path');
+  shield.setAttribute('d', [
+    `M 0 ${-iconH * 0.7}`,
+    `L ${iconW / 2} ${-iconH * 0.35}`,
+    `L ${iconW / 2} ${iconH * 0.2}`,
+    `Q 0 ${iconH * 0.7} 0 ${iconH * 0.7}`,
+    `Q 0 ${iconH * 0.7} ${-iconW / 2} ${iconH * 0.2}`,
+    `L ${-iconW / 2} ${-iconH * 0.35}`,
+    'Z',
+  ].join(' '));
+  shield.setAttribute('fill', 'none');
+  shield.setAttribute('stroke', color);
+  shield.setAttribute('stroke-width', String(STROKE.default));
+  shield.setAttribute('stroke-linejoin', 'round');
+  innerG.appendChild(shield);
+
+  // Label below
   if (entity.label) {
-    const label = document.createElementNS(SVG_NS, 'text');
-    label.setAttribute('x', '0');
-    label.setAttribute('y', String(wallH / 2 * scale + LABEL_DEFAULTS.offsetBelow));
-    label.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    label.setAttribute('fill', color);
-    label.setAttribute('font-size', String(getLabelFontSize('label', scale)));
-    label.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-    label.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    label.textContent = entity.label;
-    innerG.appendChild(label);
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    text.textContent = entity.label;
+    innerG.appendChild(text);
   }
 
   applyEntranceAnimation(innerG, entity);

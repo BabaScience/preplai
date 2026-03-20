@@ -20,6 +20,7 @@ import { renderUser } from './components/user.js';
 import { renderCloud } from './components/cloud.js';
 import { renderConcept } from './components/concept.js';
 import { renderCodeBlock } from './components/codeblock.js';
+import { renderDecision } from './components/decision.js';
 import { renderArrow, renderDataFlow } from './components/arrow.js';
 import { renderGraph2D } from './components/graph2d.js';
 import { renderContainer } from './components/container.js';
@@ -183,6 +184,8 @@ import { renderSagaStep } from './components/saga-step.js';
 
 // ── Generic renderer for types not yet fully implemented
 import { createGenericRenderer } from './components/generic.js';
+import { renderComposable } from './components/composable.js';
+import { resolveSemanticType } from './components/semantic-resolver.js';
 import { getCategoryColor } from './design-tokens.js';
 
 // ── Build generic renderers using design tokens
@@ -231,7 +234,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   DockerRegistry: renderDockerRegistry,
   Monitor: renderMonitor,
   Pipeline: renderPipeline,
-  Decision: decisionDiamond,
+  Decision: renderDecision,
   Cluster: circleCluster,
 
   // ── Flow / Connection (special)
@@ -422,6 +425,9 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   GPU: renderGPU,
   Bundle: renderBundle,
   SagaStep: renderSagaStep,
+
+  // ── Composable (Tier 2: Shape + Icon composition)
+  Composable: renderComposable,
 };
 
 /**
@@ -440,6 +446,25 @@ export function renderEntity(
   const fn = registry[entity.type];
 
   if (!fn) {
+    const meta = entity.metadata ?? {};
+
+    // ── Tier 2: entity has explicit shape/icon metadata → composable renderer
+    if (meta.shape || meta.icon) {
+      console.info(`[PRE registry] "${entity.type}" → composable (shape=${meta.shape}, icon=${meta.icon})`);
+      return renderComposable(entity, parentEl);
+    }
+
+    // ── Tier 3: semantic resolver — auto-map type name to shape+icon
+    const hint = resolveSemanticType(entity.type);
+    if (hint) {
+      const resolved = {
+        ...entity,
+        metadata: { ...meta, shape: hint.shape, icon: hint.icon },
+      };
+      console.info(`[PRE registry] "${entity.type}" → semantic resolve (${hint.shape}+${hint.icon})`);
+      return renderComposable(resolved, parentEl);
+    }
+
     console.warn(`[PRE registry] Unknown entity type: "${entity.type}". Skipping.`);
     return null;
   }
