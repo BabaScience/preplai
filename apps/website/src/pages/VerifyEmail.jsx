@@ -65,7 +65,7 @@ export default function VerifyEmail() {
     <div className="auth-page">
       <div className="auth-card">
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
-          <Logo showWordmark={false} />
+          <Logo />
         </div>
 
         {status === 'loading' && (
