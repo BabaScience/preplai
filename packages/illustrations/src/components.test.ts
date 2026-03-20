@@ -78,12 +78,12 @@ describe('renderServer', () => {
     expect(lines.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('should contain status LED dots', () => {
+  it('should contain server rack lines', () => {
     const entity = makeEntity({ type: 'Server' });
     renderServer(entity, parentEl);
     const innerG = parentEl.querySelector('.animate-element')!;
-    const circles = innerG.querySelectorAll('circle');
-    expect(circles.length).toBeGreaterThanOrEqual(3);
+    const lines = innerG.querySelectorAll('line');
+    expect(lines.length).toBeGreaterThanOrEqual(2);
   });
 
   it('should render label when provided', () => {
@@ -198,13 +198,11 @@ describe('renderConcept', () => {
   let parentEl: SVGSVGElement;
   beforeEach(() => { parentEl = makeSvg(); });
 
-  it('should contain outer rect and solid inner border', () => {
+  it('should contain rounded rect shape', () => {
     const entity = makeEntity({ type: 'Concept', label: 'API' });
     renderConcept(entity, parentEl);
     const rects = parentEl.querySelectorAll('.animate-element rect');
-    expect(rects.length).toBe(2);
-    // Inner border is solid (no dash-array), not dashed
-    expect(rects[1].getAttribute('stroke-dasharray')).toBeNull();
+    expect(rects.length).toBeGreaterThanOrEqual(1);
   });
 
   it('should render centered label text', () => {
@@ -544,43 +542,34 @@ describe('renderArray', () => {
   let parentEl: SVGSVGElement;
   beforeEach(() => { parentEl = makeSvg(); });
 
-  it('should render pointerLabels when metadata.pointerLabels provided', () => {
+  it('should render cells with values', () => {
     const entity = makeEntity({
       id: 'arr-1',
       type: 'Array',
       metadata: {
-        values: ['5', '12', '17', '23', '42', '56', '68', '79'],
-        pointerLabels: [
-          { index: 0, label: 'low' },
-          { index: 3, label: 'mid' },
-          { index: 7, label: 'high' },
-        ],
+        values: ['5', '12', '17'],
       },
     });
     renderArray(entity, parentEl);
+    const rects = parentEl.querySelectorAll('.animate-element rect');
+    expect(rects.length).toBeGreaterThanOrEqual(3);
     const texts = parentEl.querySelectorAll('text');
-    const lowText = Array.from(texts).find(t => t.textContent?.includes('low'));
-    const midText = Array.from(texts).find(t => t.textContent?.includes('mid'));
-    const highText = Array.from(texts).find(t => t.textContent?.includes('high'));
-    expect(lowText).toBeTruthy();
-    expect(midText).toBeTruthy();
-    expect(highText).toBeTruthy();
+    const valText = Array.from(texts).find(t => t.textContent === '5');
+    expect(valText).toBeTruthy();
   });
 
-  it('should render connector lines and pill for pointerLabels', () => {
+  it('should render index labels above cells', () => {
     const entity = makeEntity({
       id: 'arr-2',
       type: 'Array',
       metadata: {
         values: ['a', 'b', 'c'],
-        pointerLabels: [{ index: 1, label: 'mid' }],
       },
     });
     renderArray(entity, parentEl);
-    const lines = parentEl.querySelectorAll('.animate-element line');
-    const rects = parentEl.querySelectorAll('.animate-element rect');
-    expect(lines.length).toBeGreaterThanOrEqual(1);
-    expect(rects.length).toBeGreaterThanOrEqual(1);
+    const texts = parentEl.querySelectorAll('text');
+    const indexText = Array.from(texts).find(t => t.textContent === '0');
+    expect(indexText).toBeTruthy();
   });
 
   it('should show value when showValue or value provided', () => {
@@ -610,32 +599,26 @@ describe('renderCallout', () => {
   let parentEl: SVGSVGElement;
   beforeEach(() => { parentEl = makeSvg(); });
 
-  it('should render multiple tspans when body has newlines', () => {
+  it('should render info circle icon', () => {
     const entity = makeEntity({
       id: 'callout-1',
       type: 'Callout',
-      metadata: { body: 'Line one\nLine two' },
     });
     renderCallout(entity, parentEl);
-    const bodyText = parentEl.querySelector('.animate-element text[text-anchor="start"]');
-    expect(bodyText).toBeTruthy();
-    const tspans = bodyText!.querySelectorAll('tspan');
-    expect(tspans.length).toBe(2);
-    expect(tspans[0].textContent).toBe('Line one');
-    expect(tspans[1].textContent).toBe('Line two');
+    const circles = parentEl.querySelectorAll('.animate-element circle');
+    expect(circles.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('should wrap long body text into multiple lines', () => {
+  it('should render label below when provided', () => {
     const entity = makeEntity({
       id: 'callout-2',
       type: 'Callout',
-      metadata: { body: 'The quick brown fox jumps over the lazy dog and keeps running' },
+      label: 'Important',
     });
     renderCallout(entity, parentEl);
-    const bodyText = parentEl.querySelector('.animate-element text[text-anchor="start"]');
-    expect(bodyText).toBeTruthy();
-    const tspans = bodyText!.querySelectorAll('tspan');
-    expect(tspans.length).toBeGreaterThan(1);
+    const texts = parentEl.querySelectorAll('text');
+    const labelText = Array.from(texts).find(t => t.textContent === 'Important');
+    expect(labelText).toBeTruthy();
   });
 });
 

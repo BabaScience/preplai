@@ -129,6 +129,8 @@ export const KNOWN_ENTITY_TYPES: ReadonlySet<string> = new Set([
   'DNSResolver', 'Decorator', 'DockerImage', 'DockerRegistry',
   // Machine Learning: Extended (1)
   'ConfusionMatrix',
+  // Composable (Tier 2: Shape + Icon composition)
+  'Composable',
 ]);
 
 // ── Type-specific Size Defaults (base pixel dimensions at size=1.0) ────

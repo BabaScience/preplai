@@ -1,37 +1,47 @@
 /**
  * @preplai/illustrations — Module Component
- * Code module/package: card with curly braces icon + module name + exports count
- * Metadata: { exports?: number }
+ *
+ * Clean rect with curly braces icon inside.
+ * Use for: code modules, packages, imports.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor, getStrokeWidth, getLabelFontSize,
-  TYPOGRAPHY, SHAPES,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderModule(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Module');
   const defs = ensureDefs(parentEl);
-  const gradId = `grad-mod-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const gradId = `grad-mod-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const label = entity.label ?? 'auth';
-  const meta = entity.metadata ?? {};
-  const exports = (meta.exports as number) ?? 5;
-
-  const w = s * 1.2;
-  const h = s * 0.8;
+  const w = s * 0.85;
+  const h = s * 0.7;
   const hw = w / 2;
   const hh = h / 2;
 
-  // Card
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Body
   const card = document.createElementNS(SVG_NS, 'rect');
   card.setAttribute('x', String(-hw));
   card.setAttribute('y', String(-hh));
@@ -40,44 +50,35 @@ export function renderModule(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   card.setAttribute('rx', String(SHAPES.borderRadius));
   card.setAttribute('fill', `url(#${gradId})`);
   card.setAttribute('stroke', color);
-  card.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
+  card.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(card);
 
   // Curly braces icon
   const braceText = document.createElementNS(SVG_NS, 'text');
-  braceText.setAttribute('x', String(-hw + 14));
-  braceText.setAttribute('y', String(5));
+  braceText.setAttribute('x', '0');
+  braceText.setAttribute('y', '2');
   braceText.setAttribute('text-anchor', 'middle');
+  braceText.setAttribute('dominant-baseline', 'central');
   braceText.setAttribute('fill', color);
-  braceText.setAttribute('font-size', String(s * 0.35));
+  braceText.setAttribute('font-size', String(s * 0.28));
+  braceText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
   braceText.setAttribute('font-family', TYPOGRAPHY.fontCode);
-  braceText.setAttribute('opacity', '0.5');
   braceText.textContent = '{ }';
   innerG.appendChild(braceText);
 
-  // Module name
-  const nameText = document.createElementNS(SVG_NS, 'text');
-  nameText.setAttribute('x', String(-hw + 30));
-  nameText.setAttribute('y', String(-2));
-  nameText.setAttribute('text-anchor', 'start');
-  nameText.setAttribute('fill', color);
-  nameText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
-  nameText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
-  nameText.setAttribute('font-family', TYPOGRAPHY.fontCode);
-  nameText.textContent = label;
-  innerG.appendChild(nameText);
-
-  // Exports count
-  const exText = document.createElementNS(SVG_NS, 'text');
-  exText.setAttribute('x', String(-hw + 30));
-  exText.setAttribute('y', String(12));
-  exText.setAttribute('text-anchor', 'start');
-  exText.setAttribute('fill', color);
-  exText.setAttribute('font-size', String(getLabelFontSize('inline', scale)));
-  exText.setAttribute('font-family', TYPOGRAPHY.fontCode);
-  exText.setAttribute('opacity', '0.5');
-  exText.textContent = `${exports} exports`;
-  innerG.appendChild(exText);
+  // Label below
+  if (entity.label) {
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    text.textContent = entity.label;
+    innerG.appendChild(text);
+  }
 
   applyEntranceAnimation(innerG, entity);
   parentEl.appendChild(outerG);

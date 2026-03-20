@@ -102,11 +102,11 @@ export function renderTable(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     rect.setAttribute('height', String(height));
     rect.setAttribute('rx', String(Math.max(1, SHAPES.borderRadius - 2)));
     if (isHeader) {
-      rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillMedium));
-      rect.setAttribute('stroke', color);
+      rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
+      rect.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeSoft));
     } else {
       rect.setAttribute('fill', `url(#${gradId})`);
-      rect.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeSoft));
+      rect.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     }
     rect.setAttribute('stroke-width', String(strokeWidth));
     rect.setAttribute('stroke-linejoin', 'round');

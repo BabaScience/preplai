@@ -1,13 +1,14 @@
 /**
  * @preplai/illustrations — Heading Components (H1, H2, H3)
  *
- * Section heading illustrations with distinct typographic hierarchy.
- * H1: Largest, boldest. H2: Medium. H3: Smallest.
- * Uses metadata.label or entity.label for text.
+ * Clean text with subtle underline.
+ * Use for: section headings, typographic hierarchy.
+ *
+ * Already minimal — kept with minor cleanup.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 type HeadingLevel = 'H1' | 'H2' | 'H3';
@@ -15,12 +16,11 @@ type HeadingLevel = 'H1' | 'H2' | 'H3';
 const LEVEL_CONFIG: Record<HeadingLevel, {
   baseFontSize: number;
   fontWeight: number;
-  letterSpacing: string;
   underlineWidth: number;
 }> = {
-  H1: { baseFontSize: 32, fontWeight: 700, letterSpacing: '0.04em', underlineWidth: 60 },
-  H2: { baseFontSize: 22, fontWeight: 600, letterSpacing: '0.02em', underlineWidth: 40 },
-  H3: { baseFontSize: 16, fontWeight: 600, letterSpacing: '0', underlineWidth: 0 },
+  H1: { baseFontSize: 32, fontWeight: 700, underlineWidth: 60 },
+  H2: { baseFontSize: 22, fontWeight: 600, underlineWidth: 40 },
+  H3: { baseFontSize: 16, fontWeight: 600, underlineWidth: 0 },
 };
 
 function createHeadingRenderer(level: HeadingLevel) {
@@ -31,10 +31,7 @@ function createHeadingRenderer(level: HeadingLevel) {
 
     const s = getSizeParam(entity);
     const color = entity.color ?? getCategoryColor(level);
-
-    const meta = entity.metadata ?? {};
-    const label = (meta.label as string) ?? entity.label ?? level;
-
+    const label = entity.label ?? level;
     const scale = s / 50;
     const fontSize = config.baseFontSize * scale;
 
@@ -47,15 +44,12 @@ function createHeadingRenderer(level: HeadingLevel) {
     textEl.setAttribute('font-size', String(fontSize));
     textEl.setAttribute('font-weight', String(config.fontWeight));
     textEl.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    if (config.letterSpacing !== '0') {
-      textEl.setAttribute('letter-spacing', config.letterSpacing);
-    }
     textEl.textContent = label;
     innerG.appendChild(textEl);
 
-    // Decorative underline for H1 and H2
+    // Subtle underline for H1 and H2
     if (config.underlineWidth > 0) {
-      const lineY = fontSize * 0.5 + 8;
+      const lineY = fontSize * 0.5 + 6;
       const underline = document.createElementNS(SVG_NS, 'line');
       underline.setAttribute('x1', String(-config.underlineWidth / 2));
       underline.setAttribute('y1', String(lineY));
@@ -63,7 +57,7 @@ function createHeadingRenderer(level: HeadingLevel) {
       underline.setAttribute('y2', String(lineY));
       underline.setAttribute('stroke', color);
       underline.setAttribute('stroke-opacity', '0.3');
-      underline.setAttribute('stroke-width', '1.5');
+      underline.setAttribute('stroke-width', String(STROKE.default));
       underline.setAttribute('stroke-linecap', 'round');
       innerG.appendChild(underline);
     }

@@ -1,45 +1,47 @@
 /**
  * @preplai/illustrations — Alert Component
- * Monitoring alert: card with severity icon + alert name + status
- * Metadata: { severity?: 'critical'|'warning'|'info', status?: 'firing'|'resolved' }
+ *
+ * Clean rect with triangle-exclamation icon inside.
+ * Use for: monitoring alerts, warnings, incidents.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor, getStrokeWidth, getLabelFontSize,
-  TYPOGRAPHY, SHAPES,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
-
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: '#f87171',
-  warning: '#fbbf24',
-  info: '#60a5fa',
-};
 
 export function renderAlert(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Alert');
   const defs = ensureDefs(parentEl);
-  const gradId = `grad-alert-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const gradId = `grad-alert-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const meta = entity.metadata ?? {};
-  const severity = (meta.severity as string) ?? 'critical';
-  const status = (meta.status as string) ?? 'firing';
-  const label = entity.label ?? 'High CPU Usage';
-  const sevColor = SEVERITY_COLORS[severity] ?? color;
-
-  const w = s * 1.6;
+  const w = s * 0.85;
   const h = s * 0.7;
   const hw = w / 2;
   const hh = h / 2;
 
-  // Card
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Body
   const card = document.createElementNS(SVG_NS, 'rect');
   card.setAttribute('x', String(-hw));
   card.setAttribute('y', String(-hh));
@@ -47,62 +49,41 @@ export function renderAlert(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   card.setAttribute('height', String(h));
   card.setAttribute('rx', String(SHAPES.borderRadius));
   card.setAttribute('fill', `url(#${gradId})`);
-  card.setAttribute('stroke', sevColor);
-  card.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
+  card.setAttribute('stroke', color);
+  card.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(card);
 
-  // Left accent bar
-  const accent = document.createElementNS(SVG_NS, 'rect');
-  accent.setAttribute('x', String(-hw));
-  accent.setAttribute('y', String(-hh));
-  accent.setAttribute('width', '3');
-  accent.setAttribute('height', String(h));
-  accent.setAttribute('rx', String(SHAPES.borderRadius));
-  accent.setAttribute('fill', sevColor);
-  accent.setAttribute('opacity', '0.8');
-  innerG.appendChild(accent);
+  // Triangle exclamation icon (stroke-based)
+  const is = s * 0.1;
+  const tri = document.createElementNS(SVG_NS, 'path');
+  tri.setAttribute('d', `M 0 ${-is} L ${is} ${is * 0.7} L ${-is} ${is * 0.7} Z`);
+  tri.setAttribute('fill', 'none');
+  tri.setAttribute('stroke', color);
+  tri.setAttribute('stroke-width', String(STROKE.default));
+  tri.setAttribute('stroke-linejoin', 'round');
+  innerG.appendChild(tri);
 
-  // Bell icon (triangle + circle on top)
-  const bellG = document.createElementNS(SVG_NS, 'g');
-  bellG.setAttribute('transform', `translate(${-hw + 18}, 0)`);
-  // Bell body (triangle-ish)
-  const bell = document.createElementNS(SVG_NS, 'path');
-  bell.setAttribute('d', 'M -5 2 L -7 2 L 0 -7 L 7 2 L 5 2 Z');
-  bell.setAttribute('fill', sevColor);
-  bell.setAttribute('opacity', '0.7');
-  bellG.appendChild(bell);
-  // Bell clapper
-  const clapper = document.createElementNS(SVG_NS, 'circle');
-  clapper.setAttribute('cx', '0');
-  clapper.setAttribute('cy', '5');
-  clapper.setAttribute('r', '2');
-  clapper.setAttribute('fill', sevColor);
-  clapper.setAttribute('opacity', '0.5');
-  bellG.appendChild(clapper);
-  innerG.appendChild(bellG);
+  // Exclamation dot
+  const dot = document.createElementNS(SVG_NS, 'circle');
+  dot.setAttribute('cx', '0');
+  dot.setAttribute('cy', String(is * 0.3));
+  dot.setAttribute('r', '1');
+  dot.setAttribute('fill', color);
+  innerG.appendChild(dot);
 
-  // Alert name
-  const nameText = document.createElementNS(SVG_NS, 'text');
-  nameText.setAttribute('x', String(-hw + 32));
-  nameText.setAttribute('y', String(-2));
-  nameText.setAttribute('text-anchor', 'start');
-  nameText.setAttribute('fill', color);
-  nameText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
-  nameText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
-  nameText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-  nameText.textContent = label.length > 20 ? label.slice(0, 17) + '...' : label;
-  innerG.appendChild(nameText);
-
-  // Status badge
-  const statusText = document.createElementNS(SVG_NS, 'text');
-  statusText.setAttribute('x', String(-hw + 32));
-  statusText.setAttribute('y', String(12));
-  statusText.setAttribute('text-anchor', 'start');
-  statusText.setAttribute('fill', status === 'firing' ? sevColor : '#4ade80');
-  statusText.setAttribute('font-size', String(getLabelFontSize('inline', scale)));
-  statusText.setAttribute('font-family', TYPOGRAPHY.fontCode);
-  statusText.textContent = status.toUpperCase();
-  innerG.appendChild(statusText);
+  // Label below
+  if (entity.label) {
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    text.textContent = entity.label;
+    innerG.appendChild(text);
+  }
 
   applyEntranceAnimation(innerG, entity);
   parentEl.appendChild(outerG);

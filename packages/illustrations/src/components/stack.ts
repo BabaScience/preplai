@@ -1,8 +1,12 @@
 /**
  * @preplai/illustrations — Stack Component
- * Vertical stack of customizable layers (OSI model, tech stack, etc.)
  *
- * Metadata: { layers: Array<{ label: string, color?: string, sublabel?: string }>, direction?: 'top-down' | 'bottom-up' }
+ * Clean vertical stack of labeled layers.
+ * Use for: tech stacks, OSI model, protocol layers, layer diagrams.
+ *
+ * Metadata: { layers: Array<{ label: string, color?: string }> }
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
@@ -11,27 +15,18 @@ import {
   getCategoryColor,
   TYPOGRAPHY,
   SHAPES,
+  STROKE,
   LABEL_DEFAULTS,
-  getStrokeWidth,
-  getLabelFontSize,
   colorWithAlpha,
   OPACITY,
+  getStrokeWidth,
+  getLabelFontSize,
 } from '../design-tokens.js';
-import { stackLayout } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
 
 interface StackLayer {
   label: string;
   color?: string;
-  sublabel?: string;
-}
-
-/** Truncate text to fit within pixel width; ~0.6em per char for typical font */
-function truncateToFit(text: string, maxWidth: number, fontSize: number): string {
-  const approxCharWidth = fontSize * 0.6;
-  const maxChars = Math.max(5, Math.floor((maxWidth - 16) / approxCharWidth));
-  if (text.length <= maxChars) return text;
-  return text.slice(0, maxChars - 3) + '...';
 }
 
 export function renderStack(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -39,15 +34,11 @@ export function renderStack(entity: VisualEntity, parentEl: SVGElement): SVGGEle
 
   const s = getSizeParam(entity);
   const scale = s / 50;
-  const labelFontSize = getLabelFontSize('value', scale);
-  const sublabelFontSize = getLabelFontSize('index', scale);
   const defaultColor = entity.color ?? getCategoryColor('Stack');
   const defs = ensureDefs(parentEl);
 
   const meta = entity.metadata ?? {};
-  const layersData = meta.layers as StackLayer[] | undefined;
-
-  const layers: StackLayer[] = layersData ?? [
+  const layers: StackLayer[] = (meta.layers as StackLayer[]) ?? [
     { label: 'Application' },
     { label: 'Transport' },
     { label: 'Network' },
@@ -55,81 +46,59 @@ export function renderStack(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     { label: 'Physical' },
   ];
 
-  const items = layers.map((l) => ({ label: l.label, sublabel: l.sublabel }));
-  const blockWidth = s * 2.8;
-  const blockHeight = 30;
-  const gap = 6;
-  const blocks = stackLayout(items, { blockWidth, blockHeight, gap });
+  const blockW = s * 1.6;
+  const blockH = 20 * scale;
+  const gap = 4 * scale;
+  const totalH = layers.length * blockH + (layers.length - 1) * gap;
+  const startY = -totalH / 2 + blockH / 2;
 
-  blocks.forEach(({ x, y, width, height, label, sublabel }, i) => {
-    const layer = layers[i];
-    const color = layer?.color ?? defaultColor;
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-blockW / 2 - 3));
+    glow.setAttribute('y', String(-totalH / 2 - 3));
+    glow.setAttribute('width', String(blockW + 6));
+    glow.setAttribute('height', String(totalH + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(defaultColor, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  layers.forEach((layer, i) => {
+    const color = layer.color ?? defaultColor;
     const gradId = `grad-stack-${entity.id}-${i}-${color.replace(/[^a-fA-F0-9]/g, '')}`;
     createLinearGradient(gradId, color, 'vertical', defs);
 
-    const clipId = `clip-stack-${entity.id}-${i}`;
-    let clipEl = defs.querySelector(`#${clipId}`) as SVGClipPathElement | null;
-    if (!clipEl) {
-      clipEl = document.createElementNS(SVG_NS, 'clipPath');
-      clipEl.setAttribute('id', clipId);
-      defs.appendChild(clipEl);
-    }
-    clipEl.innerHTML = '';
-    const clipRect = document.createElementNS(SVG_NS, 'rect');
-    clipRect.setAttribute('x', String(x - width / 2));
-    clipRect.setAttribute('y', String(y - height / 2));
-    clipRect.setAttribute('width', String(width));
-    clipRect.setAttribute('height', String(height));
-    clipRect.setAttribute('rx', String(SHAPES.borderRadius));
-    clipEl.appendChild(clipRect);
-
-    const blockG = document.createElementNS(SVG_NS, 'g');
-    blockG.setAttribute('clip-path', `url(#${clipId})`);
+    const y = startY + i * (blockH + gap);
 
     const rect = document.createElementNS(SVG_NS, 'rect');
-    rect.setAttribute('x', String(x - width / 2));
-    rect.setAttribute('y', String(y - height / 2));
-    rect.setAttribute('width', String(width));
-    rect.setAttribute('height', String(height));
+    rect.setAttribute('x', String(-blockW / 2));
+    rect.setAttribute('y', String(y - blockH / 2));
+    rect.setAttribute('width', String(blockW));
+    rect.setAttribute('height', String(blockH));
     rect.setAttribute('rx', String(SHAPES.borderRadius));
     rect.setAttribute('fill', `url(#${gradId})`);
     rect.setAttribute('stroke', color);
     rect.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
-    blockG.appendChild(rect);
-
-    const usableWidth = width - 16;
-    const displayLabel = truncateToFit(label, usableWidth, labelFontSize);
-    const displaySublabel = sublabel ? truncateToFit(sublabel, usableWidth, sublabelFontSize) : undefined;
+    innerG.appendChild(rect);
 
     const text = document.createElementNS(SVG_NS, 'text');
-    text.setAttribute('x', String(x));
-    text.setAttribute('y', String(displaySublabel ? y - 2 : y + 4));
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(y + 4));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(labelFontSize));
+    text.setAttribute('font-size', String(getLabelFontSize('value', scale)));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-    text.textContent = displayLabel;
-    blockG.appendChild(text);
-
-    if (displaySublabel) {
-      const sub = document.createElementNS(SVG_NS, 'text');
-      sub.setAttribute('x', String(x));
-      sub.setAttribute('y', String(y + 6));
-      sub.setAttribute('text-anchor', 'middle');
-      sub.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
-      sub.setAttribute('font-size', String(sublabelFontSize));
-      sub.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-      sub.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-      sub.textContent = displaySublabel;
-      blockG.appendChild(sub);
-    }
-
-    innerG.appendChild(blockG);
+    text.textContent = layer.label.slice(0, 20);
+    innerG.appendChild(text);
   });
 
+  // Label below
   if (entity.label) {
-    const totalH = blocks.length * blockHeight + (blocks.length - 1) * gap;
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
     text.setAttribute('y', String(totalH / 2 + LABEL_DEFAULTS.offsetBelow));

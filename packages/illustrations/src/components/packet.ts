@@ -1,14 +1,14 @@
 /**
  * @preplai/illustrations — Packet Component
  *
- * Network packet: horizontal rect divided into header sections (src/dst IP, ports, flags)
- * and payload area, with optional byte-offset markers.
+ * Horizontal bar divided into header sections and payload.
+ * Data-driven but with cleaner, lighter visuals.
+ * Use for: network packets, protocol frames, data segments.
  *
  * Metadata:
- *   headers: Array<{name: string, value: string, bytes?: number}> — header fields
- *   payload: string — payload preview text
- *   protocol: string — e.g. TCP, UDP, IP
- *   highlightSection?: string — name of section to highlight (header name or 'payload')
+ *   headers: Array<{name: string, value: string, bytes?: number}>
+ *   payload: string
+ *   protocol: string
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
@@ -20,7 +20,7 @@ import {
   colorWithAlpha,
   OPACITY,
   TYPOGRAPHY,
-  SHAPES,
+  STROKE,
   LABEL_DEFAULTS,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
@@ -35,14 +35,13 @@ function parseHeaders(meta: Record<string, unknown>): HeaderDef[] {
   const raw = meta.headers as HeaderDef[] | undefined;
   if (!Array.isArray(raw) || raw.length === 0) {
     return [
-      { name: 'Src IP', value: '192.168.1.1', bytes: 4 },
-      { name: 'Dst IP', value: '10.0.0.5', bytes: 4 },
-      { name: 'Src Port', value: '443', bytes: 2 },
-      { name: 'Dst Port', value: '8080', bytes: 2 },
+      { name: 'Src', value: '192.168.1.1', bytes: 4 },
+      { name: 'Dst', value: '10.0.0.5', bytes: 4 },
+      { name: 'Port', value: '443', bytes: 2 },
       { name: 'Flags', value: 'ACK', bytes: 1 },
     ];
   }
-  return raw.slice(0, 8).map((h) => ({
+  return raw.slice(0, 6).map((h) => ({
     name: String(h?.name ?? '?'),
     value: String(h?.value ?? ''),
     bytes: typeof h?.bytes === 'number' ? h.bytes : undefined,
@@ -64,37 +63,48 @@ export function renderPacket(entity: VisualEntity, parentEl: SVGElement): SVGGEl
 
   const meta = entity.metadata ?? {};
   const headers = parseHeaders(meta);
-  const payload = String(meta.payload ?? 'Data...').slice(0, 20);
-  const protocol = String(meta.protocol ?? 'TCP').toUpperCase();
-  const highlightSection = meta.highlightSection as string | undefined;
+  const payload = String(meta.payload ?? 'Data...').slice(0, 16);
 
-  const totalW = s * 3.2;
-  const barH = s * 0.5;
+  const totalW = s * 3;
+  const barH = s * 0.45;
   const headerRatio = 0.65;
   const headerW = totalW * headerRatio;
-  const _payloadW = totalW * (1 - headerRatio);
   const sectionGap = 2;
-  const padding = 6 * scale;
+  const padding = 5 * scale;
 
   const startX = -totalW / 2;
   let offsetX = startX;
 
   const totalBytes = headers.reduce((sum, h) => sum + (h.bytes ?? 4), 0) + 16;
 
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(startX - 3));
+    glow.setAttribute('y', String(-barH / 2 - 3));
+    glow.setAttribute('width', String(totalW + 6));
+    glow.setAttribute('height', String(barH + 6));
+    glow.setAttribute('rx', '5');
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
   headers.forEach((h) => {
     const bytes = h.bytes ?? 4;
-    const sectionW = Math.max((bytes / totalBytes) * headerW, 28 * scale);
-    const isHighlighted = highlightSection === h.name;
+    const sectionW = Math.max((bytes / totalBytes) * headerW, 26 * scale);
 
     const rect = document.createElementNS(SVG_NS, 'rect');
     rect.setAttribute('x', String(offsetX));
     rect.setAttribute('y', String(-barH / 2));
     rect.setAttribute('width', String(sectionW));
     rect.setAttribute('height', String(barH));
-    rect.setAttribute('rx', String(SHAPES.borderRadius - 2));
-    rect.setAttribute('fill', isHighlighted ? colorWithAlpha(color, OPACITY.fillLight) : `url(#${gradId})`);
-    rect.setAttribute('stroke', isHighlighted ? color : colorWithAlpha(color, OPACITY.strokeSoft));
-    rect.setAttribute('stroke-width', String(isHighlighted ? strokeWidth * 1.5 : strokeWidth));
+    rect.setAttribute('rx', '3');
+    rect.setAttribute('fill', `url(#${gradId})`);
+    rect.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    rect.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(rect);
 
     const nameText = document.createElementNS(SVG_NS, 'text');
@@ -102,7 +112,7 @@ export function renderPacket(entity: VisualEntity, parentEl: SVGElement): SVGGEl
     nameText.setAttribute('y', String(-barH / 2 + padding + 2));
     nameText.setAttribute('text-anchor', 'middle');
     nameText.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
-    nameText.setAttribute('font-size', String(labelFontSize * 0.85));
+    nameText.setAttribute('font-size', String(labelFontSize * 0.8));
     nameText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     nameText.textContent = h.name;
     innerG.appendChild(nameText);
@@ -112,8 +122,8 @@ export function renderPacket(entity: VisualEntity, parentEl: SVGElement): SVGGEl
     valText.setAttribute('y', String(barH / 2 - padding));
     valText.setAttribute('text-anchor', 'middle');
     valText.setAttribute('fill', color);
-    valText.setAttribute('font-size', String(cellFontSize * 0.9));
-    valText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
+    valText.setAttribute('font-size', String(cellFontSize * 0.85));
+    valText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     valText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     valText.textContent = h.value.length > 10 ? h.value.slice(0, 8) + '…' : h.value;
     innerG.appendChild(valText);
@@ -121,50 +131,30 @@ export function renderPacket(entity: VisualEntity, parentEl: SVGElement): SVGGEl
     offsetX += sectionW + sectionGap;
   });
 
-  const payloadHighlighted = highlightSection === 'payload';
+  // Payload section
   const payloadRect = document.createElementNS(SVG_NS, 'rect');
   payloadRect.setAttribute('x', String(offsetX));
   payloadRect.setAttribute('y', String(-barH / 2));
   payloadRect.setAttribute('width', String(startX + totalW - offsetX));
   payloadRect.setAttribute('height', String(barH));
-  payloadRect.setAttribute('rx', String(SHAPES.borderRadius - 2));
-  payloadRect.setAttribute('fill', payloadHighlighted ? colorWithAlpha(color, OPACITY.fillLight) : `url(#${gradId})`);
-  payloadRect.setAttribute('stroke', payloadHighlighted ? color : colorWithAlpha(color, OPACITY.strokeSoft));
-  payloadRect.setAttribute('stroke-width', String(payloadHighlighted ? strokeWidth * 1.5 : strokeWidth));
+  payloadRect.setAttribute('rx', '3');
+  payloadRect.setAttribute('fill', `url(#${gradId})`);
+  payloadRect.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+  payloadRect.setAttribute('stroke-width', String(strokeWidth));
   innerG.appendChild(payloadRect);
 
   const payloadSectionW = startX + totalW - offsetX;
-  const payloadLabel = document.createElementNS(SVG_NS, 'text');
-  payloadLabel.setAttribute('x', String(offsetX + payloadSectionW / 2));
-  payloadLabel.setAttribute('y', String(-barH / 2 + padding + 2));
-  payloadLabel.setAttribute('text-anchor', 'middle');
-  payloadLabel.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
-  payloadLabel.setAttribute('font-size', String(labelFontSize * 0.85));
-  payloadLabel.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-  payloadLabel.textContent = 'Payload';
-  innerG.appendChild(payloadLabel);
-
   const payloadVal = document.createElementNS(SVG_NS, 'text');
   payloadVal.setAttribute('x', String(offsetX + payloadSectionW / 2));
-  payloadVal.setAttribute('y', String(barH / 2 - padding));
+  payloadVal.setAttribute('y', String(3));
   payloadVal.setAttribute('text-anchor', 'middle');
   payloadVal.setAttribute('fill', color);
-  payloadVal.setAttribute('font-size', String(cellFontSize * 0.85));
+  payloadVal.setAttribute('font-size', String(cellFontSize * 0.8));
   payloadVal.setAttribute('font-family', TYPOGRAPHY.fontBadge);
   payloadVal.textContent = payload;
   innerG.appendChild(payloadVal);
 
-  const protocolBadge = document.createElementNS(SVG_NS, 'text');
-  protocolBadge.setAttribute('x', String(startX));
-  protocolBadge.setAttribute('y', String(-barH / 2 - 6));
-  protocolBadge.setAttribute('text-anchor', 'start');
-  protocolBadge.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
-  protocolBadge.setAttribute('font-size', String(labelFontSize));
-  protocolBadge.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
-  protocolBadge.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-  protocolBadge.textContent = protocol;
-  innerG.appendChild(protocolBadge);
-
+  // Label below
   if (entity.label) {
     const labelEl = document.createElementNS(SVG_NS, 'text');
     labelEl.setAttribute('x', '0');

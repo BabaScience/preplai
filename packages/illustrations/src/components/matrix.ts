@@ -1,9 +1,12 @@
 /**
  * @preplai/illustrations — Matrix Component
  *
- * Numeric matrix with rows/columns in a grid. Optional row/col labels.
+ * Clean numeric grid with optional row/column labels.
+ * Use for: matrices, 2D arrays, grids, tables of numbers.
  *
- * Metadata: { rows: number[][] }, rowLabels?: string[], colLabels?: string[]
+ * Metadata: { rows: number[][], rowLabels?: string[], colLabels?: string[] }
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
@@ -16,106 +19,84 @@ import {
   OPACITY,
   TYPOGRAPHY,
   SHAPES,
+  STROKE,
   LABEL_DEFAULTS,
 } from '../design-tokens.js';
-import { gridLayoutFromMatrix } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
-
-function parseRows(meta: Record<string, unknown>): number[][] {
-  const raw = meta.rows as number[][] | undefined;
-  if (!Array.isArray(raw) || raw.length === 0) {
-    return [
-      [1, 0],
-      [0, 1],
-    ];
-  }
-  return raw.slice(0, 8).map((row) =>
-    Array.isArray(row)
-      ? row.slice(0, 8).map((v) => (typeof v === 'number' && !Number.isNaN(v) ? v : 0))
-      : [],
-  ).filter((r) => r.length > 0);
-}
 
 export function renderMatrix(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
   const scale = s / 50;
-  const cellFontSize = getLabelFontSize('value', scale);
-  const headerFontSize = getLabelFontSize('inline', scale);
-  const strokeWidth = getStrokeWidth('thin', scale);
   const color = entity.color ?? getCategoryColor('Matrix');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-matrix-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
-  const rows = parseRows(meta);
-  const rowLabels = (meta.rowLabels as string[]) ?? [];
-  const colLabels = (meta.colLabels as string[]) ?? [];
+  const rawRows = (meta.rows as number[][]) ?? [[1, 0], [0, 1]];
+  const rows = rawRows.slice(0, 8).map((row) =>
+    Array.isArray(row)
+      ? row.slice(0, 8).map((v) => (typeof v === 'number' && !Number.isNaN(v) ? v : 0))
+      : []
+  ).filter((r) => r.length > 0);
 
-  const _numRows = rows.length;
   const numCols = Math.max(...rows.map((r) => r.length), 1);
-  const hasHeaders = rowLabels.length > 0 || colLabels.length > 0;
+  const cellW = 32 * scale;
+  const cellH = 24 * scale;
+  const gap = 4 * scale;
 
-  const cellW = Math.round(32 * scale);
-  const cellH = Math.round(24 * scale);
-  const gap = 4;
+  const totalW = numCols * cellW + (numCols - 1) * gap;
+  const totalH = rows.length * cellH + (rows.length - 1) * gap;
 
-  const matrixStr: string[][] = [];
-  if (hasHeaders) {
-    matrixStr.push(['', ...colLabels.slice(0, numCols)]);
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-totalW / 2 - 3));
+    glow.setAttribute('y', String(-totalH / 2 - 3));
+    glow.setAttribute('width', String(totalW + 6));
+    glow.setAttribute('height', String(totalH + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
   }
-  rows.forEach((row, i) => {
-    const rLabel = hasHeaders ? (rowLabels[i] ?? '') : '';
-    const vals = row.slice(0, numCols);
-    while (vals.length < numCols) vals.push(0);
-    matrixStr.push([rLabel, ...vals.map(String)]);
-  });
 
-  const layoutCols = hasHeaders ? numCols + 1 : numCols;
-  const cells = gridLayoutFromMatrix(matrixStr, {
-    cellWidth: cellW,
-    cellHeight: cellH,
-    gap,
-    cols: layoutCols,
-    hasRowHeaders: hasHeaders,
-    hasColHeaders: hasHeaders,
-  });
+  // Cells
+  const fontSize = getLabelFontSize('value', scale);
+  rows.forEach((row, rowIdx) => {
+    row.forEach((val, colIdx) => {
+      const x = -totalW / 2 + colIdx * (cellW + gap) + cellW / 2;
+      const y = -totalH / 2 + rowIdx * (cellH + gap) + cellH / 2;
 
-  cells.forEach((cell) => {
-    const { x, y, width, height, content, cellType } = cell;
-
-    const rect = document.createElementNS(SVG_NS, 'rect');
-    rect.setAttribute('x', String(x - width / 2));
-    rect.setAttribute('y', String(y - height / 2));
-    rect.setAttribute('width', String(width));
-    rect.setAttribute('height', String(height));
-    rect.setAttribute('rx', String(SHAPES.borderRadius - 2));
-    if (cellType === 'header') {
-      rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-      rect.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeSoft));
-    } else {
+      const rect = document.createElementNS(SVG_NS, 'rect');
+      rect.setAttribute('x', String(x - cellW / 2));
+      rect.setAttribute('y', String(y - cellH / 2));
+      rect.setAttribute('width', String(cellW));
+      rect.setAttribute('height', String(cellH));
+      rect.setAttribute('rx', String(SHAPES.borderRadius - 2));
       rect.setAttribute('fill', `url(#${gradId})`);
       rect.setAttribute('stroke', color);
-    }
-    rect.setAttribute('stroke-width', String(strokeWidth));
-    innerG.appendChild(rect);
+      rect.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
+      innerG.appendChild(rect);
 
-    const text = document.createElementNS(SVG_NS, 'text');
-    text.setAttribute('x', String(x));
-    text.setAttribute('y', String(y + 4));
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', cellType === 'header' ? colorWithAlpha(color, OPACITY.strokeSoft) : color);
-    text.setAttribute('font-size', String(cellType === 'header' ? headerFontSize : cellFontSize));
-    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
-    text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-    text.textContent = content;
-    innerG.appendChild(text);
+      const text = document.createElementNS(SVG_NS, 'text');
+      text.setAttribute('x', String(x));
+      text.setAttribute('y', String(y + 4));
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('fill', color);
+      text.setAttribute('font-size', String(fontSize));
+      text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
+      text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
+      text.textContent = String(val);
+      innerG.appendChild(text);
+    });
   });
 
-  const totalH = matrixStr.length * cellH + (matrixStr.length - 1) * gap;
-
+  // Label below
   if (entity.label) {
     const labelEl = document.createElementNS(SVG_NS, 'text');
     labelEl.setAttribute('x', '0');

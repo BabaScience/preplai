@@ -1,39 +1,47 @@
 /**
  * @preplai/illustrations — ConfigFile Component
- * Configuration file: card with gear icon + filename + key-value pairs
- * Metadata: { filename?: string, entries?: Array<{key: string, value: string}> }
+ *
+ * Clean rect with gear icon inside.
+ * Use for: configuration files, .env, settings.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor, getStrokeWidth, getLabelFontSize,
-  TYPOGRAPHY, SHAPES, STROKE,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderConfigFile(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('ConfigFile');
   const defs = ensureDefs(parentEl);
-  const gradId = `grad-cfg-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const gradId = `grad-cfg-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const meta = entity.metadata ?? {};
-  const filename = (meta.filename as string) ?? entity.label ?? '.env';
-  const entries = (meta.entries as Array<{key: string; value: string}>) ?? [];
-
-  const w = s * 1.4;
-  const rowH = 13;
-  const headerH = 20;
-  const h = Math.max(s * 0.7, headerH + entries.length * rowH + 8);
+  const w = s * 0.85;
+  const h = s * 0.7;
   const hw = w / 2;
   const hh = h / 2;
 
-  // Card
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Body
   const card = document.createElementNS(SVG_NS, 'rect');
   card.setAttribute('x', String(-hw));
   card.setAttribute('y', String(-hh));
@@ -42,84 +50,45 @@ export function renderConfigFile(entity: VisualEntity, parentEl: SVGElement): SV
   card.setAttribute('rx', String(SHAPES.borderRadius));
   card.setAttribute('fill', `url(#${gradId})`);
   card.setAttribute('stroke', color);
-  card.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
+  card.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(card);
 
-  // Header
-  const headerBar = document.createElementNS(SVG_NS, 'rect');
-  headerBar.setAttribute('x', String(-hw));
-  headerBar.setAttribute('y', String(-hh));
-  headerBar.setAttribute('width', String(w));
-  headerBar.setAttribute('height', String(headerH));
-  headerBar.setAttribute('rx', String(SHAPES.borderRadius));
-  headerBar.setAttribute('fill', color);
-  headerBar.setAttribute('opacity', '0.15');
-  innerG.appendChild(headerBar);
-
-  // Gear icon (circle + 4 teeth)
-  const gearG = document.createElementNS(SVG_NS, 'g');
-  gearG.setAttribute('transform', `translate(${-hw + 14}, ${-hh + headerH / 2})`);
+  // Gear icon (circle + 4 tick marks)
+  const gr = s * 0.08;
   const gearCircle = document.createElementNS(SVG_NS, 'circle');
   gearCircle.setAttribute('cx', '0');
   gearCircle.setAttribute('cy', '0');
-  gearCircle.setAttribute('r', '4');
+  gearCircle.setAttribute('r', String(gr));
   gearCircle.setAttribute('fill', 'none');
   gearCircle.setAttribute('stroke', color);
   gearCircle.setAttribute('stroke-width', String(STROKE.default));
-  gearG.appendChild(gearCircle);
-  // Teeth
+  innerG.appendChild(gearCircle);
+
   for (let i = 0; i < 4; i++) {
-    const angle = (i * 90) * Math.PI / 180;
-    const tooth = document.createElementNS(SVG_NS, 'line');
-    tooth.setAttribute('x1', String(Math.cos(angle) * 4));
-    tooth.setAttribute('y1', String(Math.sin(angle) * 4));
-    tooth.setAttribute('x2', String(Math.cos(angle) * 7));
-    tooth.setAttribute('y2', String(Math.sin(angle) * 7));
-    tooth.setAttribute('stroke', color);
-    tooth.setAttribute('stroke-width', String(STROKE.default));
-    gearG.appendChild(tooth);
+    const angle = (Math.PI / 2) * i;
+    const tick = document.createElementNS(SVG_NS, 'line');
+    tick.setAttribute('x1', String(gr * Math.cos(angle)));
+    tick.setAttribute('y1', String(gr * Math.sin(angle)));
+    tick.setAttribute('x2', String((gr + s * 0.04) * Math.cos(angle)));
+    tick.setAttribute('y2', String((gr + s * 0.04) * Math.sin(angle)));
+    tick.setAttribute('stroke', color);
+    tick.setAttribute('stroke-width', String(STROKE.default));
+    tick.setAttribute('stroke-linecap', 'round');
+    innerG.appendChild(tick);
   }
-  innerG.appendChild(gearG);
 
-  // Filename
-  const nameText = document.createElementNS(SVG_NS, 'text');
-  nameText.setAttribute('x', String(-hw + 26));
-  nameText.setAttribute('y', String(-hh + 14));
-  nameText.setAttribute('text-anchor', 'start');
-  nameText.setAttribute('fill', color);
-  nameText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
-  nameText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
-  nameText.setAttribute('font-family', TYPOGRAPHY.fontCode);
-  nameText.textContent = filename;
-  innerG.appendChild(nameText);
-
-  // Key-value pairs
-  const fontSize = getLabelFontSize('inline', scale);
-  const maxEntries = Math.min(entries.length, 5);
-  for (let i = 0; i < maxEntries; i++) {
-    const entry = entries[i];
-    const y = -hh + headerH + 12 + i * rowH;
-
-    const keyText = document.createElementNS(SVG_NS, 'text');
-    keyText.setAttribute('x', String(-hw + 10));
-    keyText.setAttribute('y', String(y));
-    keyText.setAttribute('text-anchor', 'start');
-    keyText.setAttribute('fill', color);
-    keyText.setAttribute('font-size', String(fontSize));
-    keyText.setAttribute('font-family', TYPOGRAPHY.fontCode);
-    keyText.textContent = entry.key;
-    innerG.appendChild(keyText);
-
-    const valText = document.createElementNS(SVG_NS, 'text');
-    valText.setAttribute('x', String(hw - 8));
-    valText.setAttribute('y', String(y));
-    valText.setAttribute('text-anchor', 'end');
-    valText.setAttribute('fill', color);
-    valText.setAttribute('font-size', String(fontSize));
-    valText.setAttribute('font-family', TYPOGRAPHY.fontCode);
-    valText.setAttribute('opacity', '0.5');
-    valText.textContent = entry.value;
-    innerG.appendChild(valText);
+  // Label below
+  if (entity.label) {
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    text.textContent = entity.label;
+    innerG.appendChild(text);
   }
 
   applyEntranceAnimation(innerG, entity);

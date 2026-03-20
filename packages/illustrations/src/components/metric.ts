@@ -1,19 +1,23 @@
 /**
  * @preplai/illustrations — Metric Component
- * Dashboard card with accent bar, large value, label header, and trend indicator.
  *
- * Metadata: { value, unit?, trend?: 'up'|'down'|'flat', trendValue?: string }
+ * Clean card with large value centered.
+ * Use for: KPIs, dashboard metrics, performance counters.
+ *
+ * Metadata: { value, unit?, trend?: 'up'|'down'|'flat' }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
-  getStrokeWidth,
   getLabelFontSize,
   TYPOGRAPHY,
-  SHAPES,
+  STROKE,
+  LABEL_DEFAULTS,
   COLORS,
+  colorWithAlpha,
+  OPACITY,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -31,95 +35,79 @@ export function renderMetric(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   const value = String(meta.value ?? entity.label ?? '0');
   const unit = (meta.unit as string) ?? '';
   const trend = (meta.trend as 'up' | 'down' | 'flat') ?? 'flat';
-  const trendValue = (meta.trendValue as string) ?? '';
-  const labelText = entity.label && entity.label !== value ? entity.label : '';
 
-  const w = s * 1.6;
-  const h = s * 0.9;
+  const w = s * 1.2;
+  const h = s * 0.75;
   const hw = w / 2;
   const hh = h / 2;
+  const rx = 6;
 
-  // ── Card background ──
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(rx + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Card
   const card = document.createElementNS(SVG_NS, 'rect');
   card.setAttribute('x', String(-hw));
   card.setAttribute('y', String(-hh));
   card.setAttribute('width', String(w));
   card.setAttribute('height', String(h));
-  card.setAttribute('rx', String(SHAPES.borderRadius));
+  card.setAttribute('rx', String(rx));
   card.setAttribute('fill', `url(#${gradId})`);
   card.setAttribute('stroke', color);
-  card.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
+  card.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(card);
 
-  // ── Left accent bar ──
-  const accentBar = document.createElementNS(SVG_NS, 'rect');
-  accentBar.setAttribute('x', String(-hw));
-  accentBar.setAttribute('y', String(-hh));
-  accentBar.setAttribute('width', '3');
-  accentBar.setAttribute('height', String(h));
-  accentBar.setAttribute('rx', '1.5');
-  accentBar.setAttribute('fill', color);
-  accentBar.setAttribute('opacity', '0.8');
-  innerG.appendChild(accentBar);
-
-  // ── Label header (metric name) at top ──
-  if (labelText) {
-    const header = document.createElementNS(SVG_NS, 'text');
-    header.setAttribute('x', String(-hw + 12));
-    header.setAttribute('y', String(-hh + 14));
-    header.setAttribute('text-anchor', 'start');
-    header.setAttribute('fill', color);
-    header.setAttribute('font-size', String(getLabelFontSize('inline', scale)));
-    header.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-    header.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    header.setAttribute('opacity', '0.7');
-    header.textContent = labelText;
-    innerG.appendChild(header);
-  }
-
-  // ── Large value + unit (center of card) ──
+  // Value + unit centered
   const valueFontSize = getLabelFontSize('metric', scale);
-  const valueY = labelText ? 4 : 2;
   const valueEl = document.createElementNS(SVG_NS, 'text');
   valueEl.setAttribute('x', '0');
-  valueEl.setAttribute('y', String(valueY));
+  valueEl.setAttribute('y', '2');
   valueEl.setAttribute('text-anchor', 'middle');
   valueEl.setAttribute('dominant-baseline', 'central');
   valueEl.setAttribute('fill', color);
-  valueEl.setAttribute('font-size', String(Math.min(valueFontSize, s * 0.5)));
+  valueEl.setAttribute('font-size', String(Math.min(valueFontSize, s * 0.45)));
   valueEl.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
   valueEl.setAttribute('font-family', TYPOGRAPHY.fontBadge);
   valueEl.textContent = value + (unit ? ` ${unit}` : '');
   innerG.appendChild(valueEl);
 
-  // ── Trend indicator (SVG triangle + value at bottom-right) ──
-  if (trend !== 'flat' && (trendValue || trend === 'up' || trend === 'down')) {
-    const trendG = document.createElementNS(SVG_NS, 'g');
-    const trendX = hw - 14;
-    const trendY = hh - 10;
-    trendG.setAttribute('transform', `translate(${trendX}, ${trendY})`);
-
+  // Trend indicator (small triangle at bottom-right)
+  if (trend !== 'flat') {
     const trendColor = trend === 'up' ? COLORS.green : COLORS.red;
-    const triPoints = trend === 'up' ? '0,-4 3,2 -3,2' : '0,4 3,-2 -3,-2';
-
+    const tx = hw - 10;
+    const ty = hh - 8;
     const tri = document.createElementNS(SVG_NS, 'polygon');
-    tri.setAttribute('points', triPoints);
+    tri.setAttribute('points', trend === 'up'
+      ? `${tx},${ty - 3} ${tx + 3},${ty + 2} ${tx - 3},${ty + 2}`
+      : `${tx},${ty + 3} ${tx + 3},${ty - 2} ${tx - 3},${ty - 2}`);
     tri.setAttribute('fill', trendColor);
-    trendG.appendChild(tri);
+    innerG.appendChild(tri);
+  }
 
-    if (trendValue) {
-      const tv = document.createElementNS(SVG_NS, 'text');
-      tv.setAttribute('x', '-8');
-      tv.setAttribute('y', '3');
-      tv.setAttribute('text-anchor', 'end');
-      tv.setAttribute('fill', trendColor);
-      tv.setAttribute('font-size', String(getLabelFontSize('inline', scale)));
-      tv.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-      tv.textContent = trendValue;
-      trendG.appendChild(tv);
-    }
-
-    innerG.appendChild(trendG);
+  // Label below
+  if (entity.label && entity.label !== value) {
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    text.textContent = entity.label;
+    innerG.appendChild(text);
   }
 
   applyEntranceAnimation(innerG, entity);

@@ -1,12 +1,12 @@
 /**
  * @preplai/illustrations — BTree Component
  *
- * B-tree, B+ tree, multi-way trees. Use when nodes have 3+ children (not BinaryTree).
+ * Clean multi-way tree with circles and edges.
+ * Use for: B-trees, B+ trees, multi-way search trees.
  *
- * Metadata (agent: see METADATA_SCHEMAS.md):
- *   tree: { value, children? } — value = node label (e.g. "[10,20]" key range)
- *   branchingFactor?: number — default 3
- *   Per-node: enabled?, selected? — dim disabled, glow selected
+ * Metadata: { tree: { value, children? } }
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
@@ -19,60 +19,29 @@ export function renderBTree(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
+  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('BTree');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-btree-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createRadialGradient(gradId, color, defs);
 
   const meta = entity.metadata ?? {};
-  const treeData = meta.tree as MultiChildTreeNode | undefined;
-  const tree: MultiChildTreeNode = treeData ?? {
+  const tree: MultiChildTreeNode = (meta.tree as MultiChildTreeNode) ?? {
     value: '[10,20]',
     children: [
-      { value: '[3,6]', children: [
-        { value: '1' },
-        { value: '4' },
-        { value: '7' },
-      ]},
-      { value: '[15]', children: [
-        { value: '12' },
-        { value: '18' },
-      ]},
-      { value: '[25,30]', children: [
-        { value: '22' },
-        { value: '27' },
-        { value: '35' },
-      ]},
+      { value: '[3,6]', children: [{ value: '1' }, { value: '4' }, { value: '7' }] },
+      { value: '[15]', children: [{ value: '12' }, { value: '18' }] },
+      { value: '[25,30]', children: [{ value: '22' }, { value: '27' }, { value: '35' }] },
     ],
   };
 
-  const scale = s / 50;
   const nodeR = 12 * scale;
   const dx = s * 2.2;
   const dy = s * 1.0;
-
   const { nodes, edges } = treeLayout(tree, 0, -s / 3, dx, dy, { nodeRadius: nodeR });
-
   const bottomY = nodes.length > 0 ? Math.max(...nodes.map((n) => n.y)) : s / 2;
 
-  const dimFilterId = `btree-dim-${entity.id}`;
-  if (nodes.some((n) => n.enabled === false)) {
-    let filterEl = defs.querySelector(`#${dimFilterId}`) as SVGFilterElement | null;
-    if (!filterEl) {
-      filterEl = document.createElementNS(SVG_NS, 'filter');
-      filterEl.setAttribute('id', dimFilterId);
-      filterEl.setAttribute('x', '-20%');
-      filterEl.setAttribute('y', '-20%');
-      filterEl.setAttribute('width', '140%');
-      filterEl.setAttribute('height', '140%');
-      const feColorMatrix = document.createElementNS(SVG_NS, 'feColorMatrix');
-      feColorMatrix.setAttribute('type', 'matrix');
-      feColorMatrix.setAttribute('values', '0.4 0 0 0 0  0 0.4 0 0 0  0 0 0.4 0 0  0 0 0 1 0');
-      filterEl.appendChild(feColorMatrix);
-      defs.appendChild(filterEl);
-    }
-  }
-
+  // Edges
   edges.forEach(({ x1, y1, x2, y2 }) => {
     const line = document.createElementNS(SVG_NS, 'line');
     line.setAttribute('x1', String(x1));
@@ -85,24 +54,15 @@ export function renderBTree(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     innerG.appendChild(line);
   });
 
-  nodes.forEach(({ x, y, value, enabled, selected }) => {
-    const isDisabled = enabled === false;
-    const isHighlighted = selected === true;
-
+  // Nodes
+  nodes.forEach(({ x, y, value }) => {
     const circle = document.createElementNS(SVG_NS, 'circle');
     circle.setAttribute('cx', String(x));
     circle.setAttribute('cy', String(y));
     circle.setAttribute('r', String(nodeR));
     circle.setAttribute('fill', `url(#${gradId})`);
     circle.setAttribute('stroke', color);
-    circle.setAttribute('stroke-width', String(getStrokeWidth(isHighlighted ? 'emphasized' : 'thin', scale)));
-    if (isDisabled) {
-      circle.setAttribute('filter', `url(#${dimFilterId})`);
-      const dash = Math.max(1, Math.round(3 * scale));
-      circle.setAttribute('stroke-dasharray', `${dash},${dash}`);
-    } else if (isHighlighted) {
-      circle.setAttribute('filter', `drop-shadow(0 0 ${4 * scale}px ${color})`);
-    }
+    circle.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
     innerG.appendChild(circle);
 
     const text = document.createElementNS(SVG_NS, 'text');
@@ -114,13 +74,11 @@ export function renderBTree(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     text.setAttribute('font-size', String(getLabelFontSize('value', scale)));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-    if (isDisabled) {
-      text.setAttribute('filter', `url(#${dimFilterId})`);
-    }
     text.textContent = String(value).slice(0, 12);
     innerG.appendChild(text);
   });
 
+  // Label below
   if (entity.label) {
     const label = document.createElementNS(SVG_NS, 'text');
     label.setAttribute('x', '0');

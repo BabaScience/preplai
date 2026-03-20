@@ -693,6 +693,79 @@ export const METADATA_DEFAULTS = {
     action: 'reserveItems()',
     compensation: 'releaseItems()',
   },
+  Composable: {
+    shape: 'shield',
+    icon: 'landmark',
+    style: 'default',
+  },
+};
+
+/**
+ * Composable showcase variants — demonstrate diverse shape+icon combos
+ * across domains. Each entry maps a virtual display name to its metadata
+ * and label. All render via the "Composable" registry entry.
+ */
+export const COMPOSABLE_SHOWCASE = {
+  'Composable: Fund Vehicle': {
+    label: 'Fund Vehicle',
+    metadata: { shape: 'shield', icon: 'landmark', style: 'default' },
+  },
+  'Composable: Portfolio': {
+    label: 'Portfolio',
+    metadata: { shape: 'hexagon', icon: 'briefcase', style: 'default' },
+  },
+  'Composable: Asset': {
+    label: 'Asset',
+    metadata: { shape: 'circle', icon: 'coins', style: 'default' },
+  },
+  'Composable: Contract': {
+    label: 'Contract',
+    metadata: { shape: 'document', icon: 'scroll', style: 'default' },
+  },
+  'Composable: Compliance': {
+    label: 'Compliance',
+    metadata: { shape: 'octagon', icon: 'shield-check', style: 'emphasized' },
+  },
+  'Composable: Strategy': {
+    label: 'Strategy',
+    metadata: { shape: 'diamond', icon: 'target', style: 'default' },
+  },
+  'Composable: Market': {
+    label: 'Market',
+    metadata: { shape: 'hexagon', icon: 'globe', style: 'default' },
+  },
+  'Composable: Hospital': {
+    label: 'Hospital',
+    metadata: { shape: 'shield', icon: 'heart-pulse', style: 'emphasized' },
+  },
+  'Composable: University': {
+    label: 'University',
+    metadata: { shape: 'pentagon', icon: 'graduation-cap', style: 'default' },
+  },
+  'Composable: Warehouse': {
+    label: 'Warehouse',
+    metadata: { shape: 'rect', icon: 'warehouse', style: 'default' },
+  },
+  'Composable: Campaign': {
+    label: 'Campaign',
+    metadata: { shape: 'diamond', icon: 'megaphone', style: 'default' },
+  },
+  'Composable: Team Lead': {
+    label: 'Team Lead',
+    metadata: { shape: 'stadium', icon: 'user-check', style: 'default' },
+  },
+  'Composable: Carbon Target': {
+    label: 'Carbon Target',
+    metadata: { shape: 'circle', icon: 'leaf', style: 'default' },
+  },
+  'Composable: Data Pipeline': {
+    label: 'Data Pipeline',
+    metadata: { shape: 'cylinder', icon: 'filter', style: 'default' },
+  },
+  'Composable: Regulation': {
+    label: 'Regulation',
+    metadata: { shape: 'octagon', icon: 'gavel', style: 'emphasized' },
+  },
 };
 
 /** Entity-level defaults (not metadata) for types that need textContent etc. */
@@ -790,4 +863,6 @@ export const ENTITY_FIELD_DEFAULTS = {
   GPU: { label: 'A100 GPU' },
   Bundle: { label: 'main.js' },
   SagaStep: { label: 'Reserve Inventory' },
+  // Composable (Tier 2: Shape + Icon composition)
+  Composable: { label: 'Fund Vehicle', size: 2.5 },
 };

@@ -673,7 +673,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
   );
 
   // ── MCP-style API routes ──────────────────────────────────────────
-  const sceneDeps = { store, sse, ttsService };
+  const sceneDeps = { store, sse, ttsService, audioStore };
   const createDeps = { store, baseUrl: cfg.baseUrl };
 
   const checkOwnership = (sessionId: string, apiKeyId: string) =>

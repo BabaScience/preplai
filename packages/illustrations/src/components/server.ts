@@ -1,92 +1,87 @@
 /**
  * @preplai/illustrations — Server Component
- * Rack-style server: gradient body + horizontal slot dividers + status LEDs + label
+ *
+ * Clean rounded rectangle with minimal rack-line icon inside.
+ * Use for: servers, hosts, compute instances, backend services.
+ *
+ * Minimalist style matching the Composable engine aesthetic:
+ * - Single clean shape with subtle gradient
+ * - Thin stroke
+ * - Stroke-based rack icon (3 horizontal lines)
+ * - Label below
+ * - Optional highlight glow
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs, ensureGlassFilter } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES, COLORS, STROKE } from '../design-tokens.js';
+import { createLinearGradient, ensureDefs } from '../visual-utils.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderServer(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
-  const size = getSizeParam(entity);
+  const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Server');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-server-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const w = size * 1.2;
-  const h = size * 0.85;
+  const w = s * 0.9;
+  const h = s * 0.7;
+  const hw = w / 2;
+  const hh = h / 2;
+  const rx = 6;
 
-  // ── Server body (wide rack shape) ──
+  // Highlight glow (behind shape)
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(rx + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Server body
   const body = document.createElementNS(SVG_NS, 'rect');
-  body.setAttribute('x', String(-w / 2));
-  body.setAttribute('y', String(-h / 2));
+  body.setAttribute('x', String(-hw));
+  body.setAttribute('y', String(-hh));
   body.setAttribute('width', String(w));
   body.setAttribute('height', String(h));
-  body.setAttribute('rx', String(SHAPES.borderRadius));
+  body.setAttribute('rx', String(rx));
   body.setAttribute('fill', `url(#${gradId})`);
   body.setAttribute('stroke', color);
-  body.setAttribute('stroke-width', String(SHAPES.strokeWidth));
-  body.setAttribute('filter', ensureGlassFilter(parentEl));
+  body.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(body);
 
-  // ── Horizontal rack slot dividers (2 lines → 3 slots) ──
-  const slotPositions = [-h / 6, h / 6];
-  for (const sy of slotPositions) {
+  // Rack icon: 3 horizontal lines (stroke-based, centered)
+  const iconW = w * 0.35;
+  const lineSpacing = h * 0.16;
+  for (let i = -1; i <= 1; i++) {
     const line = document.createElementNS(SVG_NS, 'line');
-    line.setAttribute('x1', String(-w / 2 + 4));
-    line.setAttribute('y1', String(sy));
-    line.setAttribute('x2', String(w / 2 - 4));
-    line.setAttribute('y2', String(sy));
+    line.setAttribute('x1', String(-iconW / 2));
+    line.setAttribute('y1', String(i * lineSpacing));
+    line.setAttribute('x2', String(iconW / 2));
+    line.setAttribute('y2', String(i * lineSpacing));
     line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', String(STROKE.minimal));
-    line.setAttribute('opacity', '0.25');
+    line.setAttribute('stroke-width', String(STROKE.default));
+    line.setAttribute('stroke-linecap', 'round');
     innerG.appendChild(line);
   }
 
-  // ── Status LEDs (3 dots in the top-right — green, green, dim) ──
-  const ledStartX = w / 2 - 22;
-  const ledY = -h / 2 + h / 6 - h / 6 / 2; // center of top slot
-  const ledSpacing = 7;
-  const ledColors = [COLORS.green, COLORS.green, color];
-  const ledOpacities = ['0.9', '0.9', '0.3'];
-
-  for (let i = 0; i < 3; i++) {
-    const led = document.createElementNS(SVG_NS, 'circle');
-    led.setAttribute('cx', String(ledStartX + i * ledSpacing));
-    led.setAttribute('cy', String(ledY));
-    led.setAttribute('r', '2.5');
-    led.setAttribute('fill', ledColors[i]);
-    led.setAttribute('opacity', ledOpacities[i]);
-    innerG.appendChild(led);
-  }
-
-  // ── Small ventilation pattern (3 short horizontal lines in bottom slot) ──
-  const ventY = h / 6 + h / 6 / 2; // center of bottom slot
-  const ventW = w * 0.15;
-  for (let i = -1; i <= 1; i++) {
-    const vent = document.createElementNS(SVG_NS, 'line');
-    vent.setAttribute('x1', String(-ventW / 2));
-    vent.setAttribute('y1', String(ventY + i * 4));
-    vent.setAttribute('x2', String(ventW / 2));
-    vent.setAttribute('y2', String(ventY + i * 4));
-    vent.setAttribute('stroke', color);
-    vent.setAttribute('stroke-width', String(STROKE.minimal));
-    vent.setAttribute('opacity', '0.2');
-    innerG.appendChild(vent);
-  }
-
-  // ── Label ──
+  // Label below
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(h / 2 + 20));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeTitle));
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;

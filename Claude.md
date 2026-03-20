@@ -30,7 +30,11 @@ Every design decision should make these presentations more cinematic, clear, and
 
 ```
 Agent emits VisualEntity JSON
-    → Component Registry (type → render function)
+    → Tier 1: Component Registry (type → dedicated render function)
+    → Tier 2: Composable (metadata.shape + metadata.icon → composable renderer)
+    → Tier 3: Semantic Resolver (type name → auto-mapped shape+icon)
+    → Fallback: null (entity skipped)
+
     → buildEntityGroup() → outerG + innerG
     → Shapes appended to innerG
     → applyEntranceAnimation(innerG, entity)
@@ -38,6 +42,8 @@ Agent emits VisualEntity JSON
 ```
 
 **Canvas:** `viewBox="0 0 1920 1080"`, positions in 0–100% (agent API).
+
+**Composable Engine:** For domains without dedicated renderers (finance, legal, healthcare, etc.), use `type: "Composable"` with `metadata: { shape: "shield", icon: "landmark" }`. 15 shapes × 200+ icons = 3,000+ unique visuals. See `composable-shapes.ts`, `icon-paths.ts`, `composable.ts`.
 
 **Reference component:** `packages/illustrations/src/components/cache.ts` — minimal, follows all patterns.
 

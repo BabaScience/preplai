@@ -54,6 +54,7 @@ export { renderDatabase } from './components/database.js';
 export { renderUser } from './components/user.js';
 export { renderCloud } from './components/cloud.js';
 export { renderConcept } from './components/concept.js';
+export { renderDecision } from './components/decision.js';
 export { renderEntityNode } from './components/entity.js';
 export { renderFlowDiagram } from './components/flowdiagram.js';
 export { renderVennDiagram } from './components/venndiagram.js';
@@ -206,6 +207,14 @@ export { renderRateLimiter } from './components/rate-limiter.js';
 export { renderGPU } from './components/gpu.js';
 export { renderBundle } from './components/bundle.js';
 export { renderSagaStep } from './components/saga-step.js';
+
+// ── Composable (Tier 2: Shape + Icon composition)
+export { renderComposable } from './components/composable.js';
+export { renderShape, COMPOSABLE_SHAPES } from './components/composable-shapes.js';
+export type { ComposableShape } from './components/composable-shapes.js';
+export { ICON_PATHS, ICON_CATEGORIES, ICON_NAMES } from './components/icon-paths.js';
+export { resolveSemanticType } from './components/semantic-resolver.js';
+export type { SemanticHint } from './components/semantic-resolver.js';
 
 // ── Generic component factory (for extending)
 export { createGenericRenderer } from './components/generic.js';

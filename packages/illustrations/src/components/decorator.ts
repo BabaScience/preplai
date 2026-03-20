@@ -1,42 +1,60 @@
 /**
  * @preplai/illustrations — Decorator Component
- * Box-in-box: outer "wrapper" rect, inner "function" rect, arrows in/out
+ *
+ * Clean dashed outer rect with solid inner rect (nesting pattern).
+ * Use for: decorator pattern, wrapper functions, middleware.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderDecorator(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Decorator');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-decorator-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const outerW = s * 1.6;
-  const outerH = s * 1.2;
-  const innerW = s * 1.0;
-  const innerH = s * 0.6;
+  const outerW = s * 1.1;
+  const outerH = s * 0.85;
+  const innerW = outerW * 0.6;
+  const innerH = outerH * 0.5;
 
-  // ── Outer wrapper rect (dashed)
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-outerW / 2 - 3));
+    glow.setAttribute('y', String(-outerH / 2 - 3));
+    glow.setAttribute('width', String(outerW + 6));
+    glow.setAttribute('height', String(outerH + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Outer wrapper (dashed)
   const outerRect = document.createElementNS(SVG_NS, 'rect');
   outerRect.setAttribute('x', String(-outerW / 2));
   outerRect.setAttribute('y', String(-outerH / 2));
   outerRect.setAttribute('width', String(outerW));
   outerRect.setAttribute('height', String(outerH));
   outerRect.setAttribute('rx', String(SHAPES.borderRadius));
-  outerRect.setAttribute('fill', `${color}10`);
+  outerRect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   outerRect.setAttribute('stroke', color);
-  outerRect.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
+  outerRect.setAttribute('stroke-width', String(STROKE.default));
   outerRect.setAttribute('stroke-dasharray', '6,4');
   innerG.appendChild(outerRect);
 
-  // ── Inner function rect
+  // Inner function rect (solid)
   const innerRect = document.createElementNS(SVG_NS, 'rect');
   innerRect.setAttribute('x', String(-innerW / 2));
   innerRect.setAttribute('y', String(-innerH / 2));
@@ -45,48 +63,15 @@ export function renderDecorator(entity: VisualEntity, parentEl: SVGElement): SVG
   innerRect.setAttribute('rx', String(SHAPES.borderRadius - 2));
   innerRect.setAttribute('fill', `url(#${gradId})`);
   innerRect.setAttribute('stroke', color);
-  innerRect.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
+  innerRect.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(innerRect);
 
-  // ── In arrow (left, into wrapper)
-  const inLine = document.createElementNS(SVG_NS, 'line');
-  inLine.setAttribute('x1', String(-outerW / 2 - 8));
-  inLine.setAttribute('y1', '0');
-  inLine.setAttribute('x2', String(-outerW / 2 + 4));
-  inLine.setAttribute('y2', '0');
-  inLine.setAttribute('stroke', color);
-  inLine.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
-  inLine.setAttribute('opacity', '0.7');
-  innerG.appendChild(inLine);
-
-  // ── Out arrow (right, from wrapper)
-  const outLine = document.createElementNS(SVG_NS, 'line');
-  outLine.setAttribute('x1', String(outerW / 2 - 4));
-  outLine.setAttribute('y1', '0');
-  outLine.setAttribute('x2', String(outerW / 2 + 8));
-  outLine.setAttribute('y2', '0');
-  outLine.setAttribute('stroke', color);
-  outLine.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
-  outLine.setAttribute('opacity', '0.7');
-  innerG.appendChild(outLine);
-
-  // ── Inner label (fn)
-  const fnText = document.createElementNS(SVG_NS, 'text');
-  fnText.setAttribute('x', '0');
-  fnText.setAttribute('y', '4');
-  fnText.setAttribute('text-anchor', 'middle');
-  fnText.setAttribute('fill', color);
-  fnText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
-  fnText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
-  fnText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-  fnText.textContent = 'fn';
-  innerG.appendChild(fnText);
-
+  // Label below
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(outerH / 2 + 18));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(outerH / 2 + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));

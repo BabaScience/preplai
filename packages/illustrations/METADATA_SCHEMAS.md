@@ -845,3 +845,33 @@ Binary search trees, BSTs, heaps, and any left/right tree structure. Use for: bi
 - Binary search: show `selectedIndexes: [mid]` for current comparison; `disabledIndexes` for eliminated range
 - Tree traversal: use `highlight` per node for visited/active path
 - Prefer `nodes` for step-by-step animations (easier to update by index); use `tree` for static or complex structures
+
+---
+
+## Composable
+
+Universal shape+icon composition engine for domains without dedicated renderers. Use for finance, legal, healthcare, consulting, and any non-engineering topic.
+
+```json
+{
+  "shape": "shield",
+  "icon": "landmark",
+  "style": "default",
+  "iconColor": "#4A90D9",
+  "badgeLabel": "PE Fund"
+}
+```
+
+**Fields:**
+- `shape` (required): One of 15 shapes — `rect`, `circle`, `hexagon`, `diamond`, `shield`, `cylinder`, `document`, `stadium`, `pill`, `parallelogram`, `pentagon`, `octagon`, `triangle`, `trapezoid`, `cloud`
+- `icon` (optional): Icon name from the icon library (200+ icons across finance, business, product, tech, healthcare, etc.)
+- `style` (optional): Visual style — `default` (gradient fill), `minimal` (no badge), `emphasized` (thicker stroke), `outlined` (transparent fill)
+- `iconColor` (optional): Hex color override for the icon stroke
+- `badgeLabel` (optional): Small text badge above the shape
+
+**Agent usage:**
+- Choose a DIFFERENT shape or icon for each Composable entity to make them visually distinguishable
+- Finance: shield+landmark (funds), hexagon+briefcase (portfolio), circle+coins (assets), document+scroll (contracts)
+- Legal: octagon+gavel (court), shield+shield-check (compliance), document+stamp (license)
+- Business: diamond+target (strategy), hexagon+globe (market), stadium+users (team), pentagon+flag (milestone)
+- Healthcare: circle+heart-pulse (patient), rect+stethoscope (diagnosis), hexagon+dna (genetic)

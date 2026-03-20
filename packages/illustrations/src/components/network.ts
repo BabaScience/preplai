@@ -1,11 +1,15 @@
 /**
  * @preplai/illustrations — Network Component
- * Network mesh: central node + 6 radiating spokes
+ *
+ * Clean circle with a minimal network icon (3 dots connected in a triangle).
+ * Use for: networks, mesh topologies, network segments.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createRadialGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderNetwork(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -17,51 +21,70 @@ export function renderNetwork(entity: VisualEntity, parentEl: SVGElement): SVGGE
   const gradId = `grad-network-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createRadialGradient(gradId, color, defs);
 
-  const centerR = s / 6;
-  const spokeCount = 6;
-  const spokeLen = s / 2.5;
+  const r = s * 0.42;
 
-  // ── Radiating spokes
-  for (let i = 0; i < spokeCount; i++) {
-    const angle = (Math.PI * 2 * i) / spokeCount - Math.PI / 2;
-    const x2 = Math.cos(angle) * spokeLen;
-    const y2 = Math.sin(angle) * spokeLen;
-    const line = document.createElementNS(SVG_NS, 'line');
-    line.setAttribute('x1', '0');
-    line.setAttribute('y1', '0');
-    line.setAttribute('x2', String(x2));
-    line.setAttribute('y2', String(y2));
-    line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', '2');
-    line.setAttribute('opacity', '0.7');
-    innerG.appendChild(line);
-
-    // End node
-    const endNode = document.createElementNS(SVG_NS, 'circle');
-    endNode.setAttribute('cx', String(x2));
-    endNode.setAttribute('cy', String(y2));
-    endNode.setAttribute('r', String(centerR * 0.6));
-    endNode.setAttribute('fill', `${color}30`);
-    endNode.setAttribute('stroke', color);
-    endNode.setAttribute('stroke-width', '1.5');
-    innerG.appendChild(endNode);
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'circle');
+    glow.setAttribute('cx', '0');
+    glow.setAttribute('cy', '0');
+    glow.setAttribute('r', String(r + 4));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
   }
 
-  // ── Central node
-  const center = document.createElementNS(SVG_NS, 'circle');
-  center.setAttribute('cx', '0');
-  center.setAttribute('cy', '0');
-  center.setAttribute('r', String(centerR));
-  center.setAttribute('fill', `url(#${gradId})`);
-  center.setAttribute('stroke', color);
-  center.setAttribute('stroke-width', '2');
-  innerG.appendChild(center);
+  // Circle shape
+  const circle = document.createElementNS(SVG_NS, 'circle');
+  circle.setAttribute('cx', '0');
+  circle.setAttribute('cy', '0');
+  circle.setAttribute('r', String(r));
+  circle.setAttribute('fill', `url(#${gradId})`);
+  circle.setAttribute('stroke', color);
+  circle.setAttribute('stroke-width', String(STROKE.default));
+  innerG.appendChild(circle);
 
+  // Network icon: 3 dots in a triangle connected by lines
+  const iconR = r * 0.45;
+  const dotR = iconR * 0.18;
+  const nodes = [
+    { x: 0, y: -iconR * 0.7 },                    // top
+    { x: -iconR * 0.6, y: iconR * 0.5 },           // bottom-left
+    { x: iconR * 0.6, y: iconR * 0.5 },             // bottom-right
+  ];
+
+  // Lines connecting nodes
+  for (let i = 0; i < nodes.length; i++) {
+    const j = (i + 1) % nodes.length;
+    const line = document.createElementNS(SVG_NS, 'line');
+    line.setAttribute('x1', String(nodes[i].x));
+    line.setAttribute('y1', String(nodes[i].y));
+    line.setAttribute('x2', String(nodes[j].x));
+    line.setAttribute('y2', String(nodes[j].y));
+    line.setAttribute('stroke', color);
+    line.setAttribute('stroke-width', String(STROKE.default));
+    line.setAttribute('stroke-linecap', 'round');
+    innerG.appendChild(line);
+  }
+
+  // Dots at each node
+  for (const n of nodes) {
+    const dot = document.createElementNS(SVG_NS, 'circle');
+    dot.setAttribute('cx', String(n.x));
+    dot.setAttribute('cy', String(n.y));
+    dot.setAttribute('r', String(dotR));
+    dot.setAttribute('fill', color);
+    innerG.appendChild(dot);
+  }
+
+  // Label below
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(s / 2 + 20));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(r + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));

@@ -1,11 +1,15 @@
 /**
  * @preplai/illustrations — Device Component
- * Laptop shape: screen rect + base + optional keyboard lines
+ *
+ * Clean laptop silhouette: screen rectangle + thin base.
+ * Use for: laptops, desktops, client devices, workstations.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderDevice(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -17,65 +21,59 @@ export function renderDevice(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   const gradId = `grad-device-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const screenW = s * 1.2;
-  const screenH = s * 0.7;
-  const baseH = s * 0.2;
+  const screenW = s * 0.9;
+  const screenH = s * 0.6;
+  const baseW = screenW * 1.15;
+  const baseH = s * 0.06;
+  const gap = 2;
 
-  // ── Screen
-  const screen = document.createElementNS(SVG_NS, 'rect');
-  screen.setAttribute('x', String(-screenW / 2));
-  screen.setAttribute('y', String(-screenH - baseH / 2));
-  screen.setAttribute('width', String(screenW));
-  screen.setAttribute('height', String(screenH));
-  screen.setAttribute('rx', '2');
-  screen.setAttribute('fill', `url(#${gradId})`);
-  screen.setAttribute('stroke', color);
-  screen.setAttribute('stroke-width', String(SHAPES.strokeWidth));
-  innerG.appendChild(screen);
+  const screenTop = -(screenH + gap + baseH) / 2;
+  const baseTop = screenTop + screenH + gap;
 
-  // ── Screen inner (display area)
-  const display = document.createElementNS(SVG_NS, 'rect');
-  display.setAttribute('x', String(-screenW / 2 + 6));
-  display.setAttribute('y', String(-screenH - baseH / 2 + 6));
-  display.setAttribute('width', String(screenW - 12));
-  display.setAttribute('height', String(screenH - 12));
-  display.setAttribute('rx', '1');
-  display.setAttribute('fill', '#0d0d14');
-  display.setAttribute('stroke', `${color}30`);
-  display.setAttribute('stroke-width', '1');
-  innerG.appendChild(display);
-
-  // ── Base
-  const base = document.createElementNS(SVG_NS, 'rect');
-  base.setAttribute('x', String(-screenW / 2 - 4));
-  base.setAttribute('y', String(-baseH / 2));
-  base.setAttribute('width', String(screenW + 8));
-  base.setAttribute('height', String(baseH));
-  base.setAttribute('rx', '2');
-  base.setAttribute('fill', `${color}25`);
-  base.setAttribute('stroke', color);
-  base.setAttribute('stroke-width', '1.5');
-  innerG.appendChild(base);
-
-  // ── Keyboard lines
-  for (let i = 0; i < 3; i++) {
-    const ly = -baseH / 2 + baseH * 0.4 + i * 4;
-    const line = document.createElementNS(SVG_NS, 'line');
-    line.setAttribute('x1', String(-screenW / 2 + 10));
-    line.setAttribute('y1', String(ly));
-    line.setAttribute('x2', String(screenW / 2 - 10));
-    line.setAttribute('y2', String(ly));
-    line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', '1');
-    line.setAttribute('opacity', '0.5');
-    innerG.appendChild(line);
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-baseW / 2 - 3));
+    glow.setAttribute('y', String(screenTop - 3));
+    glow.setAttribute('width', String(baseW + 6));
+    glow.setAttribute('height', String(screenH + gap + baseH + 6));
+    glow.setAttribute('rx', '6');
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
   }
 
+  // Screen
+  const screen = document.createElementNS(SVG_NS, 'rect');
+  screen.setAttribute('x', String(-screenW / 2));
+  screen.setAttribute('y', String(screenTop));
+  screen.setAttribute('width', String(screenW));
+  screen.setAttribute('height', String(screenH));
+  screen.setAttribute('rx', '4');
+  screen.setAttribute('fill', `url(#${gradId})`);
+  screen.setAttribute('stroke', color);
+  screen.setAttribute('stroke-width', String(STROKE.default));
+  innerG.appendChild(screen);
+
+  // Base (thin bar)
+  const base = document.createElementNS(SVG_NS, 'rect');
+  base.setAttribute('x', String(-baseW / 2));
+  base.setAttribute('y', String(baseTop));
+  base.setAttribute('width', String(baseW));
+  base.setAttribute('height', String(baseH));
+  base.setAttribute('rx', '2');
+  base.setAttribute('fill', color);
+  base.setAttribute('opacity', '0.4');
+  innerG.appendChild(base);
+
+  // Label below
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(s / 2 + 20));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(baseTop + baseH + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));

@@ -1,120 +1,86 @@
 /**
  * @preplai/illustrations — Monitor Component
  *
- * Monitoring screen: rect + EKG pulse line + stand.
+ * Clean rounded rectangle with a simple pulse-line icon inside.
+ * Use for: monitoring dashboards, health checks, observability.
  *
- * Metadata: { label?: string } — optional title on screen
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor,
-  getStrokeWidth,
-  getLabelFontSize,
-  colorWithAlpha,
-  OPACITY,
-  TYPOGRAPHY,
-  SHAPES,
-  LABEL_DEFAULTS,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
-
-/** EKG/heartbeat-like path: horizontal baseline with pulse peaks */
-function ekgPath(w: number, h: number): string {
-  const pad = w * 0.1;
-  const dx = (w - 2 * pad) / 8;
-  const baseY = h / 2;
-  const peak = h * 0.35;
-  const d = dx * 0.3;
-  return [
-    `M ${pad} ${baseY}`,
-    `L ${pad + dx} ${baseY}`,
-    `L ${pad + dx + d} ${baseY - peak}`,
-    `L ${pad + dx + 2 * d} ${baseY}`,
-    `L ${pad + dx + 3 * d} ${baseY}`,
-    `L ${pad + 2 * dx} ${baseY - peak * 0.8}`,
-    `L ${pad + 2 * dx + d} ${baseY}`,
-    `L ${pad + 3 * dx} ${baseY}`,
-    `L ${pad + 4 * dx} ${baseY}`,
-    `L ${pad + 5 * dx} ${baseY - peak}`,
-    `L ${pad + 5 * dx + d} ${baseY}`,
-    `L ${pad + 6 * dx} ${baseY}`,
-    `L ${w - pad} ${baseY}`,
-  ].join(' ');
-}
 
 export function renderMonitor(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
-  const strokeWidth = getStrokeWidth('thin', scale);
   const color = entity.color ?? getCategoryColor('Monitor');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-monitor-${color.replace(/[^a-fA-F0-9]/g, '')}`;
   createLinearGradient(gradId, color, 'vertical', defs);
 
-  const meta = entity.metadata ?? {};
-  const screenLabel = (meta.label as string) ?? '';
+  const w = s * 0.9;
+  const h = s * 0.7;
+  const hw = w / 2;
+  const hh = h / 2;
+  const rx = 6;
 
-  const sizeScale = 0.7;
-  const screenW = s * 2.2 * sizeScale;
-  const screenH = s * 1.4 * sizeScale;
-  const standH = s * 0.4 * sizeScale;
-  const standW = screenW * 0.6;
-
-  const screen = document.createElementNS(SVG_NS, 'rect');
-  screen.setAttribute('x', String(-screenW / 2));
-  screen.setAttribute('y', String(-screenH / 2 - standH / 2));
-  screen.setAttribute('width', String(screenW));
-  screen.setAttribute('height', String(screenH));
-  screen.setAttribute('rx', String(SHAPES.borderRadius));
-  screen.setAttribute('fill', `url(#${gradId})`);
-  screen.setAttribute('stroke', color);
-  screen.setAttribute('stroke-width', String(strokeWidth));
-  innerG.appendChild(screen);
-
-  const ekg = document.createElementNS(SVG_NS, 'path');
-  ekg.setAttribute('d', ekgPath(screenW * 0.8, screenH * 0.5));
-  ekg.setAttribute('transform', `translate(${-screenW * 0.4}, ${-screenH / 2 - standH / 2 + screenH * 0.25})`);
-  ekg.setAttribute('fill', 'none');
-  ekg.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeFull));
-  ekg.setAttribute('stroke-width', String(strokeWidth * 1.5));
-  ekg.setAttribute('stroke-linecap', 'round');
-  ekg.setAttribute('stroke-linejoin', 'round');
-  innerG.appendChild(ekg);
-
-  if (screenLabel) {
-    const labelEl = document.createElementNS(SVG_NS, 'text');
-    labelEl.setAttribute('x', '0');
-    labelEl.setAttribute('y', String(-screenH / 2 - standH / 2 + screenH * 0.85));
-    labelEl.setAttribute('text-anchor', 'middle');
-    labelEl.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
-    labelEl.setAttribute('font-size', String(getLabelFontSize('inline', scale)));
-    labelEl.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-    labelEl.textContent = screenLabel.length > 12 ? screenLabel.slice(0, 10) + '…' : screenLabel;
-    innerG.appendChild(labelEl);
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(rx + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
   }
 
-  const stand = document.createElementNS(SVG_NS, 'rect');
-  stand.setAttribute('x', String(-standW / 2));
-  stand.setAttribute('y', String(screenH / 2 - standH / 2));
-  stand.setAttribute('width', String(standW));
-  stand.setAttribute('height', String(standH));
-  stand.setAttribute('rx', String(4));
-  stand.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-  stand.setAttribute('stroke', color);
-  stand.setAttribute('stroke-width', String(strokeWidth));
-  innerG.appendChild(stand);
+  // Body
+  const body = document.createElementNS(SVG_NS, 'rect');
+  body.setAttribute('x', String(-hw));
+  body.setAttribute('y', String(-hh));
+  body.setAttribute('width', String(w));
+  body.setAttribute('height', String(h));
+  body.setAttribute('rx', String(rx));
+  body.setAttribute('fill', `url(#${gradId})`);
+  body.setAttribute('stroke', color);
+  body.setAttribute('stroke-width', String(STROKE.default));
+  innerG.appendChild(body);
 
+  // Pulse-line icon (simple heartbeat: flat—peak—flat)
+  const iconW = w * 0.4;
+  const iconH = h * 0.2;
+  const pulse = document.createElementNS(SVG_NS, 'polyline');
+  pulse.setAttribute('points', [
+    `${-iconW / 2},0`,
+    `${-iconW / 6},0`,
+    `${-iconW / 12},${-iconH}`,
+    `${iconW / 12},${iconH}`,
+    `${iconW / 6},0`,
+    `${iconW / 2},0`,
+  ].join(' '));
+  pulse.setAttribute('fill', 'none');
+  pulse.setAttribute('stroke', color);
+  pulse.setAttribute('stroke-width', String(STROKE.default));
+  pulse.setAttribute('stroke-linecap', 'round');
+  pulse.setAttribute('stroke-linejoin', 'round');
+  innerG.appendChild(pulse);
+
+  // Label below
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(screenH / 2 + standH / 2 + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(getLabelFontSize('label', scale)));
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;

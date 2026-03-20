@@ -1,33 +1,24 @@
 /**
  * @preplai/illustrations — Mutex Component
  *
- * Binary lock synchronization primitive.
- * Visual: rounded rect with padlock icon, locked/unlocked state styling.
+ * Clean rect with simple lock icon inside.
+ * Use for: binary locks, synchronization primitives.
  *
  * Metadata:
  *   locked?: boolean — whether the mutex is locked (default false)
- *   owner?: string — thread/process holding the lock
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor,
-  getStrokeWidth,
-  getLabelFontSize,
-  colorWithAlpha,
-  OPACITY,
-  TYPOGRAPHY,
-  SHAPES,
-  LABEL_DEFAULTS,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderMutex(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Mutex');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-mtx-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -35,97 +26,85 @@ export function renderMutex(entity: VisualEntity, parentEl: SVGElement): SVGGEle
 
   const meta = entity.metadata ?? {};
   const locked = (meta.locked as boolean) ?? false;
-  const owner = (meta.owner as string) ?? '';
-  const label = entity.label ?? 'mutex';
 
-  const w = s * 1.3;
-  const h = s * 1.0;
-  const halfW = w / 2;
-  const halfH = h / 2;
-  const sw = getStrokeWidth('thin', scale);
+  const w = s * 0.85;
+  const h = s * 0.7;
+  const hw = w / 2;
+  const hh = h / 2;
 
-  // Body rect
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Body
   const rect = document.createElementNS(SVG_NS, 'rect');
-  rect.setAttribute('x', String(-halfW));
-  rect.setAttribute('y', String(-halfH));
+  rect.setAttribute('x', String(-hw));
+  rect.setAttribute('y', String(-hh));
   rect.setAttribute('width', String(w));
   rect.setAttribute('height', String(h));
   rect.setAttribute('rx', String(SHAPES.borderRadius));
   rect.setAttribute('fill', `url(#${gradId})`);
   rect.setAttribute('stroke', color);
-  rect.setAttribute('stroke-width', String(sw));
-  if (locked) {
-    rect.setAttribute('stroke-dasharray', '4,4');
-    rect.setAttribute('opacity', String(OPACITY.strokeSoft));
-  }
+  rect.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(rect);
 
-  // Padlock icon
-  const lockScale = Math.max(0.5, scale * 0.7);
-  const lockY = -4 * lockScale;
-
+  // Lock icon (stroke-based)
+  const ls = s * 0.12; // lock scale unit
   // Lock body (small rect)
   const lockBody = document.createElementNS(SVG_NS, 'rect');
-  lockBody.setAttribute('x', String(-8 * lockScale));
-  lockBody.setAttribute('y', String(lockY));
-  lockBody.setAttribute('width', String(16 * lockScale));
-  lockBody.setAttribute('height', String(12 * lockScale));
-  lockBody.setAttribute('rx', String(2 * lockScale));
-  lockBody.setAttribute('fill', locked ? colorWithAlpha(color, OPACITY.fillHeavy) : 'none');
-  lockBody.setAttribute('stroke', locked ? colorWithAlpha(color, OPACITY.strokeSoft) : color);
-  lockBody.setAttribute('stroke-width', String(sw * 0.8));
+  lockBody.setAttribute('x', String(-ls * 1.2));
+  lockBody.setAttribute('y', String(-ls * 0.2));
+  lockBody.setAttribute('width', String(ls * 2.4));
+  lockBody.setAttribute('height', String(ls * 1.8));
+  lockBody.setAttribute('rx', String(ls * 0.3));
+  lockBody.setAttribute('fill', 'none');
+  lockBody.setAttribute('stroke', color);
+  lockBody.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(lockBody);
 
   // Lock shackle (arc above body)
-  const shackleOpen = !locked;
   const shackle = document.createElementNS(SVG_NS, 'path');
-  if (shackleOpen) {
-    // Open shackle — shifted right
-    shackle.setAttribute('d',
-      `M ${-4 * lockScale} ${lockY} ` +
-      `V ${lockY - 6 * lockScale} ` +
-      `A ${5 * lockScale} ${5 * lockScale} 0 0 1 ${6 * lockScale} ${lockY - 6 * lockScale} ` +
-      `V ${lockY - 2 * lockScale}`
-    );
-  } else {
+  if (locked) {
     // Closed shackle
     shackle.setAttribute('d',
-      `M ${-4 * lockScale} ${lockY} ` +
-      `V ${lockY - 6 * lockScale} ` +
-      `A ${4 * lockScale} ${4 * lockScale} 0 0 1 ${4 * lockScale} ${lockY - 6 * lockScale} ` +
-      `V ${lockY}`
+      `M ${-ls * 0.7} ${-ls * 0.2} V ${-ls * 1.0} A ${ls * 0.7} ${ls * 0.7} 0 0 1 ${ls * 0.7} ${-ls * 1.0} V ${-ls * 0.2}`
+    );
+  } else {
+    // Open shackle (shifted right)
+    shackle.setAttribute('d',
+      `M ${-ls * 0.7} ${-ls * 0.2} V ${-ls * 1.0} A ${ls * 0.7} ${ls * 0.7} 0 0 1 ${ls * 0.7} ${-ls * 1.0} V ${-ls * 0.6}`
     );
   }
   shackle.setAttribute('fill', 'none');
-  shackle.setAttribute('stroke', locked ? colorWithAlpha(color, OPACITY.strokeSoft) : color);
-  shackle.setAttribute('stroke-width', String(sw * 0.8));
+  shackle.setAttribute('stroke', color);
+  shackle.setAttribute('stroke-width', String(STROKE.default));
   shackle.setAttribute('stroke-linecap', 'round');
   innerG.appendChild(shackle);
 
-  // State text below lock icon
-  const stateStr = locked ? (owner || 'LOCKED') : 'OPEN';
-  const stateText = document.createElementNS(SVG_NS, 'text');
-  stateText.setAttribute('x', '0');
-  stateText.setAttribute('y', String(lockY + 24 * lockScale));
-  stateText.setAttribute('text-anchor', 'middle');
-  stateText.setAttribute('fill', locked ? colorWithAlpha(color, OPACITY.strokeSoft) : color);
-  stateText.setAttribute('font-size', String(Math.min(getLabelFontSize('value', scale), s * 0.25)));
-  stateText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
-  stateText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-  stateText.textContent = stateStr.length > 10 ? stateStr.slice(0, 8) + '…' : stateStr;
-  innerG.appendChild(stateText);
-
-  // Label below shape
-  const labelText = document.createElementNS(SVG_NS, 'text');
-  labelText.setAttribute('x', '0');
-  labelText.setAttribute('y', String(halfH + LABEL_DEFAULTS.offsetBelow));
-  labelText.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-  labelText.setAttribute('fill', color);
-  labelText.setAttribute('font-size', String(getLabelFontSize('label', scale)));
-  labelText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-  labelText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-  labelText.textContent = label.length > 12 ? label.slice(0, 10) + '…' : label;
-  innerG.appendChild(labelText);
+  // Label below
+  if (entity.label) {
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    text.textContent = entity.label;
+    innerG.appendChild(text);
+  }
 
   applyEntranceAnimation(innerG, entity);
   parentEl.appendChild(outerG);

@@ -27,7 +27,14 @@ Every feature decision should serve at least one of these users. When in doubt, 
 
 ### Core Principle: Code Over Content
 
-The illustration system is a **component registry**, not an asset library. Every visual type is a JavaScript function. No SVG files are read from disk. Adding a new entity type = one render function + one registry entry.
+The illustration system is a **component registry**, not an asset library. Every visual type is a JavaScript function. No SVG files are read from disk.
+
+**3-Tier Architecture:**
+- **Tier 1** — 153 dedicated renderers (Server, Database, BinaryTree, etc.)
+- **Tier 2** — Composable engine: `type: "Composable"` with `metadata: { shape, icon }` → 15 shapes × 200+ icons = 3,000+ combos
+- **Tier 3** — Semantic resolver: unknown type names auto-mapped to shape+icon by keyword matching (e.g. "FundVehicle" → shield+landmark)
+
+This ensures every domain (finance, legal, healthcare, education) gets cinematic visuals — not generic squares.
 
 ---
 
@@ -37,7 +44,7 @@ The illustration system is a **component registry**, not an asset library. Every
 preplai/
 ├── packages/
 │   ├── shared/         @preplai/shared — types, schemas, utilities
-│   ├── illustrations/  @preplai/illustrations — 88+ programmatic SVG components
+│   ├── illustrations/  @preplai/illustrations — 153 dedicated + composable SVG components
 │   ├── compiler/       @preplai/compiler — PML scene compiler
 │   ├── player/         @preplai/player — cinema viewer/renderer
 │   ├── db/             @preplai/db — MongoDB models
@@ -56,6 +63,10 @@ preplai/
 | Task | Path |
 |------|------|
 | Add/modify illustration component | `packages/illustrations/src/components/<name>.ts` |
+| Composable shapes (Tier 2) | `packages/illustrations/src/components/composable-shapes.ts` |
+| Composable icons (Tier 2) | `packages/illustrations/src/components/icon-paths.ts` |
+| Composable renderer | `packages/illustrations/src/components/composable.ts` |
+| Semantic resolver (Tier 3) | `packages/illustrations/src/components/semantic-resolver.ts` |
 | Illustration registry | `packages/illustrations/src/registry.ts` |
 | Design tokens (colors, typography, stroke) | `packages/illustrations/src/design-tokens.ts` |
 | Player scene controller | `packages/player/src/scene-controller.js` |

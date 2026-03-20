@@ -1,98 +1,82 @@
 /**
  * @preplai/illustrations — RateLimiter Component
- * A funnel/gauge icon with throttled flow drops.
+ *
+ * Clean rect with funnel/filter icon inside.
+ * Use for: rate limiters, throttles, traffic shaping.
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, OPACITY, colorWithAlpha } from '../design-tokens.js';
+import { createLinearGradient, ensureDefs } from '../visual-utils.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderRateLimiter(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
-  const size = getSizeParam(entity);
+
+  const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('RateLimiter');
+  const defs = ensureDefs(parentEl);
+  const gradId = `grad-rl-${color.replace(/[^a-fA-F0-9]/g, '')}`;
+  createLinearGradient(gradId, color, 'vertical', defs);
 
-  const meta = entity.metadata ?? {};
-  const limit = (meta.limit as string) ?? '1000 req/s';
-  const algorithm = (meta.algorithm as string) ?? 'token-bucket';
+  const w = s * 0.85;
+  const h = s * 0.7;
+  const hw = w / 2;
+  const hh = h / 2;
 
-  const scale = size / 50;
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
 
-  // ── Funnel dimensions ──
-  const topW = 70 * scale;
-  const bottomW = 16 * scale;
-  const funnelH = 55 * scale;
-  const neckH = 10 * scale;
+  // Body
+  const card = document.createElementNS(SVG_NS, 'rect');
+  card.setAttribute('x', String(-hw));
+  card.setAttribute('y', String(-hh));
+  card.setAttribute('width', String(w));
+  card.setAttribute('height', String(h));
+  card.setAttribute('rx', String(SHAPES.borderRadius));
+  card.setAttribute('fill', `url(#${gradId})`);
+  card.setAttribute('stroke', color);
+  card.setAttribute('stroke-width', String(STROKE.default));
+  innerG.appendChild(card);
 
-  // ── Funnel shape (trapezoid path) ──
+  // Funnel icon (trapezoid narrowing down)
+  const is = s * 0.1;
   const funnel = document.createElementNS(SVG_NS, 'path');
-  const funnelD = [
-    `M ${-topW / 2} ${-funnelH / 2}`,
-    `L ${topW / 2} ${-funnelH / 2}`,
-    `L ${bottomW / 2} ${funnelH / 2 - neckH}`,
-    `L ${bottomW / 2} ${funnelH / 2}`,
-    `L ${-bottomW / 2} ${funnelH / 2}`,
-    `L ${-bottomW / 2} ${funnelH / 2 - neckH}`,
-    `L ${-topW / 2} ${-funnelH / 2}`,
+  funnel.setAttribute('d', [
+    `M ${-is} ${-is * 0.6}`,
+    `L ${is} ${-is * 0.6}`,
+    `L ${is * 0.3} ${is * 0.3}`,
+    `L ${is * 0.3} ${is * 0.7}`,
+    `L ${-is * 0.3} ${is * 0.7}`,
+    `L ${-is * 0.3} ${is * 0.3}`,
     'Z',
-  ].join(' ');
-  funnel.setAttribute('d', funnelD);
-  funnel.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
+  ].join(' '));
+  funnel.setAttribute('fill', 'none');
   funnel.setAttribute('stroke', color);
   funnel.setAttribute('stroke-width', String(STROKE.default));
   funnel.setAttribute('stroke-linejoin', 'round');
   innerG.appendChild(funnel);
 
-  // ── Limit text inside the wide part ──
-  const limitText = document.createElementNS(SVG_NS, 'text');
-  limitText.setAttribute('x', '0');
-  limitText.setAttribute('y', String(-funnelH / 2 + 18 * scale));
-  limitText.setAttribute('text-anchor', 'middle');
-  limitText.setAttribute('fill', color);
-  limitText.setAttribute('font-size', String(TYPOGRAPHY.fontSizeValue * scale));
-  limitText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
-  limitText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-  limitText.textContent = limit;
-  innerG.appendChild(limitText);
-
-  // ── Throttled drops below funnel neck (3 small circles) ──
-  const dropR = 3 * scale;
-  const dropStartY = funnelH / 2 + 6 * scale;
-  const dropPositions: [number, number][] = [
-    [0, dropStartY],
-    [-5 * scale, dropStartY + 8 * scale],
-    [4 * scale, dropStartY + 14 * scale],
-  ];
-
-  for (const [dx, dy] of dropPositions) {
-    const drop = document.createElementNS(SVG_NS, 'circle');
-    drop.setAttribute('cx', String(dx));
-    drop.setAttribute('cy', String(dy));
-    drop.setAttribute('r', String(dropR));
-    drop.setAttribute('fill', color);
-    drop.setAttribute('opacity', '0.6');
-    innerG.appendChild(drop);
-  }
-
-  // ── Algorithm label below funnel in monospace ──
-  const algoText = document.createElementNS(SVG_NS, 'text');
-  algoText.setAttribute('x', '0');
-  algoText.setAttribute('y', String(funnelH / 2 + 30 * scale));
-  algoText.setAttribute('text-anchor', 'middle');
-  algoText.setAttribute('fill', color);
-  algoText.setAttribute('font-size', String(TYPOGRAPHY.fontSizeInline * scale));
-  algoText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-  algoText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-  algoText.setAttribute('opacity', '0.7');
-  algoText.textContent = algorithm;
-  innerG.appendChild(algoText);
-
-  // ── Entity label below ──
+  // Label below
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(funnelH / 2 + 44 * scale));
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));

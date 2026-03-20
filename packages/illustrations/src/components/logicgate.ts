@@ -1,29 +1,24 @@
 /**
  * @preplai/illustrations — LogicGate Component
  *
- * Digital logic gate with distinct shape and input/output lines.
+ * Clean rect with gate type text centered.
+ * Use for: digital logic, boolean gates, circuit diagrams.
  *
  * Metadata:
  *   gate?: string — gate type: 'AND', 'OR', 'XOR', 'NOT', 'NAND', 'NOR' (default 'AND')
+ *
+ * Minimalist style matching the Composable engine aesthetic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import {
-  getCategoryColor,
-  getStrokeWidth,
-  getLabelFontSize,
-  TYPOGRAPHY,
-  SHAPES,
-  LABEL_DEFAULTS,
-} from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderLogicGate(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const scale = s / 50;
   const color = entity.color ?? getCategoryColor('LogicGate');
   const defs = ensureDefs(parentEl);
   const gradId = `grad-lg-${color.replace(/[^a-fA-F0-9]/g, '')}`;
@@ -31,109 +26,64 @@ export function renderLogicGate(entity: VisualEntity, parentEl: SVGElement): SVG
 
   const meta = entity.metadata ?? {};
   const gate = ((meta.gate as string) ?? 'AND').toUpperCase();
-  const label = entity.label ?? gate;
 
-  const w = s * 1.6;
-  const h = s * 1.2;
-  const halfW = w / 2;
-  const halfH = h / 2;
-  const sw = getStrokeWidth('thin', scale);
+  const w = s * 0.85;
+  const h = s * 0.7;
+  const hw = w / 2;
+  const hh = h / 2;
 
-  // Gate body — shield/rounded shape
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Body
   const body = document.createElementNS(SVG_NS, 'rect');
-  body.setAttribute('x', String(-halfW));
-  body.setAttribute('y', String(-halfH));
+  body.setAttribute('x', String(-hw));
+  body.setAttribute('y', String(-hh));
   body.setAttribute('width', String(w));
   body.setAttribute('height', String(h));
-  body.setAttribute('rx', String(SHAPES.borderRadiusLarge));
+  body.setAttribute('rx', String(SHAPES.borderRadius));
   body.setAttribute('fill', `url(#${gradId})`);
   body.setAttribute('stroke', color);
-  body.setAttribute('stroke-width', String(sw));
+  body.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(body);
 
-  // Input lines (left side)
-  const inputCount = gate === 'NOT' ? 1 : 2;
-  const inputSpacing = h / (inputCount + 1);
-  for (let i = 0; i < inputCount; i++) {
-    const iy = -halfH + inputSpacing * (i + 1);
-    const line = document.createElementNS(SVG_NS, 'line');
-    line.setAttribute('x1', String(-halfW - s * 0.35));
-    line.setAttribute('y1', String(iy));
-    line.setAttribute('x2', String(-halfW));
-    line.setAttribute('y2', String(iy));
-    line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', String(sw));
-    line.setAttribute('opacity', '0.6');
-    line.setAttribute('stroke-linecap', 'round');
-    innerG.appendChild(line);
-
-    // Input dot
-    const dot = document.createElementNS(SVG_NS, 'circle');
-    dot.setAttribute('cx', String(-halfW - s * 0.35));
-    dot.setAttribute('cy', String(iy));
-    dot.setAttribute('r', String(Math.max(2, 3 * scale)));
-    dot.setAttribute('fill', color);
-    dot.setAttribute('opacity', '0.5');
-    innerG.appendChild(dot);
-  }
-
-  // Output line (right side)
-  const outLine = document.createElementNS(SVG_NS, 'line');
-  outLine.setAttribute('x1', String(halfW));
-  outLine.setAttribute('y1', '0');
-  outLine.setAttribute('x2', String(halfW + s * 0.35));
-  outLine.setAttribute('y2', '0');
-  outLine.setAttribute('stroke', color);
-  outLine.setAttribute('stroke-width', String(sw));
-  outLine.setAttribute('opacity', '0.6');
-  outLine.setAttribute('stroke-linecap', 'round');
-  innerG.appendChild(outLine);
-
-  // Output dot
-  const outDot = document.createElementNS(SVG_NS, 'circle');
-  outDot.setAttribute('cx', String(halfW + s * 0.35));
-  outDot.setAttribute('cy', '0');
-  outDot.setAttribute('r', String(Math.max(2, 3 * scale)));
-  outDot.setAttribute('fill', color);
-  outDot.setAttribute('opacity', '0.7');
-  innerG.appendChild(outDot);
-
-  // Inversion bubble for NAND, NOR, NOT
-  if (gate === 'NAND' || gate === 'NOR' || gate === 'NOT') {
-    const bubble = document.createElementNS(SVG_NS, 'circle');
-    bubble.setAttribute('cx', String(halfW + 5 * scale));
-    bubble.setAttribute('cy', '0');
-    bubble.setAttribute('r', String(Math.max(3, 4 * scale)));
-    bubble.setAttribute('fill', 'none');
-    bubble.setAttribute('stroke', color);
-    bubble.setAttribute('stroke-width', String(sw));
-    innerG.appendChild(bubble);
-  }
-
-  // Gate type text inside body
+  // Gate type text centered
   const typeText = document.createElementNS(SVG_NS, 'text');
   typeText.setAttribute('x', '0');
-  typeText.setAttribute('y', String(4 * scale));
+  typeText.setAttribute('y', '2');
   typeText.setAttribute('text-anchor', 'middle');
+  typeText.setAttribute('dominant-baseline', 'central');
   typeText.setAttribute('fill', color);
-  typeText.setAttribute('font-size', String(Math.min(getLabelFontSize('title', scale), s * 0.35)));
+  typeText.setAttribute('font-size', String(Math.min(s * 0.25, 16)));
   typeText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
   typeText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
   typeText.textContent = gate;
   innerG.appendChild(typeText);
 
   // Label below
-  if (label) {
-    const labelText = document.createElementNS(SVG_NS, 'text');
-    labelText.setAttribute('x', '0');
-    labelText.setAttribute('y', String(halfH + LABEL_DEFAULTS.offsetBelow));
-    labelText.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    labelText.setAttribute('fill', color);
-    labelText.setAttribute('font-size', String(getLabelFontSize('label', scale)));
-    labelText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
-    labelText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    labelText.textContent = label.length > 14 ? label.slice(0, 12) + '…' : label;
-    innerG.appendChild(labelText);
+  if (entity.label) {
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+    text.textContent = entity.label;
+    innerG.appendChild(text);
   }
 
   applyEntranceAnimation(innerG, entity);
