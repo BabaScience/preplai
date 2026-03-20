@@ -1,5 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#0b0c10"/>
-  <path d="M8 8h6a6 6 0 0 1 0 12H8z" fill="none" stroke="#C9A84C" stroke-width="2.5"/>
-  <circle cx="22" cy="22" r="3" fill="#C9A84C"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="20" fill="#C9A84C"/>
+  <defs>
+    <filter id="f" x="-18%" y="-18%" width="136%" height="136%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018 0.022" numOctaves="4" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="1.8" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+  <path d="M 137.79,38.71 A 72,72 0 1,0 169.97,118.50 L 30.03,115.80"
+        fill="none" stroke="#0b0c10" stroke-width="22"
+        stroke-linecap="round" stroke-linejoin="round" filter="url(#f)"/>
 </svg>
