@@ -265,7 +265,7 @@ export async function checkSessionLimit(
   if (count >= limits.maxSessions) {
     return {
       allowed: false,
-      reason: `Session limit reached (${count}/${limits.maxSessions}). Delete old sessions or upgrade to Pro.`,
+      reason: `Presentation limit reached (${count}/${limits.maxSessions}). Delete an existing presentation to create a new one, or upgrade to Pro for more.`,
       current: count,
       limit: limits.maxSessions,
     };

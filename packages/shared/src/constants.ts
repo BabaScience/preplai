@@ -60,8 +60,8 @@ export const TIER_RATE_LIMITS: Record<'developer' | 'startup' | 'scale', number>
 export const TIER_LIMITS: Record<string, { maxSessions: number; maxScenesPerMonth: number; maxScenesPerSession: number; sessionExpiryDays: number }> = {
   free: {
     maxSessions: 5,
-    maxScenesPerMonth: 50,
-    maxScenesPerSession: 10,
+    maxScenesPerMonth: -1,
+    maxScenesPerSession: -1,
     sessionExpiryDays: 7,
   },
   pro: {

@@ -47,7 +47,6 @@ import { PLAYER_HTML_TEMPLATE, PLAYER_NOT_FOUND_HTML } from './player-html.js';
 import {
   validateApiKey,
   trackUsage,
-  checkSceneLimit,
   checkSessionLimit,
   authError,
   getUserPlayerPrefs,
@@ -713,13 +712,6 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
       if (!ownership.ok && ownership.notFound) {
         const handler = withErrorBoundary((args: any) => handleAddScene(args, sceneDeps));
         return handler(request.body);
-      }
-
-      const sceneCheck = await checkSceneLimit(apiKey.id, apiKey.tier);
-      if (!sceneCheck.allowed) {
-        mcpRateLimitHitsTotal.inc({ type: 'tier' });
-        reply.status(429).send(authError('RATE_LIMIT_EXCEEDED', sceneCheck.reason!).body);
-        return;
       }
 
       const handler = withErrorBoundary((args: any) => handleAddScene(args, sceneDeps));

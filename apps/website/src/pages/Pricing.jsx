@@ -11,7 +11,8 @@ const tiers = [
     period: '',
     description: 'For individuals getting started with visual AI.',
     features: [
-      '5 presentations / month',
+      'Up to 5 presentations',
+      'Unlimited scenes per presentation',
       'No voice narration',
       'Preplai watermark',
       'Shareable links',
@@ -85,8 +86,8 @@ const faqs = [
     a: 'Yes. Annual plans are available at a 20% discount. Contact us or select annual billing during checkout.',
   },
   {
-    q: 'What happens when I hit my monthly limit?',
-    a: 'You will not be able to create new presentations until your limit resets at the start of the next month. Existing presentations remain accessible and shareable. You can upgrade your plan at any time to increase your limit.',
+    q: 'What happens when I hit my presentation limit?',
+    a: 'You will not be able to create new presentations until you delete an existing one. On the Free plan, you can have up to 5 presentations at a time — delete any to free up a slot. Existing presentations remain accessible and shareable. You can upgrade your plan at any time for more presentations.',
   },
   {
     q: 'Is there a free trial for paid plans?',

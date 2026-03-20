@@ -249,7 +249,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
 
       const limitCheck = await checkSessionLimit(apiKey.id, apiKey.tier);
       if (!limitCheck.allowed) {
-        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'LIMIT_EXCEEDED', message: limitCheck.reason, suggestion: 'Delete old sessions or upgrade.' } }) }] };
+        return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: { code: 'LIMIT_EXCEEDED', message: limitCheck.reason, suggestion: 'Delete an existing presentation using manage_sessions with action "delete", or upgrade your plan.' } }) }] };
       }
 
       const result = await withErrorBoundary(
@@ -291,7 +291,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       mode: z.enum(['append', 'replace']).optional().describe('Mode: "append" (default) appends frames to existing scene. "replace" replaces the entire visual script.'),
     },
     async (args, extra) => {
-      const { trackUsage, checkSceneLimit } = await import('./auth.js');
+      const { trackUsage } = await import('./auth.js');
       const apiKey = getApiKey(extra);
       if (!apiKey) return mcpUnauthorized() as { content: Array<{ type: 'text'; text: string }> };
 
@@ -306,11 +306,6 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
       if (!ownership.ok && ownership.notFound) {
         const result = await withErrorBoundary((a: any) => handler(a, sceneDeps))({ session_id: args.session_id, visual_script: args.visual_script });
         return { content: result.content };
-      }
-
-      const sceneCheck = await checkSceneLimit(apiKey.id, apiKey.tier);
-      if (!sceneCheck.allowed) {
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ success: false, error: { code: 'LIMIT_EXCEEDED', message: sceneCheck.reason, suggestion: 'Upgrade your plan or delete scenes.' } }) }] };
       }
 
       const result = await withErrorBoundary(

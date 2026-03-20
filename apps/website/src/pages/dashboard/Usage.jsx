@@ -8,7 +8,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
-import { Layers, Database, LayoutGrid } from 'lucide-react';
+import { Layers, Database } from 'lucide-react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import ProgressBar from '../../components/ProgressBar';
 import Alert from '../../components/Alert';
@@ -207,27 +207,12 @@ export default function Usage() {
         <>
           {/* Stat cards with progress bars */}
           <div className="usg-stats">
-            <div className="usg-stat" style={{ '--stat-accent': 'var(--color-primary)', '--stat-bg': 'var(--color-primary-highlight)' }}>
-              <div className="usg-stat-icon">
-                <Layers size={18} />
-              </div>
-              <div className="usg-stat-header">
-                <span className="usg-stat-label">Scenes This Month</span>
-                <span className="usg-stat-value">
-                  {data?.month_scenes ?? 0} / {data?.limits?.max_scenes_month ?? '--'}
-                </span>
-              </div>
-              <ProgressBar
-                value={data?.month_scenes ?? 0}
-                max={data?.limits?.max_scenes_month ?? 100}
-              />
-            </div>
             <div className="usg-stat" style={{ '--stat-accent': '#3498DB', '--stat-bg': 'rgba(52, 152, 219, 0.1)' }}>
               <div className="usg-stat-icon">
                 <Database size={18} />
               </div>
               <div className="usg-stat-header">
-                <span className="usg-stat-label">Sessions</span>
+                <span className="usg-stat-label">Presentations</span>
                 <span className="usg-stat-value">
                   {data?.session_count ?? 0} / {data?.limits?.max_sessions ?? '--'}
                 </span>
@@ -236,19 +221,22 @@ export default function Usage() {
                 value={data?.session_count ?? 0}
                 max={data?.limits?.max_sessions ?? 100}
               />
+              <p className="usg-stat-hint">
+                Delete a presentation to free up a slot.
+              </p>
             </div>
-            <div className="usg-stat" style={{ '--stat-accent': '#4ECDC4', '--stat-bg': 'rgba(78, 205, 196, 0.1)' }}>
+            <div className="usg-stat" style={{ '--stat-accent': 'var(--color-primary)', '--stat-bg': 'var(--color-primary-highlight)' }}>
               <div className="usg-stat-icon">
-                <LayoutGrid size={18} />
+                <Layers size={18} />
               </div>
               <div className="usg-stat-header">
-                <span className="usg-stat-label">Scenes Per Session</span>
+                <span className="usg-stat-label">Scenes This Month</span>
                 <span className="usg-stat-value">
-                  Up to {data?.limits?.max_scenes_session ?? '--'}
+                  {data?.month_scenes ?? 0}
                 </span>
               </div>
               <p className="usg-stat-hint">
-                Maximum frames allowed in a single presentation.
+                Unlimited scenes on all plans.
               </p>
             </div>
           </div>
