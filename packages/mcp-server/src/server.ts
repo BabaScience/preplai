@@ -289,6 +289,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     '/player.css',
     '/player.js',
     '/favicon.ico',
+    '/favicon.svg',
     '/api/player-feedback',
     '/.well-known/oauth-protected-resource',
   ]);
@@ -567,9 +568,15 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     reply.type('text/html').send(html);
   });
 
-  // ── Favicon (avoid 401 on automatic browser request) ─────────────────
+  // ── Favicon (serve new E-mark glyph as SVG) ─────────────────────────
+  const FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#0b0c10"/><path d="M8 8h6a6 6 0 0 1 0 12H8z" fill="none" stroke="#C9A84C" stroke-width="2.5"/><circle cx="22" cy="22" r="3" fill="#C9A84C"/></svg>`;
+
   app.get('/favicon.ico', async (_request, reply) => {
-    reply.status(204).send();
+    reply.header('Content-Type', 'image/svg+xml').header('Cache-Control', 'public, max-age=86400').send(FAVICON_SVG);
+  });
+
+  app.get('/favicon.svg', async (_request, reply) => {
+    reply.header('Content-Type', 'image/svg+xml').header('Cache-Control', 'public, max-age=86400').send(FAVICON_SVG);
   });
 
   // ── Player static assets ──────────────────────────────────────────
