@@ -40,6 +40,9 @@ router.post('/', async (req, res) => {
   if (!name || !name.trim()) {
     return res.status(400).json({ error: 'Key name is required' });
   }
+  if (name.length > 256) {
+    return res.status(400).json({ error: 'Key name must be 256 characters or fewer' });
+  }
 
   try {
     const count = await ApiKey.countDocuments({ userId: req.user.userId, revoked: false });
@@ -80,6 +83,9 @@ router.patch('/:id', async (req, res) => {
   const { name } = req.body;
   if (!name || !name.trim()) {
     return res.status(400).json({ error: 'Key name is required' });
+  }
+  if (name.length > 256) {
+    return res.status(400).json({ error: 'Key name must be 256 characters or fewer' });
   }
 
   try {

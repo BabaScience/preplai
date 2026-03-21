@@ -9,6 +9,35 @@ const router = Router();
 const DEFAULT_SECRET = 'preplai-dev-secret-change-in-prod';
 const JWT_SECRET = process.env.JWT_SECRET || DEFAULT_SECRET;
 
+// ── Per-IP rate limiting for auth endpoints ──────────────────────────
+const authAttempts = new Map(); // ip → { count, resetAt }
+const AUTH_RATE_LIMIT = 10;     // max attempts per window
+const AUTH_RATE_WINDOW = 15 * 60 * 1000; // 15 minutes
+
+function authRateLimit(req, res, next) {
+  if (process.env.NODE_ENV === 'test') return next();
+  const ip = req.ip || req.socket.remoteAddress;
+  const now = Date.now();
+  const entry = authAttempts.get(ip);
+  if (entry && entry.resetAt > now) {
+    if (entry.count >= AUTH_RATE_LIMIT) {
+      return res.status(429).json({ error: 'Too many attempts. Please try again later.' });
+    }
+    entry.count++;
+  } else {
+    authAttempts.set(ip, { count: 1, resetAt: now + AUTH_RATE_WINDOW });
+  }
+  next();
+}
+
+// Periodically clean stale entries
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of authAttempts) {
+    if (entry.resetAt <= now) authAttempts.delete(ip);
+  }
+}, 5 * 60 * 1000);
+
 if (process.env.NODE_ENV === 'production') {
   if (!process.env.JWT_SECRET || process.env.JWT_SECRET === DEFAULT_SECRET) {
     throw new Error(
@@ -18,7 +47,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // POST /api/auth/signup
-router.post('/signup', async (req, res) => {
+router.post('/signup', authRateLimit, async (req, res) => {
   const { email, password, name } = req.body;
 
   if (!email || !password) {
@@ -64,7 +93,7 @@ router.post('/signup', async (req, res) => {
 });
 
 // POST /api/auth/login
-router.post('/login', async (req, res) => {
+router.post('/login', authRateLimit, async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -158,7 +187,7 @@ router.post('/verify-email', async (req, res) => {
 });
 
 // POST /api/auth/resend-verification
-router.post('/resend-verification', async (req, res) => {
+router.post('/resend-verification', authRateLimit, async (req, res) => {
   const { email } = req.body;
 
   if (!email) {
@@ -193,7 +222,7 @@ router.post('/resend-verification', async (req, res) => {
 });
 
 // POST /api/auth/forgot-password
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', authRateLimit, async (req, res) => {
   const { email } = req.body;
 
   if (!email) {

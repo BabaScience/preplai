@@ -33,7 +33,7 @@
  * 1. Boots the Fastify HTTP server (for the player UI + SSE)
  * 2. Exposes the MCP tools via stdio for Claude Desktop
  */
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { buildServer, getDefaultConfig } from './server.js';
@@ -90,7 +90,7 @@ async function main() {
       const cmd = process.platform === 'darwin' ? 'open'
         : process.platform === 'win32' ? 'start'
         : 'xdg-open';
-      exec(cmd + ' ' + JSON.stringify(url), (err) => {
+      execFile(cmd, [url], (err) => {
         if (err) console.error('[preplai] Could not auto-open browser:', err.message);
       });
       console.error('[preplai] Auto-opened player:', url);

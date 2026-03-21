@@ -5,7 +5,7 @@
  * Uses MongoDB via @preplai/db for persistence.
  * Exposes MCP tools via Streamable HTTP at /mcp.
  */
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import crypto from 'node:crypto';
 import { readFileSync, existsSync } from 'node:fs';
 import { config } from 'dotenv';
@@ -228,6 +228,16 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     });
   }
 
+  // ── Security Headers ──────────────────────────────────────────────
+  app.addHook('onSend', async (_request, reply) => {
+    reply.header('X-Content-Type-Options', 'nosniff');
+    reply.header('X-Frame-Options', 'DENY');
+    reply.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+    if (process.env.NODE_ENV === 'production') {
+      reply.header('Strict-Transport-Security', 'max-age=63072000; includeSubDomains');
+    }
+  });
+
   const cleaned = await store.cleanExpiredSessions();
   if (cleaned > 0) {
     app.log.info({ cleaned }, 'Cleaned expired sessions');
@@ -257,12 +267,12 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     origin: allowedOrigins.length > 0
       ? (origin, cb) => {
           if (!origin || allowedOrigins.includes(origin)) {
-            cb(null, (origin || allowedOrigins[0]) ?? '*');
+            cb(null, origin || allowedOrigins[0]);
           } else {
             cb(null, false);
           }
         }
-      : true,
+      : false, // No wildcard fallback — require explicit ALLOWED_ORIGINS
     methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Mcp-Session-Id', 'X-Preplai-API-Key'],
   });
@@ -369,7 +379,7 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     isLocal || process.env.OPEN_PLAYER_IN_BROWSER === 'true'
       ? (url: string) => {
           const cmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
-          exec(cmd + ' ' + JSON.stringify(url), (err) => {
+          execFile(cmd, [url], (err) => {
             if (err) app.log.error({ err }, 'Could not auto-open browser');
           });
           app.log.info({ url }, 'Auto-opened player');
@@ -511,9 +521,12 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
 
   // ── Player HTML route ─────────────────────────────────────────────
   const VALID_PALETTES = new Set(['default', 'ocean', 'sunset', 'forest', 'mono']);
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   // GA4 inline script — injected into player template when GA_MEASUREMENT_ID is set
-  const GA_MEASUREMENT_ID = process.env.GA_MEASUREMENT_ID || '';
+  const GA_MEASUREMENT_ID_RAW = process.env.GA_MEASUREMENT_ID || '';
+  // Validate format: G-XXXXXXXXXX (alphanumeric only)
+  const GA_MEASUREMENT_ID = /^G-[A-Za-z0-9]+$/.test(GA_MEASUREMENT_ID_RAW) ? GA_MEASUREMENT_ID_RAW : '';
   const GA_SCRIPT_BLOCK = GA_MEASUREMENT_ID
     ? `
   <!-- Google Analytics (GA4) -->
@@ -531,6 +544,10 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     '/player/:sessionId',
     async (request, reply) => {
       const { sessionId } = request.params;
+      if (!UUID_RE.test(sessionId)) {
+        reply.status(400).send({ error: 'Invalid session ID.' });
+        return;
+      }
       const session = await store.getSessionOrHydrate(sessionId);
       if (!session) {
         const notFoundHtml = PLAYER_NOT_FOUND_HTML
