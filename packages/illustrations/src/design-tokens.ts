@@ -482,10 +482,85 @@ for (const t of [
   'LogEntry', 'Interface',
 ]) TYPE_TO_CATEGORY[t] = 'generic';
 
+// ── Light-theme palette overrides ────────────────────────────────────
+// Darker variants of each palette for readability on light backgrounds.
+// Only categories that fail ≥3:1 contrast against #f3ede4 are overridden.
+
+export const PALETTES_LIGHT: Record<PaletteName, Partial<Palette>> = {
+  default: {
+    compute: '#0a7a42',    // #00e676 → dark green
+    data: '#2255bb',       // #4488ff → deep blue
+    environment: '#007888', // #00bcd4 → dark teal
+    human: '#856a1e',      // #C9A84C → dark gold
+    structure: '#7b3fa0',  // #9B59B6 → slightly darker violet
+    state: '#c92a2a',      // #ff6b6b → dark red
+    annotation: '#a85c00', // #ffab00 → dark amber
+    generic: '#0e7a72',    // #4ECDC4 → dark teal-green
+    accent: '#856a1e',     // same as human
+  },
+  ocean: {
+    compute: '#1a8a46',    // #2ECC71 → dark green
+    data: '#2060c0',       // #3498DB → deeper blue
+    environment: '#7b3fa0', // #9B59B6 → already decent, slight darken
+    human: '#0e6b5a',      // #1ABC9C → dark teal
+    structure: '#007888',  // #00bcd4 → dark teal
+    state: '#c0392b',      // #E74C3C → already decent
+    annotation: '#5a6878', // #e2e8f0 → slate
+    generic: '#0e7a72',    // #4ECDC4 → dark teal-green
+    accent: '#0e7a72',
+  },
+  sunset: {
+    compute: '#b45309',    // #F39C12 → dark orange
+    data: '#c0392b',       // #E74C3C → keep
+    environment: '#7b3fa0', // #9B59B6 → keep
+    human: '#946b07',      // #F1C40F → dark yellow
+    structure: '#c92a2a',  // #ff6b6b → dark red
+    state: '#c0392b',      // same as data
+    annotation: '#8c5a10', // #fef3c7 → dark gold
+    generic: '#b44712',    // #E67E22 → dark orange
+    accent: '#b44712',
+  },
+  forest: {
+    compute: '#15803d',    // #2ECC71 → dark green
+    data: '#0e6b5a',       // #1ABC9C → dark teal
+    environment: '#2060c0', // #3498DB → deep blue
+    human: '#0d6050',      // #16a085 → dark teal
+    structure: '#0a7a42',  // #00e676 → dark green
+    state: '#c0392b',      // #E74C3C → keep
+    annotation: '#166534', // #d1fae5 → dark green
+    generic: '#15803d',    // #22c55e → dark green
+    accent: '#166534',
+  },
+  mono: {
+    // Mono fully inverted for light: use dark grays
+    compute: '#37474F',    // #ECEFF1 → dark blue-gray
+    data: '#455A64',       // #607D8B → darker
+    environment: '#37474F', // #78909C → darker
+    human: '#455A64',      // #B0BEC5 → dark
+    structure: '#263238',  // #455A64 → darkest
+    state: '#37474F',      // #90A4AE → dark
+    annotation: '#546E7A', // #FFFFFF → medium-dark
+    generic: '#455A64',    // #CFD8DC → dark
+    accent: '#37474F',
+  },
+};
+
+// Cinema-theme palette overrides (only for colors that fail on dark bg)
+export const PALETTES_CINEMA: Record<PaletteName, Partial<Palette>> = {
+  default: {},
+  ocean: {},
+  sunset: {},
+  forest: {},
+  mono: {
+    structure: '#78909C',  // #455A64 → lighter for dark bg
+  },
+};
+
 // ── Active palette state ─────────────────────────────────────────────
 
 let _activePalette: Palette | null = null;
 let _activePaletteName: PaletteName | null = null;
+let _activeTheme: 'cinema' | 'light' = 'cinema';
 
 /** Set the active palette by name. Call once at player init. */
 export function setActivePalette(name: string): void {
@@ -504,6 +579,16 @@ export function setActivePalette(name: string): void {
   }
 }
 
+/** Set the active theme (affects color contrast adjustments). */
+export function setActiveTheme(theme: 'cinema' | 'light'): void {
+  _activeTheme = theme;
+}
+
+/** Get the active theme. */
+export function getActiveTheme(): 'cinema' | 'light' {
+  return _activeTheme;
+}
+
 /** Get the active palette name, or null if using default. */
 export function getActivePaletteName(): PaletteName | null {
   return _activePaletteName;
@@ -520,17 +605,46 @@ export function getParticleColors(): string[] {
   return PALETTES.default.particles;
 }
 
+/**
+ * Resolve the theme-adjusted color for a palette category.
+ * Applies light/cinema overrides when contrast would be too low.
+ */
+function resolveThemedColor(category: SemanticCategory | 'accent'): string {
+  if (!_activePalette || !_activePaletteName) return '';
+  const baseColor = _activePalette[category];
+  // Check for theme-specific override
+  const overrides = _activeTheme === 'light'
+    ? PALETTES_LIGHT[_activePaletteName]
+    : PALETTES_CINEMA[_activePaletteName];
+  if (overrides) {
+    const override = (overrides as Record<string, string>)[category];
+    if (override) return override;
+  }
+  return baseColor;
+}
+
 /** Get default color for an entity type. Falls back to cyan. */
 export function getCategoryColor(type: string): string {
   // Connectors: use palette accent when available, fall back to white (cinema default)
   if (ENTITY_COLORS[type] === '#ffffff') {
-    return _activePalette?.accent ?? '#ffffff';
+    if (_activePalette && _activePaletteName) {
+      return resolveThemedColor('accent');
+    }
+    return '#ffffff';
   }
   // If a non-default palette is active, use semantic category mapping
-  if (_activePalette) {
+  if (_activePalette && _activePaletteName) {
     const category = getSemanticCategory(type);
-    return _activePalette[category];
+    return resolveThemedColor(category);
   }
-  // Default: use the detailed per-type ENTITY_COLORS map
+  // Default mode: use detailed per-type ENTITY_COLORS map
+  // For light theme in default mode, we still need contrast fixes
+  if (_activeTheme === 'light') {
+    const color = ENTITY_COLORS[type] ?? COLORS.cyan;
+    const category = getSemanticCategory(type);
+    const override = (PALETTES_LIGHT.default as Record<string, string>)[category];
+    if (override) return override;
+    return color;
+  }
   return ENTITY_COLORS[type] ?? COLORS.cyan;
 }

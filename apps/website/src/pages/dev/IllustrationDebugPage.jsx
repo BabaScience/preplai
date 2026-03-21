@@ -4,6 +4,8 @@ import { ENTITY_DEFAULTS, isConnectionType } from '@preplai/shared';
 import { METADATA_DEFAULTS, ENTITY_FIELD_DEFAULTS, COMPOSABLE_SHOWCASE } from './entity-defaults';
 import IllustrationPreview from './IllustrationPreview';
 import EntityParamPanel from './EntityParamPanel';
+import SceneComposer from './SceneComposer';
+import PaletteContrast from './PaletteContrast';
 
 const EXCLUDED_TYPES = new Set(['Label', 'GraphDS', 'GraphTraversal', 'NumberLine', 'ProcessBlock', 'Proof', 'QueryPlan', 'Register', 'Registry', 'StateNode']);
 const COMPOSABLE_VARIANTS = Object.keys(COMPOSABLE_SHOWCASE);
@@ -76,7 +78,11 @@ function buildDefaultEntity(type, overrides = {}) {
   return base;
 }
 
-export default function IllustrationDebugPage() {
+/* ── Single Entity Debug (original mode) ─────────────────────────────── */
+const THEMES = ['light', 'cinema'];
+const PALETTES_LIST = ['default', 'ocean', 'sunset', 'forest', 'mono'];
+
+function EntityDebugMode() {
   const [selectedType, setSelectedType] = useState('Cloud');
   const [entity, setEntity] = useState(() => buildDefaultEntity('Cloud'));
   const [renderError, setRenderError] = useState(null);
@@ -84,7 +90,9 @@ export default function IllustrationDebugPage() {
   const [search, setSearch] = useState('');
   const [globalDefaultSize, setGlobalDefaultSize] = useState(ENTITY_DEFAULTS.size);
   const [reviewedTypes, setReviewedTypes] = useState(() => loadReviewedFromStorage());
-  const [filterMode, setFilterMode] = useState('unchecked'); // 'unchecked' | 'checked' | 'all'
+  const [filterMode, setFilterMode] = useState('unchecked');
+  const [theme, setTheme] = useState('light');
+  const [palette, setPalette] = useState('sunset');
 
   useEffect(() => {
     saveReviewedToStorage(reviewedTypes);
@@ -118,7 +126,6 @@ export default function IllustrationDebugPage() {
         return next;
       }
       next.add(type);
-      // When marking as reviewed and filtering unchecked, advance to next
       if (filterMode === 'unchecked' && type === selectedType) {
         const remaining = searchFiltered.filter((t) => !next.has(t));
         const first = remaining[0];
@@ -144,9 +151,26 @@ export default function IllustrationDebugPage() {
 
   return (
     <div className="dev-layout">
-      {/* Left: Entity type list */}
       <div className="dev-panel dev-panel-left dev-panel-left-inner">
         <h2 className="dev-heading">Illustration Debug</h2>
+        <div className="dev-section">
+          <label className="dev-label">Theme</label>
+          <div className="scene-toggle-row">
+            {THEMES.map((t) => (
+              <button key={t} type="button" className="scene-toggle-btn" data-active={theme === t} onClick={() => setTheme(t)}>
+                {t === 'cinema' ? '🌙 Cinema' : '☀️ Light'}
+              </button>
+            ))}
+          </div>
+          <label className="dev-label" style={{ marginTop: 'var(--space-2)' }}>Palette</label>
+          <div className="scene-toggle-row">
+            {PALETTES_LIST.map((p) => (
+              <button key={p} type="button" className="scene-toggle-btn" data-active={palette === p} onClick={() => setPalette(p)}>
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="dev-section">
           <label className="dev-label">
             Default size (overrides entity size in preview)
@@ -240,7 +264,6 @@ export default function IllustrationDebugPage() {
         )}
       </div>
 
-      {/* Center: Preview canvas */}
       <div
         style={{
           display: 'flex',
@@ -252,10 +275,11 @@ export default function IllustrationDebugPage() {
         <IllustrationPreview
           entity={{ ...entity, size: globalDefaultSize }}
           renderError={setRenderError}
+          theme={theme}
+          palette={palette}
         />
       </div>
 
-      {/* Right: Parameter panel — all parameters live here */}
       <div
         style={{
           overflowY: 'auto',
@@ -272,6 +296,54 @@ export default function IllustrationDebugPage() {
         {copyFeedback && (
           <div className="dev-toast">Copied to clipboard</div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Main page with tab toggle ───────────────────────────────────────── */
+export default function IllustrationDebugPage() {
+  const [mode, setMode] = useState('entity'); // 'entity' | 'scene' | 'contrast'
+
+  return (
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Tab bar */}
+      <nav className="dev-tab-bar" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          className="dev-tab"
+          aria-selected={mode === 'entity'}
+          data-active={mode === 'entity'}
+          onClick={() => setMode('entity')}
+        >
+          Entity Debug
+        </button>
+        <button
+          type="button"
+          role="tab"
+          className="dev-tab"
+          aria-selected={mode === 'scene'}
+          data-active={mode === 'scene'}
+          onClick={() => setMode('scene')}
+        >
+          Scene Composer
+        </button>
+        <button
+          type="button"
+          role="tab"
+          className="dev-tab"
+          aria-selected={mode === 'contrast'}
+          data-active={mode === 'contrast'}
+          onClick={() => setMode('contrast')}
+        >
+          Palette Contrast
+        </button>
+      </nav>
+
+      {/* Content */}
+      <div style={{ flex: 1, overflow: 'hidden' }}>
+        {mode === 'entity' ? <EntityDebugMode /> : mode === 'scene' ? <SceneComposer /> : <PaletteContrast />}
       </div>
     </div>
   );

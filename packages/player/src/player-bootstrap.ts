@@ -7,7 +7,7 @@
 import type { VisualScript, FrameAudio } from '@preplai/shared';
 import type { FocusInfo } from '@preplai/player';
 import { SceneController, NarratorController, AudioEngine, resolveSessionId, createSSEHandler } from '@preplai/player';
-import { setActivePalette, getParticleColors } from '@preplai/illustrations';
+import { setActivePalette, setActiveTheme, getParticleColors } from '@preplai/illustrations';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const CW = 1920;
@@ -22,7 +22,9 @@ function main(): void {
 
   // ── Palette initialization (must run before any rendering) ────────
   const paletteName = document.body.getAttribute('data-palette') || 'default';
+  const themeName = (document.body.getAttribute('data-theme') || 'cinema') as 'cinema' | 'light';
   setActivePalette(paletteName);
+  setActiveTheme(themeName);
 
   // ── GA4 analytics helper (uses gtag injected by server template) ──
   const gtag = (window as any).__preGtag as ((...args: any[]) => void) | undefined;

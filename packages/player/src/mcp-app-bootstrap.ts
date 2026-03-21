@@ -11,7 +11,7 @@
 import { App } from '@modelcontextprotocol/ext-apps';
 import type { VisualScript, FrameAudio } from '@preplai/shared';
 import { SceneController, NarratorController, AudioEngine } from '@preplai/player';
-import { setActivePalette, getParticleColors } from '@preplai/illustrations';
+import { setActivePalette, setActiveTheme, getParticleColors } from '@preplai/illustrations';
 
 // Import player CSS — Vite will inline this into the single-file HTML
 import './mcp-app-styles.css';
@@ -450,8 +450,9 @@ async function main(): Promise<void> {
     if (!meta) return;
 
     // Apply theme
-    const theme = (meta.theme as string) || 'cinema';
+    const theme = ((meta.theme as string) || 'cinema') as 'cinema' | 'light';
     document.body.setAttribute('data-theme', theme);
+    setActiveTheme(theme);
 
     // Apply palette
     const palette = (meta.palette as string) || 'default';
