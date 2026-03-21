@@ -49,7 +49,18 @@ export function createApp() {
 
   app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
   app.use(cookieParser());
-  app.use(express.json());
+  app.use(express.json({ limit: '1mb' }));
+
+  // Security headers
+  app.use((_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    if (process.env.NODE_ENV === 'production') {
+      res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains');
+    }
+    next();
+  });
   app.use(pinoHttp({ logger, genReqId: (req) => req.headers['x-request-id'] || crypto.randomUUID() }));
   // OAuth 2.0 token endpoint expects application/x-www-form-urlencoded (RFC 6749)
   app.use(express.urlencoded({ extended: true }));

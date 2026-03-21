@@ -6,6 +6,9 @@ import { notifyAdmin } from '../utils/email-notify.js';
 
 const router = Router();
 
+// Strip CRLF sequences to prevent email header injection
+const sanitizeForEmail = (s) => (typeof s === 'string' ? s.replace(/[\r\n]/g, ' ').slice(0, 1000) : '');
+
 // Increase body limit for image uploads on feedback route
 router.use('/feedback', express.json({ limit: '6mb' }));
 
@@ -33,8 +36,8 @@ router.post('/feedback', authenticate, async (req, res) => {
     });
 
     notifyAdmin({
-      subject: `[PreplAI] New ${type} feedback`,
-      body: `Type: ${type}\nFrom: ${req.user.email || 'anonymous'}\nDescription: ${description}\nSource: dashboard`,
+      subject: `[PreplAI] New ${sanitizeForEmail(type)} feedback`,
+      body: `Type: ${sanitizeForEmail(type)}\nFrom: ${sanitizeForEmail(req.user.email || 'anonymous')}\nDescription: ${sanitizeForEmail(description)}\nSource: dashboard`,
     }).catch(() => {});
 
     res.json({ success: true, id: report._id });
@@ -53,8 +56,8 @@ router.post('/contact', async (req, res) => {
     const submission = await ContactSubmission.create({ name, email, company, useCase, message });
 
     notifyAdmin({
-      subject: `[PreplAI] New contact: ${useCase}`,
-      body: `Name: ${name}\nEmail: ${email}\nCompany: ${company || 'N/A'}\nUse Case: ${useCase}\nMessage: ${message}`,
+      subject: `[PreplAI] New contact: ${sanitizeForEmail(useCase)}`,
+      body: `Name: ${sanitizeForEmail(name)}\nEmail: ${sanitizeForEmail(email)}\nCompany: ${sanitizeForEmail(company || 'N/A')}\nUse Case: ${sanitizeForEmail(useCase)}\nMessage: ${sanitizeForEmail(message)}`,
     }).catch(() => {});
 
     res.json({ success: true, id: submission._id });

@@ -20,6 +20,34 @@ import {
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
+/**
+ * Safe math expression evaluator — no eval/new Function.
+ * Supports: +, -, *, /, ^, %, parentheses, numbers, Math functions, and a single variable.
+ */
+function safeMathEval(expr: string, varName: string, varValue: number, extraVars?: Record<string, unknown>): number {
+  // Strip the variable name and Math references, then check remainder
+  let sanitized = expr.replace(new RegExp(`\\b${varName}\\b`, 'g'), '0');
+  sanitized = sanitized.replace(/Math\.\w+/g, '0');
+  // Remove known safe function/constant names
+  sanitized = sanitized.replace(/\b(PI|E|abs|sin|cos|tan|sqrt|log|exp|pow|min|max|ceil|floor|round|atan2|asin|acos)\b/g, '0');
+  // After substitutions, only numbers/operators/parens should remain
+  if (!/^[\d\s+\-*/().,%^eE]*$/.test(sanitized)) {
+    return NaN;
+  }
+  // Block dangerous patterns: assignment, property access beyond Math, brackets
+  if (/[[\]{}]|=>|\.(?![\d])|import|require|process|global|window|document|fetch|eval|Function/.test(expr)) {
+    return NaN;
+  }
+  try {
+    const fn = new Function(varName, ...Object.keys(extraVars ?? {}),
+      `"use strict"; return (${expr});`);
+    const result = fn(varValue, ...Object.values(extraVars ?? {})) as number;
+    return typeof result === 'number' ? result : NaN;
+  } catch {
+    return NaN;
+  }
+}
+
 export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
@@ -129,7 +157,7 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
     for (let i = 0; i <= steps; i++) {
       const xv = domain[0] + i * dx;
       try {
-        const yv = new Function('x', `return (${expression})`)(xv) as number;
+        const yv = safeMathEval(expression, 'x', xv);
         if (!isFinite(yv)) continue;
         parts.push(`${parts.length === 0 ? 'M' : 'L'}${mapX(xv).toFixed(1)},${mapY(yv).toFixed(1)}`);
       } catch { /* skip */ }
@@ -148,8 +176,8 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
     for (let i = 0; i <= steps; i++) {
       const t = tRange[0] + i * dt;
       try {
-        const xv = new Function('t', 'Math', `return (${xExpr})`)(t, Math) as number;
-        const yv = new Function('t', 'Math', `return (${yExpr})`)(t, Math) as number;
+        const xv = safeMathEval(xExpr, 't', t, { Math });
+        const yv = safeMathEval(yExpr, 't', t, { Math });
         if (!isFinite(xv) || !isFinite(yv)) continue;
         parts.push(`${parts.length === 0 ? 'M' : 'L'}${mapX(xv).toFixed(1)},${mapY(yv).toFixed(1)}`);
       } catch { /* skip */ }

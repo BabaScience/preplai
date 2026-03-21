@@ -35,7 +35,21 @@ export const VisualEntitySchema = z.object({
 
   textContent: z.string().max(10_000).optional(),
   codeLanguage: z.string().max(50).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.unknown()).optional().refine(
+    (m) => {
+      if (!m) return true;
+      // Block expressions containing dangerous patterns (property access, assignments, keywords)
+      const exprKeys = ['expression', 'xExpression', 'yExpression'];
+      for (const k of exprKeys) {
+        const v = m[k];
+        if (typeof v === 'string' && /[[\]{}]|=>|import|require|process|global|window|document|fetch|eval|Function/.test(v)) {
+          return false;
+        }
+      }
+      return true;
+    },
+    { message: 'metadata expressions contain disallowed patterns' },
+  ),
 });
 
 export type VisualEntityInput = z.infer<typeof VisualEntitySchema>;

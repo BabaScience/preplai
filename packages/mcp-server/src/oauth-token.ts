@@ -9,7 +9,13 @@ import { getOrCreateApiKeyForUser } from './auth.js';
 import type { ValidatedKey } from './auth.js';
 
 function getJwtSecret(): string {
-  return process.env.JWT_SECRET ?? 'preplai-dev-secret-change-in-prod';
+  const secret = process.env.JWT_SECRET;
+  if (process.env.NODE_ENV === 'production') {
+    if (!secret || secret === 'preplai-dev-secret-change-in-prod') {
+      throw new Error('JWT_SECRET must be set to a secure value in production');
+    }
+  }
+  return secret ?? 'preplai-dev-secret-change-in-prod';
 }
 
 function getMcpResource(): string {

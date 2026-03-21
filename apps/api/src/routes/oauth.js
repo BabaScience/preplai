@@ -238,7 +238,10 @@ router.get('/oauth/authorize', optionalAuth, async (req, res) => {
     return res.redirect(redirectUrl.toString());
   }
 
-  // Consent page
+  // Consent page — escape client name to prevent XSS
+  const escapeHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+  const safeName = escapeHtml(client.name);
+
   const params = new URLSearchParams(req.query);
   params.set('approve', 'true');
   const approveUrl = `${API_BASE}/oauth/authorize?${params.toString()}`;
@@ -263,8 +266,8 @@ router.get('/oauth/authorize', optionalAuth, async (req, res) => {
   </style>
 </head>
 <body>
-  <h1>Authorize ${client.name}</h1>
-  <p>${client.name} wants to access your preplai account.</p>
+  <h1>Authorize ${safeName}</h1>
+  <p>${safeName} wants to access your preplai account.</p>
   <p>This will allow it to create and manage presentations on your behalf.</p>
   <div class="buttons">
     <a href="${approveUrl}" class="approve">Approve</a>
@@ -329,6 +332,11 @@ router.post('/oauth/token', async (req, res) => {
     if (new Date() > authCodeDoc.expiresAt) {
       await OAuthAuthCode.deleteOne({ code });
       return res.status(400).json({ error: 'invalid_grant', error_description: 'Authorization code expired' });
+    }
+
+    // Validate code_verifier format per RFC 7636 (43-128 chars, unreserved characters)
+    if (!codeVerifier || codeVerifier.length < 43 || codeVerifier.length > 128 || !/^[A-Za-z0-9\-._~]+$/.test(codeVerifier)) {
+      return res.status(400).json({ error: 'invalid_request', error_description: 'code_verifier must be 43-128 chars (alphanumeric + -._~)' });
     }
 
     const expectedChallenge = crypto
