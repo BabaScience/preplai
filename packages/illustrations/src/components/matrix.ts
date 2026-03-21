@@ -10,7 +10,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -30,9 +29,6 @@ export function renderMatrix(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Matrix');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-matrix-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const rawRows = (meta.rows as number[][]) ?? [[1, 0], [0, 1]];
@@ -78,7 +74,7 @@ export function renderMatrix(entity: VisualEntity, parentEl: SVGElement): SVGGEl
       rect.setAttribute('width', String(cellW));
       rect.setAttribute('height', String(cellH));
       rect.setAttribute('rx', String(SHAPES.borderRadius - 2));
-      rect.setAttribute('fill', `url(#${gradId})`);
+      rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       rect.setAttribute('stroke', color);
       rect.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
       innerG.appendChild(rect);

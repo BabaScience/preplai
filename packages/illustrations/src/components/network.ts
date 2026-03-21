@@ -8,7 +8,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createRadialGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -17,9 +16,6 @@ export function renderNetwork(entity: VisualEntity, parentEl: SVGElement): SVGGE
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Network');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-network-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createRadialGradient(gradId, color, defs);
 
   const r = s * 0.42;
 
@@ -41,7 +37,7 @@ export function renderNetwork(entity: VisualEntity, parentEl: SVGElement): SVGGE
   circle.setAttribute('cx', '0');
   circle.setAttribute('cy', '0');
   circle.setAttribute('r', String(r));
-  circle.setAttribute('fill', `url(#${gradId})`);
+  circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   circle.setAttribute('stroke', color);
   circle.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(circle);

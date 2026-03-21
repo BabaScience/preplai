@@ -5,9 +5,9 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor, getStrokeWidth, getLabelFontSize,
+  colorWithAlpha, OPACITY,
   TYPOGRAPHY,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
@@ -18,9 +18,6 @@ export function renderTrace(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Trace');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-trace-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'horizontal', defs);
 
   const meta = entity.metadata ?? {};
   const service = (meta.service as string) ?? entity.label ?? 'api-gateway';
@@ -39,7 +36,7 @@ export function renderTrace(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   bar.setAttribute('width', String(w));
   bar.setAttribute('height', String(h));
   bar.setAttribute('rx', '4');
-  bar.setAttribute('fill', `url(#${gradId})`);
+  bar.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   bar.setAttribute('stroke', status === 'error' ? '#f87171' : color);
   bar.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   innerG.appendChild(bar);

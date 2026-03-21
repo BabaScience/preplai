@@ -10,8 +10,7 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createRadialGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, getStrokeWidth, getLabelFontSize, LABEL_DEFAULTS } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, getStrokeWidth, getLabelFontSize, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import { treeLayout, type MultiChildTreeNode } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -21,9 +20,6 @@ export function renderBTree(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('BTree');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-btree-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createRadialGradient(gradId, color, defs);
 
   const meta = entity.metadata ?? {};
   const tree: MultiChildTreeNode = (meta.tree as MultiChildTreeNode) ?? {
@@ -60,7 +56,7 @@ export function renderBTree(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     circle.setAttribute('cx', String(x));
     circle.setAttribute('cy', String(y));
     circle.setAttribute('r', String(nodeR));
-    circle.setAttribute('fill', `url(#${gradId})`);
+    circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     circle.setAttribute('stroke', color);
     circle.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
     innerG.appendChild(circle);

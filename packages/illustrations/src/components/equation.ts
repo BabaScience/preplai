@@ -1,18 +1,13 @@
 /**
- * @preplai/illustrations — Equation Component
+ * @preplai/illustrations — Equation Component (minimalist)
  *
- * Rounded rect with gradient fill, inner dashed accent, centered equation text.
- * Uses monospace font for math expressions. Size-responsive via scaleGroup.
+ * Clean rect with centered equation text. No glow filter, no inner dashed rect.
+ * Uses scaleGroup for size-responsive rendering.
  *
- * @see METADATA_SCHEMAS.md#equation
- *
- * Metadata:
- *   expression: string — equation text (or use entity.label)
- *   width: number — design width (default auto from expression length)
+ * Metadata: { expression?: string, width?: number }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs, ensureGlowFilter } from '../visual-utils.js';
 import {
   getCategoryColor,
   getLabelFontSize,
@@ -20,26 +15,27 @@ import {
   SHAPES,
   STROKE,
   LABEL_DEFAULTS,
+  colorWithAlpha,
+  OPACITY,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 const DESIGN_H = 44;
-const INNER_INSET = 8;
 const MAX_CHARS = 28;
 
-/** Superscript: ^2→², ^3→³, ^n→ⁿ, ^1→¹. Subscript: _0→₀, _1→₁, etc. Shared with Expression. */
+/** Superscript/subscript formatting. Shared with Expression. */
 export function formatMathExpression(raw: string): string {
   return raw
-    .replace(/\^2/g, '²')
-    .replace(/\^3/g, '³')
-    .replace(/\^1/g, '¹')
-    .replace(/\^n/g, 'ⁿ')
-    .replace(/\^([0-9])/g, (_, d) => '⁰¹²³⁴⁵⁶⁷⁸⁹'[+d])
-    .replace(/_0/g, '₀')
-    .replace(/_1/g, '₁')
-    .replace(/_2/g, '₂')
-    .replace(/_3/g, '₃')
-    .replace(/_([0-9])/g, (_, d) => '₀₁₂₃₄₅₆₇₈₉'[+d]);
+    .replace(/\^2/g, '\u00B2')
+    .replace(/\^3/g, '\u00B3')
+    .replace(/\^1/g, '\u00B9')
+    .replace(/\^n/g, '\u207F')
+    .replace(/\^([0-9])/g, (_, d) => '\u2070\u00B9\u00B2\u00B3\u2074\u2075\u2076\u2077\u2078\u2079'[+d])
+    .replace(/_0/g, '\u2080')
+    .replace(/_1/g, '\u2081')
+    .replace(/_2/g, '\u2082')
+    .replace(/_3/g, '\u2083')
+    .replace(/_([0-9])/g, (_, d) => '\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089'[+d]);
 }
 
 export function renderEquation(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -48,14 +44,11 @@ export function renderEquation(entity: VisualEntity, parentEl: SVGElement): SVGG
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Equation');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-eq-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
-  const raw = (meta.expression as string) ?? entity.label ?? 'E = mc²';
+  const raw = (meta.expression as string) ?? entity.label ?? 'E = mc\u00B2';
   const expression = formatMathExpression(raw);
-  const displayText = expression.length > MAX_CHARS ? expression.slice(0, MAX_CHARS - 1) + '…' : expression;
+  const displayText = expression.length > MAX_CHARS ? expression.slice(0, MAX_CHARS - 1) + '\u2026' : expression;
 
   const designW = typeof meta.width === 'number' ? meta.width : Math.max(80, Math.min(140, expression.length * 8));
   const w = designW;
@@ -68,30 +61,19 @@ export function renderEquation(entity: VisualEntity, parentEl: SVGElement): SVGG
 
   const fontSize = getLabelFontSize('metric', 1) / scale;
 
-  const outerRect = document.createElementNS(SVG_NS, 'rect');
-  outerRect.setAttribute('x', String(-hw));
-  outerRect.setAttribute('y', String(-hh));
-  outerRect.setAttribute('width', String(w));
-  outerRect.setAttribute('height', String(h));
-  outerRect.setAttribute('rx', String(SHAPES.borderRadius));
-  outerRect.setAttribute('fill', `url(#${gradId})`);
-  outerRect.setAttribute('stroke', color);
-  outerRect.setAttribute('stroke-width', String(STROKE.default));
-  outerRect.setAttribute('filter', ensureGlowFilter(parentEl, color, 'pre-eq-glow'));
-  scaleGroup.appendChild(outerRect);
+  // Single clean rect
+  const rect = document.createElementNS(SVG_NS, 'rect');
+  rect.setAttribute('x', String(-hw));
+  rect.setAttribute('y', String(-hh));
+  rect.setAttribute('width', String(w));
+  rect.setAttribute('height', String(h));
+  rect.setAttribute('rx', String(SHAPES.borderRadius));
+  rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
+  rect.setAttribute('stroke', color);
+  rect.setAttribute('stroke-width', String(STROKE.default));
+  scaleGroup.appendChild(rect);
 
-  const innerRect = document.createElementNS(SVG_NS, 'rect');
-  innerRect.setAttribute('x', String(-hw + INNER_INSET));
-  innerRect.setAttribute('y', String(-hh + INNER_INSET));
-  innerRect.setAttribute('width', String(w - 2 * INNER_INSET));
-  innerRect.setAttribute('height', String(h - 2 * INNER_INSET));
-  innerRect.setAttribute('rx', String(Math.max(0, SHAPES.borderRadius - 2)));
-  innerRect.setAttribute('fill', 'none');
-  innerRect.setAttribute('stroke', `${color}50`);
-  innerRect.setAttribute('stroke-width', String(STROKE.thin));
-  innerRect.setAttribute('stroke-dasharray', '4,4');
-  scaleGroup.appendChild(innerRect);
-
+  // Equation text
   const text = document.createElementNS(SVG_NS, 'text');
   text.setAttribute('x', '0');
   text.setAttribute('y', '0');
@@ -106,6 +88,7 @@ export function renderEquation(entity: VisualEntity, parentEl: SVGElement): SVGG
 
   innerG.appendChild(scaleGroup);
 
+  // Optional label below
   if (meta.expression && entity.label) {
     const subText = document.createElementNS(SVG_NS, 'text');
     subText.setAttribute('x', '0');

@@ -12,7 +12,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -43,9 +42,6 @@ export function renderNeuralNetwork(entity: VisualEntity, parentEl: SVGElement):
   const strokeEmphasized = getStrokeWidth('default', scale);
   const labelFontSize = getLabelFontSize('inline', scale);
   const color = entity.color ?? getCategoryColor('NeuralNetwork');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-nn-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const layers = parseLayers(meta);
@@ -118,7 +114,7 @@ export function renderNeuralNetwork(entity: VisualEntity, parentEl: SVGElement):
       circle.setAttribute('cx', String(x));
       circle.setAttribute('cy', String(y));
       circle.setAttribute('r', String(neuronRadius));
-      circle.setAttribute('fill', `url(#${gradId})`);
+      circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       circle.setAttribute('stroke', isHighlighted ? color : colorWithAlpha(color, OPACITY.strokeSoft));
       circle.setAttribute('stroke-width', String(isHighlighted ? strokeEmphasized : strokeWidth));
       innerG.appendChild(circle);

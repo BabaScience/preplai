@@ -8,7 +8,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -17,9 +16,6 @@ export function renderProcess(entity: VisualEntity, parentEl: SVGElement): SVGGE
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Process');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-process-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const w = s * 0.85;
   const h = s * 0.7;
@@ -49,7 +45,7 @@ export function renderProcess(entity: VisualEntity, parentEl: SVGElement): SVGGE
   rect.setAttribute('width', String(w));
   rect.setAttribute('height', String(h));
   rect.setAttribute('rx', String(rx));
-  rect.setAttribute('fill', `url(#${gradId})`);
+  rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   rect.setAttribute('stroke', color);
   rect.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(rect);

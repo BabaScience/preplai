@@ -5,9 +5,10 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs, ensureGlassFilter } from '../visual-utils.js';
+import { ensureGlassFilter } from '../visual-utils.js';
 import {
   getCategoryColor, getStrokeWidth, getLabelFontSize,
+  colorWithAlpha, OPACITY,
   TYPOGRAPHY, SHAPES, COLORS, STROKE,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
@@ -18,9 +19,6 @@ export function renderWebSocket(entity: VisualEntity, parentEl: SVGElement): SVG
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('WebSocket');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-ws-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const status = (meta.status as string) ?? 'connected';
@@ -38,7 +36,7 @@ export function renderWebSocket(entity: VisualEntity, parentEl: SVGElement): SVG
   body.setAttribute('width', String(w));
   body.setAttribute('height', String(h));
   body.setAttribute('rx', String(SHAPES.borderRadius));
-  body.setAttribute('fill', `url(#${gradId})`);
+  body.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   body.setAttribute('stroke', color);
   body.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   body.setAttribute('filter', ensureGlassFilter(parentEl));

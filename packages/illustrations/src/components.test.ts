@@ -258,9 +258,10 @@ describe('renderCodeBlock', () => {
         t.textContent?.includes('return') ||
         t.textContent?.includes('nested'),
     );
-    expect(codeTexts.some((t) => t.textContent?.startsWith('  const'))).toBe(true);
-    expect(codeTexts.some((t) => t.textContent?.startsWith('  return'))).toBe(true);
-    expect(codeTexts.some((t) => t.textContent?.startsWith('    nested'))).toBe(true);
+    // Non-breaking spaces (\u00A0) are used to preserve indentation in SVG <text>
+    expect(codeTexts.some((t) => t.textContent?.startsWith('\u00A0\u00A0const'))).toBe(true);
+    expect(codeTexts.some((t) => t.textContent?.startsWith('\u00A0\u00A0return'))).toBe(true);
+    expect(codeTexts.some((t) => t.textContent?.startsWith('\u00A0\u00A0\u00A0\u00A0nested'))).toBe(true);
   });
 });
 
@@ -396,14 +397,14 @@ describe('renderGraph2D', () => {
   let parentEl: SVGSVGElement;
   beforeEach(() => { parentEl = makeSvg(); });
 
-  it('should render a background rect', () => {
+  it('should render grid and axes lines', () => {
     const entity = makeEntity({
       type: 'Graph2D',
       metadata: { expression: 'Math.sin(x)', domain: [-5, 5], range: [-2, 2] },
     });
     renderGraph2D(entity, parentEl);
-    const rects = parentEl.querySelectorAll('.animate-element rect');
-    expect(rects.length).toBeGreaterThanOrEqual(1);
+    const lines = parentEl.querySelectorAll('.animate-element line');
+    expect(lines.length).toBeGreaterThanOrEqual(2);
   });
 
   it('should render axes lines', () => {
@@ -466,14 +467,14 @@ describe('renderCoordinateSystem', () => {
     expect(result.getAttribute('data-type')).toBe('CoordinateSystem');
   });
 
-  it('should render a background rect', () => {
+  it('should render grid and axes lines', () => {
     const entity = makeEntity({
       type: 'CoordinateSystem',
       metadata: { xRange: [-5, 5], yRange: [-5, 5] },
     });
     renderCoordinateSystem(entity, parentEl);
-    const rects = parentEl.querySelectorAll('.animate-element rect');
-    expect(rects.length).toBeGreaterThanOrEqual(1);
+    const lines = parentEl.querySelectorAll('.animate-element line');
+    expect(lines.length).toBeGreaterThanOrEqual(2);
   });
 
   it('should render axes lines', () => {

@@ -1,36 +1,29 @@
 /**
- * @preplai/illustrations — CallStack Component
- * Vertical stack of stack frames (function name + optional locals)
+ * @preplai/illustrations — CallStack Component (minimalist)
+ *
+ * Vertical stack of stack frames (function name + optional locals).
+ * No gradient fills, no clip paths, no stackLayout import — manual vertical layout.
  *
  * Metadata: { frames: [{ name, locals? }] }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   TYPOGRAPHY,
   SHAPES,
   LABEL_DEFAULTS,
+  STROKE,
   getStrokeWidth,
   getLabelFontSize,
   colorWithAlpha,
   OPACITY,
 } from '../design-tokens.js';
-import { stackLayout } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
 
 interface StackFrame {
   name: string;
   locals?: string;
-}
-
-/** Truncate text to fit within pixel width; ~0.6em per char for typical font */
-function truncateToFit(text: string, maxWidth: number, fontSize: number): string {
-  const approxCharWidth = fontSize * 0.6;
-  const maxChars = Math.max(5, Math.floor((maxWidth - 16) / approxCharWidth));
-  if (text.length <= maxChars) return text;
-  return text.slice(0, maxChars - 3) + '...';
 }
 
 export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -41,9 +34,6 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
   const labelFontSize = getLabelFontSize('value', scale);
   const sublabelFontSize = getLabelFontSize('index', scale);
   const color = entity.color ?? getCategoryColor('CallStack');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-cs-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const framesData = meta.frames as StackFrame[] | undefined;
@@ -53,62 +43,64 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
     { name: 'handleQuery()', locals: 'sql' },
   ];
 
-  const items = frames.map(f => ({
-    label: f.name,
-    sublabel: f.locals,
-  }));
   const blockWidth = s * 2.8;
   const blockHeight = 28;
   const gap = 6;
-  const blocks = stackLayout(items, { blockWidth, blockHeight, gap });
+  const totalH = frames.length * blockHeight + (frames.length - 1) * gap;
+  const startY = -totalH / 2;
 
-  blocks.forEach(({ x, y, width, height, label, sublabel }, i) => {
-    const clipId = `clip-callstack-${entity.id}-${i}`;
-    let clipEl = defs.querySelector(`#${clipId}`) as SVGClipPathElement | null;
-    if (!clipEl) {
-      clipEl = document.createElementNS(SVG_NS, 'clipPath');
-      clipEl.setAttribute('id', clipId);
-      defs.appendChild(clipEl);
-    }
-    clipEl.innerHTML = '';
-    const clipRect = document.createElementNS(SVG_NS, 'rect');
-    clipRect.setAttribute('x', String(x - width / 2));
-    clipRect.setAttribute('y', String(y - height / 2));
-    clipRect.setAttribute('width', String(width));
-    clipRect.setAttribute('height', String(height));
-    clipRect.setAttribute('rx', String(SHAPES.borderRadius));
-    clipEl.appendChild(clipRect);
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-blockWidth / 2 - 4));
+    glow.setAttribute('y', String(startY - 4));
+    glow.setAttribute('width', String(blockWidth + 8));
+    glow.setAttribute('height', String(totalH + 8));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
 
-    const blockG = document.createElementNS(SVG_NS, 'g');
-    blockG.setAttribute('clip-path', `url(#${clipId})`);
+  frames.forEach((frame, i) => {
+    const x = 0;
+    const y = startY + i * (blockHeight + gap) + blockHeight / 2;
 
     const rect = document.createElementNS(SVG_NS, 'rect');
-    rect.setAttribute('x', String(x - width / 2));
-    rect.setAttribute('y', String(y - height / 2));
-    rect.setAttribute('width', String(width));
-    rect.setAttribute('height', String(height));
+    rect.setAttribute('x', String(x - blockWidth / 2));
+    rect.setAttribute('y', String(y - blockHeight / 2));
+    rect.setAttribute('width', String(blockWidth));
+    rect.setAttribute('height', String(blockHeight));
     rect.setAttribute('rx', String(SHAPES.borderRadius));
-    rect.setAttribute('fill', `url(#${gradId})`);
+    rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     rect.setAttribute('stroke', color);
     rect.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
-    blockG.appendChild(rect);
+    innerG.appendChild(rect);
 
-    const usableWidth = width - 16;
-    const displayLabel = truncateToFit(label, usableWidth, labelFontSize);
-    const displaySublabel = sublabel ? truncateToFit(sublabel, usableWidth, sublabelFontSize) : undefined;
+    // Truncate label
+    const approxCharWidth = labelFontSize * 0.6;
+    const maxChars = Math.max(5, Math.floor((blockWidth - 16) / approxCharWidth));
+    const displayLabel = frame.name.length > maxChars ? frame.name.slice(0, maxChars - 3) + '...' : frame.name;
 
+    const hasSub = !!frame.locals;
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', String(x));
-    text.setAttribute('y', String(displaySublabel ? y - 2 : y + 4));
+    text.setAttribute('y', String(hasSub ? y - 2 : y + 4));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(labelFontSize));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
     text.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     text.textContent = displayLabel;
-    blockG.appendChild(text);
+    innerG.appendChild(text);
 
-    if (displaySublabel) {
+    if (frame.locals) {
+      const subApproxCharWidth = sublabelFontSize * 0.6;
+      const subMaxChars = Math.max(5, Math.floor((blockWidth - 16) / subApproxCharWidth));
+      const displaySub = frame.locals.length > subMaxChars ? frame.locals.slice(0, subMaxChars - 3) + '...' : frame.locals;
+
       const sub = document.createElementNS(SVG_NS, 'text');
       sub.setAttribute('x', String(x));
       sub.setAttribute('y', String(y + 5));
@@ -117,21 +109,18 @@ export function renderCallStack(entity: VisualEntity, parentEl: SVGElement): SVG
       sub.setAttribute('font-size', String(sublabelFontSize));
       sub.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
       sub.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-      sub.textContent = displaySublabel;
-      blockG.appendChild(sub);
+      sub.textContent = displaySub;
+      innerG.appendChild(sub);
     }
-
-    innerG.appendChild(blockG);
   });
 
   if (entity.label) {
-    const totalH = blocks.length * blockHeight + (blocks.length - 1) * gap;
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
     text.setAttribute('y', String(totalH / 2 + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
+    text.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;

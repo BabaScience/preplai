@@ -8,7 +8,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -17,9 +16,6 @@ export function renderDecorator(entity: VisualEntity, parentEl: SVGElement): SVG
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Decorator');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-decorator-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const outerW = s * 1.1;
   const outerH = s * 0.85;
@@ -61,7 +57,7 @@ export function renderDecorator(entity: VisualEntity, parentEl: SVGElement): SVG
   innerRect.setAttribute('width', String(innerW));
   innerRect.setAttribute('height', String(innerH));
   innerRect.setAttribute('rx', String(SHAPES.borderRadius - 2));
-  innerRect.setAttribute('fill', `url(#${gradId})`);
+  innerRect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   innerRect.setAttribute('stroke', color);
   innerRect.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(innerRect);

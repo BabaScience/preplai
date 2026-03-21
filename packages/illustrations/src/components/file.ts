@@ -5,10 +5,9 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor, getStrokeWidth, getLabelFontSize,
-  TYPOGRAPHY, STROKE,
+  TYPOGRAPHY, STROKE, colorWithAlpha, OPACITY,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -18,9 +17,6 @@ export function renderFile(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('File');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-file-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const label = entity.label ?? 'readme.md';
   const meta = entity.metadata ?? {};
@@ -34,7 +30,7 @@ export function renderFile(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   // File shape with folded corner (top-right)
   const filePath = document.createElementNS(SVG_NS, 'path');
   filePath.setAttribute('d', `M ${-hw} ${-hh} L ${hw - fold} ${-hh} L ${hw} ${-hh + fold} L ${hw} ${hh} L ${-hw} ${hh} Z`);
-  filePath.setAttribute('fill', `url(#${gradId})`);
+  filePath.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   filePath.setAttribute('stroke', color);
   filePath.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   innerG.appendChild(filePath);

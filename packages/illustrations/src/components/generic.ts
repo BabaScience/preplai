@@ -9,11 +9,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import {
-  createLinearGradient,
-  createRadialGradient,
-  ensureDefs,
-} from '../visual-utils.js';
 import { colorWithAlpha, OPACITY, TYPOGRAPHY, SHAPES, STROKE, getCategoryColor } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -24,10 +19,6 @@ function getVisualStyle(entity: VisualEntity): VisualStyle {
   const style = meta.visualStyle as string | undefined;
   if (style === 'minimal' || style === 'emphasized') return style;
   return 'default';
-}
-
-function safeGradientId(color: string, suffix: string): string {
-  return `grad-${suffix}-${color.replace(/[^a-fA-F0-9]/g, '')}`;
 }
 
 export function createGenericRenderer(
@@ -45,17 +36,12 @@ export function createGenericRenderer(
       visualStyle === 'emphasized' ? STROKE.emphasized : STROKE.default;
     const _fillAlpha = visualStyle === 'emphasized' ? OPACITY.fillMedium : OPACITY.fillLight;
 
-    const defs = ensureDefs(parentEl);
-
     if (shape === 'circle') {
-      const gradId = safeGradientId(color, 'rad');
-      createRadialGradient(gradId, color, defs);
-
       const circle = document.createElementNS(SVG_NS, 'circle');
       circle.setAttribute('cx', '0');
       circle.setAttribute('cy', '0');
       circle.setAttribute('r', String(s / 2));
-      circle.setAttribute('fill', `url(#${gradId})`);
+      circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       circle.setAttribute('stroke', color);
       circle.setAttribute('stroke-width', String(strokeWidth));
       innerG.appendChild(circle);
@@ -72,20 +58,14 @@ export function createGenericRenderer(
         innerG.insertBefore(glow, circle);
       }
     } else if (shape === 'diamond') {
-      const gradId = safeGradientId(color, 'lin');
-      createLinearGradient(gradId, color, 'vertical', defs);
-
       const d = s / 2;
       const polygon = document.createElementNS(SVG_NS, 'polygon');
       polygon.setAttribute('points', `0,${-d} ${d},0 0,${d} ${-d},0`);
-      polygon.setAttribute('fill', `url(#${gradId})`);
+      polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(strokeWidth));
       innerG.appendChild(polygon);
     } else if (shape === 'hexagon') {
-      const gradId = safeGradientId(color, 'lin');
-      createLinearGradient(gradId, color, 'vertical', defs);
-
       const hexPoints = [0, 1, 2, 3, 4, 5]
         .map(i => {
           const angle = (Math.PI / 3) * i - Math.PI / 6;
@@ -94,15 +74,12 @@ export function createGenericRenderer(
         .join(' ');
       const polygon = document.createElementNS(SVG_NS, 'polygon');
       polygon.setAttribute('points', hexPoints);
-      polygon.setAttribute('fill', `url(#${gradId})`);
+      polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(strokeWidth));
       innerG.appendChild(polygon);
     } else {
       // Default: rounded rect
-      const gradId = safeGradientId(color, 'lin');
-      createLinearGradient(gradId, color, 'vertical', defs);
-
       const w = s * 1.4;
       const h = s;
       const rect = document.createElementNS(SVG_NS, 'rect');
@@ -111,7 +88,7 @@ export function createGenericRenderer(
       rect.setAttribute('width', String(w));
       rect.setAttribute('height', String(h));
       rect.setAttribute('rx', String(SHAPES.borderRadius));
-      rect.setAttribute('fill', `url(#${gradId})`);
+      rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       rect.setAttribute('stroke', color);
       rect.setAttribute('stroke-width', String(strokeWidth));
       innerG.appendChild(rect);

@@ -12,8 +12,7 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createRadialGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, LABEL_DEFAULTS, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, LABEL_DEFAULTS, getLabelFontSize, getStrokeWidth, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import { treeLayout, treeFromFlatNodes, type BinaryTreeNode, type FlatNodeSpec } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -47,9 +46,6 @@ export function renderBinaryTree(entity: VisualEntity, parentEl: SVGElement): SV
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('BinaryTree');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-bt-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createRadialGradient(gradId, color, defs);
 
   const meta = entity.metadata ?? {};
   const tree = parseTree(meta);
@@ -79,7 +75,7 @@ export function renderBinaryTree(entity: VisualEntity, parentEl: SVGElement): SV
     circle.setAttribute('cx', String(x));
     circle.setAttribute('cy', String(y));
     circle.setAttribute('r', String(nodeR));
-    circle.setAttribute('fill', `url(#${gradId})`);
+    circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     circle.setAttribute('stroke', color);
     circle.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
     innerG.appendChild(circle);

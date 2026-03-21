@@ -5,9 +5,9 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor, getStrokeWidth, getLabelFontSize,
+  colorWithAlpha, OPACITY,
   TYPOGRAPHY, SHAPES, STROKE,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
@@ -18,9 +18,6 @@ export function renderSchema(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Schema');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-schema-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const tableName = (meta.tableName as string) ?? entity.label ?? 'users';
@@ -40,7 +37,7 @@ export function renderSchema(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   card.setAttribute('width', String(w));
   card.setAttribute('height', String(h));
   card.setAttribute('rx', String(SHAPES.borderRadius));
-  card.setAttribute('fill', `url(#${gradId})`);
+  card.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   card.setAttribute('stroke', color);
   card.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   innerG.appendChild(card);

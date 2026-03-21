@@ -1,16 +1,11 @@
 /**
- * @preplai/illustrations — PieChart Component
+ * @preplai/illustrations — PieChart Component (minimalist)
  *
- * Pie or donut chart with SVG arc segments and external labels.
- *
- * Metadata:
- *   slices: Array<{label: string, value: number, color?: string}>
- *   donut?: boolean — inner hole (donut style)
- *   showPercentages?: boolean — show % on labels
+ * Clean pie/donut chart with solid colored slices and external labels.
+ * Metadata: { slices: [{ label, value, color? }], donut?: boolean, showPercentages?: boolean }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -22,15 +17,11 @@ import {
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
-interface SliceSpec {
-  label: string;
-  value: number;
-  color?: string;
-}
+interface SliceSpec { label: string; value: number; color?: string; }
 
 const SLICE_COLORS = ['#00e5ff', '#7c4dff', '#00e676', '#ffab00', '#ff5252', '#e040fb', '#18ffff', '#76ff03'];
 
-function parseSlices(meta: Record<string, unknown>, _defaultColor: string): SliceSpec[] {
+function parseSlices(meta: Record<string, unknown>): SliceSpec[] {
   const raw = (meta.slices ?? meta.segments) as SliceSpec[] | undefined;
   if (!Array.isArray(raw) || raw.length === 0) {
     return [
@@ -48,7 +39,6 @@ function parseSlices(meta: Record<string, unknown>, _defaultColor: string): Slic
   }));
 }
 
-/** Polar to Cartesian, 0° at top, clockwise */
 function polar(cx: number, cy: number, r: number, deg: number): { x: number; y: number } {
   const rad = ((deg - 90) * Math.PI) / 180;
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
@@ -62,10 +52,9 @@ export function renderPieChart(entity: VisualEntity, parentEl: SVGElement): SVGG
   const labelFontSize = getLabelFontSize('inline', scale);
   const strokeWidth = getStrokeWidth('thin', scale);
   const defaultColor = entity.color ?? getCategoryColor('PieChart');
-  const defs = ensureDefs(parentEl);
 
   const meta = entity.metadata ?? {};
-  const slices = parseSlices(meta, defaultColor);
+  const slices = parseSlices(meta);
   const donut = meta.donut === true;
   const showPercentages = meta.showPercentages !== false;
 
@@ -77,20 +66,12 @@ export function renderPieChart(entity: VisualEntity, parentEl: SVGElement): SVGG
   const labelR = outerR + 14 * scale;
 
   let startDeg = 0;
-  slices.forEach((slice, i) => {
+  slices.forEach((slice) => {
     const angle = (slice.value / total) * 360;
     const endDeg = startDeg + angle;
-    if (angle <= 0) {
-      startDeg = endDeg;
-      return;
-    }
+    if (angle <= 0) { startDeg = endDeg; return; }
 
     const color = slice.color ?? defaultColor;
-    const gradId = `grad-pie-${entity.id.replace(/[^a-z0-9]/gi, '')}-${i}`;
-    if (!defs.querySelector(`#${gradId}`)) {
-      createLinearGradient(gradId, color, 'vertical', defs);
-    }
-
     const p1 = polar(cx, cy, outerR, startDeg);
     const p2 = polar(cx, cy, outerR, endDeg);
     const largeArc = angle >= 180 ? 1 : 0;
@@ -99,29 +80,19 @@ export function renderPieChart(entity: VisualEntity, parentEl: SVGElement): SVGG
     if (donut && innerR > 0) {
       const p3 = polar(cx, cy, innerR, endDeg);
       const p4 = polar(cx, cy, innerR, startDeg);
-      d = [
-        `M ${p1.x} ${p1.y}`,
-        `A ${outerR} ${outerR} 0 ${largeArc} 1 ${p2.x} ${p2.y}`,
-        `L ${p3.x} ${p3.y}`,
-        `A ${innerR} ${innerR} 0 ${largeArc} 0 ${p4.x} ${p4.y}`,
-        'Z',
-      ].join(' ');
+      d = `M ${p1.x} ${p1.y} A ${outerR} ${outerR} 0 ${largeArc} 1 ${p2.x} ${p2.y} L ${p3.x} ${p3.y} A ${innerR} ${innerR} 0 ${largeArc} 0 ${p4.x} ${p4.y} Z`;
     } else {
-      d = [
-        `M ${cx} ${cy}`,
-        `L ${p1.x} ${p1.y}`,
-        `A ${outerR} ${outerR} 0 ${largeArc} 1 ${p2.x} ${p2.y}`,
-        'Z',
-      ].join(' ');
+      d = `M ${cx} ${cy} L ${p1.x} ${p1.y} A ${outerR} ${outerR} 0 ${largeArc} 1 ${p2.x} ${p2.y} Z`;
     }
 
     const path = document.createElementNS(SVG_NS, 'path');
     path.setAttribute('d', d);
-    path.setAttribute('fill', `url(#${gradId})`);
+    path.setAttribute('fill', colorWithAlpha(color, OPACITY.fillMedium));
     path.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeSoft));
     path.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(path);
 
+    // External label
     const midDeg = startDeg + angle / 2;
     const labelPos = polar(cx, cy, labelR, midDeg);
     const pct = showPercentages ? ` ${Math.round((slice.value / total) * 100)}%` : '';
@@ -139,6 +110,7 @@ export function renderPieChart(entity: VisualEntity, parentEl: SVGElement): SVGG
     startDeg = endDeg;
   });
 
+  // Title
   if (entity.label) {
     const labelEl = document.createElementNS(SVG_NS, 'text');
     labelEl.setAttribute('x', '0');

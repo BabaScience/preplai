@@ -12,7 +12,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -57,9 +56,6 @@ export function renderPacket(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   const labelFontSize = getLabelFontSize('inline', scale);
   const strokeWidth = getStrokeWidth('thin', scale);
   const color = entity.color ?? getCategoryColor('Packet');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-pkt-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const headers = parseHeaders(meta);
@@ -102,7 +98,7 @@ export function renderPacket(entity: VisualEntity, parentEl: SVGElement): SVGGEl
     rect.setAttribute('width', String(sectionW));
     rect.setAttribute('height', String(barH));
     rect.setAttribute('rx', '3');
-    rect.setAttribute('fill', `url(#${gradId})`);
+    rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     rect.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     rect.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(rect);
@@ -138,7 +134,7 @@ export function renderPacket(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   payloadRect.setAttribute('width', String(startX + totalW - offsetX));
   payloadRect.setAttribute('height', String(barH));
   payloadRect.setAttribute('rx', '3');
-  payloadRect.setAttribute('fill', `url(#${gradId})`);
+  payloadRect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   payloadRect.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
   payloadRect.setAttribute('stroke-width', String(strokeWidth));
   innerG.appendChild(payloadRect);

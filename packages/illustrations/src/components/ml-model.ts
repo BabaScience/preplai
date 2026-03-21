@@ -5,7 +5,7 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs, ensureGlassFilter } from '../visual-utils.js';
+import { ensureGlassFilter } from '../visual-utils.js';
 import { getCategoryColor, colorWithAlpha, TYPOGRAPHY, STROKE, OPACITY, COLORS, SHAPES } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -26,10 +26,6 @@ export function renderMLModel(entity: VisualEntity, parentEl: SVGElement): SVGGE
     accuracy?: string;
     status?: string;
   };
-
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-mlmodel-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const w = size * 2.0;   // ~100px at size=50
   const h = size * 1.4;   // ~70px at size=50

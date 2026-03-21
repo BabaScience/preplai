@@ -1,23 +1,26 @@
 /**
- * @preplai/illustrations — BarChart Component
- * Vertical or horizontal bar chart with axes and value labels
+ * @preplai/illustrations — BarChart Component (minimalist)
  *
+ * Clean vertical or horizontal bar chart with thin axes and value labels.
  * Metadata: { bars: [{ label, value, color? }], xLabel?, yLabel?, horizontal?: boolean }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';
-import { colorWithAlpha } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  TYPOGRAPHY,
+  SHAPES,
+  getLabelFontSize,
+  getStrokeWidth,
+  colorWithAlpha,
+  OPACITY,
+  LABEL_DEFAULTS,
+} from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
-interface BarSpec {
-  label: string;
-  value: number;
-  color?: string;
-}
+interface BarSpec { label: string; value: number; color?: string; }
 
-function parseBars(meta: Record<string, unknown>, defaultColor: string): BarSpec[] {
+function parseBars(meta: Record<string, unknown>): BarSpec[] {
   const raw = meta.bars as Array<{ label?: string; value?: number; color?: string }> | undefined;
   if (!Array.isArray(raw) || raw.length === 0) {
     return [
@@ -31,7 +34,7 @@ function parseBars(meta: Record<string, unknown>, defaultColor: string): BarSpec
   return raw.slice(0, 12).map((b) => ({
     label: String(b?.label ?? '?'),
     value: Number(b?.value) || 0,
-    color: b?.color ?? defaultColor,
+    color: b?.color,
   }));
 }
 
@@ -41,17 +44,12 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
   const s = getSizeParam(entity);
   const scale = s / 50;
   const labelFontSize = getLabelFontSize('inline', scale);
-  const axisFontSize = getLabelFontSize('label', scale);
   const defaultColor = entity.color ?? getCategoryColor('BarChart');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-barchart-${defaultColor.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, defaultColor, 'vertical', defs);
+  const strokeWidth = getStrokeWidth('thin', scale);
 
   const meta = entity.metadata ?? {};
-  const bars = parseBars(meta, defaultColor);
+  const bars = parseBars(meta);
   const horizontal = meta.horizontal === true;
-  const xLabel = (meta.xLabel as string) ?? 'x';
-  const yLabel = (meta.yLabel as string) ?? 'y';
 
   const padLeft = 36;
   const padRight = 16;
@@ -65,9 +63,8 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
   const barGap = 6;
 
   if (horizontal) {
-    // Horizontal bars: labels on left, bars extend right
     const labelW = 40;
-    const barAreaW = chartW - labelW - 24; // 24 for value labels
+    const barAreaW = chartW - labelW - 24;
     const barH = Math.max(12, (chartH - (n - 1) * barGap) / n);
 
     bars.forEach((bar, i) => {
@@ -76,43 +73,39 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
       const width = (bar.value / maxVal) * barAreaW;
       const x = -chartW / 2 + padLeft + labelW;
 
-      // Bar
       const rect = document.createElementNS(SVG_NS, 'rect');
       rect.setAttribute('x', String(x));
       rect.setAttribute('y', String(y - barH / 2));
       rect.setAttribute('width', String(Math.max(width, 2)));
       rect.setAttribute('height', String(barH));
-      rect.setAttribute('rx', String(SHAPES.borderRadius - 2));
-      rect.setAttribute('fill', bar.color ? bar.color : `url(#${gradId})`);
+      rect.setAttribute('rx', String(SHAPES.borderRadius));
+      rect.setAttribute('fill', colorWithAlpha(barColor, OPACITY.fillMedium));
       rect.setAttribute('stroke', barColor);
-      rect.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
+      rect.setAttribute('stroke-width', String(strokeWidth));
       innerG.appendChild(rect);
 
-      // Label (left)
       const labelText = document.createElementNS(SVG_NS, 'text');
       labelText.setAttribute('x', String(x - 4));
       labelText.setAttribute('y', String(y + 4));
       labelText.setAttribute('text-anchor', 'end');
-      labelText.setAttribute('fill', colorWithAlpha(barColor, 'cc'));
+      labelText.setAttribute('fill', colorWithAlpha(barColor, OPACITY.strokeSoft));
       labelText.setAttribute('font-size', String(labelFontSize));
       labelText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       labelText.textContent = bar.label;
       innerG.appendChild(labelText);
 
-      // Value (right of bar)
       const valText = document.createElementNS(SVG_NS, 'text');
       valText.setAttribute('x', String(x + Math.max(width, 2) + 6));
       valText.setAttribute('y', String(y + 4));
-      valText.setAttribute('fill', colorWithAlpha(barColor, 'cc'));
+      valText.setAttribute('fill', colorWithAlpha(barColor, OPACITY.strokeSoft));
       valText.setAttribute('font-size', String(labelFontSize));
       valText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       valText.textContent = String(bar.value);
       innerG.appendChild(valText);
     });
   } else {
-    // Vertical bars: labels below, bars grow upward
     const barW = Math.max(8, (chartW - (n - 1) * barGap) / n);
-    const barAreaH = chartH - 16; // space for labels
+    const barAreaH = chartH - 16;
 
     bars.forEach((bar, i) => {
       const x = -chartW / 2 + padLeft + i * (barW + barGap) + barW / 2;
@@ -120,35 +113,32 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
       const height = (bar.value / maxVal) * barAreaH;
       const yBase = chartH / 2 - padBottom;
 
-      // Bar (grows upward)
       const rect = document.createElementNS(SVG_NS, 'rect');
       rect.setAttribute('x', String(x - barW / 2));
       rect.setAttribute('y', String(yBase - height));
       rect.setAttribute('width', String(barW));
       rect.setAttribute('height', String(Math.max(height, 2)));
-      rect.setAttribute('rx', String(SHAPES.borderRadius - 2));
-      rect.setAttribute('fill', bar.color ? bar.color : `url(#${gradId})`);
+      rect.setAttribute('rx', String(SHAPES.borderRadius));
+      rect.setAttribute('fill', colorWithAlpha(barColor, OPACITY.fillMedium));
       rect.setAttribute('stroke', barColor);
-      rect.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
+      rect.setAttribute('stroke-width', String(strokeWidth));
       innerG.appendChild(rect);
 
-      // Label (below bar)
       const labelText = document.createElementNS(SVG_NS, 'text');
       labelText.setAttribute('x', String(x));
       labelText.setAttribute('y', String(yBase + 14));
       labelText.setAttribute('text-anchor', 'middle');
-      labelText.setAttribute('fill', colorWithAlpha(barColor, 'cc'));
+      labelText.setAttribute('fill', colorWithAlpha(barColor, OPACITY.strokeSoft));
       labelText.setAttribute('font-size', String(labelFontSize));
       labelText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       labelText.textContent = bar.label;
       innerG.appendChild(labelText);
 
-      // Value (on top of bar)
       const valText = document.createElementNS(SVG_NS, 'text');
       valText.setAttribute('x', String(x));
       valText.setAttribute('y', String(yBase - height - 4));
       valText.setAttribute('text-anchor', 'middle');
-      valText.setAttribute('fill', colorWithAlpha(barColor, 'cc'));
+      valText.setAttribute('fill', colorWithAlpha(barColor, OPACITY.strokeSoft));
       valText.setAttribute('font-size', String(labelFontSize));
       valText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       valText.textContent = String(bar.value);
@@ -156,8 +146,8 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
     });
   }
 
-  // Axis lines
-  const axisColor = colorWithAlpha(defaultColor, '40');
+  // Axis line
+  const axisColor = colorWithAlpha(defaultColor, OPACITY.strokeMuted);
   const axisStroke = getStrokeWidth('minimal', scale);
   if (horizontal) {
     const lineY = -chartH / 2 + padTop - 4;
@@ -181,37 +171,12 @@ export function renderBarChart(entity: VisualEntity, parentEl: SVGElement): SVGG
     innerG.appendChild(line);
   }
 
-  // Axis labels
-  const axisLabelColor = colorWithAlpha(defaultColor, '80');
-  if (xLabel) {
-    const xl = document.createElementNS(SVG_NS, 'text');
-    xl.setAttribute('x', '0');
-    xl.setAttribute('y', String(chartH / 2 - 4));
-    xl.setAttribute('text-anchor', 'middle');
-    xl.setAttribute('fill', axisLabelColor);
-    xl.setAttribute('font-size', String(axisFontSize));
-    xl.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    xl.textContent = xLabel;
-    innerG.appendChild(xl);
-  }
-  if (yLabel) {
-    const yl = document.createElementNS(SVG_NS, 'text');
-    yl.setAttribute('x', String(-chartW / 2 + padLeft - 12));
-    yl.setAttribute('y', String(-chartH / 2 + padTop - 4));
-    yl.setAttribute('text-anchor', 'end');
-    yl.setAttribute('fill', axisLabelColor);
-    yl.setAttribute('font-size', String(axisFontSize));
-    yl.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    yl.textContent = yLabel;
-    innerG.appendChild(yl);
-  }
-
   // Title
   if (entity.label) {
     const title = document.createElementNS(SVG_NS, 'text');
     title.setAttribute('x', '0');
     title.setAttribute('y', String(-chartH / 2 - 8));
-    title.setAttribute('text-anchor', 'middle');
+    title.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     title.setAttribute('fill', defaultColor);
     title.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     title.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));

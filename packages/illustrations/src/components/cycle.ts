@@ -1,18 +1,20 @@
 /**
- * @preplai/illustrations — Cycle Component
+ * @preplai/illustrations — Cycle Component (minimalist)
  *
- * Rotating dashed circle with label centered inside. Animated (4s per revolution).
- * Use for: lifecycle diagrams, process loops, retry logic, iterative processes.
- *
- * @see METADATA_SCHEMAS.md#cycle
- * @see ILLUSTRATIONS_AGENT_GUIDE.md
- *
- * No metadata required. Use entity.label (e.g. "loop", "retry", "lifecycle").
+ * Clean rotating dashed circle with label centered inside.
+ * Use for: lifecycle diagrams, process loops, retry logic.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createRadialGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  getLabelFontSize,
+  TYPOGRAPHY,
+  STROKE,
+  colorWithAlpha,
+  OPACITY,
+  LABEL_DEFAULTS,
+} from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderCycle(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -21,11 +23,21 @@ export function renderCycle(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   const s = getSizeParam(entity);
   const r = s / 2;
   const color = entity.color ?? getCategoryColor('Cycle');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-cycle-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createRadialGradient(gradId, color, defs);
 
-  // Rotating dashed circle — wrap in group for SMIL animateTransform
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'circle');
+    glow.setAttribute('cx', '0');
+    glow.setAttribute('cy', '0');
+    glow.setAttribute('r', String(r + 4));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
+  // Rotating dashed circle
   const circleG = document.createElementNS(SVG_NS, 'g');
   circleG.setAttribute('transform-origin', '0 0');
 
@@ -33,9 +45,9 @@ export function renderCycle(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   circle.setAttribute('cx', '0');
   circle.setAttribute('cy', '0');
   circle.setAttribute('r', String(r));
-  circle.setAttribute('fill', `url(#${gradId})`);
+  circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   circle.setAttribute('stroke', color);
-  circle.setAttribute('stroke-width', String(SHAPES.strokeWidth));
+  circle.setAttribute('stroke-width', String(STROKE.default));
   circle.setAttribute('stroke-dasharray', '6,6');
   circleG.appendChild(circle);
 
@@ -50,13 +62,13 @@ export function renderCycle(entity: VisualEntity, parentEl: SVGElement): SVGGEle
 
   innerG.appendChild(circleG);
 
-  // Label centered in the circle
+  // Label centered
   if (entity.label) {
-    const fontSize = Math.min(TYPOGRAPHY.fontSizeLabel, Math.max(10, s / 4));
+    const fontSize = getLabelFontSize('label');
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
     text.setAttribute('y', '0');
-    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('dominant-baseline', 'central');
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(fontSize));

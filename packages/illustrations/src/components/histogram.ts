@@ -1,12 +1,11 @@
 /**
- * @preplai/illustrations — Histogram Component
- * Vertical bars for bins (distribution)
+ * @preplai/illustrations — Histogram Component (minimalist)
  *
- * Metadata: { bins: [{ label, count }] } — same structure as BarChart bars
+ * Clean vertical bars for distribution bins. No gradients.
+ * Metadata: { bins: [{ label, count }] }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   TYPOGRAPHY,
@@ -14,15 +13,14 @@ import {
   getLabelFontSize,
   getStrokeWidth,
   colorWithAlpha,
+  OPACITY,
+  LABEL_DEFAULTS,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
-interface BinSpec {
-  label: string;
-  count: number;
-}
+interface BinSpec { label: string; count: number; }
 
-function parseBins(meta: Record<string, unknown>, _defaultColor: string): BinSpec[] {
+function parseBins(meta: Record<string, unknown>): BinSpec[] {
   const raw = meta.bins as Array<{ label?: string; count?: number; value?: number }> | undefined;
   if (!Array.isArray(raw) || raw.length === 0) {
     return [
@@ -46,12 +44,10 @@ export function renderHistogram(entity: VisualEntity, parentEl: SVGElement): SVG
   const scale = s / 50;
   const labelFontSize = getLabelFontSize('inline', scale);
   const defaultColor = entity.color ?? getCategoryColor('Histogram');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-hist-${defaultColor.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, defaultColor, 'vertical', defs);
+  const strokeWidth = getStrokeWidth('thin', scale);
 
   const meta = entity.metadata ?? {};
-  const bins = parseBins(meta, defaultColor);
+  const bins = parseBins(meta);
 
   const padLeft = 32;
   const padRight = 12;
@@ -76,34 +72,35 @@ export function renderHistogram(entity: VisualEntity, parentEl: SVGElement): SVG
     rect.setAttribute('y', String(yBase - height));
     rect.setAttribute('width', String(barW));
     rect.setAttribute('height', String(Math.max(height, 2)));
-    rect.setAttribute('rx', String(Math.max(0, SHAPES.borderRadius - 3)));
-    rect.setAttribute('fill', `url(#${gradId})`);
+    rect.setAttribute('rx', String(SHAPES.borderRadius));
+    rect.setAttribute('fill', colorWithAlpha(defaultColor, OPACITY.fillMedium));
     rect.setAttribute('stroke', defaultColor);
-    rect.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
+    rect.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(rect);
 
     const labelText = document.createElementNS(SVG_NS, 'text');
     labelText.setAttribute('x', String(x));
     labelText.setAttribute('y', String(yBase + 12));
     labelText.setAttribute('text-anchor', 'middle');
-    labelText.setAttribute('fill', colorWithAlpha(defaultColor, 'cc'));
+    labelText.setAttribute('fill', colorWithAlpha(defaultColor, OPACITY.strokeSoft));
     labelText.setAttribute('font-size', String(labelFontSize));
     labelText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-    labelText.textContent = bin.label.length > 8 ? bin.label.slice(0, 6) + '…' : bin.label;
+    labelText.textContent = bin.label.length > 8 ? bin.label.slice(0, 6) + '\u2026' : bin.label;
     innerG.appendChild(labelText);
 
     const valText = document.createElementNS(SVG_NS, 'text');
     valText.setAttribute('x', String(x));
     valText.setAttribute('y', String(yBase - height - 3));
     valText.setAttribute('text-anchor', 'middle');
-    valText.setAttribute('fill', colorWithAlpha(defaultColor, 'cc'));
+    valText.setAttribute('fill', colorWithAlpha(defaultColor, OPACITY.strokeSoft));
     valText.setAttribute('font-size', String(labelFontSize * 0.9));
     valText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
     valText.textContent = String(bin.count);
     innerG.appendChild(valText);
   });
 
-  const axisColor = colorWithAlpha(defaultColor, '40');
+  // Axis line
+  const axisColor = colorWithAlpha(defaultColor, OPACITY.strokeMuted);
   const axisStroke = getStrokeWidth('minimal', scale);
   const lineX = -chartW / 2 + padLeft - 6;
   const line = document.createElementNS(SVG_NS, 'line');
@@ -115,11 +112,12 @@ export function renderHistogram(entity: VisualEntity, parentEl: SVGElement): SVG
   line.setAttribute('stroke-width', String(axisStroke));
   innerG.appendChild(line);
 
+  // Title
   if (entity.label) {
     const title = document.createElementNS(SVG_NS, 'text');
     title.setAttribute('x', '0');
     title.setAttribute('y', String(-chartH / 2 - 6));
-    title.setAttribute('text-anchor', 'middle');
+    title.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     title.setAttribute('fill', defaultColor);
     title.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     title.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));

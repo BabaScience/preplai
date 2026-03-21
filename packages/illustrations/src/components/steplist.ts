@@ -6,26 +6,52 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
-  getLabelFontSize,
+  colorWithAlpha,
+  OPACITY,
   TYPOGRAPHY,
-  LABEL_DEFAULTS,
+  STROKE,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
-const DESIGN_STEP_H = 28;
-const DESIGN_NUM_R = 10;
-const DESIGN_LEFT_X = -30; // Circle center x in design units
-const DESIGN_TEXT_LEFT = DESIGN_LEFT_X + DESIGN_NUM_R + 14; // Left edge of step text (left-aligned)
+/* ── Design-space constants (before scale) ─────────────────────── */
+const NUM_R = 14;              // circle radius for step number
+const LEFT_X = -80;            // circle center X
+const TEXT_LEFT = LEFT_X + NUM_R + 16;  // text start X
+const STEP_GAP = 12;           // min gap between rows
+const STEP_FONT = 8;           // step description font size (design units)
+const NUM_FONT = 7;            // number inside circle
+const TITLE_FONT = 10;         // title above list
+const LINE_H = STEP_FONT * 1.45; // line height for wrapped text
+const MAX_CHARS = 26;          // max chars per line before wrap
 
-/** Truncate step label to max 2 words for clean display. */
-function truncateStepLabel(text: string): string {
-  const words = text.trim().split(/\s+/);
-  if (words.length <= 2) return text.trim();
-  return words.slice(0, 2).join(' ');
+/** Wrap text into lines that fit within a max character width. */
+function wrapText(text: string, maxChars: number): string[] {
+  const trimmed = text.trim();
+  if (!trimmed) return [];
+  if (trimmed.length <= maxChars) return [trimmed];
+
+  const words = trimmed.split(/\s+/);
+  const lines: string[] = [];
+  let current = '';
+  for (const w of words) {
+    const candidate = current ? `${current} ${w}` : w;
+    if (candidate.length <= maxChars) {
+      current = candidate;
+    } else {
+      if (current) lines.push(current);
+      current = w;
+    }
+  }
+  if (current) lines.push(current);
+  // Cap at 3 lines
+  if (lines.length > 3) {
+    lines.length = 3;
+    lines[2] = lines[2].slice(0, maxChars - 1) + '\u2026';
+  }
+  return lines;
 }
 
 export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -33,99 +59,153 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('StepList');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-steplist-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
-  const steps = (meta.steps as string[]) ?? (entity.textContent ? entity.textContent.split('\n') : ['Step 1', 'Step 2', 'Step 3']);
+  const steps = (meta.steps as string[]) ??
+    (entity.textContent ? entity.textContent.split('\n') : ['Step 1', 'Step 2', 'Step 3']);
   const visibleSteps = steps.slice(0, 5);
   const currentStep = typeof meta.currentStep === 'number' ? meta.currentStep : -1;
   const checkmarks = meta.checkmarks === true;
-
-  const stepH = DESIGN_STEP_H;
-  const numR = DESIGN_NUM_R;
-  const leftX = DESIGN_LEFT_X;
-  const startY = -((visibleSteps.length - 1) * stepH) / 2;
 
   const scale = s / 50;
   const scaleGroup = document.createElementNS(SVG_NS, 'g');
   scaleGroup.setAttribute('transform', `scale(${scale})`);
 
-  const numFontSize = getLabelFontSize('label', 1) / scale;
-  const stepFontSize = getLabelFontSize('title', 1) / scale;
-  const titleFontSize = getLabelFontSize('title', 1) / scale;
-  const textOffsetY = LABEL_DEFAULTS.hubOffsetY;
+  // Pre-compute wrapped lines for each step to determine row heights
+  const stepData = visibleSteps.map((step) => {
+    const lines = wrapText(step, MAX_CHARS);
+    const textBlockH = lines.length * LINE_H;
+    const rowH = Math.max(NUM_R * 2 + 4, textBlockH + 6);
+    return { lines, rowH };
+  });
 
-  visibleSteps.forEach((step, i) => {
-    const y = startY + i * stepH;
+  // Compute Y positions (centered vertically)
+  const totalH = stepData.reduce((sum, d, i) =>
+    sum + d.rowH + (i < stepData.length - 1 ? STEP_GAP : 0), 0);
+  const stepYs: number[] = [];
+  let cumY = -totalH / 2 + stepData[0].rowH / 2;
+  for (let i = 0; i < stepData.length; i++) {
+    stepYs.push(cumY);
+    if (i < stepData.length - 1) {
+      cumY += stepData[i].rowH / 2 + STEP_GAP + stepData[i + 1].rowH / 2;
+    }
+  }
+
+  visibleSteps.forEach((_step, i) => {
+    const y = stepYs[i];
+    const { lines } = stepData[i];
     const isCompleted = checkmarks && currentStep >= 0 && i < currentStep;
     const isCurrent = currentStep >= 0 && i === currentStep;
+    const isFuture = currentStep >= 0 && i > currentStep;
 
+    // ── Connecting line to previous step ──
     if (i > 0) {
-      const prevY = startY + (i - 1) * stepH;
+      const prevY = stepYs[i - 1];
       const conn = document.createElementNS(SVG_NS, 'line');
-      conn.setAttribute('x1', String(leftX));
-      conn.setAttribute('y1', String(prevY + numR));
-      conn.setAttribute('x2', String(leftX));
-      conn.setAttribute('y2', String(y - numR));
+      conn.setAttribute('x1', String(LEFT_X));
+      conn.setAttribute('y1', String(prevY + NUM_R + 2));
+      conn.setAttribute('x2', String(LEFT_X));
+      conn.setAttribute('y2', String(y - NUM_R - 2));
       conn.setAttribute('stroke', color);
-      conn.setAttribute('stroke-width', String(getStrokeWidth('thin', 1)));
-      conn.setAttribute('opacity', '0.5');
+      conn.setAttribute('stroke-width', String(STROKE.thin));
+      conn.setAttribute('opacity', isCompleted || isCurrent ? '0.6' : '0.25');
+      if (isFuture) {
+        conn.setAttribute('stroke-dasharray', '4 4');
+      }
       scaleGroup.appendChild(conn);
     }
 
+    // ── Circle ──
     const circle = document.createElementNS(SVG_NS, 'circle');
-    circle.setAttribute('cx', String(leftX));
+    circle.setAttribute('cx', String(LEFT_X));
     circle.setAttribute('cy', String(y));
-    circle.setAttribute('r', String(numR));
-    circle.setAttribute('fill', isCompleted ? color : `url(#${gradId})`);
-    circle.setAttribute('stroke', color);
-    circle.setAttribute('stroke-width', String(getStrokeWidth(isCurrent ? 'selected' : 'default', 1)));
-    circle.setAttribute('opacity', isCompleted ? '0.6' : '1');
-    scaleGroup.appendChild(circle);
+    circle.setAttribute('r', String(NUM_R));
 
     if (isCompleted) {
+      circle.setAttribute('fill', color);
+      circle.setAttribute('opacity', '0.85');
+      circle.setAttribute('stroke', color);
+      circle.setAttribute('stroke-width', String(STROKE.thin));
+    } else if (isCurrent) {
+      circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillMedium));
+      circle.setAttribute('stroke', color);
+      circle.setAttribute('stroke-width', String(getStrokeWidth('selected', 1)));
+    } else {
+      circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
+      circle.setAttribute('stroke', color);
+      circle.setAttribute('stroke-width', String(STROKE.thin));
+      if (isFuture) {
+        circle.setAttribute('opacity', '0.5');
+      }
+    }
+    scaleGroup.appendChild(circle);
+
+    // ── Number or checkmark inside circle ──
+    if (isCompleted) {
       const check = document.createElementNS(SVG_NS, 'path');
-      check.setAttribute('d', `M ${leftX - 5} ${y + textOffsetY} L ${leftX - 2} ${y} L ${leftX + 6} ${y - 4}`);
+      check.setAttribute('d', `M ${LEFT_X - 5} ${y} L ${LEFT_X - 1.5} ${y + 4} L ${LEFT_X + 6} ${y - 4}`);
       check.setAttribute('fill', 'none');
-      check.setAttribute('stroke', 'white');
-      check.setAttribute('stroke-width', String(getStrokeWidth('default', 1)));
+      check.setAttribute('stroke', '#ffffff');
+      check.setAttribute('stroke-width', String(STROKE.emphasized));
       check.setAttribute('stroke-linecap', 'round');
       check.setAttribute('stroke-linejoin', 'round');
       scaleGroup.appendChild(check);
     } else {
       const num = document.createElementNS(SVG_NS, 'text');
-      num.setAttribute('x', String(leftX));
-      num.setAttribute('y', String(y + textOffsetY));
+      num.setAttribute('x', String(LEFT_X));
+      num.setAttribute('y', String(y + NUM_FONT * 0.35));
       num.setAttribute('text-anchor', 'middle');
-      num.setAttribute('fill', isCurrent ? color : 'white');
-      num.setAttribute('font-size', String(numFontSize));
+      num.setAttribute('fill', color);
+      num.setAttribute('font-size', String(NUM_FONT));
       num.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
       num.setAttribute('font-family', TYPOGRAPHY.fontBadge);
+      if (isFuture) {
+        num.setAttribute('opacity', '0.5');
+      }
       num.textContent = String(i + 1);
       scaleGroup.appendChild(num);
     }
 
+    // ── Step text ──
     const text = document.createElementNS(SVG_NS, 'text');
-    text.setAttribute('x', String(DESIGN_TEXT_LEFT));
-    text.setAttribute('y', String(y + textOffsetY));
+    text.setAttribute('x', String(TEXT_LEFT));
+    text.setAttribute('y', String(y));  // always set y baseline
     text.setAttribute('text-anchor', 'start');
     text.setAttribute('fill', color);
-    text.setAttribute('font-size', String(stepFontSize));
-    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-size', String(STEP_FONT));
+    text.setAttribute('font-weight', String(isCurrent ? TYPOGRAPHY.fontWeightEmphasis : TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    text.textContent = truncateStepLabel(step);
+    if (isFuture) {
+      text.setAttribute('opacity', '0.5');
+    }
+
+    if (lines.length === 1) {
+      // Single line: vertically center on the circle
+      text.setAttribute('dominant-baseline', 'central');
+      text.textContent = lines[0];
+    } else {
+      // Multi-line: use tspans, center block vertically around y
+      const firstLineY = y - ((lines.length - 1) * LINE_H) / 2;
+      lines.forEach((line, li) => {
+        const tspan = document.createElementNS(SVG_NS, 'tspan');
+        tspan.setAttribute('x', String(TEXT_LEFT));
+        tspan.setAttribute('y', String(firstLineY + li * LINE_H));
+        tspan.textContent = line;
+        text.appendChild(tspan);
+      });
+    }
     scaleGroup.appendChild(text);
   });
 
+  // ── Title above ──
   if (entity.label) {
+    const topY = stepYs[0];
     const title = document.createElementNS(SVG_NS, 'text');
-    title.setAttribute('x', String(DESIGN_TEXT_LEFT));
-    title.setAttribute('y', String(startY - 20));
+    title.setAttribute('x', String(TEXT_LEFT));
+    title.setAttribute('y', String(topY - NUM_R - 16));
     title.setAttribute('text-anchor', 'start');
     title.setAttribute('fill', color);
-    title.setAttribute('font-size', String(titleFontSize));
+    title.setAttribute('font-size', String(TITLE_FONT));
     title.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightTitle));
     title.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     title.textContent = entity.label;

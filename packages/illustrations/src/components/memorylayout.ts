@@ -6,11 +6,12 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
   getLabelFontSize,
+  colorWithAlpha,
+  OPACITY,
   TYPOGRAPHY,
   SHAPES,
   LABEL_DEFAULTS,
@@ -27,9 +28,6 @@ export function renderMemoryLayout(entity: VisualEntity, parentEl: SVGElement): 
   const blockFontSize = getLabelFontSize('value', scale);
   const strokeWidth = getStrokeWidth('thin', scale);
   const color = entity.color ?? getCategoryColor('MemoryLayout');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-ml-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const stackData = (meta.stack as string[]) ?? ['main', 'foo()', 'bar()'];
@@ -67,7 +65,7 @@ export function renderMemoryLayout(entity: VisualEntity, parentEl: SVGElement): 
     rect.setAttribute('width', String(width));
     rect.setAttribute('height', String(height));
     rect.setAttribute('rx', String(SHAPES.borderRadius - 2));
-    rect.setAttribute('fill', `url(#${gradId})`);
+    rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     rect.setAttribute('stroke', color);
     rect.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(rect);
@@ -102,7 +100,7 @@ export function renderMemoryLayout(entity: VisualEntity, parentEl: SVGElement): 
     rect.setAttribute('width', String(width));
     rect.setAttribute('height', String(height));
     rect.setAttribute('rx', String(SHAPES.borderRadius - 2));
-    rect.setAttribute('fill', `url(#${gradId})`);
+    rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     rect.setAttribute('stroke', color);
     rect.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(rect);

@@ -7,7 +7,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, getLabelFontSize, TYPOGRAPHY } from '../design-tokens.js';
 import { timelineLayout } from '../layouts/index.js';
 import type { VisualEntity } from '@preplai/shared';
@@ -32,9 +31,6 @@ export function renderTimeline(entity: VisualEntity, parentEl: SVGElement): SVGG
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Timeline');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-timeline-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'horizontal', defs);
 
   const lineLen = s * 1.6;
   const d = s / 6;
@@ -45,7 +41,7 @@ export function renderTimeline(entity: VisualEntity, parentEl: SVGElement): SVGG
   line.setAttribute('y1', String(0));
   line.setAttribute('x2', String(halfLen));
   line.setAttribute('y2', String(0));
-  line.setAttribute('stroke', `url(#${gradId})`);
+  line.setAttribute('stroke', color);
   line.setAttribute('stroke-width', '2');
   innerG.appendChild(line);
 

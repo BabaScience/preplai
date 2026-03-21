@@ -1,14 +1,14 @@
 /**
- * @preplai/illustrations — GitBranch Component
- * Git branch: forking line with branch name
- * Metadata: { branchName?: string, status?: 'active'|'merged'|'stale' }
+ * @preplai/illustrations — GitBranch Component (minimalist)
+ *
+ * Fork icon with branch name label. No gradient fills.
+ * Metadata: { branchName?: string }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor, getStrokeWidth, getLabelFontSize,
-  TYPOGRAPHY,
+  TYPOGRAPHY, colorWithAlpha, OPACITY, STROKE,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -18,15 +18,22 @@ export function renderGitBranch(entity: VisualEntity, parentEl: SVGElement): SVG
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('GitBranch');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-gitbr-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const branchName = (meta.branchName as string) ?? entity.label ?? 'feature/auth';
 
-  // Fork icon: vertical line splitting into two
-  const forkG = document.createElementNS(SVG_NS, 'g');
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'circle');
+    glow.setAttribute('cx', '0');
+    glow.setAttribute('cy', '0');
+    glow.setAttribute('r', String(s * 0.4));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
 
   // Main trunk
   const trunk = document.createElementNS(SVG_NS, 'line');
@@ -37,7 +44,7 @@ export function renderGitBranch(entity: VisualEntity, parentEl: SVGElement): SVG
   trunk.setAttribute('stroke', color);
   trunk.setAttribute('stroke-width', String(getStrokeWidth('emphasized', scale)));
   trunk.setAttribute('stroke-linecap', 'round');
-  forkG.appendChild(trunk);
+  innerG.appendChild(trunk);
 
   // Branch line (curves right)
   const branch = document.createElementNS(SVG_NS, 'path');
@@ -46,7 +53,7 @@ export function renderGitBranch(entity: VisualEntity, parentEl: SVGElement): SVG
   branch.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   branch.setAttribute('fill', 'none');
   branch.setAttribute('stroke-linecap', 'round');
-  forkG.appendChild(branch);
+  innerG.appendChild(branch);
 
   // Commit dots
   const dots = [
@@ -61,10 +68,8 @@ export function renderGitBranch(entity: VisualEntity, parentEl: SVGElement): SVG
     dot.setAttribute('r', '4');
     dot.setAttribute('fill', color);
     dot.setAttribute('opacity', '0.8');
-    forkG.appendChild(dot);
+    innerG.appendChild(dot);
   }
-
-  innerG.appendChild(forkG);
 
   // Branch name label
   const text = document.createElementNS(SVG_NS, 'text');

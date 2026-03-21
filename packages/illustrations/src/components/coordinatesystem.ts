@@ -1,22 +1,13 @@
 /**
- * @preplai/illustrations — CoordinateSystem Component
+ * @preplai/illustrations — CoordinateSystem Component (minimalist)
  *
- * 2D coordinate plane with axes, optional grid, points, and vectors.
- * Use for: linear algebra, vector math, geometry (not function plots — use Graph2D).
+ * Clean 2D coordinate plane with axes, grid, points, and vectors.
+ * No dark gradient background.
  *
- * @see METADATA_SCHEMAS.md#coordinatesystem
- * @see ILLUSTRATIONS_AGENT_GUIDE.md
- *
- * Metadata:
- *   xRange, yRange: [min, max] (default [-5, 5])
- *   gridSpacing: number (default 1), showGrid: boolean
- *   xLabel, yLabel: axis labels
- *   points: Array<{x, y, label?, color?}>
- *   vectors: Array<{dx, dy, label?, color?}> — arrows from origin
+ * Metadata: { xRange?, yRange?, gridSpacing?, showGrid?, xLabel?, yLabel?, points?, vectors? }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createDarkGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -24,7 +15,6 @@ import {
   colorWithAlpha,
   OPACITY,
   TYPOGRAPHY,
-  SHAPES,
   LABEL_DEFAULTS,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
@@ -38,16 +28,12 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
   const s = getSizeParam(entity);
   const scale = s / 50;
   const axisFontSize = getLabelFontSize('value', scale);
-  const pointLabelFontSize = getLabelFontSize('value', scale);
   const strokeWidth = getStrokeWidth('thin', scale);
   const totalW = s * 4;
   const totalH = s * 3;
 
   const meta = entity.metadata ?? {};
   const color = entity.color ?? getCategoryColor('CoordinateSystem');
-  const defs = ensureDefs(parentEl);
-  const bgGradId = `grad-coordsys-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createDarkGradient(bgGradId, defs, color);
 
   const xRange = (meta.xRange as [number, number]) ?? [-5, 5];
   const yRange = (meta.yRange as [number, number]) ?? [-5, 5];
@@ -62,69 +48,43 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
   const chartW = totalW - pad * 2;
   const chartH = totalH - pad * 2;
 
-  const mapX = (v: number) =>
-    -totalW / 2 + pad + ((v - xRange[0]) / (xRange[1] - xRange[0])) * chartW;
-  const mapY = (v: number) =>
-    totalH / 2 - pad - ((v - yRange[0]) / (yRange[1] - yRange[0])) * chartH;
+  const mapX = (v: number) => -totalW / 2 + pad + ((v - xRange[0]) / (xRange[1] - xRange[0])) * chartW;
+  const mapY = (v: number) => totalH / 2 - pad - ((v - yRange[0]) / (yRange[1] - yRange[0])) * chartH;
 
-  // ── Background
-  const bg = document.createElementNS(SVG_NS, 'rect');
-  bg.setAttribute('x', String(-totalW / 2));
-  bg.setAttribute('y', String(-totalH / 2));
-  bg.setAttribute('width', String(totalW));
-  bg.setAttribute('height', String(totalH));
-  bg.setAttribute('rx', String(SHAPES.borderRadiusLarge));
-  bg.setAttribute('fill', `url(#${bgGradId})`);
-  bg.setAttribute('stroke', color);
-  bg.setAttribute('stroke-width', String(strokeWidth));
-  innerG.appendChild(bg);
-
-  // ── Grid lines
+  // Grid lines
   if (showGrid && gridSpacing > 0) {
+    const gridColor = colorWithAlpha(color, '18');
     for (let v = Math.ceil(xRange[0] / gridSpacing) * gridSpacing; v <= xRange[1]; v += gridSpacing) {
-      const gx = mapX(v);
       const gl = document.createElementNS(SVG_NS, 'line');
-      gl.setAttribute('x1', String(gx));
-      gl.setAttribute('y1', String(-totalH / 2 + pad));
-      gl.setAttribute('x2', String(gx));
-      gl.setAttribute('y2', String(totalH / 2 - pad));
-      gl.setAttribute('stroke', colorWithAlpha('#ffffff', '12'));
-      gl.setAttribute('stroke-width', String(strokeWidth));
+      gl.setAttribute('x1', String(mapX(v))); gl.setAttribute('y1', String(-totalH / 2 + pad));
+      gl.setAttribute('x2', String(mapX(v))); gl.setAttribute('y2', String(totalH / 2 - pad));
+      gl.setAttribute('stroke', gridColor); gl.setAttribute('stroke-width', String(strokeWidth));
       innerG.appendChild(gl);
     }
     for (let v = Math.ceil(yRange[0] / gridSpacing) * gridSpacing; v <= yRange[1]; v += gridSpacing) {
-      const gy = mapY(v);
       const gl = document.createElementNS(SVG_NS, 'line');
-      gl.setAttribute('x1', String(-totalW / 2 + pad));
-      gl.setAttribute('y1', String(gy));
-      gl.setAttribute('x2', String(totalW / 2 - pad));
-      gl.setAttribute('y2', String(gy));
-      gl.setAttribute('stroke', colorWithAlpha('#ffffff', '12'));
-      gl.setAttribute('stroke-width', String(strokeWidth));
+      gl.setAttribute('x1', String(-totalW / 2 + pad)); gl.setAttribute('y1', String(mapY(v)));
+      gl.setAttribute('x2', String(totalW / 2 - pad)); gl.setAttribute('y2', String(mapY(v)));
+      gl.setAttribute('stroke', gridColor); gl.setAttribute('stroke-width', String(strokeWidth));
       innerG.appendChild(gl);
     }
   }
 
-  // ── Axes
+  // Axes
+  const axisColor = colorWithAlpha(color, OPACITY.strokeMuted);
   const xAxis = document.createElementNS(SVG_NS, 'line');
-  xAxis.setAttribute('x1', String(-totalW / 2 + pad));
-  xAxis.setAttribute('y1', String(mapY(0)));
-  xAxis.setAttribute('x2', String(totalW / 2 - pad));
-  xAxis.setAttribute('y2', String(mapY(0)));
-  xAxis.setAttribute('stroke', colorWithAlpha('#ffffff', OPACITY.strokeMuted));
-  xAxis.setAttribute('stroke-width', String(strokeWidth));
+  xAxis.setAttribute('x1', String(-totalW / 2 + pad)); xAxis.setAttribute('y1', String(mapY(0)));
+  xAxis.setAttribute('x2', String(totalW / 2 - pad)); xAxis.setAttribute('y2', String(mapY(0)));
+  xAxis.setAttribute('stroke', axisColor); xAxis.setAttribute('stroke-width', String(strokeWidth));
   innerG.appendChild(xAxis);
 
   const yAxis = document.createElementNS(SVG_NS, 'line');
-  yAxis.setAttribute('x1', String(mapX(0)));
-  yAxis.setAttribute('y1', String(-totalH / 2 + pad));
-  yAxis.setAttribute('x2', String(mapX(0)));
-  yAxis.setAttribute('y2', String(totalH / 2 - pad));
-  yAxis.setAttribute('stroke', colorWithAlpha('#ffffff', OPACITY.strokeMuted));
-  yAxis.setAttribute('stroke-width', String(strokeWidth));
+  yAxis.setAttribute('x1', String(mapX(0))); yAxis.setAttribute('y1', String(-totalH / 2 + pad));
+  yAxis.setAttribute('x2', String(mapX(0))); yAxis.setAttribute('y2', String(totalH / 2 - pad));
+  yAxis.setAttribute('stroke', axisColor); yAxis.setAttribute('stroke-width', String(strokeWidth));
   innerG.appendChild(yAxis);
 
-  // ── Axis labels
+  // Axis labels
   if (xLabel) {
     const xl = document.createElementNS(SVG_NS, 'text');
     xl.setAttribute('x', String(totalW / 2 - pad));
@@ -132,6 +92,7 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
     xl.setAttribute('text-anchor', 'end');
     xl.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
     xl.setAttribute('font-size', String(axisFontSize));
+    xl.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     xl.textContent = xLabel;
     innerG.appendChild(xl);
   }
@@ -141,25 +102,21 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
     yl.setAttribute('y', String(-totalH / 2 + pad + 4));
     yl.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
     yl.setAttribute('font-size', String(axisFontSize));
+    yl.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     yl.textContent = yLabel;
     innerG.appendChild(yl);
   }
 
-  // ── Vectors (from origin)
+  // Vectors (from origin)
   for (const v of vectors) {
-    const ox = mapX(0);
-    const oy = mapY(0);
-    const ex = mapX(v.dx);
-    const ey = mapY(v.dy);
+    const ox = mapX(0); const oy = mapY(0);
+    const ex = mapX(v.dx); const ey = mapY(v.dy);
     const vecColor = v.color ?? color;
 
     const line = document.createElementNS(SVG_NS, 'line');
-    line.setAttribute('x1', String(ox));
-    line.setAttribute('y1', String(oy));
-    line.setAttribute('x2', String(ex));
-    line.setAttribute('y2', String(ey));
-    line.setAttribute('stroke', vecColor);
-    line.setAttribute('stroke-width', String(strokeWidth));
+    line.setAttribute('x1', String(ox)); line.setAttribute('y1', String(oy));
+    line.setAttribute('x2', String(ex)); line.setAttribute('y2', String(ey));
+    line.setAttribute('stroke', vecColor); line.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(line);
 
     // Arrowhead
@@ -168,53 +125,48 @@ export function renderCoordinateSystem(entity: VisualEntity, parentEl: SVGElemen
     const ax = ex - headLen * Math.cos(angle);
     const ay = ey - headLen * Math.sin(angle);
     const arrow = document.createElementNS(SVG_NS, 'polygon');
-    arrow.setAttribute(
-      'points',
-      `${ex},${ey} ${ax + headLen * 0.4 * Math.cos(angle - Math.PI / 2)},${ay + headLen * 0.4 * Math.sin(angle - Math.PI / 2)} ${ax + headLen * 0.4 * Math.cos(angle + Math.PI / 2)},${ay + headLen * 0.4 * Math.sin(angle + Math.PI / 2)}`,
+    arrow.setAttribute('points',
+      `${ex},${ey} ${ax + headLen * 0.4 * Math.cos(angle - Math.PI / 2)},${ay + headLen * 0.4 * Math.sin(angle - Math.PI / 2)} ${ax + headLen * 0.4 * Math.cos(angle + Math.PI / 2)},${ay + headLen * 0.4 * Math.sin(angle + Math.PI / 2)}`
     );
     arrow.setAttribute('fill', vecColor);
     innerG.appendChild(arrow);
 
     if (v.label) {
-      const midX = (ox + ex) / 2;
-      const midY = (oy + ey) / 2;
       const tl = document.createElementNS(SVG_NS, 'text');
-      tl.setAttribute('x', String(midX + 6));
-      tl.setAttribute('y', String(midY - 4));
+      tl.setAttribute('x', String((ox + ex) / 2 + 6));
+      tl.setAttribute('y', String((oy + ey) / 2 - 4));
       tl.setAttribute('fill', vecColor);
-      tl.setAttribute('font-size', String(pointLabelFontSize));
+      tl.setAttribute('font-size', String(axisFontSize));
+      tl.setAttribute('font-family', TYPOGRAPHY.fontLabel);
       tl.textContent = v.label;
       innerG.appendChild(tl);
     }
   }
 
-  // ── Points
+  // Points
   for (const p of points) {
-    const px = mapX(p.x);
-    const py = mapY(p.y);
+    const px = mapX(p.x); const py = mapY(p.y);
     const ptColor = p.color ?? color;
-
     const dot = document.createElementNS(SVG_NS, 'circle');
-    dot.setAttribute('cx', String(px));
-    dot.setAttribute('cy', String(py));
+    dot.setAttribute('cx', String(px)); dot.setAttribute('cy', String(py));
     dot.setAttribute('r', '4');
     dot.setAttribute('fill', ptColor);
-    dot.setAttribute('stroke', '#0b0d14');
+    dot.setAttribute('stroke', colorWithAlpha(ptColor, OPACITY.strokeSoft));
     dot.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(dot);
 
     if (p.label) {
       const pl = document.createElementNS(SVG_NS, 'text');
-      pl.setAttribute('x', String(px + 6));
-      pl.setAttribute('y', String(py + 4));
+      pl.setAttribute('x', String(px + 6)); pl.setAttribute('y', String(py + 4));
       pl.setAttribute('fill', ptColor);
-      pl.setAttribute('font-size', String(pointLabelFontSize));
+      pl.setAttribute('font-size', String(axisFontSize));
+      pl.setAttribute('font-family', TYPOGRAPHY.fontLabel);
       pl.textContent = p.label;
       innerG.appendChild(pl);
     }
   }
 
-  // ── Title label
+  // Title
   if (entity.label) {
     const title = document.createElementNS(SVG_NS, 'text');
     title.setAttribute('x', '0');

@@ -14,7 +14,7 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
+import { ensureDefs } from '../visual-utils.js';
 import { TYPOGRAPHY, SHAPES, getStrokeWidth, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -103,8 +103,6 @@ export function createTextCardRenderer(config: TextCardConfig) {
     const s = getSizeParam(entity);
     const color = entity.color ?? defaultColor;
     const defs = ensureDefs(parentEl);
-    const gradId = `grad-${typeName.toLowerCase()}-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-    createLinearGradient(gradId, color, 'vertical', defs);
 
     const meta = entity.metadata ?? {};
     const label = (meta.label as string) ?? entity.label ?? fallbackText;
@@ -146,7 +144,7 @@ export function createTextCardRenderer(config: TextCardConfig) {
     card.setAttribute('width', String(w));
     card.setAttribute('height', String(h));
     card.setAttribute('rx', String(rx));
-    card.setAttribute('fill', useMinimal ? colorWithAlpha(color, OPACITY.fillLight) : `url(#${gradId})`);
+    card.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     if (!useMinimal) {
       card.setAttribute('stroke', color);
       card.setAttribute('stroke-width', String(strokeWidth));

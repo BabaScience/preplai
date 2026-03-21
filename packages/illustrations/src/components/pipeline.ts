@@ -8,7 +8,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -17,9 +16,6 @@ export function renderPipeline(entity: VisualEntity, parentEl: SVGElement): SVGG
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Pipeline');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-pipeline-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const segCount = 3;
   const segW = s * 0.28;
@@ -54,7 +50,7 @@ export function renderPipeline(entity: VisualEntity, parentEl: SVGElement): SVGG
       `L ${cx - segW / 4} 0`,
       'Z',
     ].join(' '));
-    chevron.setAttribute('fill', `url(#${gradId})`);
+    chevron.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     chevron.setAttribute('stroke', color);
     chevron.setAttribute('stroke-width', String(STROKE.default));
     chevron.setAttribute('stroke-linejoin', 'round');

@@ -12,7 +12,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createRadialGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -20,6 +19,8 @@ import {
   TYPOGRAPHY,
   STROKE,
   LABEL_DEFAULTS,
+  colorWithAlpha,
+  OPACITY,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -72,9 +73,6 @@ export function renderFreeBodyDiagram(entity: VisualEntity, parentEl: SVGElement
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('FreeBodyDiagram');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-fbd-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createRadialGradient(gradId, color, defs);
 
   const meta = entity.metadata ?? {};
   const forcesRaw = (meta.forces as ForceDef[] | undefined) ?? [
@@ -105,7 +103,7 @@ export function renderFreeBodyDiagram(entity: VisualEntity, parentEl: SVGElement
   body.setAttribute('cx', '0');
   body.setAttribute('cy', '0');
   body.setAttribute('r', String(BODY_R));
-  body.setAttribute('fill', `url(#${gradId})`);
+  body.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   body.setAttribute('stroke', color);
   body.setAttribute('stroke-width', String(STROKE.default));
   scaleGroup.appendChild(body);

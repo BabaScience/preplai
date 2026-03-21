@@ -8,7 +8,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getLabelFontSize,
@@ -16,6 +15,8 @@ import {
   SHAPES,
   STROKE,
   LABEL_DEFAULTS,
+  colorWithAlpha,
+  OPACITY,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -28,9 +29,6 @@ export function renderEntityNode(entity: VisualEntity, parentEl: SVGElement): SV
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Entity');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-entity-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const label = (meta.label as string) ?? entity.label ?? 'Entity';
@@ -52,7 +50,7 @@ export function renderEntityNode(entity: VisualEntity, parentEl: SVGElement): SV
   rect.setAttribute('width', String(w));
   rect.setAttribute('height', String(h));
   rect.setAttribute('rx', String(SHAPES.borderRadius));
-  rect.setAttribute('fill', `url(#${gradId})`);
+  rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   rect.setAttribute('stroke', color);
   rect.setAttribute('stroke-width', String(STROKE.default));
   scaleGroup.appendChild(rect);

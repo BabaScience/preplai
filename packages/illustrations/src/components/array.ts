@@ -10,7 +10,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY, getStrokeWidth, getLabelFontSize } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -20,9 +19,6 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Array');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-array-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const values = ((meta.values as (string | number)[]) ?? [1, 2, 3, 4, 5]).slice(0, 8);
@@ -57,7 +53,7 @@ export function renderArray(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     cell.setAttribute('width', String(cellW - pad * 2));
     cell.setAttribute('height', String(cellH));
     cell.setAttribute('rx', String(Math.max(1, 2 * scale)));
-    cell.setAttribute('fill', `url(#${gradId})`);
+    cell.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     cell.setAttribute('stroke', color);
     cell.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
     innerG.appendChild(cell);

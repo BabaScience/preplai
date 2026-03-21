@@ -8,7 +8,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -17,9 +16,6 @@ export function renderFirewall(entity: VisualEntity, parentEl: SVGElement): SVGG
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Firewall');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-fw-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const w = s * 0.5;
   const h = s * 0.75;
@@ -48,7 +44,7 @@ export function renderFirewall(entity: VisualEntity, parentEl: SVGElement): SVGG
   body.setAttribute('width', String(w));
   body.setAttribute('height', String(h));
   body.setAttribute('rx', '3');
-  body.setAttribute('fill', `url(#${gradId})`);
+  body.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   body.setAttribute('stroke', color);
   body.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(body);

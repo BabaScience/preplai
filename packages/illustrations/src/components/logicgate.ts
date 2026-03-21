@@ -11,7 +11,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -20,9 +19,6 @@ export function renderLogicGate(entity: VisualEntity, parentEl: SVGElement): SVG
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('LogicGate');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-lg-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const gate = ((meta.gate as string) ?? 'AND').toUpperCase();
@@ -54,7 +50,7 @@ export function renderLogicGate(entity: VisualEntity, parentEl: SVGElement): SVG
   body.setAttribute('width', String(w));
   body.setAttribute('height', String(h));
   body.setAttribute('rx', String(SHAPES.borderRadius));
-  body.setAttribute('fill', `url(#${gradId})`);
+  body.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   body.setAttribute('stroke', color);
   body.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(body);

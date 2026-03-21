@@ -4,7 +4,7 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, OPACITY, COLORS, colorWithAlpha } from '../design-tokens.js';
+import { getCategoryColor, getLabelFontSize, TYPOGRAPHY, STROKE, OPACITY, COLORS, colorWithAlpha } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 interface Column {
@@ -85,7 +85,7 @@ export function renderEREntity(entity: VisualEntity, parentEl: SVGElement): SVGG
   headerText.setAttribute('y', String(startY + headerH / 2 + 4 * scale));
   headerText.setAttribute('text-anchor', 'middle');
   headerText.setAttribute('fill', color);
-  headerText.setAttribute('font-size', String(Math.round(14 * scale)));
+  headerText.setAttribute('font-size', String(getLabelFontSize('title', scale)));
   headerText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
   headerText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
   headerText.textContent = tableName;
@@ -104,7 +104,7 @@ export function renderEREntity(entity: VisualEntity, parentEl: SVGElement): SVGG
 
   // ── Column rows ──
   const bodyStartY = startY + headerH;
-  const fontSize = Math.round(12 * scale);
+  const fontSize = getLabelFontSize('value', scale);
 
   for (let i = 0; i < columns.length; i++) {
     const col = columns[i];
@@ -133,7 +133,7 @@ export function renderEREntity(entity: VisualEntity, parentEl: SVGElement): SVGG
       badgeText.setAttribute('y', String(badgeY + badgeH / 2 + 3 * scale));
       badgeText.setAttribute('text-anchor', 'middle');
       badgeText.setAttribute('fill', badgeColor);
-      badgeText.setAttribute('font-size', String(Math.round(8 * scale)));
+      badgeText.setAttribute('font-size', String(getLabelFontSize('index', scale)));
       badgeText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
       badgeText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
       badgeText.textContent = col.key;

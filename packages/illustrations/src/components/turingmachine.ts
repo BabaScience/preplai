@@ -8,7 +8,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -40,9 +39,6 @@ export function renderTuringMachine(entity: VisualEntity, parentEl: SVGElement):
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('TuringMachine');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-tm-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const tape = parseTape(meta);
@@ -69,7 +65,7 @@ export function renderTuringMachine(entity: VisualEntity, parentEl: SVGElement):
     cell.setAttribute('width', String(CELL_W - 4));
     cell.setAttribute('height', String(CELL_H));
     cell.setAttribute('rx', String(Math.max(1, SHAPES.borderRadius - 2)));
-    cell.setAttribute('fill', `url(#${gradId})`);
+    cell.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     cell.setAttribute('stroke', isHead ? color : colorWithAlpha(color, OPACITY.strokeSoft));
     cell.setAttribute('stroke-width', String(isHead ? getStrokeWidth('emphasized', 1) : strokeWidth));
     if (isHead) {

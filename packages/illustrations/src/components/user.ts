@@ -8,7 +8,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createRadialGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -27,9 +26,6 @@ export function renderUser(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('User');
   const strokeW = getStrokeWidth('default', scale);
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-user-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createRadialGradient(gradId, color, defs);
 
   const r = s * 0.48;
 
@@ -51,7 +47,7 @@ export function renderUser(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   circle.setAttribute('cx', '0');
   circle.setAttribute('cy', '0');
   circle.setAttribute('r', String(r));
-  circle.setAttribute('fill', `url(#${gradId})`);
+  circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   circle.setAttribute('stroke', color);
   circle.setAttribute('stroke-width', String(strokeW));
   innerG.appendChild(circle);

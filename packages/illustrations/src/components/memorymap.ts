@@ -7,7 +7,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -57,8 +56,6 @@ export function renderMemoryMap(entity: VisualEntity, parentEl: SVGElement): SVG
   const addrFontSize = getLabelFontSize('index', scale);
   const strokeWidth = getStrokeWidth('thin', scale);
   const color = entity.color ?? getCategoryColor('MemoryMap');
-  const defs = ensureDefs(parentEl);
-
   const meta = entity.metadata ?? {};
   const segments = parseSegments(meta, color);
 
@@ -68,13 +65,8 @@ export function renderMemoryMap(entity: VisualEntity, parentEl: SVGElement): SVG
   const segH = totalH / segCount;
   const gap = 2;
 
-  const baseId = entity.id?.replace(/[^a-z0-9]/gi, '') ?? 'mm';
   segments.forEach((seg, i) => {
     const segColor = seg.color ?? color;
-    const gradId = `grad-mm-${baseId}-${i}-${segColor.replace(/[^a-fA-F0-9]/g, '')}`;
-    if (!defs.querySelector(`#${gradId}`)) {
-      createLinearGradient(gradId, segColor, 'vertical', defs);
-    }
     const y = -totalH / 2 + i * segH + segH / 2;
 
     const rect = document.createElementNS(SVG_NS, 'rect');
@@ -83,7 +75,7 @@ export function renderMemoryMap(entity: VisualEntity, parentEl: SVGElement): SVG
     rect.setAttribute('width', String(barW));
     rect.setAttribute('height', String(segH - gap));
     rect.setAttribute('rx', String(SHAPES.borderRadius - 2));
-    rect.setAttribute('fill', `url(#${gradId})`);
+    rect.setAttribute('fill', colorWithAlpha(segColor, OPACITY.fillLight));
     rect.setAttribute('stroke', segColor);
     rect.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(rect);

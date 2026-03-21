@@ -1,14 +1,14 @@
 /**
- * @preplai/illustrations — ProcessState Component
+ * @preplai/illustrations — ProcessState Component (minimalist)
  *
- * Process state diagram with clean circles and transition arrows.
- * Use for: Ready/Running/Blocked diagrams, state machines.
+ * Clean state circles with transition arrows.
+ * No gradient fills — uses solid color with alpha.
  *
  * Metadata: { states: [{ name, type }], transitions?: [{ from, to }] }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
+import { ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -108,20 +108,16 @@ export function renderProcessState(entity: VisualEntity, parentEl: SVGElement): 
     innerG.appendChild(line);
   });
 
-  // State circles
+  // State circles (solid fill with alpha instead of gradient)
   states.forEach((st) => {
     const pos = positions[st.name] ?? { x: 0, y: 0 };
     const stateColor = STATE_COLORS[(st.type ?? '').toLowerCase()] ?? defaultColor;
-    const gId = `grad-ps-${entity.id.replace(/[^a-z0-9]/gi, '')}-${st.name}`;
-    if (!defs.querySelector(`#${gId}`)) {
-      createLinearGradient(gId, stateColor, 'vertical', defs);
-    }
 
     const circle = document.createElementNS(SVG_NS, 'circle');
     circle.setAttribute('cx', String(pos.x));
     circle.setAttribute('cy', String(pos.y));
     circle.setAttribute('r', String(r));
-    circle.setAttribute('fill', `url(#${gId})`);
+    circle.setAttribute('fill', colorWithAlpha(stateColor, OPACITY.fillMedium));
     circle.setAttribute('stroke', stateColor);
     circle.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(circle);

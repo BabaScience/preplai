@@ -8,7 +8,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -52,9 +51,6 @@ export function renderTable(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   const headerFontSize = getLabelFontSize('inline', scale);
   const strokeWidth = getStrokeWidth('thin', scale);
   const color = entity.color ?? getCategoryColor('Table');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-table-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const { headers, rows } = parseTableData(meta);
@@ -105,7 +101,7 @@ export function renderTable(entity: VisualEntity, parentEl: SVGElement): SVGGEle
       rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       rect.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeSoft));
     } else {
-      rect.setAttribute('fill', `url(#${gradId})`);
+      rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       rect.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     }
     rect.setAttribute('stroke-width', String(strokeWidth));

@@ -5,9 +5,9 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor, getStrokeWidth, getLabelFontSize,
+  colorWithAlpha, OPACITY,
   TYPOGRAPHY, STROKE,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
@@ -18,9 +18,6 @@ export function renderToken(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Token');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-tok-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const tokenType = (meta.tokenType as string) ?? 'jwt';
@@ -39,7 +36,7 @@ export function renderToken(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   pill.setAttribute('width', String(w));
   pill.setAttribute('height', String(h));
   pill.setAttribute('rx', String(h / 2));
-  pill.setAttribute('fill', `url(#${gradId})`);
+  pill.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   pill.setAttribute('stroke', color);
   pill.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   innerG.appendChild(pill);
