@@ -6,8 +6,7 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE } from '../design-tokens.js';
+import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 function parseAnalogy(label: string): { x: string; y: string } | null {
@@ -49,9 +48,6 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Analogy');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-analogy-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const label = (meta.label as string) ?? entity.label ?? 'Analogy';
@@ -101,7 +97,7 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
     leftBox.setAttribute('width', String(boxW));
     leftBox.setAttribute('height', String(boxH));
     leftBox.setAttribute('rx', String(SHAPES.borderRadius - 2));
-    leftBox.setAttribute('fill', `url(#${gradId})`);
+    leftBox.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     leftBox.setAttribute('stroke', color);
     leftBox.setAttribute('stroke-width', String(STROKE.thin));
     scaleGroup.appendChild(leftBox);
@@ -113,7 +109,7 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
     rightBox.setAttribute('width', String(boxW));
     rightBox.setAttribute('height', String(boxH));
     rightBox.setAttribute('rx', String(SHAPES.borderRadius - 2));
-    rightBox.setAttribute('fill', `url(#${gradId})`);
+    rightBox.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     rightBox.setAttribute('stroke', color);
     rightBox.setAttribute('stroke-width', String(STROKE.thin));
     scaleGroup.appendChild(rightBox);
@@ -179,7 +175,7 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
     card.setAttribute('width', String(w));
     card.setAttribute('height', String(h));
     card.setAttribute('rx', String(SHAPES.borderRadius));
-    card.setAttribute('fill', `url(#${gradId})`);
+    card.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     card.setAttribute('stroke', color);
     card.setAttribute('stroke-width', String(STROKE.thin));
     scaleGroup.appendChild(card);
