@@ -70,11 +70,10 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
   const scale = s / 50;
   const boxW = 70;
   const baseBoxH = 28;
-  /** Fixed 15px rendered: compensate for scaleGroup so text stays 15px like Service */
-  const valueFontSize = TYPOGRAPHY.fontSizeDefault / scale;
-  const tildaSize = valueFontSize;
+  const valueFontSize = 8;  // design-space font for legibility
+  const tildaSize = 10;
   const gap = 6;
-  const lineHeight = valueFontSize * 0.8;
+  const lineHeight = valueFontSize * 1.3;
   const maxCharsPerLine = 10;
 
   const scaleGroup = document.createElementNS(SVG_NS, 'g');
@@ -117,7 +116,7 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
     // ~ symbol (tilda) in center
     const tilda = document.createElementNS(SVG_NS, 'text');
     tilda.setAttribute('x', String(tildaX + tildaSize / 2));
-    tilda.setAttribute('y', '4');
+    tilda.setAttribute('y', String(tildaSize * 0.35));
     tilda.setAttribute('text-anchor', 'middle');
     tilda.setAttribute('fill', color);
     tilda.setAttribute('font-size', String(tildaSize));
@@ -127,38 +126,38 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
     scaleGroup.appendChild(tilda);
 
     // X text (wrapped, centered horizontally and vertically)
+    const xCenterX = leftBoxX + boxW / 2;
     const xText = document.createElementNS(SVG_NS, 'text');
-    xText.setAttribute('x', String(leftBoxX + boxW / 2));
-    xText.setAttribute('y', '0');
+    xText.setAttribute('x', String(xCenterX));
     xText.setAttribute('text-anchor', 'middle');
     xText.setAttribute('fill', color);
     xText.setAttribute('font-size', String(valueFontSize));
     xText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     xText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    const xOffset = xLines.length > 1 ? -(lineHeight * (xLines.length - 1)) / 2 : 0;
+    const xFirstY = -((xLines.length - 1) * lineHeight) / 2 + valueFontSize * 0.35;
     xLines.forEach((line, i) => {
       const tspan = document.createElementNS(SVG_NS, 'tspan');
-      tspan.setAttribute('x', String(leftBoxX + boxW / 2));
-      tspan.setAttribute('dy', i === 0 ? String(xOffset) : String(lineHeight));
+      tspan.setAttribute('x', String(xCenterX));
+      tspan.setAttribute('y', String(xFirstY + i * lineHeight));
       tspan.textContent = line;
       xText.appendChild(tspan);
     });
     scaleGroup.appendChild(xText);
 
     // Y text (wrapped, centered horizontally and vertically)
+    const yCenterX = rightBoxX + boxW / 2;
     const yText = document.createElementNS(SVG_NS, 'text');
-    yText.setAttribute('x', String(rightBoxX + boxW / 2));
-    yText.setAttribute('y', '0');
+    yText.setAttribute('x', String(yCenterX));
     yText.setAttribute('text-anchor', 'middle');
     yText.setAttribute('fill', color);
     yText.setAttribute('font-size', String(valueFontSize));
     yText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     yText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    const yOffset = yLines.length > 1 ? -(lineHeight * (yLines.length - 1)) / 2 : 0;
+    const yFirstY = -((yLines.length - 1) * lineHeight) / 2 + valueFontSize * 0.35;
     yLines.forEach((line, i) => {
       const tspan = document.createElementNS(SVG_NS, 'tspan');
-      tspan.setAttribute('x', String(rightBoxX + boxW / 2));
-      tspan.setAttribute('dy', i === 0 ? String(yOffset) : String(lineHeight));
+      tspan.setAttribute('x', String(yCenterX));
+      tspan.setAttribute('y', String(yFirstY + i * lineHeight));
       tspan.textContent = line;
       yText.appendChild(tspan);
     });
@@ -166,9 +165,9 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
   } else {
     // Fallback: single card with wrapped full label
     const lines = wrapToLines(x, 18);
-    const lineHeight = valueFontSize * 0.8;
+    const fbLineH = valueFontSize * 1.3;
     const w = Math.max(120, Math.min(220, Math.max(...lines.map((l) => l.length)) * 6.5));
-    const h = Math.max(36, lineHeight * lines.length + 16);
+    const h = Math.max(36, fbLineH * lines.length + 16);
     const card = document.createElementNS(SVG_NS, 'rect');
     card.setAttribute('x', String(-w / 2));
     card.setAttribute('y', String(-h / 2));
@@ -182,17 +181,16 @@ export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGE
 
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', '0');
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(valueFontSize));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    const textOffset = lines.length > 1 ? -(lineHeight * (lines.length - 1)) / 2 : 0;
+    const fbFirstY = -((lines.length - 1) * fbLineH) / 2 + valueFontSize * 0.35;
     lines.forEach((line, i) => {
       const tspan = document.createElementNS(SVG_NS, 'tspan');
       tspan.setAttribute('x', '0');
-      tspan.setAttribute('dy', i === 0 ? String(textOffset) : String(lineHeight));
+      tspan.setAttribute('y', String(fbFirstY + i * fbLineH));
       tspan.textContent = line;
       text.appendChild(tspan);
     });

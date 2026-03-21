@@ -18,10 +18,11 @@ import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '
 import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
-const CHAR_WIDTH_RATIO = 0.65;
+const CHAR_WIDTH_RATIO = 0.55;
 const DESIGN_W_DEFAULT = 80;
 const DESIGN_H = 44;
 const MAX_LINES_DEFAULT = 4;
+const CONCEPT_FONT = 8;  // design-space font size for legibility
 
 /** Wrap text into lines. No truncation — long words break across lines. */
 function wrapToLines(text: string, maxCharsPerLine: number, maxLines: number): string[] {
@@ -76,7 +77,7 @@ export function renderConcept(entity: VisualEntity, parentEl: SVGElement): SVGGE
   const w = designW;
 
   // Compute text lines first so we can size the shape to fit
-  const fontSize = TYPOGRAPHY.fontSizeDefault / scale;
+  const fontSize = CONCEPT_FONT;
   const availableWidth = Math.max(40, w - 16);
   const maxCharsPerLine = Math.max(8, Math.floor(availableWidth / (fontSize * CHAR_WIDTH_RATIO)));
   const lines = wrapToLines(label, maxCharsPerLine, maxLines);
@@ -120,19 +121,18 @@ export function renderConcept(entity: VisualEntity, parentEl: SVGElement): SVGGE
   if (lines.length > 0) {
     const textGroup = document.createElementNS(SVG_NS, 'text');
     textGroup.setAttribute('x', '0');
-    textGroup.setAttribute('y', '0');
     textGroup.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    textGroup.setAttribute('dominant-baseline', 'central');
     textGroup.setAttribute('fill', color);
     textGroup.setAttribute('font-size', String(fontSize));
     textGroup.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     textGroup.setAttribute('font-family', TYPOGRAPHY.fontLabel);
 
-    const textOffset = lines.length > 1 ? -(lineHeight * (lines.length - 1)) / 2 : 0;
+    // Absolute y per tspan — reliable across all browsers
+    const firstLineY = -((lines.length - 1) * lineHeight) / 2 + fontSize * 0.35;
     lines.forEach((line, i) => {
       const tspan = document.createElementNS(SVG_NS, 'tspan');
       tspan.setAttribute('x', '0');
-      tspan.setAttribute('dy', i === 0 ? String(textOffset) : String(lineHeight));
+      tspan.setAttribute('y', String(firstLineY + i * lineHeight));
       tspan.textContent = line;
       textGroup.appendChild(tspan);
     });

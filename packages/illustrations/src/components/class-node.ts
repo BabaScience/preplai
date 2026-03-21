@@ -8,7 +8,7 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { getCategoryColor, getLabelFontSize, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderClassNode(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -56,7 +56,7 @@ export function renderClassNode(entity: VisualEntity, parentEl: SVGElement): SVG
   cText.setAttribute('text-anchor', 'middle');
   cText.setAttribute('dominant-baseline', 'central');
   cText.setAttribute('fill', color);
-  cText.setAttribute('font-size', String(s * 0.3));
+  cText.setAttribute('font-size', String(getLabelFontSize('title')));
   cText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
   cText.setAttribute('font-family', TYPOGRAPHY.fontCode);
   cText.textContent = 'C';

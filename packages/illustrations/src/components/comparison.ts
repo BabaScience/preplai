@@ -12,10 +12,8 @@ import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam, wrapBod
 import {
   getCategoryColor,
   getStrokeWidth,
-  getLabelFontSize,
   TYPOGRAPHY,
   SHAPES,
-  LABEL_DEFAULTS,
   colorWithAlpha,
   OPACITY,
 } from '../design-tokens.js';
@@ -64,12 +62,12 @@ export function renderComparison(entity: VisualEntity, parentEl: SVGElement): SV
 
   const boxW = 72;
   const baseBoxH = 30;
-  const fontSize = getLabelFontSize('value', scale);
-  const lineHeight = fontSize * LABEL_DEFAULTS.lineHeight;
+  const fontSize = 8;  // design-space font for legibility
+  const lineHeight = fontSize * 1.3;
   const maxCharsPerLine = 12;
   const maxLines = 3;
   const gap = 8;
-  const vsFontSize = getLabelFontSize('inline', scale);
+  const vsFontSize = 7;
   // Stroke is inside scaleGroup; do NOT pass scale—the transform scales it once.
   const strokeWidth = getStrokeWidth('default');
 
@@ -110,7 +108,7 @@ export function renderComparison(entity: VisualEntity, parentEl: SVGElement): SV
 
     const vsText = document.createElementNS(SVG_NS, 'text');
     vsText.setAttribute('x', String(vsX + vsW / 2));
-    vsText.setAttribute('y', '4');
+    vsText.setAttribute('y', String(vsFontSize * 0.35));
     vsText.setAttribute('text-anchor', 'middle');
     vsText.setAttribute('fill', color);
     vsText.setAttribute('font-size', String(vsFontSize));
@@ -119,37 +117,37 @@ export function renderComparison(entity: VisualEntity, parentEl: SVGElement): SV
     vsText.textContent = 'vs';
     scaleGroup.appendChild(vsText);
 
+    const leftCenterX = leftBoxX + boxW / 2;
     const leftText = document.createElementNS(SVG_NS, 'text');
-    leftText.setAttribute('x', String(leftBoxX + boxW / 2));
-    leftText.setAttribute('y', '0');
+    leftText.setAttribute('x', String(leftCenterX));
     leftText.setAttribute('text-anchor', 'middle');
     leftText.setAttribute('fill', color);
     leftText.setAttribute('font-size', String(fontSize));
     leftText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     leftText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    const leftOffset = leftLines.length > 1 ? -(lineHeight * (leftLines.length - 1)) / 2 : 0;
+    const leftFirstY = -((leftLines.length - 1) * lineHeight) / 2 + fontSize * 0.35;
     leftLines.forEach((line, i) => {
       const tspan = document.createElementNS(SVG_NS, 'tspan');
-      tspan.setAttribute('x', String(leftBoxX + boxW / 2));
-      tspan.setAttribute('dy', i === 0 ? String(leftOffset) : String(lineHeight));
+      tspan.setAttribute('x', String(leftCenterX));
+      tspan.setAttribute('y', String(leftFirstY + i * lineHeight));
       tspan.textContent = line;
       leftText.appendChild(tspan);
     });
     scaleGroup.appendChild(leftText);
 
+    const rightCenterX = rightBoxX + boxW / 2;
     const rightText = document.createElementNS(SVG_NS, 'text');
-    rightText.setAttribute('x', String(rightBoxX + boxW / 2));
-    rightText.setAttribute('y', '0');
+    rightText.setAttribute('x', String(rightCenterX));
     rightText.setAttribute('text-anchor', 'middle');
     rightText.setAttribute('fill', color);
     rightText.setAttribute('font-size', String(fontSize));
     rightText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     rightText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    const rightOffset = rightLines.length > 1 ? -(lineHeight * (rightLines.length - 1)) / 2 : 0;
+    const rightFirstY = -((rightLines.length - 1) * lineHeight) / 2 + fontSize * 0.35;
     rightLines.forEach((line, i) => {
       const tspan = document.createElementNS(SVG_NS, 'tspan');
-      tspan.setAttribute('x', String(rightBoxX + boxW / 2));
-      tspan.setAttribute('dy', i === 0 ? String(rightOffset) : String(lineHeight));
+      tspan.setAttribute('x', String(rightCenterX));
+      tspan.setAttribute('y', String(rightFirstY + i * lineHeight));
       tspan.textContent = line;
       rightText.appendChild(tspan);
     });
@@ -171,17 +169,16 @@ export function renderComparison(entity: VisualEntity, parentEl: SVGElement): SV
 
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', '0');
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(fontSize));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-    const textOffset = lines.length > 1 ? -(lineHeight * (lines.length - 1)) / 2 : 0;
+    const fbFirstY = -((lines.length - 1) * lineHeight) / 2 + fontSize * 0.35;
     lines.forEach((line, i) => {
       const tspan = document.createElementNS(SVG_NS, 'tspan');
       tspan.setAttribute('x', '0');
-      tspan.setAttribute('dy', i === 0 ? String(textOffset) : String(lineHeight));
+      tspan.setAttribute('y', String(fbFirstY + i * lineHeight));
       tspan.textContent = line;
       text.appendChild(tspan);
     });

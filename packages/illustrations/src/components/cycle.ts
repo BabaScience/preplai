@@ -8,6 +8,7 @@
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import {
   getCategoryColor,
+  getLabelFontSize,
   TYPOGRAPHY,
   STROKE,
   colorWithAlpha,
@@ -63,7 +64,7 @@ export function renderCycle(entity: VisualEntity, parentEl: SVGElement): SVGGEle
 
   // Label centered
   if (entity.label) {
-    const fontSize = Math.min(TYPOGRAPHY.fontSizeLabel, Math.max(10, s / 4));
+    const fontSize = getLabelFontSize('label');
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
     text.setAttribute('y', '0');
