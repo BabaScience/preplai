@@ -258,9 +258,10 @@ describe('renderCodeBlock', () => {
         t.textContent?.includes('return') ||
         t.textContent?.includes('nested'),
     );
-    expect(codeTexts.some((t) => t.textContent?.startsWith('  const'))).toBe(true);
-    expect(codeTexts.some((t) => t.textContent?.startsWith('  return'))).toBe(true);
-    expect(codeTexts.some((t) => t.textContent?.startsWith('    nested'))).toBe(true);
+    // Non-breaking spaces (\u00A0) are used to preserve indentation in SVG <text>
+    expect(codeTexts.some((t) => t.textContent?.startsWith('\u00A0\u00A0const'))).toBe(true);
+    expect(codeTexts.some((t) => t.textContent?.startsWith('\u00A0\u00A0return'))).toBe(true);
+    expect(codeTexts.some((t) => t.textContent?.startsWith('\u00A0\u00A0\u00A0\u00A0nested'))).toBe(true);
   });
 });
 

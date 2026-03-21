@@ -22,14 +22,19 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
   const lines = (meta.lines as string[]) ?? code.split('\n');
   const tabSize = Math.max(1, Math.min(8, ((meta.tabSize as number) ?? 2) | 0));
 
+  /** Expand tabs and convert all spaces to non-breaking spaces (\u00A0)
+   *  so SVG <text> elements preserve indentation (SVG collapses regular spaces). */
   const expandTabs = (text: string): string => {
     let result = '';
     let col = 0;
     for (const ch of text) {
       if (ch === '\t') {
         const spaces = tabSize - (col % tabSize);
-        result += ' '.repeat(spaces);
+        result += '\u00A0'.repeat(spaces);
         col += spaces;
+      } else if (ch === ' ') {
+        result += '\u00A0';
+        col += 1;
       } else {
         result += ch;
         col += 1;
@@ -153,6 +158,7 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
     codeLine.setAttribute('fill', color);
     codeLine.setAttribute('font-size', String(codeFontSize));
     codeLine.setAttribute('font-family', TYPOGRAPHY.fontCode);
+    codeLine.setAttribute('xml:space', 'preserve');
     codeLine.textContent = truncateLine(expandTabs(line));
     innerG.appendChild(codeLine);
   });

@@ -519,9 +519,9 @@ exports[`Visual Regression — SVG Snapshots > renders CodeBlock without crashin
   "textLabels": [
     "CodeBlock",
     "1",
-    "function fib(n) {",
+    "function fib(n) {",
     "2",
-    "return n <= 1 ? n : fib(n-...",
+    "return n <= 1 ? n : fib(n-...",
     "3",
     "}",
   ],
