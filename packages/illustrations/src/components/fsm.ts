@@ -6,13 +6,15 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
+import { ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
   getLabelFontSize,
   TYPOGRAPHY,
   LABEL_DEFAULTS,
+  colorWithAlpha,
+  OPACITY,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -28,8 +30,6 @@ export function renderFSM(entity: VisualEntity, parentEl: SVGElement): SVGGEleme
   const fontSize = getLabelFontSize('value', scale);
   const color = entity.color ?? getCategoryColor('FSM');
   const defs = ensureDefs(parentEl);
-  const gradId = `grad-fsm-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const statesData = (meta.states as StateDef[] | undefined) ?? [
@@ -107,7 +107,7 @@ export function renderFSM(entity: VisualEntity, parentEl: SVGElement): SVGGEleme
     circle.setAttribute('cx', String(pos.x));
     circle.setAttribute('cy', String(pos.y));
     circle.setAttribute('r', String(r));
-    circle.setAttribute('fill', `url(#${gradId})`);
+    circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     circle.setAttribute('stroke', color);
     circle.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(circle);

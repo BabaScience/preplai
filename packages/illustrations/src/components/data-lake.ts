@@ -4,8 +4,8 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs, ensureGlassFilter } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE } from '../design-tokens.js';
+import { ensureGlassFilter } from '../visual-utils.js';
+import { getCategoryColor, TYPOGRAPHY, STROKE, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderDataLake(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -13,10 +13,6 @@ export function renderDataLake(entity: VisualEntity, parentEl: SVGElement): SVGG
   const size = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('DataLake');
   const meta = (entity.metadata ?? {}) as { provider?: string; format?: string };
-
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-datalake-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   // Wide and shallow proportions (wider than Database, shorter)
   const rx = size * 1.2;     // ~60px half-width at size=50
@@ -47,7 +43,7 @@ export function renderDataLake(entity: VisualEntity, parentEl: SVGElement): SVGG
   bodyFill.setAttribute('y', String(topY));
   bodyFill.setAttribute('width', String(rx * 2));
   bodyFill.setAttribute('height', String(bodyH));
-  bodyFill.setAttribute('fill', `url(#${gradId})`);
+  bodyFill.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   bodyFill.setAttribute('stroke', 'none');
   bodyG.appendChild(bodyFill);
 

@@ -10,7 +10,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -30,9 +29,6 @@ export function renderHashTable(entity: VisualEntity, parentEl: SVGElement): SVG
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor(entity.type);
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-ht-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const pairs = ((meta.pairs as [string, string][]) ?? [['a', '1'], ['b', '2'], ['k', 'v']]).slice(0, 8);
@@ -73,7 +69,7 @@ export function renderHashTable(entity: VisualEntity, parentEl: SVGElement): SVG
     cell.setAttribute('width', String(cellW));
     cell.setAttribute('height', String(cellH));
     cell.setAttribute('rx', String(Math.max(1, SHAPES.borderRadius - 2)));
-    cell.setAttribute('fill', `url(#${gradId})`);
+    cell.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     cell.setAttribute('stroke', color);
     cell.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
     innerG.appendChild(cell);

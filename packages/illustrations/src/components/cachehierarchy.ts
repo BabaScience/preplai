@@ -6,7 +6,7 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
+import { ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   TYPOGRAPHY,
@@ -34,8 +34,6 @@ export function renderCacheHierarchy(entity: VisualEntity, parentEl: SVGElement)
   const sublabelFontSize = getLabelFontSize('index', scale);
   const color = entity.color ?? getCategoryColor('CacheHierarchy');
   const defs = ensureDefs(parentEl);
-  const gradId = `grad-ch-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const levelsData = meta.levels as CacheLevel[] | undefined;
@@ -78,7 +76,7 @@ export function renderCacheHierarchy(entity: VisualEntity, parentEl: SVGElement)
     rect.setAttribute('width', String(width));
     rect.setAttribute('height', String(height));
     rect.setAttribute('rx', String(SHAPES.borderRadius));
-    rect.setAttribute('fill', `url(#${gradId})`);
+    rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     rect.setAttribute('stroke', color);
     rect.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
     blockG.appendChild(rect);

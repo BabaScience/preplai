@@ -15,7 +15,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -64,9 +63,6 @@ export function renderConcept(entity: VisualEntity, parentEl: SVGElement): SVGGE
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Concept');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-concept-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const label = (meta.label as string) ?? entity.label ?? '';
@@ -116,7 +112,7 @@ export function renderConcept(entity: VisualEntity, parentEl: SVGElement): SVGGE
   outerRect.setAttribute('width', String(w));
   outerRect.setAttribute('height', String(h));
   outerRect.setAttribute('rx', String(pillRx));
-  outerRect.setAttribute('fill', `url(#${gradId})`);
+  outerRect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   outerRect.setAttribute('stroke', color);
   outerRect.setAttribute('stroke-width', String(STROKE.default));
   scaleGroup.appendChild(outerRect);

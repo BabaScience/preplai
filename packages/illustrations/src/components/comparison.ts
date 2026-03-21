@@ -9,7 +9,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam, wrapBodyText } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -17,6 +16,8 @@ import {
   TYPOGRAPHY,
   SHAPES,
   LABEL_DEFAULTS,
+  colorWithAlpha,
+  OPACITY,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -42,9 +43,6 @@ export function renderComparison(entity: VisualEntity, parentEl: SVGElement): SV
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Comparison');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-comparison-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const label = (meta.label as string) ?? entity.label ?? 'Comparison';
@@ -94,7 +92,7 @@ export function renderComparison(entity: VisualEntity, parentEl: SVGElement): SV
     leftBox.setAttribute('width', String(boxW));
     leftBox.setAttribute('height', String(boxH));
     leftBox.setAttribute('rx', String(SHAPES.borderRadius - 2));
-    leftBox.setAttribute('fill', `url(#${gradId})`);
+    leftBox.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     leftBox.setAttribute('stroke', color);
     leftBox.setAttribute('stroke-width', String(strokeWidth));
     scaleGroup.appendChild(leftBox);
@@ -105,7 +103,7 @@ export function renderComparison(entity: VisualEntity, parentEl: SVGElement): SV
     rightBox.setAttribute('width', String(boxW));
     rightBox.setAttribute('height', String(boxH));
     rightBox.setAttribute('rx', String(SHAPES.borderRadius - 2));
-    rightBox.setAttribute('fill', `url(#${gradId})`);
+    rightBox.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     rightBox.setAttribute('stroke', color);
     rightBox.setAttribute('stroke-width', String(strokeWidth));
     scaleGroup.appendChild(rightBox);
@@ -166,7 +164,7 @@ export function renderComparison(entity: VisualEntity, parentEl: SVGElement): SV
     card.setAttribute('width', String(w));
     card.setAttribute('height', String(h));
     card.setAttribute('rx', String(SHAPES.borderRadius));
-    card.setAttribute('fill', `url(#${gradId})`);
+    card.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     card.setAttribute('stroke', color);
     card.setAttribute('stroke-width', String(strokeWidth));
     scaleGroup.appendChild(card);

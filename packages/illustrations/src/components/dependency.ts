@@ -8,7 +8,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, STROKE, colorWithAlpha, OPACITY, getLabelFontSize } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -18,9 +17,6 @@ export function renderDependency(entity: VisualEntity, parentEl: SVGElement): SV
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Dependency');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-dep-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const label = entity.label ?? 'express';
   const padX = 14;
@@ -49,7 +45,7 @@ export function renderDependency(entity: VisualEntity, parentEl: SVGElement): SV
   pill.setAttribute('width', String(w));
   pill.setAttribute('height', String(h));
   pill.setAttribute('rx', String(h / 2));
-  pill.setAttribute('fill', `url(#${gradId})`);
+  pill.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   pill.setAttribute('stroke', color);
   pill.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(pill);

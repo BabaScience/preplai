@@ -11,7 +11,7 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
+import { ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -19,6 +19,8 @@ import {
   TYPOGRAPHY,
   SHAPES,
   LABEL_DEFAULTS,
+  colorWithAlpha,
+  OPACITY,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -36,8 +38,6 @@ export function renderFlowDiagram(entity: VisualEntity, parentEl: SVGElement): S
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('FlowDiagram');
   const defs = ensureDefs(parentEl);
-  const gradId = `grad-fd-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const stepsRaw = (meta.steps as StepDef[] | undefined) ?? [
@@ -114,7 +114,7 @@ export function renderFlowDiagram(entity: VisualEntity, parentEl: SVGElement): S
       const points = `0,${-d} ${d},0 0,${d} ${-d},0`;
       const poly = document.createElementNS(SVG_NS, 'polygon');
       poly.setAttribute('points', points);
-      poly.setAttribute('fill', `url(#${gradId})`);
+      poly.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       poly.setAttribute('stroke', color);
       poly.setAttribute('stroke-width', String(shapeStrokeWidth));
       poly.setAttribute('stroke-linejoin', 'round');
@@ -140,7 +140,7 @@ export function renderFlowDiagram(entity: VisualEntity, parentEl: SVGElement): S
       rect.setAttribute('width', String(BOX_W));
       rect.setAttribute('height', String(BOX_H));
       rect.setAttribute('rx', String(SHAPES.borderRadius));
-      rect.setAttribute('fill', `url(#${gradId})`);
+      rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       rect.setAttribute('stroke', color);
       rect.setAttribute('stroke-width', String(shapeStrokeWidth));
       rect.setAttribute('stroke-linejoin', 'round');

@@ -7,7 +7,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, STROKE, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -16,9 +15,6 @@ export function renderDecision(entity: VisualEntity, parentEl: SVGElement): SVGG
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Decision');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-decision-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const d = s * 0.52;
 
@@ -37,7 +33,7 @@ export function renderDecision(entity: VisualEntity, parentEl: SVGElement): SVGG
   // Diamond shape
   const polygon = document.createElementNS(SVG_NS, 'polygon');
   polygon.setAttribute('points', `0,${-d} ${d},0 0,${d} ${-d},0`);
-  polygon.setAttribute('fill', `url(#${gradId})`);
+  polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   polygon.setAttribute('stroke', color);
   polygon.setAttribute('stroke-width', String(STROKE.default));
   polygon.setAttribute('stroke-linejoin', 'round');
