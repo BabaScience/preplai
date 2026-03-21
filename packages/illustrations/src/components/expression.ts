@@ -1,18 +1,12 @@
 /**
- * @preplai/illustrations — Expression Component
+ * @preplai/illustrations — Expression Component (minimalist)
  *
- * Inline math expression: compact box with centered text. Lighter than Equation.
- * Use for: inline formulas, f(x) = x², short expressions in flow.
+ * Compact inline math expression box. No scaleGroup wrapper.
  *
- * @see METADATA_SCHEMAS.md#expression
- *
- * Metadata:
- *   expression: string — expression text (or use entity.label)
- *   width: number — design width (default auto)
+ * Metadata: { expression?: string, width?: number }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { ensureDefs } from '../visual-utils.js';
 import { formatMathExpression } from './equation.js';
 import {
   getCategoryColor,
@@ -35,23 +29,20 @@ export function renderExpression(entity: VisualEntity, parentEl: SVGElement): SV
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Expression');
-  ensureDefs(parentEl);
 
   const meta = entity.metadata ?? {};
-  const raw = (meta.expression as string) ?? entity.label ?? 'f(x) = x^2';
+  const raw = (meta.expression as string) ?? entity.label ?? 'f(x) = x\u00B2';
   const expression = formatMathExpression(raw);
-  const displayText = expression.length > MAX_CHARS ? expression.slice(0, MAX_CHARS - 1) + '…' : expression;
+  const displayText = expression.length > MAX_CHARS ? expression.slice(0, MAX_CHARS - 1) + '\u2026' : expression;
 
   const designW = typeof meta.width === 'number' ? meta.width : Math.max(60, Math.min(110, expression.length * 7));
-  const w = designW;
-  const h = DESIGN_H;
+  const w = designW * scale;
+  const h = DESIGN_H * scale;
   const hw = w / 2;
   const hh = h / 2;
 
-  const scaleGroup = document.createElementNS(SVG_NS, 'g');
-  scaleGroup.setAttribute('transform', `scale(${scale})`);
-
-  const strokeWidth = getStrokeWidth('thin', 1);
+  const strokeWidth = getStrokeWidth('thin', scale);
+  const fontSize = getLabelFontSize('value', scale);
 
   const rect = document.createElementNS(SVG_NS, 'rect');
   rect.setAttribute('x', String(-hw));
@@ -63,9 +54,7 @@ export function renderExpression(entity: VisualEntity, parentEl: SVGElement): SV
   rect.setAttribute('stroke', color);
   rect.setAttribute('stroke-width', String(strokeWidth));
   rect.setAttribute('stroke-dasharray', '4,4');
-  scaleGroup.appendChild(rect);
-
-  const fontSize = getLabelFontSize('value', 1) / scale;
+  innerG.appendChild(rect);
 
   const text = document.createElementNS(SVG_NS, 'text');
   text.setAttribute('x', '0');
@@ -77,14 +66,12 @@ export function renderExpression(entity: VisualEntity, parentEl: SVGElement): SV
   text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightEmphasis));
   text.setAttribute('font-family', TYPOGRAPHY.fontCode);
   text.textContent = displayText;
-  scaleGroup.appendChild(text);
-
-  innerG.appendChild(scaleGroup);
+  innerG.appendChild(text);
 
   if (meta.expression && entity.label) {
     const subText = document.createElementNS(SVG_NS, 'text');
     subText.setAttribute('x', '0');
-    subText.setAttribute('y', String(hh * scale + LABEL_DEFAULTS.offsetBelow));
+    subText.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
     subText.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     subText.setAttribute('fill', color);
     subText.setAttribute('font-size', String(getLabelFontSize('label', scale)));

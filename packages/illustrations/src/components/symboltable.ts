@@ -1,14 +1,14 @@
 /**
- * @preplai/illustrations — SymbolTable Component
+ * @preplai/illustrations — SymbolTable Component (minimalist)
  *
  * Compiler/interpreter symbol table with name → type entries.
+ * No gradient fills, no dark gradient background.
  *
  * Metadata:
  *   entries?: Array<{ name: string; type: string; scope?: string }> — symbol entries
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, createDarkGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -18,6 +18,7 @@ import {
   TYPOGRAPHY,
   SHAPES,
   LABEL_DEFAULTS,
+  STROKE,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -33,11 +34,6 @@ export function renderSymbolTable(entity: VisualEntity, parentEl: SVGElement): S
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('SymbolTable');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-sym-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
-  const darkGradId = `grad-sym-dark-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createDarkGradient(darkGradId, defs, color);
 
   const meta = entity.metadata ?? {};
   const entries: SymbolEntry[] = (meta.entries as SymbolEntry[]) ?? [
@@ -58,6 +54,21 @@ export function renderSymbolTable(entity: VisualEntity, parentEl: SVGElement): S
   const halfW = w / 2;
   const halfH = h / 2;
 
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-halfW - 4));
+    glow.setAttribute('y', String(-halfH - 4));
+    glow.setAttribute('width', String(w + 8));
+    glow.setAttribute('height', String(h + 8));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
   // Outer frame
   const frame = document.createElementNS(SVG_NS, 'rect');
   frame.setAttribute('x', String(-halfW));
@@ -65,7 +76,7 @@ export function renderSymbolTable(entity: VisualEntity, parentEl: SVGElement): S
   frame.setAttribute('width', String(w));
   frame.setAttribute('height', String(h));
   frame.setAttribute('rx', String(SHAPES.borderRadius));
-  frame.setAttribute('fill', `url(#${darkGradId})`);
+  frame.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   frame.setAttribute('stroke', color);
   frame.setAttribute('stroke-width', String(sw));
   innerG.appendChild(frame);
@@ -78,7 +89,7 @@ export function renderSymbolTable(entity: VisualEntity, parentEl: SVGElement): S
   headerBg.setAttribute('width', String(w));
   headerBg.setAttribute('height', String(headerH));
   headerBg.setAttribute('rx', String(SHAPES.borderRadius));
-  headerBg.setAttribute('fill', `url(#${gradId})`);
+  headerBg.setAttribute('fill', colorWithAlpha(color, OPACITY.fillMedium));
   innerG.appendChild(headerBg);
 
   // Clip the bottom corners of the header (cover with a small rect)
@@ -87,7 +98,7 @@ export function renderSymbolTable(entity: VisualEntity, parentEl: SVGElement): S
   headerPatch.setAttribute('y', String(headerY + headerH - 4));
   headerPatch.setAttribute('width', String(w));
   headerPatch.setAttribute('height', '4');
-  headerPatch.setAttribute('fill', `url(#${gradId})`);
+  headerPatch.setAttribute('fill', colorWithAlpha(color, OPACITY.fillMedium));
   innerG.appendChild(headerPatch);
 
   // Header divider line
@@ -162,7 +173,7 @@ export function renderSymbolTable(entity: VisualEntity, parentEl: SVGElement): S
     nameText.setAttribute('x', String(-halfW + nameColW / 2));
     nameText.setAttribute('y', String(rowY + rowH / 2 + 3.5 * scale));
     nameText.setAttribute('text-anchor', 'middle');
-    nameText.setAttribute('fill', colorWithAlpha('#ffffff', OPACITY.strokeSoft));
+    nameText.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
     nameText.setAttribute('font-size', String(cellFontSize));
     nameText.setAttribute('font-family', TYPOGRAPHY.fontCode);
     const nameStr = entry.name ?? '';

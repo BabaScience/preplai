@@ -1,14 +1,14 @@
 /**
- * @preplai/illustrations — PullRequest Component
- * PR card: merge icon + title + status badge
- * Metadata: { prNumber?: number, status?: 'open'|'merged'|'closed', reviewers?: number }
+ * @preplai/illustrations — PullRequest Component (minimalist)
+ *
+ * Clean card with merge icon + title + status badge. No gradient fills.
+ * Metadata: { prNumber?: number, status?: 'open'|'merged'|'closed' }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor, getStrokeWidth, getLabelFontSize,
-  TYPOGRAPHY, SHAPES, COLORS, STROKE,
+  TYPOGRAPHY, SHAPES, COLORS, STROKE, colorWithAlpha, OPACITY,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -24,9 +24,6 @@ export function renderPullRequest(entity: VisualEntity, parentEl: SVGElement): S
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('PullRequest');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-pr-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const prNumber = meta.prNumber as number | undefined;
@@ -38,6 +35,21 @@ export function renderPullRequest(entity: VisualEntity, parentEl: SVGElement): S
   const hw = w / 2;
   const hh = h / 2;
 
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'rect');
+    glow.setAttribute('x', String(-hw - 3));
+    glow.setAttribute('y', String(-hh - 3));
+    glow.setAttribute('width', String(w + 6));
+    glow.setAttribute('height', String(h + 6));
+    glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
   // Card
   const card = document.createElementNS(SVG_NS, 'rect');
   card.setAttribute('x', String(-hw));
@@ -45,29 +57,22 @@ export function renderPullRequest(entity: VisualEntity, parentEl: SVGElement): S
   card.setAttribute('width', String(w));
   card.setAttribute('height', String(h));
   card.setAttribute('rx', String(SHAPES.borderRadius));
-  card.setAttribute('fill', `url(#${gradId})`);
+  card.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   card.setAttribute('stroke', color);
   card.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   innerG.appendChild(card);
 
-  // Merge icon (two lines merging into one)
+  // Merge icon
   const mergeG = document.createElementNS(SVG_NS, 'g');
   mergeG.setAttribute('transform', `translate(${-hw + 18}, 0)`);
-  // Top dot
   const topDot = document.createElementNS(SVG_NS, 'circle');
-  topDot.setAttribute('cx', '0');
-  topDot.setAttribute('cy', '-8');
-  topDot.setAttribute('r', '3');
-  topDot.setAttribute('fill', color);
+  topDot.setAttribute('cx', '0'); topDot.setAttribute('cy', '-8');
+  topDot.setAttribute('r', '3'); topDot.setAttribute('fill', color);
   mergeG.appendChild(topDot);
-  // Bottom dot
   const bottomDot = document.createElementNS(SVG_NS, 'circle');
-  bottomDot.setAttribute('cx', '0');
-  bottomDot.setAttribute('cy', '8');
-  bottomDot.setAttribute('r', '3');
-  bottomDot.setAttribute('fill', color);
+  bottomDot.setAttribute('cx', '0'); bottomDot.setAttribute('cy', '8');
+  bottomDot.setAttribute('r', '3'); bottomDot.setAttribute('fill', color);
   mergeG.appendChild(bottomDot);
-  // Branch line curving into trunk
   const mergePath = document.createElementNS(SVG_NS, 'path');
   mergePath.setAttribute('d', 'M 0 -5 L 0 5 M 6 -6 Q 6 0 0 3');
   mergePath.setAttribute('stroke', color);
@@ -110,7 +115,7 @@ export function renderPullRequest(entity: VisualEntity, parentEl: SVGElement): S
   badgeText.setAttribute('x', String(badgeX + badgeW / 2));
   badgeText.setAttribute('y', String(badgeY + 9));
   badgeText.setAttribute('text-anchor', 'middle');
-  badgeText.setAttribute('fill', '#0a0a12');
+  badgeText.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   badgeText.setAttribute('font-size', String(getLabelFontSize('inline', scale)));
   badgeText.setAttribute('font-family', TYPOGRAPHY.fontCode);
   badgeText.textContent = status;

@@ -1,10 +1,8 @@
 /**
- * @preplai/illustrations — DeadlockGraph Component
+ * @preplai/illustrations — DeadlockGraph Component (minimalist)
  *
  * Resource allocation / wait-for graph: nodes (processes/resources) and directed edges.
- * A cycle indicates deadlock. Use for: OS concurrency, deadlock detection, resource allocation.
- *
- * @see METADATA_SCHEMAS.md#deadlockgraph
+ * A cycle indicates deadlock. No gradient fills.
  *
  * Metadata:
  *   nodes: Array<{ id, label }> — processes or resources
@@ -12,7 +10,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -21,6 +18,7 @@ import {
   OPACITY,
   TYPOGRAPHY,
   LABEL_DEFAULTS,
+  STROKE,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -43,9 +41,6 @@ export function renderDeadlockGraph(entity: VisualEntity, parentEl: SVGElement):
   const strokeDefault = getStrokeWidth('default', scale);
   const strokeEmphasized = getStrokeWidth('emphasized', scale);
   const color = entity.color ?? getCategoryColor('DeadlockGraph');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-dg-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const nodesData = meta.nodes as NodeDef[] | undefined;
@@ -72,22 +67,37 @@ export function renderDeadlockGraph(entity: VisualEntity, parentEl: SVGElement):
     positions[n.id] = { x: Math.cos(angle) * spacing, y: Math.sin(angle) * spacing };
   });
 
-  const markerId = `arrow-dg-${entity.id.replace(/[^a-z0-9]/gi, '')}`;
-  if (!defs.querySelector(`#${markerId}`)) {
-    const marker = document.createElementNS(SVG_NS, 'marker');
-    marker.setAttribute('id', markerId);
-    marker.setAttribute('markerWidth', '10');
-    marker.setAttribute('markerHeight', '8');
-    marker.setAttribute('refX', '9');
-    marker.setAttribute('refY', '4');
-    marker.setAttribute('orient', 'auto');
-    const poly = document.createElementNS(SVG_NS, 'polygon');
-    poly.setAttribute('points', '0 0, 10 4, 0 8');
-    poly.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
-    marker.appendChild(poly);
-    defs.appendChild(marker);
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'circle');
+    glow.setAttribute('cx', '0');
+    glow.setAttribute('cy', '0');
+    glow.setAttribute('r', String(spacing + r + 6));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
   }
 
+  // Arrow markers — inline SVG marker (no defs dependency)
+  const markerId = `arrow-dg-${entity.id.replace(/[^a-z0-9]/gi, '')}`;
+  const defs = document.createElementNS(SVG_NS, 'defs');
+  const marker = document.createElementNS(SVG_NS, 'marker');
+  marker.setAttribute('id', markerId);
+  marker.setAttribute('markerWidth', '10');
+  marker.setAttribute('markerHeight', '8');
+  marker.setAttribute('refX', '9');
+  marker.setAttribute('refY', '4');
+  marker.setAttribute('orient', 'auto');
+  const poly = document.createElementNS(SVG_NS, 'polygon');
+  poly.setAttribute('points', '0 0, 10 4, 0 8');
+  poly.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
+  marker.appendChild(poly);
+  defs.appendChild(marker);
+  innerG.appendChild(defs);
+
+  // Edges
   for (const { from, to } of edges) {
     const p1 = positions[from];
     const p2 = positions[to];
@@ -114,6 +124,7 @@ export function renderDeadlockGraph(entity: VisualEntity, parentEl: SVGElement):
     innerG.appendChild(line);
   }
 
+  // Nodes
   for (const node of nodes) {
     const pos = positions[node.id] ?? { x: 0, y: 0 };
     const label = node.label ?? node.id;
@@ -122,7 +133,7 @@ export function renderDeadlockGraph(entity: VisualEntity, parentEl: SVGElement):
     circle.setAttribute('cx', String(pos.x));
     circle.setAttribute('cy', String(pos.y));
     circle.setAttribute('r', String(r));
-    circle.setAttribute('fill', `url(#${gradId})`);
+    circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillMedium));
     circle.setAttribute('stroke', color);
     circle.setAttribute('stroke-width', String(strokeDefault));
     innerG.appendChild(circle);
@@ -142,7 +153,7 @@ export function renderDeadlockGraph(entity: VisualEntity, parentEl: SVGElement):
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', '0');
-    text.setAttribute('y', String(spacing + LABEL_DEFAULTS.offsetBelow));
+    text.setAttribute('y', String(spacing + r + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', color);
     text.setAttribute('font-size', String(getLabelFontSize('label', scale)));

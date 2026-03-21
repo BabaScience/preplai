@@ -1,8 +1,9 @@
 /**
- * @preplai/illustrations — RecursionTree Component
+ * @preplai/illustrations — RecursionTree Component (minimalist)
  *
  * Tree of function call nodes showing recursive calls with args and return values.
  * States: pending (dimmed), executing (highlighted), returned (normal + return value).
+ * No gradient fills, no drop-shadow filters.
  *
  * Metadata:
  *   calls: Array<{ id, label, args, returnValue?, state: 'pending'|'executing'|'returned' }>
@@ -11,7 +12,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -79,9 +79,6 @@ export function renderRecursionTree(entity: VisualEntity, parentEl: SVGElement):
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('RecursionTree');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-rt-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const callsData = meta.calls as RecursionCall[] | undefined;
@@ -125,6 +122,7 @@ export function renderRecursionTree(entity: VisualEntity, parentEl: SVGElement):
 
   const byId = new Map(calls.map((c) => [c.id, c]));
 
+  // Edges
   layoutEdges.forEach(({ x1, y1, x2, y2 }) => {
     const line = document.createElementNS(SVG_NS, 'line');
     line.setAttribute('x1', String(x1));
@@ -139,6 +137,7 @@ export function renderRecursionTree(entity: VisualEntity, parentEl: SVGElement):
   const labelFontSize = getLabelFontSize('value', scale);
   const subFontSize = getLabelFontSize('index', scale);
 
+  // Nodes
   nodes.forEach((n) => {
     const call: RecursionCall | undefined = (n.id ? byId.get(n.id) : undefined) ?? calls.find((c) => c.label === n.value);
     const state = call?.state ?? 'returned';
@@ -152,15 +151,12 @@ export function renderRecursionTree(entity: VisualEntity, parentEl: SVGElement):
     rect.setAttribute('width', String(blockW));
     rect.setAttribute('height', String(blockH));
     rect.setAttribute('rx', String(SHAPES.borderRadius));
-    rect.setAttribute('fill', `url(#${gradId})`);
+    rect.setAttribute('fill', colorWithAlpha(color, isExecuting ? OPACITY.fillMedium : OPACITY.fillLight));
     rect.setAttribute('stroke', color);
     rect.setAttribute('stroke-width', String(getStrokeWidth(isExecuting ? 'emphasized' : 'thin', scale)));
     if (isPending) {
       rect.setAttribute('opacity', '0.9');
       rect.setAttribute('stroke-dasharray', '4,4');
-    }
-    if (isExecuting) {
-      rect.setAttribute('filter', `drop-shadow(0 0 ${4 * scale}px ${color})`);
     }
     blockG.appendChild(rect);
 

@@ -1,14 +1,14 @@
 /**
- * @preplai/illustrations — GitCommit Component
- * Git commit node: circle with hash + message
+ * @preplai/illustrations — GitCommit Component (minimalist)
+ *
+ * Commit circle with hash inside + message below. No gradient fills.
  * Metadata: { hash?: string, message?: string }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor, getStrokeWidth, getLabelFontSize,
-  TYPOGRAPHY,
+  TYPOGRAPHY, colorWithAlpha, OPACITY, STROKE,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -18,9 +18,6 @@ export function renderGitCommit(entity: VisualEntity, parentEl: SVGElement): SVG
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('GitCommit');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-gitcm-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const hash = (meta.hash as string) ?? 'a1b2c3d';
@@ -28,32 +25,41 @@ export function renderGitCommit(entity: VisualEntity, parentEl: SVGElement): SVG
 
   const r = s * 0.2;
 
+  // Highlight glow
+  if (entity.highlight) {
+    const glow = document.createElementNS(SVG_NS, 'circle');
+    glow.setAttribute('cx', '0');
+    glow.setAttribute('cy', '0');
+    glow.setAttribute('r', String(r + 4));
+    glow.setAttribute('fill', 'none');
+    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+    glow.setAttribute('stroke-width', String(STROKE.default));
+    glow.setAttribute('stroke-dasharray', '4,4');
+    innerG.appendChild(glow);
+  }
+
   // Commit circle
   const circle = document.createElementNS(SVG_NS, 'circle');
   circle.setAttribute('cx', '0');
   circle.setAttribute('cy', '0');
   circle.setAttribute('r', String(r));
-  circle.setAttribute('fill', `url(#${gradId})`);
+  circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillMedium));
   circle.setAttribute('stroke', color);
   circle.setAttribute('stroke-width', String(getStrokeWidth('emphasized', scale)));
   innerG.appendChild(circle);
 
-  // Connection lines (stubs extending from circle)
+  // Connection stubs
   const stubUp = document.createElementNS(SVG_NS, 'line');
-  stubUp.setAttribute('x1', '0');
-  stubUp.setAttribute('y1', String(-r));
-  stubUp.setAttribute('x2', '0');
-  stubUp.setAttribute('y2', String(-r - 8));
+  stubUp.setAttribute('x1', '0'); stubUp.setAttribute('y1', String(-r));
+  stubUp.setAttribute('x2', '0'); stubUp.setAttribute('y2', String(-r - 8));
   stubUp.setAttribute('stroke', color);
   stubUp.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   stubUp.setAttribute('opacity', '0.4');
   innerG.appendChild(stubUp);
 
   const stubDown = document.createElementNS(SVG_NS, 'line');
-  stubDown.setAttribute('x1', '0');
-  stubDown.setAttribute('y1', String(r));
-  stubDown.setAttribute('x2', '0');
-  stubDown.setAttribute('y2', String(r + 8));
+  stubDown.setAttribute('x1', '0'); stubDown.setAttribute('y1', String(r));
+  stubDown.setAttribute('x2', '0'); stubDown.setAttribute('y2', String(r + 8));
   stubDown.setAttribute('stroke', color);
   stubDown.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   stubDown.setAttribute('opacity', '0.4');

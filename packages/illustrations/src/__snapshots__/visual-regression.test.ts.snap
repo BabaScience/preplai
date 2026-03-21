@@ -383,7 +383,7 @@ exports[`Visual Regression — SVG Snapshots > renders CallStack without crashin
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 3,
+    "g": 1,
     "rect": 2,
     "text": 3,
   },
@@ -392,7 +392,7 @@ exports[`Visual Regression — SVG Snapshots > renders CallStack without crashin
     "foo()",
     "CallStack",
   ],
-  "totalElements": 8,
+  "totalElements": 6,
 }
 `;
 
@@ -843,13 +843,16 @@ exports[`Visual Regression — SVG Snapshots > renders DeadLetterQueue without c
 
 exports[`Visual Regression — SVG Snapshots > renders DeadlockGraph without crashing > produces valid SVG group with stable structure 1`] = `
 {
-  "defsCount": 0,
+  "defsCount": 1,
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
     "circle": 2,
+    "defs": 1,
     "g": 1,
     "line": 1,
+    "marker": 1,
+    "polygon": 1,
     "text": 3,
   },
   "textLabels": [
@@ -857,7 +860,7 @@ exports[`Visual Regression — SVG Snapshots > renders DeadlockGraph without cra
     "R1",
     "DeadlockGraph",
   ],
-  "totalElements": 7,
+  "totalElements": 10,
 }
 `;
 
@@ -1092,13 +1095,13 @@ exports[`Visual Regression — SVG Snapshots > renders Equation without crashing
   "rendered": true,
   "tagCounts": {
     "g": 2,
-    "rect": 2,
+    "rect": 1,
     "text": 1,
   },
   "textLabels": [
     "Equation",
   ],
-  "totalElements": 5,
+  "totalElements": 4,
 }
 `;
 
@@ -1144,14 +1147,14 @@ exports[`Visual Regression — SVG Snapshots > renders Expression without crashi
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 2,
+    "g": 1,
     "rect": 1,
     "text": 1,
   },
   "textLabels": [
     "Expression",
   ],
-  "totalElements": 4,
+  "totalElements": 3,
 }
 `;
 
@@ -1325,7 +1328,7 @@ exports[`Visual Regression — SVG Snapshots > renders GitBranch without crashin
   "rendered": true,
   "tagCounts": {
     "circle": 3,
-    "g": 2,
+    "g": 1,
     "line": 1,
     "path": 1,
     "text": 1,
@@ -1333,7 +1336,7 @@ exports[`Visual Regression — SVG Snapshots > renders GitBranch without crashin
   "textLabels": [
     "feature/auth",
   ],
-  "totalElements": 8,
+  "totalElements": 7,
 }
 `;
 
