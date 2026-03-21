@@ -8,17 +8,38 @@ const THEMES = {
     bg: '#0c0d14',          // mid-vignette (most common area)
     bgLight: '#12131c',     // center
     bgDark: '#050509',      // edges
+    vignette: [
+      { offset: '0%', color: '#12131c' },
+      { offset: '50%', color: '#0c0d14' },
+      { offset: '100%', color: '#050509' },
+    ],
+    dotColor: 'rgba(255,255,255,0.15)',
+    dotOpacity: 0.04,
   },
   light: {
     label: '☀️ Light',
     bg: '#f3ede4',          // mid-vignette
     bgLight: '#faf7f2',     // center
     bgDark: '#ebe4d8',      // edges
+    vignette: [
+      { offset: '0%', color: '#faf7f2' },
+      { offset: '50%', color: '#f5f0e8' },
+      { offset: '100%', color: '#ebe4d8' },
+    ],
+    dotColor: 'rgba(0,0,0,0.5)',
+    dotOpacity: 0.06,
   },
 };
 
 const CATEGORIES = ['compute', 'data', 'environment', 'human', 'structure', 'state', 'annotation', 'generic', 'accent'];
 const PALETTE_NAMES = ['default', 'ocean', 'sunset', 'forest', 'mono'];
+
+/* ── Illustration opacity tokens (match design-tokens.ts OPACITY) ──── */
+const OPACITY = {
+  fillHeavy: '66',   // 40%
+  fillMedium: '40',  // 25%
+  strokeFull: 'ff',  // 100%
+};
 
 /* ── WCAG contrast ratio helpers ─────────────────────────────────────── */
 function hexToRgb(hex) {
@@ -55,6 +76,59 @@ function contrastBadgeColor(ratio) {
   if (ratio >= 4.5) return '#22c55e';
   if (ratio >= 3) return '#f59e0b';
   return '#ef4444';
+}
+
+/** Normalize hex to 6-char uppercase for gradient IDs */
+function colorId(hex) {
+  return hex.replace(/[^a-fA-F0-9]/g, '').toUpperCase();
+}
+
+/* ── Liquid Glass Swatch ─────────────────────────────────────────────── */
+function GlassSwatch({ color, baseColor, wasFixed, themeKey, size = 56 }) {
+  const r = size / 2 - 4;
+  const cx = size / 2;
+  const cy = size / 2;
+  const gradId = `swatch-grad-${colorId(color)}-${themeKey}`;
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <defs>
+        {/* Radial gradient matching illustration rendering: center lighter → edge darker */}
+        <radialGradient id={gradId} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={`${color}${OPACITY.fillHeavy}`} />
+          <stop offset="100%" stopColor={`${color}${OPACITY.fillMedium}`} />
+        </radialGradient>
+      </defs>
+
+      {/* Original color ring (dashed) when theme-adjusted */}
+      {wasFixed && (
+        <circle
+          cx={cx} cy={cy} r={r + 3}
+          fill="none"
+          stroke={baseColor}
+          strokeWidth="1"
+          opacity="0.3"
+          strokeDasharray="3 2"
+        />
+      )}
+
+      {/* Main glass circle — radial gradient fill + full-color stroke */}
+      <circle
+        cx={cx} cy={cy} r={r}
+        fill={`url(#${gradId})`}
+        stroke={color}
+        strokeWidth="1.5"
+      />
+
+      {/* Inner highlight — subtle lighter center glow */}
+      <circle
+        cx={cx} cy={cy - r * 0.15}
+        r={r * 0.45}
+        fill={`${color}${OPACITY.fillMedium}`}
+        stroke="none"
+      />
+    </svg>
+  );
 }
 
 /* ── Main component ──────────────────────────────────────────────────── */
@@ -106,12 +180,16 @@ export default function PaletteContrast() {
     ? ['cinema', 'light']
     : [selectedTheme];
 
+  // Generate a unique vignette ID per theme per palette card
+  let vignetteCounter = 0;
+
   return (
     <div className="palette-contrast-root">
       <div className="palette-contrast-header">
         <h2 className="dev-heading">Palette Contrast Audit</h2>
         <p className="dev-hint" style={{ marginBottom: 'var(--space-3)' }}>
-          Every palette color tested against both theme backgrounds. WCAG AA requires ≥4.5:1 for text, ≥3:1 for large text/graphics.
+          Every palette color rendered with the same liquid glass effect as actual illustrations.
+          WCAG AA requires ≥4.5:1 for text, ≥3:1 for large text/graphics.
         </p>
         <div className="scene-toggle-row" style={{ marginBottom: 'var(--space-4)' }}>
           {['both', 'cinema', 'light'].map((t) => (
@@ -135,66 +213,165 @@ export default function PaletteContrast() {
 
             {themesToShow.map((themeKey) => {
               const theme = THEMES[themeKey];
+              const vigId = `pc-vig-${name}-${themeKey}-${vignetteCounter++}`;
+              const noiseId = `pc-noise-${name}-${themeKey}`;
+              const dotSpacing = 40;
+              const svgW = rows.length * 82;
+              const svgH = 120;
+
               return (
                 <div key={themeKey} className="palette-contrast-theme-section">
                   <div className="palette-contrast-theme-label">{theme.label}</div>
-                  <div
-                    className="palette-contrast-swatches"
-                    style={{ background: theme.bg }}
+                  {/* Full SVG canvas with player-accurate background */}
+                  <svg
+                    className="palette-contrast-canvas"
+                    viewBox={`0 0 ${svgW} ${svgH}`}
+                    preserveAspectRatio="xMidYMid meet"
                   >
-                    {rows.map(({ category, baseColor, [themeKey]: result }) => {
-                      const { color: adjustedColor, ratio, label: badge, wasFixed, baseRatio } = result;
-                      const badgeColor = contrastBadgeColor(ratio);
+                    <defs>
+                      {/* Vignette gradient matching actual player */}
+                      <radialGradient id={vigId} cx="50%" cy="50%" r="70%">
+                        {theme.vignette.map((s, i) => (
+                          <stop key={i} offset={s.offset} stopColor={s.color} />
+                        ))}
+                      </radialGradient>
+                      {/* Noise filter */}
+                      <filter id={noiseId} x="0%" y="0%" width="100%" height="100%">
+                        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" result="noise" />
+                        <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise" />
+                        <feComponentTransfer in="grayNoise" result="alphaedNoise">
+                          <feFuncA type="linear" slope="0.03" />
+                        </feComponentTransfer>
+                        <feBlend in="SourceGraphic" in2="alphaedNoise" mode="multiply" />
+                      </filter>
+                    </defs>
+
+                    {/* Background vignette */}
+                    <rect width={svgW} height={svgH} fill={`url(#${vigId})`} />
+
+                    {/* Dot grid */}
+                    <g opacity={theme.dotOpacity}>
+                      {(() => {
+                        const dots = [];
+                        for (let x = dotSpacing / 2; x < svgW; x += dotSpacing) {
+                          for (let y = dotSpacing / 2; y < svgH; y += dotSpacing) {
+                            dots.push(<circle key={`${x}-${y}`} cx={x} cy={y} r="0.6" fill={theme.dotColor} />);
+                          }
+                        }
+                        return dots;
+                      })()}
+                    </g>
+
+                    {/* Noise overlay */}
+                    <rect width={svgW} height={svgH} fill="transparent" filter={`url(#${noiseId})`} opacity={themeKey === 'cinema' ? 0.4 : 0.2} />
+
+                    {/* Glass entity swatches */}
+                    {rows.map(({ category, baseColor, [themeKey]: result }, idx) => {
+                      const { color: adjustedColor, ratio, label: badge, wasFixed } = result;
+                      const badgeClr = contrastBadgeColor(ratio);
+                      const cx = idx * 82 + 41;
+                      const cy = 42;
+                      const r = 24;
+                      const gradSwatchId = `pc-sgrad-${name}-${themeKey}-${category}`;
+                      const textColor = themeKey === 'cinema' ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.45)';
+                      const hexTextColor = themeKey === 'cinema' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.25)';
+
                       return (
-                        <div
-                          key={category}
-                          className="palette-contrast-swatch"
-                          title={`${category}: ${adjustedColor} — ${ratio.toFixed(2)}:1 (${badge})${wasFixed ? ` (was ${baseColor} ${baseRatio.toFixed(2)}:1)` : ''}`}
-                        >
-                          {/* Swatch: show base (outer ring) and adjusted (inner fill) */}
-                          <svg width="48" height="48" viewBox="0 0 48 48">
-                            {wasFixed && (
-                              <circle cx="24" cy="24" r="22" fill="none" stroke={baseColor} strokeWidth="2" opacity="0.35" strokeDasharray="3 2" />
-                            )}
-                            <circle cx="24" cy="24" r="18" fill={adjustedColor} stroke={adjustedColor} strokeWidth="1.5" opacity="0.95" />
-                            <circle cx="24" cy="24" r="12" fill="none" stroke={adjustedColor} strokeWidth="1" opacity="0.6" />
-                          </svg>
-                          {/* Category label */}
-                          <span
-                            className="palette-contrast-cat"
-                            style={{ color: themeKey === 'cinema' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)' }}
+                        <g key={category}>
+                          <defs>
+                            <radialGradient id={gradSwatchId} cx="50%" cy="40%" r="55%">
+                              <stop offset="0%" stopColor={`${adjustedColor}${OPACITY.fillHeavy}`} />
+                              <stop offset="100%" stopColor={`${adjustedColor}${OPACITY.fillMedium}`} />
+                            </radialGradient>
+                          </defs>
+
+                          {/* Original color dashed ring (when theme-adjusted) */}
+                          {wasFixed && (
+                            <circle
+                              cx={cx} cy={cy} r={r + 4}
+                              fill="none"
+                              stroke={baseColor}
+                              strokeWidth="1"
+                              opacity="0.25"
+                              strokeDasharray="3 2"
+                            />
+                          )}
+
+                          {/* Main liquid glass circle */}
+                          <circle
+                            cx={cx} cy={cy} r={r}
+                            fill={`url(#${gradSwatchId})`}
+                            stroke={adjustedColor}
+                            strokeWidth="1.5"
+                          />
+
+                          {/* Inner highlight glow (top-center) */}
+                          <ellipse
+                            cx={cx} cy={cy - r * 0.2}
+                            rx={r * 0.5} ry={r * 0.35}
+                            fill={`${adjustedColor}15`}
+                            stroke="none"
+                          />
+
+                          {/* Category name */}
+                          <text
+                            x={cx} y={cy + r + 14}
+                            textAnchor="middle"
+                            fill={textColor}
+                            fontSize="7"
+                            fontFamily="Inter, sans-serif"
+                            fontWeight="500"
                           >
                             {category}
-                          </span>
-                          {/* Color hex */}
-                          <span
-                            className="palette-contrast-hex"
-                            style={{ color: themeKey === 'cinema' ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)' }}
+                          </text>
+
+                          {/* Hex value */}
+                          <text
+                            x={cx} y={cy + r + 23}
+                            textAnchor="middle"
+                            fill={hexTextColor}
+                            fontSize="5.5"
+                            fontFamily="'JetBrains Mono', monospace"
                           >
-                            {wasFixed ? `${adjustedColor}` : adjustedColor}
-                          </span>
+                            {adjustedColor}
+                          </text>
+
                           {/* Contrast badge */}
-                          <span
-                            className="palette-contrast-badge"
-                            style={{
-                              background: badgeColor,
-                              color: ratio >= 3 ? '#000' : '#fff',
-                            }}
+                          <rect
+                            x={cx - 16} y={cy + r + 26}
+                            width="32" height="11"
+                            rx="2"
+                            fill={badgeClr}
+                            opacity="0.9"
+                          />
+                          <text
+                            x={cx} y={cy + r + 34}
+                            textAnchor="middle"
+                            fill={ratio >= 3 ? '#000' : '#fff'}
+                            fontSize="6"
+                            fontWeight="700"
+                            fontFamily="Inter, sans-serif"
                           >
                             {ratio.toFixed(1)} {badge}
-                          </span>
+                          </text>
+
+                          {/* Strikethrough old color if was fixed */}
                           {wasFixed && (
-                            <span
-                              className="palette-contrast-hex"
-                              style={{ color: themeKey === 'cinema' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.2)', textDecoration: 'line-through' }}
+                            <text
+                              x={cx} y={cy + r + 44}
+                              textAnchor="middle"
+                              fill={hexTextColor}
+                              fontSize="5"
+                              fontFamily="'JetBrains Mono', monospace"
+                              textDecoration="line-through"
                             >
                               {baseColor}
-                            </span>
+                            </text>
                           )}
-                        </div>
+                        </g>
                       );
                     })}
-                  </div>
+                  </svg>
                 </div>
               );
             })}
@@ -202,7 +379,7 @@ export default function PaletteContrast() {
         ))}
       </div>
 
-      {/* Summary: failing combos */}
+      {/* Summary: remaining issues */}
       <div className="palette-contrast-summary">
         <h3 className="palette-contrast-title">Remaining Issues (below 3:1 after theme adjustment)</h3>
         <div className="palette-contrast-issues">
