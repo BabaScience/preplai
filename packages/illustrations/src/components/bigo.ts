@@ -1,60 +1,48 @@
 /**
- * @preplai/illustrations — Big O Component
- * Complexity growth curves: O(1), O(log n), O(n), O(n log n), O(n²), O(2^n)
+ * @preplai/illustrations — BigO Component (minimalist)
+ *
+ * Clean complexity growth curves. No dark gradient background, no clip paths.
+ * Metadata: { curves?: string[], domain?: [number, number] }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createDarkGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   TYPOGRAPHY,
   COLORS,
-  SHAPES,
   LABEL_DEFAULTS,
   getLabelFontSize,
   getStrokeWidth,
   colorWithAlpha,
+  OPACITY,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
-type BigOCurve =
-  | 'O(1)'
-  | 'O(log n)'
-  | 'O(n)'
-  | 'O(n log n)'
-  | 'O(n²)'
-  | 'O(2^n)';
+type BigOCurve = 'O(1)' | 'O(log n)' | 'O(n)' | 'O(n log n)' | 'O(n\u00B2)' | 'O(2^n)';
 
 const CURVE_COLORS: Record<string, string> = {
   'O(1)': COLORS.green,
   'O(log n)': COLORS.teal,
   'O(n)': COLORS.blue,
   'O(n log n)': COLORS.violet,
-  'O(n²)': COLORS.pink,
+  'O(n\u00B2)': COLORS.pink,
   'O(2^n)': COLORS.red,
 };
 
 function evalCurve(name: BigOCurve, n: number): number {
   if (n <= 0) return 0;
   switch (name) {
-    case 'O(1)':
-      return 1;
-    case 'O(log n)':
-      return Math.log2(n + 1);
-    case 'O(n)':
-      return n;
-    case 'O(n log n)':
-      return n * Math.log2(n + 1);
-    case 'O(n²)':
-      return n * n;
-    case 'O(2^n)':
-      return Math.pow(2, Math.min(n, 8)); // Cap to avoid overflow
-    default:
-      return 0;
+    case 'O(1)': return 1;
+    case 'O(log n)': return Math.log2(n + 1);
+    case 'O(n)': return n;
+    case 'O(n log n)': return n * Math.log2(n + 1);
+    case 'O(n\u00B2)': return n * n;
+    case 'O(2^n)': return Math.pow(2, Math.min(n, 8));
+    default: return 0;
   }
 }
 
-const DEFAULT_CURVES: BigOCurve[] = ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)'];
+const DEFAULT_CURVES: BigOCurve[] = ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n\u00B2)'];
 
 export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
@@ -63,20 +51,17 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   const scale = s / 50;
   const axisFontSize = getLabelFontSize('value', scale);
   const legendFontSize = getLabelFontSize('inline', scale);
+  const strokeWidth = getStrokeWidth('thin', scale);
   const totalW = s * 4;
   const totalH = s * 3;
 
-  const meta = entity.metadata ?? {};
   const color = entity.color ?? getCategoryColor('BigO');
-  const defs = ensureDefs(parentEl);
-  const bgGradId = `grad-bigo-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createDarkGradient(bgGradId, defs, color);
-
+  const meta = entity.metadata ?? {};
   const curves = (meta.curves as BigOCurve[]) ?? DEFAULT_CURVES;
   const domain: [number, number] = (meta.domain as [number, number]) ?? [0, 10];
   const pad = 30;
 
-  // Compute max Y across all curves for scaling
+  // Compute max Y for scaling
   const steps = 60;
   const dx = (domain[1] - domain[0]) / steps;
   let maxY = 1;
@@ -94,125 +79,65 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   const chartLeft = -totalW / 2 + pad;
   const chartTop = -totalH / 2 + pad;
 
-  const mapX = (v: number) =>
-    chartLeft + ((v - domain[0]) / (domain[1] - domain[0])) * chartW;
-  const mapY = (v: number) =>
-    chartTop + chartH - ((v - range[0]) / (range[1] - range[0])) * chartH;
-
-  // Clip path
-  const clipId = `clip-bigo-${Math.random().toString(36).slice(2, 9)}`;
-  const clipPath = document.createElementNS(SVG_NS, 'clipPath');
-  clipPath.setAttribute('id', clipId);
-  const clipRect = document.createElementNS(SVG_NS, 'rect');
-  clipRect.setAttribute('x', String(chartLeft));
-  clipRect.setAttribute('y', String(chartTop));
-  clipRect.setAttribute('width', String(chartW));
-  clipRect.setAttribute('height', String(chartH));
-  clipPath.appendChild(clipRect);
-  defs.appendChild(clipPath);
-
-  const chartGroup = document.createElementNS(SVG_NS, 'g');
-  chartGroup.setAttribute('clip-path', `url(#${clipId})`);
-
-  // Background
-  const bg = document.createElementNS(SVG_NS, 'rect');
-  bg.setAttribute('x', String(-totalW / 2));
-  bg.setAttribute('y', String(-totalH / 2));
-  bg.setAttribute('width', String(totalW));
-  bg.setAttribute('height', String(totalH));
-  bg.setAttribute('rx', String(SHAPES.borderRadiusLarge));
-  bg.setAttribute('fill', `url(#${bgGradId})`);
-  bg.setAttribute('stroke', color);
-  bg.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
-  innerG.appendChild(bg);
-  innerG.appendChild(chartGroup);
+  const mapX = (v: number) => chartLeft + ((v - domain[0]) / (domain[1] - domain[0])) * chartW;
+  const mapY = (v: number) => chartTop + chartH - ((v - range[0]) / (range[1] - range[0])) * chartH;
 
   // Grid
+  const gridColor = colorWithAlpha(color, '18');
   for (let v = Math.ceil(domain[0]); v <= Math.floor(domain[1]); v++) {
-    const gx = mapX(v);
     const gl = document.createElementNS(SVG_NS, 'line');
-    gl.setAttribute('x1', String(gx));
-    gl.setAttribute('y1', String(chartTop));
-    gl.setAttribute('x2', String(gx));
-    gl.setAttribute('y2', String(chartTop + chartH));
-    gl.setAttribute('stroke', '#ffffff12');
-    gl.setAttribute('stroke-width', String(getStrokeWidth('minimal', scale)));
-    chartGroup.appendChild(gl);
-  }
-  for (let v = 0; v <= range[1]; v += Math.max(1, Math.ceil(range[1] / 5))) {
-    const gy = mapY(v);
-    const gl = document.createElementNS(SVG_NS, 'line');
-    gl.setAttribute('x1', String(chartLeft));
-    gl.setAttribute('y1', String(gy));
-    gl.setAttribute('x2', String(chartLeft + chartW));
-    gl.setAttribute('y2', String(gy));
-    gl.setAttribute('stroke', '#ffffff12');
-    gl.setAttribute('stroke-width', String(getStrokeWidth('minimal', scale)));
-    chartGroup.appendChild(gl);
+    gl.setAttribute('x1', String(mapX(v))); gl.setAttribute('y1', String(chartTop));
+    gl.setAttribute('x2', String(mapX(v))); gl.setAttribute('y2', String(chartTop + chartH));
+    gl.setAttribute('stroke', gridColor); gl.setAttribute('stroke-width', '1');
+    innerG.appendChild(gl);
   }
 
   // Axes
+  const axisColor = colorWithAlpha(color, OPACITY.strokeMuted);
   const xAxis = document.createElementNS(SVG_NS, 'line');
-  xAxis.setAttribute('x1', String(chartLeft));
-  xAxis.setAttribute('y1', String(mapY(0)));
-  xAxis.setAttribute('x2', String(chartLeft + chartW));
-  xAxis.setAttribute('y2', String(mapY(0)));
-  xAxis.setAttribute('stroke', '#ffffff40');
-  xAxis.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
-  chartGroup.appendChild(xAxis);
+  xAxis.setAttribute('x1', String(chartLeft)); xAxis.setAttribute('y1', String(mapY(0)));
+  xAxis.setAttribute('x2', String(chartLeft + chartW)); xAxis.setAttribute('y2', String(mapY(0)));
+  xAxis.setAttribute('stroke', axisColor); xAxis.setAttribute('stroke-width', String(strokeWidth));
+  innerG.appendChild(xAxis);
 
   const yAxis = document.createElementNS(SVG_NS, 'line');
-  yAxis.setAttribute('x1', String(mapX(domain[0])));
-  yAxis.setAttribute('y1', String(chartTop));
-  yAxis.setAttribute('x2', String(mapX(domain[0])));
-  yAxis.setAttribute('y2', String(chartTop + chartH));
-  yAxis.setAttribute('stroke', '#ffffff40');
-  yAxis.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
-  chartGroup.appendChild(yAxis);
+  yAxis.setAttribute('x1', String(mapX(domain[0]))); yAxis.setAttribute('y1', String(chartTop));
+  yAxis.setAttribute('x2', String(mapX(domain[0]))); yAxis.setAttribute('y2', String(chartTop + chartH));
+  yAxis.setAttribute('stroke', axisColor); yAxis.setAttribute('stroke-width', String(strokeWidth));
+  innerG.appendChild(yAxis);
 
   // Axis labels
-  const axisLabelColor = colorWithAlpha(color, '80');
-  const xLabel = document.createElementNS(SVG_NS, 'text');
-  xLabel.setAttribute('x', String(chartLeft + chartW - 4));
-  xLabel.setAttribute('y', String(mapY(0) + 14));
-  xLabel.setAttribute('text-anchor', 'end');
-  xLabel.setAttribute('fill', axisLabelColor);
-  xLabel.setAttribute('font-size', String(axisFontSize));
-  xLabel.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-  xLabel.textContent = 'n';
-  innerG.appendChild(xLabel);
+  const axisLabelColor = colorWithAlpha(color, OPACITY.strokeSoft);
+  const nLabel = document.createElementNS(SVG_NS, 'text');
+  nLabel.setAttribute('x', String(chartLeft + chartW - 4));
+  nLabel.setAttribute('y', String(mapY(0) + 14));
+  nLabel.setAttribute('text-anchor', 'end');
+  nLabel.setAttribute('fill', axisLabelColor);
+  nLabel.setAttribute('font-size', String(axisFontSize));
+  nLabel.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+  nLabel.textContent = 'n';
+  innerG.appendChild(nLabel);
 
-  const yLabel = document.createElementNS(SVG_NS, 'text');
-  yLabel.setAttribute('x', String(chartLeft - 6));
-  yLabel.setAttribute('y', String(chartTop + 4));
-  yLabel.setAttribute('text-anchor', 'end');
-  yLabel.setAttribute('fill', axisLabelColor);
-  yLabel.setAttribute('font-size', String(axisFontSize));
-  yLabel.setAttribute('font-family', TYPOGRAPHY.fontLabel);
-  yLabel.textContent = 'Operations';
-  innerG.appendChild(yLabel);
-
-  // Plot each curve
+  // Plot curves
   for (const curveName of curves) {
     const curveColor = CURVE_COLORS[curveName] ?? color;
     const parts: string[] = [];
-
     for (let i = 0; i <= steps; i++) {
       const n = domain[0] + i * dx;
       const y = evalCurve(curveName, n);
       if (!isFinite(y)) continue;
-      parts.push(
-        `${parts.length === 0 ? 'M' : 'L'}${mapX(n).toFixed(1)},${mapY(y).toFixed(1)}`
-      );
+      const px = mapX(n); const py = mapY(y);
+      // Clamp to chart area
+      if (py < chartTop || py > chartTop + chartH) continue;
+      parts.push(`${parts.length === 0 ? 'M' : 'L'}${px.toFixed(1)},${py.toFixed(1)}`);
     }
-
     if (parts.length > 0) {
       const path = document.createElementNS(SVG_NS, 'path');
       path.setAttribute('d', parts.join(' '));
       path.setAttribute('fill', 'none');
       path.setAttribute('stroke', curveColor);
       path.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
-      chartGroup.appendChild(path);
+      innerG.appendChild(path);
     }
   }
 
@@ -225,17 +150,14 @@ export function renderBigO(entity: VisualEntity, parentEl: SVGElement): SVGGElem
     const lineColor = CURVE_COLORS[curveName] ?? color;
 
     const dot = document.createElementNS(SVG_NS, 'line');
-    dot.setAttribute('x1', String(lx - 12));
-    dot.setAttribute('y1', String(legendY));
-    dot.setAttribute('x2', String(lx - 4));
-    dot.setAttribute('y2', String(legendY));
+    dot.setAttribute('x1', String(lx - 12)); dot.setAttribute('y1', String(legendY));
+    dot.setAttribute('x2', String(lx - 4)); dot.setAttribute('y2', String(legendY));
     dot.setAttribute('stroke', lineColor);
     dot.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
     innerG.appendChild(dot);
 
     const txt = document.createElementNS(SVG_NS, 'text');
-    txt.setAttribute('x', String(lx));
-    txt.setAttribute('y', String(legendY + 4));
+    txt.setAttribute('x', String(lx)); txt.setAttribute('y', String(legendY + 4));
     txt.setAttribute('text-anchor', 'start');
     txt.setAttribute('fill', lineColor);
     txt.setAttribute('font-size', String(legendFontSize));

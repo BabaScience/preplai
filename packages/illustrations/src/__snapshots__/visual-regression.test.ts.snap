@@ -204,18 +204,16 @@ exports[`Visual Regression — SVG Snapshots > renders BarChart without crashing
     "g": 1,
     "line": 1,
     "rect": 2,
-    "text": 7,
+    "text": 5,
   },
   "textLabels": [
     "A",
     "10",
     "B",
     "25",
-    "x",
-    "y",
     "BarChart",
   ],
-  "totalElements": 11,
+  "totalElements": 9,
 }
 `;
 
@@ -225,21 +223,19 @@ exports[`Visual Regression — SVG Snapshots > renders BigO without crashing > p
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 2,
-    "line": 22,
+    "g": 1,
+    "line": 16,
     "path": 3,
-    "rect": 1,
-    "text": 6,
+    "text": 5,
   },
   "textLabels": [
     "n",
-    "Operations",
     "O(1)",
     "O(n)",
     "O(n²)",
     "BigO",
   ],
-  "totalElements": 34,
+  "totalElements": 25,
 }
 `;
 
@@ -632,8 +628,8 @@ exports[`Visual Regression — SVG Snapshots > renders ConfusionMatrix without c
   "rendered": true,
   "tagCounts": {
     "g": 1,
-    "rect": 9,
-    "text": 14,
+    "rect": 8,
+    "text": 13,
   },
   "textLabels": [
     "Pred-",
@@ -647,7 +643,7 @@ exports[`Visual Regression — SVG Snapshots > renders ConfusionMatrix without c
     "8",
     "FN",
   ],
-  "totalElements": 24,
+  "totalElements": 22,
 }
 `;
 
@@ -677,7 +673,6 @@ exports[`Visual Regression — SVG Snapshots > renders CoordinateSystem without 
     "circle": 1,
     "g": 1,
     "line": 24,
-    "rect": 1,
     "text": 4,
   },
   "textLabels": [
@@ -686,7 +681,7 @@ exports[`Visual Regression — SVG Snapshots > renders CoordinateSystem without 
     "P",
     "CoordinateSystem",
   ],
-  "totalElements": 31,
+  "totalElements": 30,
 }
 `;
 
@@ -1306,8 +1301,8 @@ exports[`Visual Regression — SVG Snapshots > renders GanttChart without crashi
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "g": 2,
-    "line": 4,
+    "g": 1,
+    "line": 3,
     "rect": 2,
     "text": 6,
   },
@@ -1319,7 +1314,7 @@ exports[`Visual Regression — SVG Snapshots > renders GanttChart without crashi
     "10",
     "GanttChart",
   ],
-  "totalElements": 14,
+  "totalElements": 12,
 }
 `;
 
@@ -1368,15 +1363,14 @@ exports[`Visual Regression — SVG Snapshots > renders Graph2D without crashing 
   "rendered": true,
   "tagCounts": {
     "circle": 1,
-    "g": 2,
+    "g": 1,
     "line": 24,
-    "rect": 1,
     "text": 1,
   },
   "textLabels": [
     "Graph2D",
   ],
-  "totalElements": 29,
+  "totalElements": 27,
 }
 `;
 
@@ -2295,9 +2289,8 @@ exports[`Visual Regression — SVG Snapshots > renders ScatterPlot without crash
   "rendered": true,
   "tagCounts": {
     "circle": 1,
-    "g": 2,
+    "g": 1,
     "line": 24,
-    "rect": 1,
     "text": 3,
   },
   "textLabels": [
@@ -2305,7 +2298,7 @@ exports[`Visual Regression — SVG Snapshots > renders ScatterPlot without crash
     "y",
     "ScatterPlot",
   ],
-  "totalElements": 31,
+  "totalElements": 29,
 }
 `;
 

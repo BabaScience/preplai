@@ -1,15 +1,23 @@
 /**
- * @preplai/illustrations — Graph2D Component
- * 2D function plotter: axes, grid, explicit/parametric curves, scatter points.
- * Curves are clipped to the chart area.
+ * @preplai/illustrations — Graph2D Component (minimalist)
  *
- * @see METADATA_SCHEMAS.md#graph2d
- * @see ILLUSTRATIONS_AGENT_GUIDE.md
+ * Clean 2D function plotter with axes, grid, curves, and scatter points.
+ * No dark gradient background, no clip paths.
+ *
+ * Metadata: { expression?, domain?, range?, xLabel?, yLabel?, showGrid?, points?,
+ *             curveType?, parametric?, xExpression?, yExpression?, tRange? }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createDarkGradient, ensureDefs } from '../visual-utils.js';
-import { getCategoryColor, TYPOGRAPHY } from '../design-tokens.js';
+import {
+  getCategoryColor,
+  TYPOGRAPHY,
+  getLabelFontSize,
+  getStrokeWidth,
+  colorWithAlpha,
+  OPACITY,
+  LABEL_DEFAULTS,
+} from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -17,15 +25,13 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
 
   const s = getSizeParam(entity);
   const scale = s / 50;
-  const axisFontSize = Math.round(13 * scale);
+  const axisFontSize = getLabelFontSize('value', scale);
+  const strokeWidth = getStrokeWidth('thin', scale);
   const totalW = s * 4;
   const totalH = s * 3;
 
   const meta = entity.metadata ?? {};
   const color = entity.color ?? getCategoryColor('Graph2D');
-  const defs = ensureDefs(parentEl);
-  const bgGradId = `grad-graph2d-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createDarkGradient(bgGradId, defs, color);
   const curveType = meta.curveType as string | undefined;
   const isROC = curveType === 'roc';
   const isLoss = curveType === 'loss';
@@ -43,91 +49,51 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
   const chartLeft = -totalW / 2 + pad;
   const chartTop = -totalH / 2 + pad;
 
-  // Mapping helpers
   const mapX = (v: number) => chartLeft + ((v - domain[0]) / (domain[1] - domain[0])) * chartW;
   const mapY = (v: number) => chartTop + chartH - ((v - range[0]) / (range[1] - range[0])) * chartH;
 
-  // ── Clip path so curves stay inside chart area
-  const clipId = `clip-graph2d-${Math.random().toString(36).slice(2, 9)}`;
-  const clipPath = document.createElementNS(SVG_NS, 'clipPath');
-  clipPath.setAttribute('id', clipId);
-  const clipRect = document.createElementNS(SVG_NS, 'rect');
-  clipRect.setAttribute('x', String(chartLeft));
-  clipRect.setAttribute('y', String(chartTop));
-  clipRect.setAttribute('width', String(chartW));
-  clipRect.setAttribute('height', String(chartH));
-  clipPath.appendChild(clipRect);
-  defs.appendChild(clipPath);
-
-  const chartGroup = document.createElementNS(SVG_NS, 'g');
-  chartGroup.setAttribute('clip-path', `url(#${clipId})`);
-
-  // ── Background with subtle gradient
-  const bg = document.createElementNS(SVG_NS, 'rect');
-  bg.setAttribute('x', String(-totalW / 2));
-  bg.setAttribute('y', String(-totalH / 2));
-  bg.setAttribute('width', String(totalW));
-  bg.setAttribute('height', String(totalH));
-  bg.setAttribute('rx', '8');
-  bg.setAttribute('fill', `url(#${bgGradId})`);
-  bg.setAttribute('stroke', color);
-  bg.setAttribute('stroke-width', '1');
-  innerG.appendChild(bg);
-  innerG.appendChild(chartGroup);
-
-  // ── Grid lines (more visible)
+  // Grid
   if (showGrid) {
+    const gridColor = colorWithAlpha(color, '18');
     for (let v = Math.ceil(domain[0]); v <= Math.floor(domain[1]); v++) {
-      const gx = mapX(v);
       const gl = document.createElementNS(SVG_NS, 'line');
-      gl.setAttribute('x1', String(gx));
-      gl.setAttribute('y1', String(chartTop));
-      gl.setAttribute('x2', String(gx));
-      gl.setAttribute('y2', String(chartTop + chartH));
-      gl.setAttribute('stroke', '#ffffff12');
-      gl.setAttribute('stroke-width', '1');
-      chartGroup.appendChild(gl);
+      gl.setAttribute('x1', String(mapX(v))); gl.setAttribute('y1', String(chartTop));
+      gl.setAttribute('x2', String(mapX(v))); gl.setAttribute('y2', String(chartTop + chartH));
+      gl.setAttribute('stroke', gridColor); gl.setAttribute('stroke-width', '1');
+      innerG.appendChild(gl);
     }
     for (let v = Math.ceil(range[0]); v <= Math.floor(range[1]); v++) {
-      const gy = mapY(v);
       const gl = document.createElementNS(SVG_NS, 'line');
-      gl.setAttribute('x1', String(chartLeft));
-      gl.setAttribute('y1', String(gy));
-      gl.setAttribute('x2', String(chartLeft + chartW));
-      gl.setAttribute('y2', String(gy));
-      gl.setAttribute('stroke', '#ffffff12');
-      gl.setAttribute('stroke-width', '1');
-      chartGroup.appendChild(gl);
+      gl.setAttribute('x1', String(chartLeft)); gl.setAttribute('y1', String(mapY(v)));
+      gl.setAttribute('x2', String(chartLeft + chartW)); gl.setAttribute('y2', String(mapY(v)));
+      gl.setAttribute('stroke', gridColor); gl.setAttribute('stroke-width', '1');
+      innerG.appendChild(gl);
     }
   }
 
-  // ── Axes
+  // Axes
+  const axisColor = colorWithAlpha(color, OPACITY.strokeMuted);
   const xAxis = document.createElementNS(SVG_NS, 'line');
-  xAxis.setAttribute('x1', String(chartLeft));
-  xAxis.setAttribute('y1', String(mapY(0)));
-  xAxis.setAttribute('x2', String(chartLeft + chartW));
-  xAxis.setAttribute('y2', String(mapY(0)));
-  xAxis.setAttribute('stroke', '#ffffff40');
-  xAxis.setAttribute('stroke-width', '1.5');
-  chartGroup.appendChild(xAxis);
+  xAxis.setAttribute('x1', String(chartLeft)); xAxis.setAttribute('y1', String(mapY(0)));
+  xAxis.setAttribute('x2', String(chartLeft + chartW)); xAxis.setAttribute('y2', String(mapY(0)));
+  xAxis.setAttribute('stroke', axisColor); xAxis.setAttribute('stroke-width', String(strokeWidth));
+  innerG.appendChild(xAxis);
 
   const yAxis = document.createElementNS(SVG_NS, 'line');
-  yAxis.setAttribute('x1', String(mapX(0)));
-  yAxis.setAttribute('y1', String(chartTop));
-  yAxis.setAttribute('x2', String(mapX(0)));
-  yAxis.setAttribute('y2', String(chartTop + chartH));
-  yAxis.setAttribute('stroke', '#ffffff40');
-  yAxis.setAttribute('stroke-width', '1.5');
-  chartGroup.appendChild(yAxis);
+  yAxis.setAttribute('x1', String(mapX(0))); yAxis.setAttribute('y1', String(chartTop));
+  yAxis.setAttribute('x2', String(mapX(0))); yAxis.setAttribute('y2', String(chartTop + chartH));
+  yAxis.setAttribute('stroke', axisColor); yAxis.setAttribute('stroke-width', String(strokeWidth));
+  innerG.appendChild(yAxis);
 
-  // ── Axis labels
+  // Axis labels
   if (xLabel) {
     const xl = document.createElementNS(SVG_NS, 'text');
     xl.setAttribute('x', String(totalW / 2 - pad));
     xl.setAttribute('y', String(mapY(0) - 6));
     xl.setAttribute('text-anchor', 'end');
-    xl.setAttribute('fill', `${color}80`);
+    xl.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
     xl.setAttribute('font-size', String(axisFontSize));
+    xl.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     xl.textContent = xLabel;
     innerG.appendChild(xl);
   }
@@ -135,19 +101,31 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
     const yl = document.createElementNS(SVG_NS, 'text');
     yl.setAttribute('x', String(mapX(0) + 6));
     yl.setAttribute('y', String(-totalH / 2 + pad + 4));
-    yl.setAttribute('fill', `${color}80`);
+    yl.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
     yl.setAttribute('font-size', String(axisFontSize));
+    yl.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     yl.textContent = yLabel;
     innerG.appendChild(yl);
   }
 
-  // ── Curve rendering (explicit expression)
+  // Helper: clamp and plot curve path
+  const plotPath = (parts: string[], curveColor: string) => {
+    if (parts.length > 0) {
+      const path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('d', parts.join(' '));
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', curveColor);
+      path.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
+      innerG.appendChild(path);
+    }
+  };
+
+  // Explicit expression curve
   const expression = meta.expression as string | undefined;
   if (expression) {
     const steps = 80;
     const dx = (domain[1] - domain[0]) / steps;
     const parts: string[] = [];
-
     for (let i = 0; i <= steps; i++) {
       const xv = domain[0] + i * dx;
       try {
@@ -156,18 +134,10 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
         parts.push(`${parts.length === 0 ? 'M' : 'L'}${mapX(xv).toFixed(1)},${mapY(yv).toFixed(1)}`);
       } catch { /* skip */ }
     }
-
-    if (parts.length > 0) {
-      const path = document.createElementNS(SVG_NS, 'path');
-      path.setAttribute('d', parts.join(' '));
-      path.setAttribute('fill', 'none');
-      path.setAttribute('stroke', color);
-      path.setAttribute('stroke-width', '2.5');
-      chartGroup.appendChild(path);
-    }
+    plotPath(parts, color);
   }
 
-  // ── Parametric curve
+  // Parametric curve
   if (meta.parametric) {
     const xExpr = (meta.xExpression as string) ?? 'Math.cos(t)';
     const yExpr = (meta.yExpression as string) ?? 'Math.sin(t)';
@@ -175,7 +145,6 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
     const steps = 200;
     const dt = (tRange[1] - tRange[0]) / steps;
     const parts: string[] = [];
-
     for (let i = 0; i <= steps; i++) {
       const t = tRange[0] + i * dt;
       try {
@@ -185,75 +154,44 @@ export function renderGraph2D(entity: VisualEntity, parentEl: SVGElement): SVGGE
         parts.push(`${parts.length === 0 ? 'M' : 'L'}${mapX(xv).toFixed(1)},${mapY(yv).toFixed(1)}`);
       } catch { /* skip */ }
     }
-
-    if (parts.length > 0) {
-      const path = document.createElementNS(SVG_NS, 'path');
-      path.setAttribute('d', parts.join(' '));
-      path.setAttribute('fill', 'none');
-      path.setAttribute('stroke', '#e040fb');
-      path.setAttribute('stroke-width', '2.5');
-      chartGroup.appendChild(path);
-    }
+    plotPath(parts, '#e040fb');
   }
 
-  // ── ROC curve: connect points as path (TPR vs FPR)
-  if (isROC) {
-    const rocPoints = (meta.points as Array<{ x: number; y: number }>) ?? [
-      { x: 0, y: 0 }, { x: 0.1, y: 0.3 }, { x: 0.3, y: 0.6 }, { x: 0.6, y: 0.85 }, { x: 1, y: 1 },
-    ];
-    if (rocPoints.length > 0) {
-      const pathD = rocPoints.map((p, i) =>
-        `${i === 0 ? 'M' : 'L'}${mapX(p.x).toFixed(1)},${mapY(p.y).toFixed(1)}`
-      ).join(' ');
-      const path = document.createElementNS(SVG_NS, 'path');
-      path.setAttribute('d', pathD);
-      path.setAttribute('fill', 'none');
-      path.setAttribute('stroke', color);
-      path.setAttribute('stroke-width', '2.5');
-      chartGroup.appendChild(path);
-    }
-  }
-
-  // ── Loss curve: connect points as path (epoch vs loss)
-  if (isLoss && !meta.expression) {
-    const lossPoints = (meta.points as Array<{ x: number; y: number }>) ?? [
-      { x: 0, y: 1.8 }, { x: 2, y: 1.2 }, { x: 4, y: 0.8 }, { x: 6, y: 0.5 }, { x: 8, y: 0.35 }, { x: 10, y: 0.25 },
-    ];
-    if (lossPoints.length > 0) {
-      const pathD = lossPoints.map((p, i) =>
-        `${i === 0 ? 'M' : 'L'}${mapX(p.x).toFixed(1)},${mapY(p.y).toFixed(1)}`
-      ).join(' ');
-      const path = document.createElementNS(SVG_NS, 'path');
-      path.setAttribute('d', pathD);
-      path.setAttribute('fill', 'none');
-      path.setAttribute('stroke', color);
-      path.setAttribute('stroke-width', '2.5');
-      chartGroup.appendChild(path);
-    }
-  }
-
-  // ── Scatter points (skip if roc/loss drew a path)
+  // ROC / Loss curves from points
   const points = (meta.points as Array<{ x: number; y: number }>) ?? [];
-  const drawScatter = !isROC && !isLoss;
-  for (const p of drawScatter ? points : []) {
-    const dot = document.createElementNS(SVG_NS, 'circle');
-    dot.setAttribute('cx', String(mapX(p.x)));
-    dot.setAttribute('cy', String(mapY(p.y)));
-    dot.setAttribute('r', '4');
-    dot.setAttribute('fill', color);
-    dot.setAttribute('stroke', '#0b0d14');
-    dot.setAttribute('stroke-width', '1.5');
-    chartGroup.appendChild(dot);
+  if ((isROC || isLoss) && !expression) {
+    const curvePoints = points.length > 0 ? points : (isROC
+      ? [{ x: 0, y: 0 }, { x: 0.1, y: 0.3 }, { x: 0.3, y: 0.6 }, { x: 0.6, y: 0.85 }, { x: 1, y: 1 }]
+      : [{ x: 0, y: 1.8 }, { x: 2, y: 1.2 }, { x: 4, y: 0.8 }, { x: 6, y: 0.5 }, { x: 8, y: 0.35 }, { x: 10, y: 0.25 }]
+    );
+    const parts = curvePoints.map((p, i) =>
+      `${i === 0 ? 'M' : 'L'}${mapX(p.x).toFixed(1)},${mapY(p.y).toFixed(1)}`
+    );
+    plotPath(parts, color);
   }
 
-  // ── Title label
+  // Scatter points (only if not ROC/loss)
+  if (!isROC && !isLoss) {
+    for (const p of points) {
+      const dot = document.createElementNS(SVG_NS, 'circle');
+      dot.setAttribute('cx', String(mapX(p.x)));
+      dot.setAttribute('cy', String(mapY(p.y)));
+      dot.setAttribute('r', '4');
+      dot.setAttribute('fill', color);
+      dot.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeSoft));
+      dot.setAttribute('stroke-width', String(strokeWidth));
+      innerG.appendChild(dot);
+    }
+  }
+
+  // Title
   if (entity.label) {
     const title = document.createElementNS(SVG_NS, 'text');
     title.setAttribute('x', '0');
-    title.setAttribute('y', String(-totalH / 2 + 18));
-    title.setAttribute('text-anchor', 'middle');
+    title.setAttribute('y', String(-totalH / 2 - 8));
+    title.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     title.setAttribute('fill', color);
-    title.setAttribute('font-size', String(TYPOGRAPHY.fontSizeTitle));
+    title.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     title.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightTitle));
     title.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     title.textContent = entity.label;
