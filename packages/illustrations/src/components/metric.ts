@@ -8,7 +8,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getLabelFontSize,
@@ -27,9 +26,6 @@ export function renderMetric(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Metric');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-metric-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const value = String(meta.value ?? entity.label ?? '0');
@@ -64,7 +60,7 @@ export function renderMetric(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   card.setAttribute('width', String(w));
   card.setAttribute('height', String(h));
   card.setAttribute('rx', String(rx));
-  card.setAttribute('fill', `url(#${gradId})`);
+  card.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   card.setAttribute('stroke', color);
   card.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(card);

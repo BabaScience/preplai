@@ -8,7 +8,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -17,9 +16,6 @@ export function renderMonitor(entity: VisualEntity, parentEl: SVGElement): SVGGE
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Monitor');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-monitor-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const w = s * 0.9;
   const h = s * 0.7;
@@ -49,7 +45,7 @@ export function renderMonitor(entity: VisualEntity, parentEl: SVGElement): SVGGE
   body.setAttribute('width', String(w));
   body.setAttribute('height', String(h));
   body.setAttribute('rx', String(rx));
-  body.setAttribute('fill', `url(#${gradId})`);
+  body.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   body.setAttribute('stroke', color);
   body.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(body);
