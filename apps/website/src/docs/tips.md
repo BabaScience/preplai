@@ -11,9 +11,9 @@ preplai has two visual themes. Set your default in [dashboard settings](https://
 | Theme | Best for | Look |
 |-------|----------|------|
 | **Cinema** | Presentations, demos, storytelling | Rich gradients, ambient glow, drop shadows — feels cinematic |
-| **Minimal** | Algorithm visualizations, technical docs | Flat, clean, no shadows — feels like a whiteboard |
+| **Light** | Clean presentations, client deliverables | Warm beige, clean lines, no shadows — professional and easy to read |
 
-You can also ask the AI agent to switch: *"Use minimal theme for this presentation"*
+You can also ask the AI agent to switch: *"Use light theme for this presentation"*
 
 ---
 
@@ -27,7 +27,7 @@ Palettes control the color scheme of your presentations. Set your default in the
 | **Ocean** | Blue, green, teal | Professional, calm presentations |
 | **Sunset** | Orange, red, amber | Warm, energetic topics |
 | **Forest** | Green, teal | Natural, grounded feel |
-| **Mono** | Slate grays | Minimal, neutral — great with the minimal theme |
+| **Mono** | Slate grays | Neutral, minimal — great with the light theme |
 
 You don't need to specify colors in your prompts. The palette applies automatically to every entity.
 
@@ -35,32 +35,51 @@ You don't need to specify colors in your prompts. The palette applies automatica
 
 ## Writing Better Prompts
 
+### Say "Using Preplai"
+
+Start your prompt with **"Using Preplai, ..."** so the AI agent knows to create a visual presentation. Without it, the agent might respond with plain text instead.
+
+> "**Using Preplai,** explain how our recommendation engine works for the executive team"
+
 ### Be specific about what you want
 
 | Instead of... | Try... |
 |---------------|--------|
 | "Explain caching" | "Show how Redis caching works between an API server and PostgreSQL" |
+| "Show our portfolio" | "Walk through a Q1 portfolio review — 60% equities, 25% bonds, show rebalancing plan" |
+| "Present market analysis" | "Analyze the European EV charging market — size, major players, entry strategy" |
 | "Show architecture" | "Show a microservices architecture with API gateway, 3 services, and a message queue" |
-| "Explain sorting" | "Walk me through quicksort step by step on the array [8, 3, 1, 5, 2]" |
+
+### Set the audience
+
+The AI agent adjusts narration and visual complexity based on who's watching:
+
+> "Explain how our recommendation engine works **for the executive team**"
+
+> "Walk through the incident postmortem **for the engineering standup**"
+
+> "Present the portfolio review **for a client with no finance background**"
 
 ### Ask for more frames
 
 By default, the AI agent creates 3–5 frames. Want more detail?
 
-> "Create a **detailed** presentation about Kubernetes with **at least 8 frames**"
+> "Create a **detailed** presentation about our deployment pipeline with **at least 8 frames**"
 
 ### Use real names
 
-The AI agent creates better visuals when you use specific technologies:
+The AI agent creates better visuals when you use specifics:
 
 - "PostgreSQL" instead of "a database"
-- "Redis" instead of "a cache"
+- "S&P 500 index fund" instead of "stocks"
 - "Kafka" instead of "a message queue"
-- "nginx" instead of "a load balancer"
+- "ChargePoint" instead of "a competitor"
 
 ### Ask for comparisons
 
-> "Compare monolithic vs microservices architecture"
+> "Compare our current checkout flow vs the proposed redesign"
+
+> "Compare traditional vs Roth 401(k) contributions over 20 years"
 
 This creates side-by-side frames that highlight the differences.
 
@@ -68,9 +87,9 @@ This creates side-by-side frames that highlight the differences.
 
 After the first presentation, you can ask the AI agent:
 
-- *"Add a frame about error handling"*
-- *"Make the narration more detailed"*
-- *"Add more frames about the database layer"*
+- *"Add a frame about the risk analysis"*
+- *"Make the narration less technical"*
+- *"Add a comparison of before vs after"*
 
 The AI agent will append new frames to the existing presentation.
 
@@ -86,10 +105,9 @@ The URL looks like: `https://player.preplai.com/player/abc123...`
 
 ## Limits
 
-| Plan | Sessions | Frames per session |
-|------|----------|-------------------|
-| Free | 5 | 50 |
-| Pro | Unlimited | Unlimited |
+| Sessions | Frames per session |
+|----------|-------------------|
+| 5 | Unlimited |
 
 Running out of sessions? Delete old ones by asking: *"List my sessions"* then *"Delete session [id]"*
 

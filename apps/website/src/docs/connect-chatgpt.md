@@ -45,9 +45,11 @@ You should see a list of preplai's tools appear. That means it's working.
 3. Select **preplai** from your connectors
 4. Try a prompt like:
 
-> **"Create a visual explanation of how OAuth authentication works"**
+> **"Using Preplai, create a visual explanation of how OAuth authentication works"**
 
 ChatGPT will build the presentation and give you a link to watch it.
+
+**Tip:** Including "Using Preplai" in your prompt tells ChatGPT to use preplai for the visual. Without it, ChatGPT might respond with plain text instead.
 
 ---
 

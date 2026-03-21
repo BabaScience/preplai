@@ -13,17 +13,12 @@ import connectClaudeMd from '../docs/connect-claude.md?raw';
 import connectChatgptMd from '../docs/connect-chatgpt.md?raw';
 import examplesMd from '../docs/examples.md?raw';
 import tipsMd from '../docs/tips.md?raw';
-import mcpToolsMd from '../docs/mcp-tools.md?raw';
-import visualscriptMd from '../docs/visualscript.md?raw';
-
 const DOC_SLUGS = [
   'quick-start',
   'connect-claude',
   'connect-chatgpt',
   'examples',
   'tips',
-  'mcp-tools',
-  'visualscript',
 ];
 const DOC_CONTENT = {
   'quick-start': quickStartMd,
@@ -31,8 +26,6 @@ const DOC_CONTENT = {
   'connect-chatgpt': connectChatgptMd,
   examples: examplesMd,
   tips: tipsMd,
-  'mcp-tools': mcpToolsMd,
-  visualscript: visualscriptMd,
 };
 
 /* Redirect old slugs to new ones */
@@ -215,11 +208,6 @@ function DocsIndex() {
     { slug: 'tips', title: 'Tips & Tricks', desc: 'Themes, palettes, and better prompts.' },
   ];
 
-  const advanced = [
-    { slug: 'mcp-tools', title: 'MCP Tools Reference', desc: 'Complete API reference for all 10 tools.' },
-    { slug: 'visualscript', title: 'VisualScript Schema', desc: 'Entity types, frames, and JSON format.' },
-  ];
-
   return (
     <DocsLayout>
       <div className="docs-index">
@@ -237,24 +225,6 @@ function DocsIndex() {
               <p className="docs-card-desc">{desc}</p>
               <span className="docs-card-cta">
                 Read guide <ArrowRight size={14} strokeWidth={2.5} />
-              </span>
-            </Link>
-          ))}
-        </div>
-
-        <header className="docs-index-header docs-index-header-section">
-          <h2>For developers</h2>
-          <p className="docs-index-desc">
-            Building an integration? These docs cover the full API.
-          </p>
-        </header>
-        <div className="docs-grid">
-          {advanced.map(({ slug, title, desc }) => (
-            <Link key={slug} to={`/docs/${slug}`} className="docs-card">
-              <h2 className="docs-card-title">{title}</h2>
-              <p className="docs-card-desc">{desc}</p>
-              <span className="docs-card-cta">
-                Read reference <ArrowRight size={14} strokeWidth={2.5} />
               </span>
             </Link>
           ))}

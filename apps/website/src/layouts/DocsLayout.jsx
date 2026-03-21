@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Zap, MessageSquare, Bot, Wrench, FileCode, Lightbulb, BookOpen } from 'lucide-react';
+import { Zap, MessageSquare, Bot, Lightbulb, BookOpen } from 'lucide-react';
 import SiteNav from '../components/SiteNav';
 
 const NAV_LINKS = [
@@ -16,11 +16,6 @@ const GET_STARTED = [
   { slug: 'tips', label: 'Tips & Tricks', icon: Lightbulb },
 ];
 
-const ADVANCED = [
-  { slug: 'mcp-tools', label: 'MCP Tools Reference', icon: Wrench },
-  { slug: 'visualscript', label: 'VisualScript Schema', icon: FileCode },
-];
-
 export default function DocsLayout({ children }) {
   const location = useLocation();
   const currentSlug = location.pathname.replace('/docs/', '').replace(/\/$/, '') || 'quick-start';
@@ -33,19 +28,6 @@ export default function DocsLayout({ children }) {
           <span className="docs-sidebar-label">Get Started</span>
           <nav className="docs-nav" aria-label="Get started documentation">
             {GET_STARTED.map(({ slug, label, icon: Icon }) => (
-              <Link
-                key={slug}
-                to={`/docs/${slug}`}
-                className={`docs-nav-link ${currentSlug === slug ? 'active' : ''}`}
-              >
-                <Icon size={16} strokeWidth={2} className="docs-nav-icon" aria-hidden />
-                {label}
-              </Link>
-            ))}
-          </nav>
-          <span className="docs-sidebar-label docs-sidebar-label-section">For Developers</span>
-          <nav className="docs-nav" aria-label="Developer documentation">
-            {ADVANCED.map(({ slug, label, icon: Icon }) => (
               <Link
                 key={slug}
                 to={`/docs/${slug}`}

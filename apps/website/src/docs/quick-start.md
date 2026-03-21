@@ -53,13 +53,17 @@ preplai supports two ways to connect, depending on which AI agent you use:
 
 ## Step 3: Create Your First Presentation
 
-Open your AI agent and try one of these prompts:
+Open your AI agent and try a prompt that fits your role:
 
-> **"Create a presentation about how binary search works"**
+> **Engineer:** "Using Preplai, create a visual incident postmortem — API gateway returned 503s due to a connection pool leak, we rolled back in 20 minutes"
 
-> **"Show me a microservices architecture with an API gateway, database, and cache"**
+> **Product Manager:** "Using Preplai, explain how our recommendation engine works — data signals, scoring pipeline, and business impact — as a visual walkthrough for the board"
 
-> **"Explain the CI/CD pipeline step by step"**
+> **Consultant:** "Using Preplai, present a market analysis of the European EV charging market — market size, competitive landscape, and entry strategy"
+
+> **Financial Advisor:** "Using Preplai, walk my client through their Q1 portfolio review — current allocation, performance by asset class, risk analysis, and rebalancing plan"
+
+**Tip:** Including "Using Preplai" in your prompt tells the AI agent to use preplai for the presentation. Without it, the agent might respond with plain text instead.
 
 The AI agent will build your presentation and give you a **player link**. Click it to watch.
 
@@ -72,12 +76,11 @@ Your presentation opens in the **preplai player** — a cinematic viewer with:
 - **Animated illustrations** that appear, move, and highlight as the story progresses
 - **Narration text** at the bottom explaining each frame
 - **Play/pause controls** so you can go at your own pace
-- **A shareable link** you can send to anyone
+- **A shareable link** you can send to anyone — no login required to watch
 
 ---
 
 ## What's Next?
 
-- [**Examples →**](/docs/examples) See what kinds of presentations you can create
+- [**Examples →**](/docs/examples) Prompts for every role — engineers, PMs, consultants, and financial advisors
 - [**Tips →**](/docs/tips) Get better results with themes, palettes, and prompt tips
-- [**MCP Tools Reference →**](/docs/mcp-tools) For developers building integrations

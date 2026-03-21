@@ -79,48 +79,48 @@ export default function Landing() {
             <div className="bento-icon"><Cpu size={20} /></div>
             <h3>Engineers &amp; SRE Teams</h3>
             <p>
-              Turn incident postmortems into animated walkthroughs. Visualize pull request changes before code review. See what your AI coding assistant actually built — architecture diagrams, data flows, dependencies — narrated and shareable.
+              Your system went down at 2 AM. Instead of writing a 20-page postmortem, ask your AI to create a visual incident walkthrough — root cause, cascade, resolution, action items — narrated and shareable with the whole team.
             </p>
             <div className="persona-tags">
               <span className="persona-tag">Incident postmortems</span>
-              <span className="persona-tag">PR reviews</span>
-              <span className="persona-tag">Architecture viz</span>
+              <span className="persona-tag">Architecture reviews</span>
+              <span className="persona-tag">Deploy walkthroughs</span>
             </div>
           </div>
           <div className="bento-card persona-card" style={{ borderTopColor: '#9B59B6' }}>
             <div className="bento-icon"><Film size={20} /></div>
             <h3>Product Managers</h3>
             <p>
-              You ask AI to explain how the recommendation engine works. You get 1,500 words. Now you need slides for the executive review. With Preplai, ask your AI to explain it visually — and share the animated walkthrough directly. 30 seconds instead of 30 minutes.
+              The board wants to understand the recommendation engine. You get 1,500 words from AI. With Preplai, share an animated walkthrough instead — data signals, business impact, roadmap — 30 seconds to full alignment.
             </p>
             <div className="persona-tags">
-              <span className="persona-tag">Stakeholder decks</span>
-              <span className="persona-tag">Feature planning</span>
-              <span className="persona-tag">Cross-team alignment</span>
+              <span className="persona-tag">Feature explanations</span>
+              <span className="persona-tag">Executive reviews</span>
+              <span className="persona-tag">Roadmap presentations</span>
             </div>
           </div>
           <div className="bento-card persona-card" style={{ borderTopColor: '#C9A84C' }}>
             <div className="bento-icon"><Briefcase size={20} /></div>
             <h3>Consultants &amp; Strategists</h3>
             <p>
-              Your AI researched the market, analyzed the data, and drafted recommendations. Now turn that analysis into a client-ready visual presentation — automatically.
+              Your AI researched the market, sized the opportunity, and mapped the competitive landscape. Now turn that analysis into a client-ready visual presentation — market data, strategy, projections — automatically.
             </p>
             <div className="persona-tags">
-              <span className="persona-tag">Client deliverables</span>
               <span className="persona-tag">Market analysis</span>
-              <span className="persona-tag">Strategy walkthroughs</span>
+              <span className="persona-tag">Strategy decks</span>
+              <span className="persona-tag">Client deliverables</span>
             </div>
           </div>
           <div className="bento-card persona-card" style={{ borderTopColor: '#2ECC71' }}>
             <div className="bento-icon"><Scale size={20} /></div>
             <h3>Financial Advisors &amp; Legal</h3>
             <p>
-              Explain portfolio allocations, risk models, or contract structures to clients who don&rsquo;t speak your language. Preplai turns complex AI analysis into visual walkthroughs your clients will actually understand.
+              Walk your client through their portfolio — allocation, performance, risk, and rebalancing plan. They see the full picture in 2 minutes. No jargon, no spreadsheets, no finance degree required.
             </p>
             <div className="persona-tags">
               <span className="persona-tag">Portfolio reviews</span>
-              <span className="persona-tag">Compliance audits</span>
-              <span className="persona-tag">Contract structures</span>
+              <span className="persona-tag">Risk analysis</span>
+              <span className="persona-tag">Rebalancing plans</span>
             </div>
           </div>
         </div>
