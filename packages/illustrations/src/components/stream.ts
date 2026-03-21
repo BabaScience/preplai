@@ -5,9 +5,9 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor, getStrokeWidth, getLabelFontSize,
+  colorWithAlpha, OPACITY,
   TYPOGRAPHY, STROKE,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
@@ -18,9 +18,6 @@ export function renderStream(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Stream');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-stream-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'horizontal', defs);
 
   const label = entity.label ?? 'Stream';
 
@@ -36,7 +33,7 @@ export function renderStream(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   body.setAttribute('width', String(w));
   body.setAttribute('height', String(h));
   body.setAttribute('rx', String(h / 2));
-  body.setAttribute('fill', `url(#${gradId})`);
+  body.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   body.setAttribute('stroke', color);
   body.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   innerG.appendChild(body);

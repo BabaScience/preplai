@@ -8,7 +8,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -17,9 +16,6 @@ export function renderInterface(entity: VisualEntity, parentEl: SVGElement): SVG
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Interface');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-iface-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const w = s * 0.85;
   const h = s * 0.7;
@@ -48,7 +44,7 @@ export function renderInterface(entity: VisualEntity, parentEl: SVGElement): SVG
   card.setAttribute('width', String(w));
   card.setAttribute('height', String(h));
   card.setAttribute('rx', String(SHAPES.borderRadius));
-  card.setAttribute('fill', `url(#${gradId})`);
+  card.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   card.setAttribute('stroke', color);
   card.setAttribute('stroke-width', String(STROKE.default));
   card.setAttribute('stroke-dasharray', '6,3');

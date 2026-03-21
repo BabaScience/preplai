@@ -10,7 +10,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -30,9 +29,6 @@ export function renderSet(entity: VisualEntity, parentEl: SVGElement): SVGGEleme
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Set');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-set-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const values = ((meta.values as (string | number)[]) ?? ['a', 'b', 'c']).slice(0, 8).map(String);
@@ -117,7 +113,7 @@ export function renderSet(entity: VisualEntity, parentEl: SVGElement): SVGGEleme
       pill.setAttribute('width', String(pillW - 4));
       pill.setAttribute('height', String(pillH));
       pill.setAttribute('rx', String(pillH / 2));
-      pill.setAttribute('fill', `url(#${gradId})`);
+      pill.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       pill.setAttribute('stroke', color);
       pill.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
       innerG.appendChild(pill);

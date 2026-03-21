@@ -10,7 +10,7 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
+import { ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   TYPOGRAPHY,
@@ -31,8 +31,6 @@ export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SV
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('LinkedList');
   const defs = ensureDefs(parentEl);
-  const gradId = `grad-ll-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const values = ((meta.values as (string | number)[]) ?? [1, 2, 3]).slice(0, 6);
@@ -84,7 +82,7 @@ export function renderLinkedList(entity: VisualEntity, parentEl: SVGElement): SV
     node.setAttribute('width', String(nodeW));
     node.setAttribute('height', String(nodeH));
     node.setAttribute('rx', String(SHAPES.borderRadius));
-    node.setAttribute('fill', `url(#${gradId})`);
+    node.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     node.setAttribute('stroke', color);
     node.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
     innerG.appendChild(node);

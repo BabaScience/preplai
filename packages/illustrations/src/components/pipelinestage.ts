@@ -10,7 +10,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -31,9 +30,6 @@ export function renderPipelineStage(entity: VisualEntity, parentEl: SVGElement):
   const labelFontSize = getLabelFontSize('label', scale);
   const strokeWidth = getStrokeWidth('default', scale);
   const color = entity.color ?? getCategoryColor('PipelineStage');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-ps-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const label = (meta.label as string) ?? entity.label ?? 'Stage';
@@ -54,7 +50,7 @@ export function renderPipelineStage(entity: VisualEntity, parentEl: SVGElement):
 
   const seg = document.createElementNS(SVG_NS, 'path');
   seg.setAttribute('d', chevronPath);
-  seg.setAttribute('fill', `url(#${gradId})`);
+  seg.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   seg.setAttribute('stroke', color);
   seg.setAttribute('stroke-width', String(strokeWidth));
   innerG.appendChild(seg);

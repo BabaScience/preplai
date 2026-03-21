@@ -5,9 +5,9 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor, getStrokeWidth, getLabelFontSize,
+  colorWithAlpha, OPACITY,
   TYPOGRAPHY, STROKE,
 } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
@@ -18,9 +18,6 @@ export function renderStorageBucket(entity: VisualEntity, parentEl: SVGElement):
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('StorageBucket');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-bucket-${entity.id.replace(/[^a-zA-Z0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const label = entity.label ?? 'Storage';
 
@@ -36,7 +33,7 @@ export function renderStorageBucket(entity: VisualEntity, parentEl: SVGElement):
 
   const bucket = document.createElementNS(SVG_NS, 'path');
   bucket.setAttribute('d', `M ${-topW} ${topY} L ${topW} ${topY} L ${botW} ${botY} L ${-botW} ${botY} Z`);
-  bucket.setAttribute('fill', `url(#${gradId})`);
+  bucket.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   bucket.setAttribute('stroke', color);
   bucket.setAttribute('stroke-width', String(getStrokeWidth('default', scale)));
   bucket.setAttribute('stroke-linejoin', 'round');

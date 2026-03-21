@@ -7,7 +7,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -51,9 +50,6 @@ export function renderMemoryBlock(entity: VisualEntity, parentEl: SVGElement): S
   const cellFontSize = getLabelFontSize('value', scale);
   const strokeWidth = getStrokeWidth('thin', scale);
   const color = entity.color ?? getCategoryColor('MemoryBlock');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-mb-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const cells = parseCells(meta);
@@ -74,7 +70,7 @@ export function renderMemoryBlock(entity: VisualEntity, parentEl: SVGElement): S
     rect.setAttribute('width', String(cellW));
     rect.setAttribute('height', String(cellH));
     rect.setAttribute('rx', String(SHAPES.borderRadius - 2));
-    rect.setAttribute('fill', `url(#${gradId})`);
+    rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     rect.setAttribute('stroke', color);
     rect.setAttribute('stroke-width', String(strokeWidth));
     innerG.appendChild(rect);

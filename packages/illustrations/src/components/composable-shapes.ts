@@ -9,11 +9,6 @@
  */
 
 import { SVG_NS } from '../utils.js';
-import {
-  createLinearGradient,
-  createRadialGradient,
-  ensureDefs,
-} from '../visual-utils.js';
 import { colorWithAlpha, OPACITY, STROKE, SHAPES } from '../design-tokens.js';
 
 // ── Types ───────────────────────────────────────────────────────────────
@@ -53,10 +48,6 @@ export interface ShapeRenderOptions {
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────
-
-function gradId(color: string, suffix: string): string {
-  return `grad-comp-${suffix}-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-}
 
 function polarPoints(n: number, r: number, rotOffset: number = 0): string {
   return Array.from({ length: n }, (_, i) => {
@@ -117,21 +108,18 @@ export function renderShape(
 ): { width: number; height: number } {
   const { size: s, color, highlight } = opts;
   const sw = opts.strokeWidth ?? STROKE.default;
-  const defs = ensureDefs(parentEl);
 
   switch (shape) {
     case 'rect': {
       const w = s * 1.4;
       const h = s;
-      const gid = gradId(color, 'rect');
-      createLinearGradient(gid, color, 'vertical', defs);
       const rect = document.createElementNS(SVG_NS, 'rect');
       rect.setAttribute('x', String(-w / 2));
       rect.setAttribute('y', String(-h / 2));
       rect.setAttribute('width', String(w));
       rect.setAttribute('height', String(h));
       rect.setAttribute('rx', String(SHAPES.borderRadius));
-      rect.setAttribute('fill', `url(#${gid})`);
+      rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       rect.setAttribute('stroke', color);
       rect.setAttribute('stroke-width', String(sw));
       innerG.appendChild(rect);
@@ -141,13 +129,11 @@ export function renderShape(
 
     case 'circle': {
       const r = s / 2;
-      const gid = gradId(color, 'circ');
-      createRadialGradient(gid, color, defs);
       const circle = document.createElementNS(SVG_NS, 'circle');
       circle.setAttribute('cx', '0');
       circle.setAttribute('cy', '0');
       circle.setAttribute('r', String(r));
-      circle.setAttribute('fill', `url(#${gid})`);
+      circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       circle.setAttribute('stroke', color);
       circle.setAttribute('stroke-width', String(sw));
       innerG.appendChild(circle);
@@ -157,11 +143,9 @@ export function renderShape(
 
     case 'hexagon': {
       const r = s * 0.5;
-      const gid = gradId(color, 'hex');
-      createLinearGradient(gid, color, 'vertical', defs);
       const polygon = document.createElementNS(SVG_NS, 'polygon');
       polygon.setAttribute('points', polarPoints(6, r, -Math.PI / 6));
-      polygon.setAttribute('fill', `url(#${gid})`);
+      polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(sw));
       innerG.appendChild(polygon);
@@ -171,11 +155,9 @@ export function renderShape(
 
     case 'diamond': {
       const d = s / 2;
-      const gid = gradId(color, 'dia');
-      createLinearGradient(gid, color, 'vertical', defs);
       const polygon = document.createElementNS(SVG_NS, 'polygon');
       polygon.setAttribute('points', `0,${-d} ${d},0 0,${d} ${-d},0`);
-      polygon.setAttribute('fill', `url(#${gid})`);
+      polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(sw));
       innerG.appendChild(polygon);
@@ -186,8 +168,6 @@ export function renderShape(
     case 'shield': {
       const w = s * 0.8;
       const h = s * 1.1;
-      const gid = gradId(color, 'shld');
-      createLinearGradient(gid, color, 'vertical', defs);
       // Shield: flat top with pointed bottom
       const path = document.createElementNS(SVG_NS, 'path');
       const hw = w / 2;
@@ -201,7 +181,7 @@ export function renderShape(
         `Q ${-hw} ${hh * 0.8} ${-hw} ${hh * 0.3}`,
         'Z',
       ].join(' '));
-      path.setAttribute('fill', `url(#${gid})`);
+      path.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       path.setAttribute('stroke', color);
       path.setAttribute('stroke-width', String(sw));
       innerG.appendChild(path);
@@ -215,8 +195,6 @@ export function renderShape(
       const hw = w / 2;
       const hh = h / 2;
       const ry = h * 0.12; // ellipse radius for top/bottom caps
-      const gid = gradId(color, 'cyl');
-      createLinearGradient(gid, color, 'vertical', defs);
 
       // Body
       const body = document.createElementNS(SVG_NS, 'path');
@@ -226,7 +204,7 @@ export function renderShape(
         `A ${hw} ${ry} 0 0 0 ${hw} ${hh - ry}`,
         `L ${hw} ${-hh + ry}`,
       ].join(' '));
-      body.setAttribute('fill', `url(#${gid})`);
+      body.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       body.setAttribute('stroke', color);
       body.setAttribute('stroke-width', String(sw));
       innerG.appendChild(body);
@@ -248,7 +226,7 @@ export function renderShape(
       top.setAttribute('cy', String(-hh + ry));
       top.setAttribute('rx', String(hw));
       top.setAttribute('ry', String(ry));
-      top.setAttribute('fill', `url(#${gid})`);
+      top.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       top.setAttribute('stroke', color);
       top.setAttribute('stroke-width', String(sw));
       innerG.appendChild(top);
@@ -263,8 +241,6 @@ export function renderShape(
       const hw = w / 2;
       const hh = h / 2;
       const fold = Math.min(w * 0.2, 12);
-      const gid = gradId(color, 'doc');
-      createLinearGradient(gid, color, 'vertical', defs);
 
       // Document with folded corner
       const path = document.createElementNS(SVG_NS, 'path');
@@ -276,7 +252,7 @@ export function renderShape(
         `L ${-hw} ${hh}`,
         'Z',
       ].join(' '));
-      path.setAttribute('fill', `url(#${gid})`);
+      path.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       path.setAttribute('stroke', color);
       path.setAttribute('stroke-width', String(sw));
       innerG.appendChild(path);
@@ -301,15 +277,13 @@ export function renderShape(
       const w = s * 1.6;
       const h = s * 0.8;
       const r = h / 2;
-      const gid = gradId(color, 'stad');
-      createLinearGradient(gid, color, 'vertical', defs);
       const rect = document.createElementNS(SVG_NS, 'rect');
       rect.setAttribute('x', String(-w / 2));
       rect.setAttribute('y', String(-h / 2));
       rect.setAttribute('width', String(w));
       rect.setAttribute('height', String(h));
       rect.setAttribute('rx', String(r));
-      rect.setAttribute('fill', `url(#${gid})`);
+      rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       rect.setAttribute('stroke', color);
       rect.setAttribute('stroke-width', String(sw));
       innerG.appendChild(rect);
@@ -321,15 +295,13 @@ export function renderShape(
       const w = s * 1.0;
       const h = s * 1.6;
       const r = w / 2;
-      const gid = gradId(color, 'pill');
-      createLinearGradient(gid, color, 'vertical', defs);
       const rect = document.createElementNS(SVG_NS, 'rect');
       rect.setAttribute('x', String(-w / 2));
       rect.setAttribute('y', String(-h / 2));
       rect.setAttribute('width', String(w));
       rect.setAttribute('height', String(h));
       rect.setAttribute('rx', String(r));
-      rect.setAttribute('fill', `url(#${gid})`);
+      rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       rect.setAttribute('stroke', color);
       rect.setAttribute('stroke-width', String(sw));
       innerG.appendChild(rect);
@@ -343,8 +315,6 @@ export function renderShape(
       const skew = w * 0.15;
       const hw = w / 2;
       const hh = h / 2;
-      const gid = gradId(color, 'para');
-      createLinearGradient(gid, color, 'vertical', defs);
       const polygon = document.createElementNS(SVG_NS, 'polygon');
       polygon.setAttribute('points', [
         `${-hw + skew},${-hh}`,
@@ -352,7 +322,7 @@ export function renderShape(
         `${hw - skew},${hh}`,
         `${-hw - skew},${hh}`,
       ].join(' '));
-      polygon.setAttribute('fill', `url(#${gid})`);
+      polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(sw));
       innerG.appendChild(polygon);
@@ -362,11 +332,9 @@ export function renderShape(
 
     case 'pentagon': {
       const r = s * 0.5;
-      const gid = gradId(color, 'pent');
-      createLinearGradient(gid, color, 'vertical', defs);
       const polygon = document.createElementNS(SVG_NS, 'polygon');
       polygon.setAttribute('points', polarPoints(5, r, -Math.PI / 2));
-      polygon.setAttribute('fill', `url(#${gid})`);
+      polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(sw));
       innerG.appendChild(polygon);
@@ -376,11 +344,9 @@ export function renderShape(
 
     case 'octagon': {
       const r = s * 0.5;
-      const gid = gradId(color, 'oct');
-      createLinearGradient(gid, color, 'vertical', defs);
       const polygon = document.createElementNS(SVG_NS, 'polygon');
       polygon.setAttribute('points', polarPoints(8, r, Math.PI / 8));
-      polygon.setAttribute('fill', `url(#${gid})`);
+      polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(sw));
       innerG.appendChild(polygon);
@@ -390,11 +356,9 @@ export function renderShape(
 
     case 'triangle': {
       const r = s * 0.55;
-      const gid = gradId(color, 'tri');
-      createLinearGradient(gid, color, 'vertical', defs);
       const polygon = document.createElementNS(SVG_NS, 'polygon');
       polygon.setAttribute('points', polarPoints(3, r, -Math.PI / 2));
-      polygon.setAttribute('fill', `url(#${gid})`);
+      polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(sw));
       innerG.appendChild(polygon);
@@ -408,8 +372,6 @@ export function renderShape(
       const inset = w * 0.15;
       const hw = w / 2;
       const hh = h / 2;
-      const gid = gradId(color, 'trap');
-      createLinearGradient(gid, color, 'vertical', defs);
       const polygon = document.createElementNS(SVG_NS, 'polygon');
       polygon.setAttribute('points', [
         `${-hw + inset},${-hh}`,
@@ -417,7 +379,7 @@ export function renderShape(
         `${hw},${hh}`,
         `${-hw},${hh}`,
       ].join(' '));
-      polygon.setAttribute('fill', `url(#${gid})`);
+      polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(sw));
       innerG.appendChild(polygon);
@@ -428,8 +390,6 @@ export function renderShape(
     case 'cloud': {
       const w = s * 1.5;
       const h = s * 1.0;
-      const gid = gradId(color, 'cld');
-      createLinearGradient(gid, color, 'vertical', defs);
       // Cloud shape using bezier curves
       const hw = w / 2;
       const hh = h / 2;
@@ -443,7 +403,7 @@ export function renderShape(
         `Q ${hw} ${hh * 0.3} ${hw * 0.7} ${hh * 0.5}`,
         `Z`,
       ].join(' '));
-      path.setAttribute('fill', `url(#${gid})`);
+      path.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       path.setAttribute('stroke', color);
       path.setAttribute('stroke-width', String(sw));
       innerG.appendChild(path);

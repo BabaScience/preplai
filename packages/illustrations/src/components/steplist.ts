@@ -6,11 +6,12 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
   getLabelFontSize,
+  colorWithAlpha,
+  OPACITY,
   TYPOGRAPHY,
   LABEL_DEFAULTS,
 } from '../design-tokens.js';
@@ -33,9 +34,6 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('StepList');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-steplist-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const steps = (meta.steps as string[]) ?? (entity.textContent ? entity.textContent.split('\n') : ['Step 1', 'Step 2', 'Step 3']);
@@ -79,7 +77,7 @@ export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGG
     circle.setAttribute('cx', String(leftX));
     circle.setAttribute('cy', String(y));
     circle.setAttribute('r', String(numR));
-    circle.setAttribute('fill', isCompleted ? color : `url(#${gradId})`);
+    circle.setAttribute('fill', isCompleted ? color : colorWithAlpha(color, OPACITY.fillLight));
     circle.setAttribute('stroke', color);
     circle.setAttribute('stroke-width', String(getStrokeWidth(isCurrent ? 'selected' : 'default', 1)));
     circle.setAttribute('opacity', isCompleted ? '0.6' : '1');

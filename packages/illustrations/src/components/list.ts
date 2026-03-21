@@ -4,7 +4,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -26,9 +25,6 @@ export function renderList(entity: VisualEntity, parentEl: SVGElement): SVGGElem
   const indexFontSize = getLabelFontSize('index', 1) / scale;
   const valueFontSize = getLabelFontSize('value', 1) / scale;
   const color = entity.color ?? getCategoryColor('List');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-list-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const values = (meta.values as (string | number)[]) ?? (meta.cells as (string | number)[]) ?? [1, 2, 3, 4];
@@ -51,7 +47,7 @@ export function renderList(entity: VisualEntity, parentEl: SVGElement): SVGGElem
     cell.setAttribute('width', String(cellW - 4));
     cell.setAttribute('height', String(cellH));
     cell.setAttribute('rx', String(Math.max(1, SHAPES.borderRadius - 2)));
-    cell.setAttribute('fill', `url(#${gradId})`);
+    cell.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     cell.setAttribute('stroke', color);
     cell.setAttribute('stroke-width', String(strokeWidth));
     cell.setAttribute('stroke-dasharray', '2,2');

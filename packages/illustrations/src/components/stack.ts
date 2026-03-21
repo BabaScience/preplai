@@ -10,7 +10,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   TYPOGRAPHY,
@@ -35,7 +34,6 @@ export function renderStack(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   const s = getSizeParam(entity);
   const scale = s / 50;
   const defaultColor = entity.color ?? getCategoryColor('Stack');
-  const defs = ensureDefs(parentEl);
 
   const meta = entity.metadata ?? {};
   const layers: StackLayer[] = (meta.layers as StackLayer[]) ?? [
@@ -69,9 +67,6 @@ export function renderStack(entity: VisualEntity, parentEl: SVGElement): SVGGEle
 
   layers.forEach((layer, i) => {
     const color = layer.color ?? defaultColor;
-    const gradId = `grad-stack-${entity.id}-${i}-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-    createLinearGradient(gradId, color, 'vertical', defs);
-
     const y = startY + i * (blockH + gap);
 
     const rect = document.createElementNS(SVG_NS, 'rect');
@@ -80,7 +75,7 @@ export function renderStack(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     rect.setAttribute('width', String(blockW));
     rect.setAttribute('height', String(blockH));
     rect.setAttribute('rx', String(SHAPES.borderRadius));
-    rect.setAttribute('fill', `url(#${gradId})`);
+    rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     rect.setAttribute('stroke', color);
     rect.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
     innerG.appendChild(rect);
