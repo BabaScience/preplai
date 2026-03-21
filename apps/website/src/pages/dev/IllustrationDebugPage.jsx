@@ -78,6 +78,9 @@ function buildDefaultEntity(type, overrides = {}) {
 }
 
 /* ── Single Entity Debug (original mode) ─────────────────────────────── */
+const THEMES = ['light', 'cinema'];
+const PALETTES_LIST = ['default', 'ocean', 'sunset', 'forest', 'mono'];
+
 function EntityDebugMode() {
   const [selectedType, setSelectedType] = useState('Cloud');
   const [entity, setEntity] = useState(() => buildDefaultEntity('Cloud'));
@@ -87,6 +90,8 @@ function EntityDebugMode() {
   const [globalDefaultSize, setGlobalDefaultSize] = useState(ENTITY_DEFAULTS.size);
   const [reviewedTypes, setReviewedTypes] = useState(() => loadReviewedFromStorage());
   const [filterMode, setFilterMode] = useState('unchecked');
+  const [theme, setTheme] = useState('light');
+  const [palette, setPalette] = useState('sunset');
 
   useEffect(() => {
     saveReviewedToStorage(reviewedTypes);
@@ -147,6 +152,24 @@ function EntityDebugMode() {
     <div className="dev-layout">
       <div className="dev-panel dev-panel-left dev-panel-left-inner">
         <h2 className="dev-heading">Illustration Debug</h2>
+        <div className="dev-section">
+          <label className="dev-label">Theme</label>
+          <div className="scene-toggle-row">
+            {THEMES.map((t) => (
+              <button key={t} type="button" className="scene-toggle-btn" data-active={theme === t} onClick={() => setTheme(t)}>
+                {t === 'cinema' ? '🌙 Cinema' : '☀️ Light'}
+              </button>
+            ))}
+          </div>
+          <label className="dev-label" style={{ marginTop: 'var(--space-2)' }}>Palette</label>
+          <div className="scene-toggle-row">
+            {PALETTES_LIST.map((p) => (
+              <button key={p} type="button" className="scene-toggle-btn" data-active={palette === p} onClick={() => setPalette(p)}>
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="dev-section">
           <label className="dev-label">
             Default size (overrides entity size in preview)
@@ -251,6 +274,8 @@ function EntityDebugMode() {
         <IllustrationPreview
           entity={{ ...entity, size: globalDefaultSize }}
           renderError={setRenderError}
+          theme={theme}
+          palette={palette}
         />
       </div>
 

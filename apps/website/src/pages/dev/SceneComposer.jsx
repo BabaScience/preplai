@@ -273,6 +273,9 @@ for (const cat of PRESET_CATEGORIES) {
 }
 
 /* ── Component ───────────────────────────────────────────────────────── */
+const THEMES = ['light', 'cinema'];
+const PALETTES = ['default', 'ocean', 'sunset', 'forest', 'mono'];
+
 export default function SceneComposer() {
   const [entities, setEntities] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -281,6 +284,8 @@ export default function SceneComposer() {
   const [showJson, setShowJson] = useState(false);
   const [jsonInput, setJsonInput] = useState('');
   const [jsonError, setJsonError] = useState(null);
+  const [theme, setTheme] = useState('light');
+  const [palette, setPalette] = useState('sunset');
   const searchRef = useRef(null);
 
   const filtered = search.trim()
@@ -436,6 +441,38 @@ export default function SceneComposer() {
           </div>
         ))}
 
+        {/* Theme & Palette */}
+        <div className="dev-section">
+          <label className="dev-label">Theme</label>
+          <div className="scene-toggle-row">
+            {THEMES.map((t) => (
+              <button
+                key={t}
+                type="button"
+                className="scene-toggle-btn"
+                data-active={theme === t}
+                onClick={() => setTheme(t)}
+              >
+                {t === 'cinema' ? '🌙 Cinema' : '☀️ Light'}
+              </button>
+            ))}
+          </div>
+          <label className="dev-label" style={{ marginTop: 'var(--space-2)' }}>Palette</label>
+          <div className="scene-toggle-row">
+            {PALETTES.map((p) => (
+              <button
+                key={p}
+                type="button"
+                className="scene-toggle-btn"
+                data-active={palette === p}
+                onClick={() => setPalette(p)}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Add entity */}
         <div className="dev-section">
           <label className="dev-label">Add entity</label>
@@ -534,6 +571,8 @@ export default function SceneComposer() {
           entities={entities}
           selectedId={selectedId}
           onSelectEntity={setSelectedId}
+          theme={theme}
+          palette={palette}
         />
       </div>
 
