@@ -1,5 +1,5 @@
 import { useEffect, useRef, useMemo } from 'react';
-import { renderEntity, setActivePalette, getParticleColors } from '@preplai/illustrations';
+import { renderEntity, setActivePalette, setActiveTheme, getParticleColors } from '@preplai/illustrations';
 import { applyDefaults } from '@preplai/player';
 import { isConnectionType, ENTITY_DEFAULTS } from '@preplai/shared';
 
@@ -91,7 +91,8 @@ export default function ScenePreview({ entities, selectedId, onSelectEntity, the
 
   useEffect(() => {
     setActivePalette(palette);
-  }, [palette]);
+    setActiveTheme(theme);
+  }, [palette, theme]);
 
   useEffect(() => {
     const entityLayer = entityLayerRef.current;
@@ -103,8 +104,9 @@ export default function ScenePreview({ entities, selectedId, onSelectEntity, the
 
     if (!entities || entities.length === 0) return;
 
-    // Set palette before rendering
+    // Set palette and theme before rendering
     setActivePalette(palette);
+    setActiveTheme(theme);
 
     // Strip default entity.color so getCategoryColor() uses the active palette.
     // Only keep color if user explicitly set a non-default value.
@@ -136,7 +138,7 @@ export default function ScenePreview({ entities, selectedId, onSelectEntity, the
     } catch (err) {
       console.error('[ScenePreview]', err);
     }
-  }, [entities, onSelectEntity, palette]);
+  }, [entities, onSelectEntity, palette, theme]);
 
   // Selection ring
   const selectedEntity = entities?.find((e) => e.id === selectedId);

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useMemo } from 'react';
-import { renderEntity, setActivePalette, getParticleColors } from '@preplai/illustrations';
+import { renderEntity, setActivePalette, setActiveTheme, getParticleColors } from '@preplai/illustrations';
 import { applyDefaults } from '@preplai/player';
 import { isConnectionType, ENTITY_DEFAULTS } from '@preplai/shared';
 
@@ -100,7 +100,8 @@ export default function IllustrationPreview({ entity, renderError, theme = 'ligh
 
   useEffect(() => {
     setActivePalette(palette);
-  }, [palette]);
+    setActiveTheme(theme);
+  }, [palette, theme]);
 
   useEffect(() => {
     if (!entity || !entityLayerRef.current || !connectionLayerRef.current) return;
@@ -111,8 +112,9 @@ export default function IllustrationPreview({ entity, renderError, theme = 'ligh
     entityLayer.innerHTML = '';
     connectionLayer.innerHTML = '';
 
-    // Set palette before render
+    // Set palette and theme before render
     setActivePalette(palette);
+    setActiveTheme(theme);
 
     const needsConnection = isConnectionType(entity.type);
     const connectionEntity = needsConnection
@@ -152,7 +154,7 @@ export default function IllustrationPreview({ entity, renderError, theme = 'ligh
     } catch (err) {
       renderError?.(err.message);
     }
-  }, [entity, renderError, palette]);
+  }, [entity, renderError, palette, theme]);
 
   if (!entity) {
     return (

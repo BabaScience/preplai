@@ -5,6 +5,7 @@ import { METADATA_DEFAULTS, ENTITY_FIELD_DEFAULTS, COMPOSABLE_SHOWCASE } from '.
 import IllustrationPreview from './IllustrationPreview';
 import EntityParamPanel from './EntityParamPanel';
 import SceneComposer from './SceneComposer';
+import PaletteContrast from './PaletteContrast';
 
 const EXCLUDED_TYPES = new Set(['Label', 'GraphDS', 'GraphTraversal', 'NumberLine', 'ProcessBlock', 'Proof', 'QueryPlan', 'Register', 'Registry', 'StateNode']);
 const COMPOSABLE_VARIANTS = Object.keys(COMPOSABLE_SHOWCASE);
@@ -302,7 +303,7 @@ function EntityDebugMode() {
 
 /* ── Main page with tab toggle ───────────────────────────────────────── */
 export default function IllustrationDebugPage() {
-  const [mode, setMode] = useState('entity'); // 'entity' | 'scene'
+  const [mode, setMode] = useState('entity'); // 'entity' | 'scene' | 'contrast'
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -328,11 +329,21 @@ export default function IllustrationDebugPage() {
         >
           Scene Composer
         </button>
+        <button
+          type="button"
+          role="tab"
+          className="dev-tab"
+          aria-selected={mode === 'contrast'}
+          data-active={mode === 'contrast'}
+          onClick={() => setMode('contrast')}
+        >
+          Palette Contrast
+        </button>
       </nav>
 
       {/* Content */}
       <div style={{ flex: 1, overflow: 'hidden' }}>
-        {mode === 'entity' ? <EntityDebugMode /> : <SceneComposer />}
+        {mode === 'entity' ? <EntityDebugMode /> : mode === 'scene' ? <SceneComposer /> : <PaletteContrast />}
       </div>
     </div>
   );
