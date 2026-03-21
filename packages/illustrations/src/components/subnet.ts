@@ -9,7 +9,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   getLabelFontSize,
@@ -28,9 +27,6 @@ export function renderSubnet(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('Subnet');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-subnet-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const meta = entity.metadata ?? {};
   const cidr = (meta.cidr as string) ?? '192.168.1.0/24';

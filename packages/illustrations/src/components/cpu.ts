@@ -8,7 +8,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -17,9 +16,6 @@ export function renderCPU(entity: VisualEntity, parentEl: SVGElement): SVGGEleme
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('CPU');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-cpu-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const size = s * 0.7;
   const half = size / 2;
@@ -46,7 +42,7 @@ export function renderCPU(entity: VisualEntity, parentEl: SVGElement): SVGGEleme
   die.setAttribute('width', String(size));
   die.setAttribute('height', String(size));
   die.setAttribute('rx', String(SHAPES.borderRadius));
-  die.setAttribute('fill', `url(#${gradId})`);
+  die.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   die.setAttribute('stroke', color);
   die.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(die);

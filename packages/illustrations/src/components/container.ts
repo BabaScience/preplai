@@ -13,7 +13,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -22,9 +21,6 @@ export function renderContainer(entity: VisualEntity, parentEl: SVGElement): SVG
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Container');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-container-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const w = s * 1.1;
   const h = s * 0.75;
@@ -53,7 +49,7 @@ export function renderContainer(entity: VisualEntity, parentEl: SVGElement): SVG
   border.setAttribute('width', String(w));
   border.setAttribute('height', String(h));
   border.setAttribute('rx', String(SHAPES.borderRadius));
-  border.setAttribute('fill', `url(#${gradId})`);
+  border.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   border.setAttribute('stroke', color);
   border.setAttribute('stroke-width', String(STROKE.default));
   border.setAttribute('stroke-dasharray', '6,4');

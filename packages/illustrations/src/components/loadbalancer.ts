@@ -13,7 +13,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createLinearGradient, ensureDefs } from '../visual-utils.js';
 import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -22,9 +21,6 @@ export function renderLoadBalancer(entity: VisualEntity, parentEl: SVGElement): 
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('LoadBalancer');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-lb-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createLinearGradient(gradId, color, 'vertical', defs);
 
   const r = s * 0.45;
 
@@ -56,7 +52,7 @@ export function renderLoadBalancer(entity: VisualEntity, parentEl: SVGElement): 
 
   const polygon = document.createElementNS(SVG_NS, 'polygon');
   polygon.setAttribute('points', hexPoints);
-  polygon.setAttribute('fill', `url(#${gradId})`);
+  polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   polygon.setAttribute('stroke', color);
   polygon.setAttribute('stroke-width', String(STROKE.default));
   polygon.setAttribute('stroke-linejoin', 'round');

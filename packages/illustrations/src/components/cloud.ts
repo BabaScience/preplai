@@ -13,7 +13,6 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { createRadialGradient, ensureDefs } from '../visual-utils.js';
 import {
   getCategoryColor,
   TYPOGRAPHY,
@@ -36,9 +35,6 @@ export function renderCloud(entity: VisualEntity, parentEl: SVGElement): SVGGEle
 
   const s = getSizeParam(entity);
   const color = entity.color ?? getCategoryColor('Cloud');
-  const defs = ensureDefs(parentEl);
-  const gradId = `grad-cloud-${color.replace(/[^a-fA-F0-9]/g, '')}`;
-  createRadialGradient(gradId, color, defs);
 
   const strokeColor = colorWithAlpha(color, OPACITY.strokeSoft);
 
@@ -65,7 +61,7 @@ export function renderCloud(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     el.setAttribute('cy', String(e.cy * s));
     el.setAttribute('rx', String(e.rx * s));
     el.setAttribute('ry', String(e.ry * s));
-    el.setAttribute('fill', `url(#${gradId})`);
+    el.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
     el.setAttribute('stroke', strokeColor);
     el.setAttribute('stroke-width', String(STROKE.default));
     innerG.appendChild(el);
@@ -77,7 +73,7 @@ export function renderCloud(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   base.setAttribute('cy', String(CLOUD_BASE.cy * s));
   base.setAttribute('rx', String(CLOUD_BASE.rx * s));
   base.setAttribute('ry', String(CLOUD_BASE.ry * s));
-  base.setAttribute('fill', `url(#${gradId})`);
+  base.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
   base.setAttribute('stroke', 'none');
   innerG.appendChild(base);
 
