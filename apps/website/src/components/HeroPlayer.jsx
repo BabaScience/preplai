@@ -2,138 +2,217 @@
  * HeroPlayer — Live auto-playing player embed for the landing hero.
  *
  * Renders a real Preplai presentation using SceneController + illustrations.
- * Auto-advances frames, loops seamlessly. No user controls.
+ * Auto-advances frames, loops seamlessly. Optional ElevenLabs audio narration.
+ *
+ * When audio is enabled, frame advancement is driven by audio completion
+ * (onAudioEnd) so narration never gets cut off. When disabled, uses fixed timer.
  */
 import { useRef, useEffect, useCallback } from 'react';
 import { SceneController } from '@preplai/player';
+import { setActivePalette, setActiveTheme } from '@preplai/illustrations';
+import { Volume2, VolumeX } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import useShowcaseAudio from '../hooks/useShowcaseAudio';
 
 const CW = 1920;
 const CH = 1080;
 const FRAME_INTERVAL_MS = 5500;
+const AUDIO_GAP_MS = 800; // Breathing room between audio-driven frames
 
 // ── Demo VisualScript ───────────────────────────────────────────────
 
 const DEMO_SCRIPT = {
   frames: [
     {
-      narrationSegment: 'A user asks an AI agent: "Explain how microservices communicate."',
+      // Frame 1: Center cluster — camera zooms into center
+      narrationSegment: 'Every great outcome starts with an idea. You ask your AI to turn it into something people can see.',
       entities: [
-        { id: 'user1', type: 'User', position: { x: 15, y: 50 }, label: 'User', size: 2, color: '#C9A84C' },
-        { id: 'srv1', type: 'Server', position: { x: 45, y: 40 }, label: 'API Gateway', size: 2.5, highlight: true },
-        { id: 'db1', type: 'Database', position: { x: 75, y: 40 }, label: 'PostgreSQL', size: 2.5 },
-        { id: 'arrow1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'user1', targetEntityId: 'srv1', label: 'request' },
-        { id: 'arrow2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'srv1', targetEntityId: 'db1', label: 'query' },
+        { id: 'user1', type: 'User', position: { x: 30, y: 42 }, label: 'You', size: 2.5 },
+        { id: 'idea', type: 'Concept', position: { x: 50, y: 42 }, label: 'The Idea', size: 3, highlight: true },
+        { id: 'nn1', type: 'NeuralNetwork', position: { x: 70, y: 42 }, label: 'Your AI', size: 2.5 },
+        { id: 'a1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'user1', targetEntityId: 'idea', label: 'imagine' },
+        { id: 'a2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'idea', targetEntityId: 'nn1', label: 'explain' },
       ],
     },
     {
-      narrationSegment: 'The gateway routes requests to backend services and queries the database.',
+      // Frame 2: Right cluster — camera pans right
+      narrationSegment: 'Your AI researches, analyzes, and structures the information — building a clear narrative from complex data.',
       entities: [
-        { id: 'user1', type: 'User', position: { x: 15, y: 75 }, label: 'User', size: 2, color: '#C9A84C' },
-        { id: 'srv1', type: 'Server', position: { x: 40, y: 40 }, label: 'API Server', size: 2.5, highlight: true },
-        { id: 'db1', type: 'Database', position: { x: 75, y: 40 }, label: 'Database', size: 2.5 },
-        { id: 'arrow1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'srv1', targetEntityId: 'db1', label: 'query' },
-        { id: 'arrow2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'user1', targetEntityId: 'srv1', label: 'request', style: 'dashed' },
+        { id: 'nn1', type: 'NeuralNetwork', position: { x: 35, y: 42 }, label: 'Your AI', size: 2 },
+        { id: 'pipe1', type: 'Pipeline', position: { x: 55, y: 35 }, label: 'Build the Story', size: 3, highlight: true, metadata: { stages: ['Research', 'Analyze', 'Structure', 'Narrate'] } },
+        { id: 'db1', type: 'Database', position: { x: 72, y: 28 }, label: 'Your Data', size: 2 },
+        { id: 'db2', type: 'Database', position: { x: 72, y: 55 }, label: 'Context', size: 2 },
+        { id: 'a1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'nn1', targetEntityId: 'pipe1', label: 'execute' },
+        { id: 'a2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'pipe1', targetEntityId: 'db1', label: 'gather' },
+        { id: 'a3', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'pipe1', targetEntityId: 'db2', label: 'enrich' },
       ],
     },
     {
-      narrationSegment: 'A Redis cache layer intercepts frequent reads — reducing database load by 90%.',
+      // Frame 3: Bottom-center cluster — camera pans down
+      narrationSegment: 'Preplai transforms AI output into animated visuals — charts, diagrams, flows, and metrics — narrated frame by frame.',
       entities: [
-        { id: 'user1', type: 'User', position: { x: 15, y: 75 }, label: 'User', size: 2, color: '#C9A84C' },
-        { id: 'srv1', type: 'Server', position: { x: 40, y: 40 }, label: 'API Server', size: 2.5 },
-        { id: 'db1', type: 'Database', position: { x: 75, y: 65 }, label: 'Database', size: 2.5 },
-        { id: 'cache1', type: 'Cache', position: { x: 75, y: 25 }, label: 'Redis Cache', size: 2, highlight: true },
-        { id: 'arrow1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'srv1', targetEntityId: 'db1', label: 'query' },
-        { id: 'arrow3', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'srv1', targetEntityId: 'cache1', label: 'cache hit?' },
-        { id: 'arrow2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'user1', targetEntityId: 'srv1', label: 'request', style: 'dashed' },
+        { id: 'pipe1', type: 'Pipeline', position: { x: 45, y: 22 }, label: 'Preplai Engine', size: 2.5, highlight: true, metadata: { stages: ['Parse', 'Illustrate', 'Animate', 'Narrate'] } },
+        { id: 'pie1', type: 'PieChart', position: { x: 30, y: 50 }, label: 'Market Share', size: 2, metadata: { slices: [{ label: 'A', value: 40 }, { label: 'B', value: 35 }, { label: 'C', value: 25 }] } },
+        { id: 'bar1', type: 'BarChart', position: { x: 52, y: 50 }, label: 'Performance', size: 2.2, metadata: { bars: [{ label: 'Q1', value: 60 }, { label: 'Q2', value: 85 }, { label: 'Q3', value: 110 }, { label: 'Q4', value: 140 }] } },
+        { id: 'metric1', type: 'Metric', position: { x: 70, y: 40 }, label: 'Impact', size: 2, metadata: { value: '+47%', trend: 'up' } },
+        { id: 'timeline1', type: 'Timeline', position: { x: 70, y: 60 }, label: 'Milestones', size: 1.8, metadata: { events: ['Phase 1', 'Phase 2', 'Launch'] } },
       ],
     },
     {
-      narrationSegment: 'A load balancer distributes traffic across Service A and Service B.',
+      // Frame 4: Left-center cluster — camera pans left
+      narrationSegment: 'The result: a cinematic walkthrough anyone can watch — your team, your client, your board. No slides, no jargon.',
       entities: [
-        { id: 'user1', type: 'User', position: { x: 10, y: 50 }, label: 'User', size: 2, color: '#C9A84C' },
-        { id: 'lb1', type: 'LoadBalancer', position: { x: 30, y: 50 }, label: 'Load Balancer', size: 2, highlight: true },
-        { id: 'srv1', type: 'Server', position: { x: 55, y: 30 }, label: 'Service A', size: 2 },
-        { id: 'srv2', type: 'Server', position: { x: 55, y: 70 }, label: 'Service B', size: 2 },
-        { id: 'db1', type: 'Database', position: { x: 80, y: 50 }, label: 'Database', size: 2.5 },
-        { id: 'cache1', type: 'Cache', position: { x: 80, y: 20 }, label: 'Redis', size: 1.8 },
-        { id: 'a_user_lb', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'user1', targetEntityId: 'lb1' },
-        { id: 'a_lb_s1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'lb1', targetEntityId: 'srv1' },
-        { id: 'a_lb_s2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'lb1', targetEntityId: 'srv2' },
-        { id: 'a_s1_db', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'srv1', targetEntityId: 'db1', label: 'read' },
-        { id: 'a_s2_db', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'srv2', targetEntityId: 'db1', label: 'write' },
-        { id: 'a_s1_c', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'srv1', targetEntityId: 'cache1' },
+        { id: 'user1', type: 'User', position: { x: 28, y: 30 }, label: 'Your Team', size: 2 },
+        { id: 'user2', type: 'User', position: { x: 28, y: 48 }, label: 'Your Client', size: 2 },
+        { id: 'user3', type: 'User', position: { x: 28, y: 66 }, label: 'Your Board', size: 2 },
+        { id: 'monitor1', type: 'Monitor', position: { x: 52, y: 45 }, label: 'Preplai Player', size: 3.5, highlight: true },
+        { id: 'metric1', type: 'Metric', position: { x: 70, y: 35 }, label: 'Retention', size: 2, metadata: { value: '95%', trend: 'up' } },
+        { id: 'metric2', type: 'Metric', position: { x: 70, y: 58 }, label: 'Time Saved', size: 2, metadata: { value: '10x', trend: 'up' } },
+        { id: 'a1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'user1', targetEntityId: 'monitor1', label: 'watch' },
+        { id: 'a2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'user2', targetEntityId: 'monitor1', label: 'watch' },
+        { id: 'a3', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'user3', targetEntityId: 'monitor1', label: 'watch' },
       ],
     },
     {
-      narrationSegment: 'The complete system: gateway, load balancer, services, cache, and database — all connected.',
+      // Frame 5: Center horizontal — camera centers for finale
+      narrationSegment: 'From idea to impact — in 2 minutes. Don\'t read it. Just watch it.',
       entities: [
-        { id: 'user1', type: 'User', position: { x: 10, y: 50 }, label: 'User', size: 2, color: '#C9A84C' },
-        { id: 'lb1', type: 'LoadBalancer', position: { x: 30, y: 50 }, label: 'Load Balancer', size: 2 },
-        { id: 'srv1', type: 'Server', position: { x: 55, y: 30 }, label: 'Service A', size: 2 },
-        { id: 'srv2', type: 'Server', position: { x: 55, y: 70 }, label: 'Service B', size: 2 },
-        { id: 'db1', type: 'Database', position: { x: 80, y: 50 }, label: 'Database', size: 2.5, highlight: true },
-        { id: 'cache1', type: 'Cache', position: { x: 80, y: 20 }, label: 'Redis', size: 1.8 },
-        { id: 'a_user_lb', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'user1', targetEntityId: 'lb1' },
-        { id: 'a_lb_s1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'lb1', targetEntityId: 'srv1' },
-        { id: 'a_lb_s2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'lb1', targetEntityId: 'srv2' },
-        { id: 'a_s1_db', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'srv1', targetEntityId: 'db1', label: 'read' },
-        { id: 'a_s2_db', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'srv2', targetEntityId: 'db1', label: 'write' },
-        { id: 'a_s1_c', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'srv1', targetEntityId: 'cache1' },
+        { id: 'idea', type: 'Concept', position: { x: 28, y: 40 }, label: 'Idea', size: 2 },
+        { id: 'pipe1', type: 'Pipeline', position: { x: 50, y: 32 }, label: 'From Idea to Impact', size: 3, highlight: true, metadata: { stages: ['Idea', 'AI Research', 'Visual Story', 'Share'] } },
+        { id: 'monitor1', type: 'Monitor', position: { x: 72, y: 40 }, label: 'Watch It', size: 2.5 },
+        { id: 'a1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'idea', targetEntityId: 'pipe1' },
+        { id: 'a2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'pipe1', targetEntityId: 'monitor1' },
+        { id: 'callout1', type: 'Callout', position: { x: 50, y: 62 }, label: 'Works with Claude, ChatGPT, Cursor, and any MCP-compatible AI', size: 1.5 },
       ],
     },
   ],
 };
-
-// ── Component ────────────────────────────────────────────────────────
 
 // ── Theme palettes ──────────────────────────────────────────────────
 const THEME = {
   dark: {
     bgGrad: ['#14151f', '#08090e'],
     dotFill: 'rgba(255,255,255,0.04)',
-    narratorBg: 'rgba(12,13,18,0.75)',
-    narratorBorder: 'rgba(255,255,255,0.06)',
-    narratorAccent: '#C9A84C',
-    narratorText: '#b0b0c8',
     dotActive: '#C9A84C',
     dotInactive: 'rgba(255,255,255,0.2)',
   },
   light: {
     bgGrad: ['#f5f0e8', '#ebe5d8'],
     dotFill: 'rgba(0,0,0,0.04)',
-    narratorBg: 'rgba(255,255,255,0.82)',
-    narratorBorder: 'rgba(0,0,0,0.08)',
-    narratorAccent: '#B8943D',
-    narratorText: '#3a3a4e',
     dotActive: '#B8943D',
     dotInactive: 'rgba(0,0,0,0.15)',
   },
 };
 
 export default function HeroPlayer() {
-  const { currentTheme } = useTheme();
+  const { currentTheme, palette } = useTheme();
+  const controllerRef = useRef(null);
+  const frameRef = useRef(0);
+  const timerRef = useRef(null);
+  const focusTimerRef = useRef(null);
+  const audioGapTimerRef = useRef(null);
+
   const svgRef = useRef(null);
   const entityLayerRef = useRef(null);
   const connectionLayerRef = useRef(null);
   const narratorRef = useRef(null);
   const dotsRef = useRef(null);
-  const controllerRef = useRef(null);
-  const frameRef = useRef(0);
-  const timerRef = useRef(null);
 
-  const advanceFrame = useCallback(() => {
+  // ── Frame advancement (shared between timer and audio modes) ──────
+
+  const goToFrame = useCallback((idx) => {
     const ctrl = controllerRef.current;
     if (!ctrl) return;
-    const total = DEMO_SCRIPT.frames.length;
-    frameRef.current = (frameRef.current + 1) % total;
-    ctrl.seekToFrame(frameRef.current);
+    frameRef.current = idx;
+    ctrl.seekToFrame(idx);
   }, []);
+
+  const advanceFrame = useCallback(() => {
+    const total = DEMO_SCRIPT.frames.length;
+    const next = (frameRef.current + 1) % total;
+    goToFrame(next);
+    return next;
+  }, [goToFrame]);
+
+  // Apply fallback focus for when audio is off
+  const applyFallbackFocus = useCallback(() => {
+    const ctrl = controllerRef.current;
+    if (!ctrl || !ctrl.shiftFocus) return;
+    const frame = DEMO_SCRIPT.frames[frameRef.current];
+    if (!frame) return;
+    const ids = frame.entities.filter((e) => e.highlight).map((e) => e.id);
+    if (ids.length > 0) ctrl.shiftFocus(ids, ids.map(() => 1));
+  }, []);
+
+  // ── Fixed-interval timer management ───────────────────────────────
+
+  const startFixedTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      advanceFrame();
+      if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
+      focusTimerRef.current = setTimeout(applyFallbackFocus, 800);
+    }, FRAME_INTERVAL_MS);
+  }, [advanceFrame, applyFallbackFocus]);
+
+  const stopFixedTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  // ── Audio hook with onAudioEnd driving frame advancement ──────────
+
+  const playFrameRef = useRef(null);
+  const audio = useShowcaseAudio({
+    onFocusCue: (cue) => {
+      const ctrl = controllerRef.current;
+      if (!ctrl || !ctrl.shiftFocus) return;
+      const ids = cue.entityIds?.length ? cue.entityIds : cue.entityId ? [cue.entityId] : null;
+      ctrl.shiftFocus(ids, cue.confidences);
+    },
+    onAudioEnd: () => {
+      // Wait a beat, then advance to next frame and play its audio
+      if (audioGapTimerRef.current) clearTimeout(audioGapTimerRef.current);
+      audioGapTimerRef.current = setTimeout(() => {
+        const next = advanceFrame();
+        playFrameRef.current?.('hero', next);
+      }, AUDIO_GAP_MS);
+    },
+  });
+  playFrameRef.current = audio.playFrame;
+
+  // When audio is toggled, switch between timer and audio-driven modes
+  const handleToggle = useCallback(() => {
+    if (audio.enabledRef.current) {
+      // Switching OFF: disable audio, clear gap timer, restart fixed timer
+      audio.disable();
+      if (audioGapTimerRef.current) {
+        clearTimeout(audioGapTimerRef.current);
+        audioGapTimerRef.current = null;
+      }
+      startFixedTimer();
+    } else {
+      // Switching ON: enable audio, stop fixed timer, play current frame
+      audio.enable();
+      stopFixedTimer();
+      // audio.enable() is synchronous, so playFrame will work immediately
+      audio.playFrame('hero', frameRef.current);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startFixedTimer, stopFixedTimer]);
+
+  // ── SceneController setup ─────────────────────────────────────────
 
   useEffect(() => {
     const entityLayer = entityLayerRef.current;
     const connectionLayer = connectionLayerRef.current;
     if (!entityLayer || !connectionLayer) return;
+
+    // Apply palette and theme for illustrations
+    if (palette) setActivePalette(palette);
+    setActiveTheme(currentTheme === 'light' ? 'light' : 'cinema');
 
     const ctrl = new SceneController({
       entityLayer,
@@ -142,7 +221,6 @@ export default function HeroPlayer() {
         if (narratorRef.current) narratorRef.current.textContent = text;
       },
       onFrameChange: () => {
-        // Update dots — colors driven by theme
         if (dotsRef.current) {
           const total = DEMO_SCRIPT.frames.length;
           const current = frameRef.current;
@@ -160,14 +238,28 @@ export default function HeroPlayer() {
     controllerRef.current = ctrl;
     ctrl.loadScript(DEMO_SCRIPT);
 
-    // Start auto-play
-    timerRef.current = setInterval(advanceFrame, FRAME_INTERVAL_MS);
+    // Apply focus on first frame
+    focusTimerRef.current = setTimeout(applyFallbackFocus, 800);
+
+    // Start with fixed timer (audio is off by default)
+    startFixedTimer();
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      stopFixedTimer();
+      if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
+      if (audioGapTimerRef.current) clearTimeout(audioGapTimerRef.current);
       controllerRef.current = null;
     };
-  }, [advanceFrame]);
+  }, [applyFallbackFocus, startFixedTimer, stopFixedTimer]);
+
+  // Re-render current frame when palette or theme changes
+  useEffect(() => {
+    const ctrl = controllerRef.current;
+    if (!ctrl) return;
+    if (palette) setActivePalette(palette);
+    setActiveTheme(currentTheme === 'light' ? 'light' : 'cinema');
+    ctrl.seekToFrame(frameRef.current);
+  }, [palette, currentTheme]);
 
   const totalFrames = DEMO_SCRIPT.frames.length;
   const t = THEME[currentTheme] || THEME.dark;
@@ -185,7 +277,6 @@ export default function HeroPlayer() {
             <stop offset="0%" stopColor={t.bgGrad[0]} />
             <stop offset="100%" stopColor={t.bgGrad[1]} />
           </radialGradient>
-          {/* Glass filter for entities (mirrored from player) */}
           <filter id="glass-inner-light" x="-10%" y="-10%" width="120%" height="120%">
             <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
             <feOffset in="blur" dx="0" dy="2" result="offsetBlur" />
@@ -204,58 +295,35 @@ export default function HeroPlayer() {
           </filter>
         </defs>
 
-        {/* Background */}
         <rect width={CW} height={CH} fill="url(#hero-bg-grad)" />
 
-        {/* Dot grid */}
         <g opacity="0.5">
           {Array.from({ length: Math.floor(CW / 80) }, (_, x) =>
             Array.from({ length: Math.floor(CH / 80) }, (_, y) => (
-              <circle
-                key={`d${x}-${y}`}
-                cx={x * 80 + 40}
-                cy={y * 80 + 40}
-                r="1.2"
-                fill={t.dotFill}
-              />
+              <circle key={`d${x}-${y}`} cx={x * 80 + 40} cy={y * 80 + 40} r="1.2" fill={t.dotFill} />
             ))
           )}
         </g>
 
-        {/* Connection layer (behind entities) */}
         <g ref={connectionLayerRef} id="hero-connection-layer" />
-
-        {/* Entity layer */}
         <g ref={entityLayerRef} id="hero-entity-layer" />
 
-        {/* Narrator bar */}
-        <g transform={`translate(${CW / 2}, ${CH - 80})`}>
-          <rect x="-340" y="-24" width="680" height="48" rx="10" fill={t.narratorBg} stroke={t.narratorBorder} strokeWidth="1" />
-          <rect x="-340" y="-24" width="3" height="48" rx="1.5" fill={t.narratorAccent} />
-          <text
-            ref={narratorRef}
-            x="0"
-            y="5"
-            textAnchor="middle"
-            fill={t.narratorText}
-            fontSize="17"
-            fontFamily="Inter, sans-serif"
-          />
-        </g>
-
-        {/* Frame dots */}
         <g ref={dotsRef} transform={`translate(${CW / 2 - (totalFrames - 1) * 10}, ${CH - 28})`}>
           {Array.from({ length: totalFrames }, (_, i) => (
-            <circle
-              key={i}
-              cx={i * 20}
-              cy="0"
-              r={i === 0 ? 4 : 3}
-              fill={i === 0 ? t.dotActive : t.dotInactive}
-            />
+            <circle key={i} cx={i * 20} cy="0" r={i === 0 ? 4 : 3} fill={i === 0 ? t.dotActive : t.dotInactive} />
           ))}
         </g>
       </svg>
+
+      <div className="hero-player-narrator" ref={narratorRef} />
+
+      <button
+        className={`player-audio-toggle ${audio.enabled ? 'audio-on' : ''}`}
+        onClick={handleToggle}
+        aria-label={audio.enabled ? 'Mute narration' : 'Enable audio narration'}
+      >
+        {audio.enabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+      </button>
     </div>
   );
 }

@@ -492,8 +492,9 @@ export class SceneController {
     }
 
     // If the resulting viewBox is essentially the full canvas, just use full canvas
-    // (avoids micro-zooms that look jittery)
-    if (vbW > CANVAS_WIDTH * 0.85 && vbH > CANVAS_HEIGHT * 0.85) {
+    // (avoids micro-zooms that look jittery). Threshold at 93% allows moderate
+    // entity clusters to still trigger cinematic camera zoom.
+    if (vbW > CANVAS_WIDTH * 0.93 && vbH > CANVAS_HEIGHT * 0.93) {
       vbX = 0;
       vbY = 0;
       vbW = CANVAS_WIDTH;

@@ -5,6 +5,7 @@ import LandingLayout from '../layouts/LandingLayout';
 import Logo from '../components/Logo';
 import HeroPlayer from '../components/HeroPlayer';
 import ShowcaseCarousel from '../components/ShowcaseCarousel';
+import PalettePicker from '../components/PalettePicker';
 import { SHOWCASE_ITEMS } from '../components/showcase-scripts';
 
 export default function Landing() {
@@ -67,6 +68,7 @@ export default function Landing() {
         <div className="section-label">See It In Action</div>
         <h2>From explanation to presentation</h2>
         <p className="section-desc">Every demo below is a live Preplai presentation. The same engine your AI will use.</p>
+        <PalettePicker />
         <ShowcaseCarousel items={SHOWCASE_ITEMS} />
       </section>
 
