@@ -183,6 +183,8 @@ export const ICON_PATHS: Record<string, string> = {
     'M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2',
   'wifi':
     'M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01',
+  'bot':
+    'M12 2a1 1 0 0 1 1 1v1h-2V3a1 1 0 0 1 1-1zM5 8h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM9 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM15 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM9 18v2M15 18v2M1 12h2M21 12h2',
   'cloud-icon':
     'M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z',
   'shield':
@@ -479,7 +481,7 @@ export const ICON_CATEGORIES: Record<string, string[]> = {
   ],
   'tech': [
     'code', 'terminal', 'git-branch', 'database', 'server',
-    'cpu', 'wifi', 'cloud-icon', 'shield', 'key',
+    'cpu', 'wifi', 'cloud-icon', 'shield', 'key', 'bot',
   ],
   'healthcare': [
     'heart-pulse', 'stethoscope', 'pill', 'microscope', 'dna',

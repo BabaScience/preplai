@@ -15,7 +15,7 @@
  * colors from a single entity color — correctly for both themes.
  */
 
-import { colorWithAlpha, OPACITY } from './design-tokens.js';
+import { colorWithAlpha, OPACITY, generateColorRamp } from './design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 import { getCategoryColor } from './design-tokens.js';
 
@@ -63,25 +63,26 @@ export interface ColorCascade {
  */
 export function resolveColorCascade(entity: Pick<VisualEntity, 'color' | 'type'>): ColorCascade {
   const base = entity.color ?? getCategoryColor(entity.type);
+  const ramp = generateColorRamp(base);
 
-  // OPACITY is already theme-aware — returns boosted values for light theme
+  // Map 7-stop perceptual ramp to cascade roles
   return {
     base,
 
-    fill: colorWithAlpha(base, OPACITY.fillLight),
-    fillMedium: colorWithAlpha(base, OPACITY.fillMedium),
-    fillHeavy: colorWithAlpha(base, OPACITY.fillHeavy),
+    fill: ramp[50],                                    // lightest fill
+    fillMedium: ramp[100],                             // medium fill
+    fillHeavy: ramp[300],                              // heavy fill
 
-    stroke: base,
-    strokeSoft: colorWithAlpha(base, OPACITY.strokeSoft),
-    strokeMuted: colorWithAlpha(base, OPACITY.strokeMuted),
+    stroke: ramp[500],                                 // base stroke
+    strokeSoft: ramp[600],                             // emphasis stroke
+    strokeMuted: colorWithAlpha(ramp[500], OPACITY.strokeMuted), // glow (still needs alpha for transparency)
 
-    textPrimary: base,
-    textSecondary: colorWithAlpha(base, OPACITY.strokeSoft),
-    textTertiary: colorWithAlpha(base, OPACITY.strokeMuted),
+    textPrimary: ramp[800],                            // readable labels
+    textSecondary: ramp[600],                          // secondary text
+    textTertiary: colorWithAlpha(ramp[600], OPACITY.strokeMuted), // captions
 
-    glow: colorWithAlpha(base, OPACITY.strokeMuted),
-    badgeBg: colorWithAlpha(base, OPACITY.fillMedium),
+    glow: colorWithAlpha(ramp[500], OPACITY.strokeMuted), // transparent glow
+    badgeBg: ramp[100],                                // badge background
   };
 }
 
