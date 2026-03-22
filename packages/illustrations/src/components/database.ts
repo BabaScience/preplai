@@ -13,15 +13,16 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { resolveColorCascade, applyGlowColors } from '../color-cascade.js';
 import { renderCylinderBase, getCylinderLabelY } from '../cylinder-utils.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderDatabase(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
   const size = getSizeParam(entity);
-  const color = entity.color ?? getCategoryColor('Database');
-  const gradId = `grad-db-${color.replace(/[^a-fA-F0-9]/g, '')}`;
+  const cc = resolveColorCascade(entity);
+  const gradId = `grad-db-${cc.base.replace(/[^a-fA-F0-9]/g, '')}`;
 
   // Highlight glow (behind shape)
   if (entity.highlight) {
@@ -39,16 +40,15 @@ export function renderDatabase(entity: VisualEntity, parentEl: SVGElement): SVGG
       `A ${rx} ${ry} 0 0 1 ${-rx} ${botY}`,
       'Z',
     ].join(' '));
-    glowPath.setAttribute('fill', 'none');
-    glowPath.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     glowPath.setAttribute('stroke-width', String(STROKE.default));
     glowPath.setAttribute('stroke-dasharray', '4,4');
+    applyGlowColors(glowPath, cc);
     innerG.appendChild(glowPath);
   }
 
   renderCylinderBase(innerG, parentEl, {
     size,
-    color,
+    color: cc.base,
     gradId,
     stripeOffsets: [],
     glass: false,
@@ -60,7 +60,7 @@ export function renderDatabase(entity: VisualEntity, parentEl: SVGElement): SVGG
     text.setAttribute('x', '0');
     text.setAttribute('y', String(getCylinderLabelY(size)));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);

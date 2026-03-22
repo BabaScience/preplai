@@ -8,14 +8,15 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderFirewall(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const color = entity.color ?? getCategoryColor('Firewall');
+  const cc = resolveColorCascade(entity);
 
   const w = s * 0.5;
   const h = s * 0.75;
@@ -30,10 +31,9 @@ export function renderFirewall(entity: VisualEntity, parentEl: SVGElement): SVGG
     glow.setAttribute('width', String(w + 6));
     glow.setAttribute('height', String(h + 6));
     glow.setAttribute('rx', '5');
-    glow.setAttribute('fill', 'none');
-    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     glow.setAttribute('stroke-width', String(STROKE.default));
     glow.setAttribute('stroke-dasharray', '4,4');
+    applyGlowColors(glow, cc);
     innerG.appendChild(glow);
   }
 
@@ -44,9 +44,8 @@ export function renderFirewall(entity: VisualEntity, parentEl: SVGElement): SVGG
   body.setAttribute('width', String(w));
   body.setAttribute('height', String(h));
   body.setAttribute('rx', '3');
-  body.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-  body.setAttribute('stroke', color);
   body.setAttribute('stroke-width', String(STROKE.default));
+  applyShapeColors(body, cc);
   innerG.appendChild(body);
 
   // Shield icon (stroke-based path)
@@ -63,7 +62,7 @@ export function renderFirewall(entity: VisualEntity, parentEl: SVGElement): SVGG
     'Z',
   ].join(' '));
   shield.setAttribute('fill', 'none');
-  shield.setAttribute('stroke', color);
+  shield.setAttribute('stroke', cc.stroke);
   shield.setAttribute('stroke-width', String(STROKE.default));
   shield.setAttribute('stroke-linejoin', 'round');
   innerG.appendChild(shield);
@@ -74,7 +73,7 @@ export function renderFirewall(entity: VisualEntity, parentEl: SVGElement): SVGG
     text.setAttribute('x', '0');
     text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);

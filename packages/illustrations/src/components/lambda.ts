@@ -8,14 +8,15 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderLambda(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const color = entity.color ?? getCategoryColor('Lambda');
+  const cc = resolveColorCascade(entity);
 
   const w = s * 0.8;
   const h = s * 0.65;
@@ -31,10 +32,9 @@ export function renderLambda(entity: VisualEntity, parentEl: SVGElement): SVGGEl
     glow.setAttribute('width', String(w + 6));
     glow.setAttribute('height', String(h + 6));
     glow.setAttribute('rx', String(rx + 2));
-    glow.setAttribute('fill', 'none');
-    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     glow.setAttribute('stroke-width', String(STROKE.default));
     glow.setAttribute('stroke-dasharray', '4,4');
+    applyGlowColors(glow, cc);
     innerG.appendChild(glow);
   }
 
@@ -45,9 +45,9 @@ export function renderLambda(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   rect.setAttribute('width', String(w));
   rect.setAttribute('height', String(h));
   rect.setAttribute('rx', String(rx));
-  rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-  rect.setAttribute('stroke', color);
   rect.setAttribute('stroke-width', String(STROKE.default));
+  rect.setAttribute('data-morph-target', 'true');
+  applyShapeColors(rect, cc);
   innerG.appendChild(rect);
 
   // Lambda character
@@ -56,7 +56,7 @@ export function renderLambda(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   lambda.setAttribute('y', String(h * 0.08));
   lambda.setAttribute('text-anchor', 'middle');
   lambda.setAttribute('dominant-baseline', 'central');
-  lambda.setAttribute('fill', color);
+  lambda.setAttribute('fill', cc.textPrimary);
   lambda.setAttribute('font-size', String(Math.min(s * 0.5, h * 0.55)));
   lambda.setAttribute('font-weight', '300');
   lambda.setAttribute('font-family', TYPOGRAPHY.fontLabel);
@@ -69,7 +69,7 @@ export function renderLambda(entity: VisualEntity, parentEl: SVGElement): SVGGEl
     text.setAttribute('x', '0');
     text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);

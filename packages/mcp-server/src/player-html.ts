@@ -264,8 +264,11 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- GSAP 3.13 — animation engine -->
+  <!-- GSAP 3.13 — animation engine + MorphSVG plugin (free since Webflow acquisition) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/MorphSVGPlugin.min.js"></script>
+  <!-- Lottie — animated micro-assets for entity idle animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 
   <!-- Player bootstrap -->
   <script src="/player.js"></script>

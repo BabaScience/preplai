@@ -551,6 +551,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
                 csp: {
                   resourceDomains: [
                     'https://cdnjs.cloudflare.com',
+                    'https://cdn.jsdelivr.net',
                     'https://fonts.googleapis.com',
                     'https://fonts.gstatic.com',
                     baseUrl,  // e.g. https://player.preplai.com — for audio media-src

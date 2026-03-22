@@ -1,6 +1,6 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { renderEntity, setActivePalette, setActiveTheme, getParticleColors } from '@preplai/illustrations';
-import { applyDefaults } from '@preplai/player';
+import { SceneController, applyDefaults } from '@preplai/player';
 import { isConnectionType, ENTITY_DEFAULTS } from '@preplai/shared';
 
 /** Default entity color from ENTITY_DEFAULTS — strip it so palette controls color */
@@ -76,10 +76,19 @@ function buildAmbientParticles(particleColors) {
 /**
  * ScenePreview — renders multiple entities on a single 1920×1080 canvas.
  * Supports theme (cinema/light) and palette switching.
+ *
+ * Two modes:
+ *   - Direct mode (default): clears + rebuilds all entities each render
+ *   - Controller mode (useController=true): uses SceneController for cinematic
+ *     frame transitions with morphing, exit/entrance animations, camera zoom
  */
-export default function ScenePreview({ entities, selectedId, onSelectEntity, theme = 'light', palette = 'sunset' }) {
+const ScenePreview = forwardRef(function ScenePreview(
+  { entities, selectedId, onSelectEntity, theme = 'light', palette = 'sunset', useController = false, frames = null, currentFrameIdx = 0 },
+  ref,
+) {
   const entityLayerRef = useRef(null);
   const connectionLayerRef = useRef(null);
+  const controllerRef = useRef(null);
 
   const themeConfig = THEME_BG[theme] ?? THEME_BG.light;
 
@@ -94,7 +103,97 @@ export default function ScenePreview({ entities, selectedId, onSelectEntity, the
     setActiveTheme(theme);
   }, [palette, theme]);
 
+  // ── Load GSAP + MorphSVG dynamically for controller mode ─────────
+  const gsapLoadedRef = useRef(false);
   useEffect(() => {
+    if (!useController || gsapLoadedRef.current) return;
+    // Load GSAP and MorphSVG from CDN so SceneController can use them
+    const loadScript = (src) => new Promise((resolve) => {
+      if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = resolve; // non-critical
+      document.head.appendChild(s);
+    });
+    (async () => {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js');
+      await loadScript('https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/MorphSVGPlugin.min.js');
+      if (window.gsap && window.MorphSVGPlugin) {
+        window.gsap.registerPlugin(window.MorphSVGPlugin);
+      }
+      gsapLoadedRef.current = true;
+    })();
+  }, [useController]);
+
+  // ── Controller mode: instantiate SceneController once ───────────
+  useEffect(() => {
+    if (!useController) return;
+    const entityLayer = entityLayerRef.current;
+    const connectionLayer = connectionLayerRef.current;
+    if (!entityLayer || !connectionLayer) return;
+    if (!controllerRef.current) {
+      controllerRef.current = new SceneController({
+        entityLayer,
+        connectionLayer,
+      });
+    }
+  }, [useController]);
+
+  // Track loaded frames hash to know when to re-load vs just seek
+  const loadedFramesHashRef = useRef(null);
+  const lastSeekedFrameRef = useRef(-1);
+
+  const buildVisualScript = useCallback((framesData) => ({
+    sceneId: 'composer-preview',
+    totalDuration: framesData.length * 5000,
+    frames: framesData.map((f, i) => ({
+      id: `frame-${i}`,
+      startTime: i * 5000,
+      endTime: (i + 1) * 5000,
+      entities: (f.entities || []).map((e) => {
+        const d = applyDefaults(e);
+        if (!e.color || e.color === DEFAULT_COLOR) delete d.color;
+        return d;
+      }),
+      narrationSegment: f.narration || '',
+      description: '',
+    })),
+  }), []);
+
+  // ── Controller mode: load script once, then seek on frame changes ──
+  useEffect(() => {
+    if (!useController || !frames || !frames.length || !controllerRef.current) return;
+
+    setActivePalette(palette);
+    setActiveTheme(theme);
+
+    const framesHash = JSON.stringify(frames);
+    const script = buildVisualScript(frames);
+
+    if (loadedFramesHashRef.current !== framesHash) {
+      // Frames changed — full reload (clears canvas, seeks to frame 0)
+      loadedFramesHashRef.current = framesHash;
+      lastSeekedFrameRef.current = 0;
+      controllerRef.current.loadScript(script);
+      // If we need a different frame than 0, seek to it
+      if (currentFrameIdx > 0) {
+        // Must seek sequentially so SceneController builds diff state for each frame
+        for (let i = 1; i <= currentFrameIdx; i++) {
+          controllerRef.current.seekToFrame(i);
+        }
+        lastSeekedFrameRef.current = currentFrameIdx;
+      }
+    } else if (lastSeekedFrameRef.current !== currentFrameIdx) {
+      // Same frames, different frame index — just seek (this triggers morphing!)
+      lastSeekedFrameRef.current = currentFrameIdx;
+      controllerRef.current.seekToFrame(currentFrameIdx);
+    }
+  }, [useController, frames, currentFrameIdx, palette, theme, buildVisualScript]);
+
+  // ── Direct mode: clear + rebuild (existing behavior) ────────────
+  useEffect(() => {
+    if (useController) return; // skip in controller mode
     const entityLayer = entityLayerRef.current;
     const connectionLayer = connectionLayerRef.current;
     if (!entityLayer || !connectionLayer) return;
@@ -104,12 +203,9 @@ export default function ScenePreview({ entities, selectedId, onSelectEntity, the
 
     if (!entities || entities.length === 0) return;
 
-    // Set palette and theme before rendering
     setActivePalette(palette);
     setActiveTheme(theme);
 
-    // Strip default entity.color so getCategoryColor() uses the active palette.
-    // Only keep color if user explicitly set a non-default value.
     const allDefaulted = entities.map((e) => {
       const d = applyDefaults(e);
       if (!e.color || e.color === DEFAULT_COLOR) delete d.color;
@@ -138,7 +234,7 @@ export default function ScenePreview({ entities, selectedId, onSelectEntity, the
     } catch (err) {
       console.error('[ScenePreview]', err);
     }
-  }, [entities, onSelectEntity, palette, theme]);
+  }, [entities, onSelectEntity, palette, theme, useController]);
 
   // Selection ring
   const selectedEntity = entities?.find((e) => e.id === selectedId);
@@ -228,4 +324,6 @@ export default function ScenePreview({ entities, selectedId, onSelectEntity, the
       </svg>
     </div>
   );
-}
+});
+
+export default ScenePreview;

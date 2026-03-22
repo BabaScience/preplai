@@ -8,14 +8,15 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderBuild(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const color = entity.color ?? getCategoryColor('Build');
+  const cc = resolveColorCascade(entity);
 
   const w = s * 0.85;
   const h = s * 0.7;
@@ -30,10 +31,9 @@ export function renderBuild(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     glow.setAttribute('width', String(w + 6));
     glow.setAttribute('height', String(h + 6));
     glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
-    glow.setAttribute('fill', 'none');
-    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     glow.setAttribute('stroke-width', String(STROKE.default));
     glow.setAttribute('stroke-dasharray', '4,4');
+    applyGlowColors(glow, cc);
     innerG.appendChild(glow);
   }
 
@@ -44,9 +44,8 @@ export function renderBuild(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   card.setAttribute('width', String(w));
   card.setAttribute('height', String(h));
   card.setAttribute('rx', String(SHAPES.borderRadius));
-  card.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-  card.setAttribute('stroke', color);
   card.setAttribute('stroke-width', String(STROKE.default));
+  applyShapeColors(card, cc);
   innerG.appendChild(card);
 
   // Wrench icon (stroke-based)
@@ -57,7 +56,7 @@ export function renderBuild(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     `L ${is * 0.8} ${-is * 0.8}`,
   ].join(' '));
   wrench.setAttribute('fill', 'none');
-  wrench.setAttribute('stroke', color);
+  wrench.setAttribute('stroke', cc.stroke);
   wrench.setAttribute('stroke-width', String(STROKE.default));
   wrench.setAttribute('stroke-linecap', 'round');
   innerG.appendChild(wrench);
@@ -68,7 +67,7 @@ export function renderBuild(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   head.setAttribute('cy', String(-is * 0.8));
   head.setAttribute('r', String(is * 0.5));
   head.setAttribute('fill', 'none');
-  head.setAttribute('stroke', color);
+  head.setAttribute('stroke', cc.stroke);
   head.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(head);
 
@@ -78,7 +77,7 @@ export function renderBuild(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     text.setAttribute('x', '0');
     text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);

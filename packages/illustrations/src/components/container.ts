@@ -13,14 +13,15 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderContainer(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const color = entity.color ?? getCategoryColor('Container');
+  const cc = resolveColorCascade(entity);
 
   const w = s * 1.1;
   const h = s * 0.75;
@@ -35,10 +36,9 @@ export function renderContainer(entity: VisualEntity, parentEl: SVGElement): SVG
     glow.setAttribute('width', String(w + 6));
     glow.setAttribute('height', String(h + 6));
     glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
-    glow.setAttribute('fill', 'none');
-    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     glow.setAttribute('stroke-width', String(STROKE.default));
     glow.setAttribute('stroke-dasharray', '4,4');
+    applyGlowColors(glow, cc);
     innerG.appendChild(glow);
   }
 
@@ -49,10 +49,10 @@ export function renderContainer(entity: VisualEntity, parentEl: SVGElement): SVG
   border.setAttribute('width', String(w));
   border.setAttribute('height', String(h));
   border.setAttribute('rx', String(SHAPES.borderRadius));
-  border.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-  border.setAttribute('stroke', color);
   border.setAttribute('stroke-width', String(STROKE.default));
   border.setAttribute('stroke-dasharray', '6,4');
+  border.setAttribute('data-morph-target', 'true');
+  applyShapeColors(border, cc);
   innerG.appendChild(border);
 
   // Label below
@@ -61,7 +61,7 @@ export function renderContainer(entity: VisualEntity, parentEl: SVGElement): SVG
     text.setAttribute('x', '0');
     text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);

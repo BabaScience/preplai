@@ -13,7 +13,8 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, getLabelFontSize, getStrokeWidth, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';
+import { resolveColorCascade, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -21,7 +22,7 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
 
   const s = getSizeParam(entity);
   const scale = s / 50;
-  const color = entity.color ?? getCategoryColor('Queue');
+  const cc = resolveColorCascade(entity);
 
   const meta = entity.metadata ?? {};
   const values = (meta.values as (string | number)[]) ?? [1, 2, 3];
@@ -41,10 +42,9 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     glow.setAttribute('width', String(totalW + 10));
     glow.setAttribute('height', String(cellH + 10));
     glow.setAttribute('rx', '6');
-    glow.setAttribute('fill', 'none');
-    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     glow.setAttribute('stroke-width', String(STROKE.default));
     glow.setAttribute('stroke-dasharray', '4,4');
+    applyGlowColors(glow, cc);
     innerG.appendChild(glow);
   }
 
@@ -57,8 +57,8 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     cell.setAttribute('width', String(cellW));
     cell.setAttribute('height', String(cellH));
     cell.setAttribute('rx', '4');
-    cell.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-    cell.setAttribute('stroke', color);
+    cell.setAttribute('fill', cc.fill);
+    cell.setAttribute('stroke', cc.stroke);
     cell.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
     innerG.appendChild(cell);
 
@@ -66,7 +66,7 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     valueText.setAttribute('x', String(x));
     valueText.setAttribute('y', String(4));
     valueText.setAttribute('text-anchor', 'middle');
-    valueText.setAttribute('fill', color);
+    valueText.setAttribute('fill', cc.textPrimary);
     valueText.setAttribute('font-size', String(getLabelFontSize('value', scale)));
     valueText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     valueText.setAttribute('font-family', TYPOGRAPHY.fontBadge);
@@ -80,7 +80,7 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     text.setAttribute('x', '0');
     text.setAttribute('y', String(cellH / 2 + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);

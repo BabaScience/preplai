@@ -8,7 +8,8 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, SHAPES, STROKE, colorWithAlpha } from '../design-tokens.js';
+import { resolveColorCascade } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -16,7 +17,7 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
 
   const s = getSizeParam(entity);
   const scale = s / 50;
-  const color = entity.color ?? getCategoryColor('CodeBlock');
+  const cc = resolveColorCascade(entity);
   const meta = entity.metadata ?? {};
   const code = (meta.code as string) ?? entity.textContent ?? '';
   const lines = (meta.lines as string[]) ?? code.split('\n');
@@ -58,8 +59,8 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
   bg.setAttribute('width', String(totalW));
   bg.setAttribute('height', String(totalH));
   bg.setAttribute('rx', String(SHAPES.borderRadiusLarge));
-  bg.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-  bg.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
+  bg.setAttribute('fill', cc.fill);
+  bg.setAttribute('stroke', cc.glow);
   bg.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(bg);
 
@@ -70,7 +71,7 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
   titleBar.setAttribute('width', String(totalW));
   titleBar.setAttribute('height', '24');
   titleBar.setAttribute('rx', String(SHAPES.borderRadiusLarge));
-  titleBar.setAttribute('fill', colorWithAlpha(color, OPACITY.fillMedium));
+  titleBar.setAttribute('fill', cc.fillMedium);
   innerG.appendChild(titleBar);
 
   // Accent strip
@@ -80,7 +81,7 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
   accentBar.setAttribute('width', '3');
   accentBar.setAttribute('height', '24');
   accentBar.setAttribute('rx', '1.5');
-  accentBar.setAttribute('fill', color);
+  accentBar.setAttribute('fill', cc.stroke);
   accentBar.setAttribute('opacity', '0.8');
   innerG.appendChild(accentBar);
 
@@ -108,7 +109,7 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
     title.setAttribute('y', String(-totalH / 2 + 12));
     title.setAttribute('text-anchor', 'middle');
     title.setAttribute('dominant-baseline', 'middle');
-    title.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
+    title.setAttribute('fill', cc.textSecondary);
     title.setAttribute('font-size', String(titleFontSize));
     title.setAttribute('font-family', TYPOGRAPHY.fontCode);
     title.textContent = titleText;
@@ -121,7 +122,7 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
   lineNumBg.setAttribute('y', String(-totalH / 2 + 24));
   lineNumBg.setAttribute('width', String(lineNumColW));
   lineNumBg.setAttribute('height', String(totalH - 24));
-  lineNumBg.setAttribute('fill', colorWithAlpha(color, '08'));
+  lineNumBg.setAttribute('fill', colorWithAlpha(cc.base, '08'));
   innerG.appendChild(lineNumBg);
 
   // Code lines
@@ -145,7 +146,7 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
     lineNum.setAttribute('y', String(lineCenterY));
     lineNum.setAttribute('text-anchor', 'end');
     lineNum.setAttribute('dominant-baseline', 'middle');
-    lineNum.setAttribute('fill', colorWithAlpha(color, '30'));
+    lineNum.setAttribute('fill', colorWithAlpha(cc.base, '30'));
     lineNum.setAttribute('font-size', String(lineNumFontSize));
     lineNum.setAttribute('font-family', TYPOGRAPHY.fontCode);
     lineNum.textContent = String(i + 1);
@@ -155,7 +156,7 @@ export function renderCodeBlock(entity: VisualEntity, parentEl: SVGElement): SVG
     codeLine.setAttribute('x', String(-totalW / 2 + lineNumColW + 8));
     codeLine.setAttribute('y', String(lineCenterY));
     codeLine.setAttribute('dominant-baseline', 'middle');
-    codeLine.setAttribute('fill', color);
+    codeLine.setAttribute('fill', cc.textPrimary);
     codeLine.setAttribute('font-size', String(codeFontSize));
     codeLine.setAttribute('font-family', TYPOGRAPHY.fontCode);
     codeLine.setAttribute('xml:space', 'preserve');

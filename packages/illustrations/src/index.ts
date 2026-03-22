@@ -11,10 +11,12 @@ export {
   buildEntityGroup,
   applyEntranceAnimation,
   getSizeParam,
+  getEntityDimensions,
   VISIBILITY_BASE,
   SIZE_CLAMP_MIN,
   SIZE_CLAMP_MAX,
 } from './utils.js';
+export type { EntityDimensions } from './utils.js';
 
 // ── Design tokens & visual utilities
 export {
@@ -39,7 +41,20 @@ export {
   getSemanticCategory,
   getParticleColors,
 } from './design-tokens.js';
-export type { PaletteName, Palette, SemanticCategory } from './design-tokens.js';
+export type { PaletteName, Palette, SemanticCategory, EntityStatus, EntityEmphasis } from './design-tokens.js';
+export { STATUS_COLORS, EMPHASIS_SCALES } from './design-tokens.js';
+
+// ── Color cascade system
+export { resolveColorCascade, resolveColorCascadeFromHex, applyShapeColors, applyTextColor, applyGlowColors } from './color-cascade.js';
+export type { ColorCascade } from './color-cascade.js';
+
+// ── Universal entity overlays
+export { applyEntityOverlays, applyStatusOverlay, applyProgressRing, applyEmphasis, applyBadge } from './entity-overlays.js';
+export type { BadgeConfig } from './entity-overlays.js';
+
+// ── Lottie animation overlays
+export { applyLottieOverlay, destroyLottieOverlay, destroyAllLottie, notifyLottieFocus, setLottieSpeed, getActiveLottieIds } from './lottie-overlay.js';
+export type { LottieAnimationConfig } from './lottie-overlay.js';
 export {
   createLinearGradient,
   createRadialGradient,

@@ -13,14 +13,15 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderLoadBalancer(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const color = entity.color ?? getCategoryColor('LoadBalancer');
+  const cc = resolveColorCascade(entity);
 
   const r = s * 0.45;
 
@@ -35,10 +36,9 @@ export function renderLoadBalancer(entity: VisualEntity, parentEl: SVGElement): 
       .join(' ');
     const glow = document.createElementNS(SVG_NS, 'polygon');
     glow.setAttribute('points', glowPoints);
-    glow.setAttribute('fill', 'none');
-    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     glow.setAttribute('stroke-width', String(STROKE.default));
     glow.setAttribute('stroke-dasharray', '4,4');
+    applyGlowColors(glow, cc);
     innerG.appendChild(glow);
   }
 
@@ -52,10 +52,9 @@ export function renderLoadBalancer(entity: VisualEntity, parentEl: SVGElement): 
 
   const polygon = document.createElementNS(SVG_NS, 'polygon');
   polygon.setAttribute('points', hexPoints);
-  polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-  polygon.setAttribute('stroke', color);
   polygon.setAttribute('stroke-width', String(STROKE.default));
   polygon.setAttribute('stroke-linejoin', 'round');
+  applyShapeColors(polygon, cc);
   innerG.appendChild(polygon);
 
   // Fork icon (stroke-based): single line from top splits into two at bottom
@@ -69,7 +68,7 @@ export function renderLoadBalancer(entity: VisualEntity, parentEl: SVGElement): 
   lineIn.setAttribute('y1', String(-iconH));
   lineIn.setAttribute('x2', '0');
   lineIn.setAttribute('y2', String(forkY));
-  lineIn.setAttribute('stroke', color);
+  lineIn.setAttribute('stroke', cc.stroke);
   lineIn.setAttribute('stroke-width', String(STROKE.default));
   lineIn.setAttribute('stroke-linecap', 'round');
   innerG.appendChild(lineIn);
@@ -80,7 +79,7 @@ export function renderLoadBalancer(entity: VisualEntity, parentEl: SVGElement): 
   lineL.setAttribute('y1', String(forkY));
   lineL.setAttribute('x2', String(-forkSpread));
   lineL.setAttribute('y2', String(iconH));
-  lineL.setAttribute('stroke', color);
+  lineL.setAttribute('stroke', cc.stroke);
   lineL.setAttribute('stroke-width', String(STROKE.default));
   lineL.setAttribute('stroke-linecap', 'round');
   innerG.appendChild(lineL);
@@ -91,7 +90,7 @@ export function renderLoadBalancer(entity: VisualEntity, parentEl: SVGElement): 
   lineR.setAttribute('y1', String(forkY));
   lineR.setAttribute('x2', String(forkSpread));
   lineR.setAttribute('y2', String(iconH));
-  lineR.setAttribute('stroke', color);
+  lineR.setAttribute('stroke', cc.stroke);
   lineR.setAttribute('stroke-width', String(STROKE.default));
   lineR.setAttribute('stroke-linecap', 'round');
   innerG.appendChild(lineR);
@@ -102,7 +101,7 @@ export function renderLoadBalancer(entity: VisualEntity, parentEl: SVGElement): 
     text.setAttribute('x', '0');
     text.setAttribute('y', String(r + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);

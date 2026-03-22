@@ -92,7 +92,7 @@ export function renderMindMapNode(entity: VisualEntity, parentEl: SVGElement): S
   topicText.setAttribute('y', '5');
   topicText.setAttribute('text-anchor', 'middle');
   topicText.setAttribute('fill', color);
-  topicText.setAttribute('font-size', '14');
+  topicText.setAttribute('font-size', String(TYPOGRAPHY.fontSizeBodyMax));
   topicText.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightBold));
   topicText.setAttribute('font-family', TYPOGRAPHY.fontLabel);
   topicText.textContent = topic.length > 14 ? topic.slice(0, 13) + '\u2026' : topic;

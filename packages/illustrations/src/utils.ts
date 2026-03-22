@@ -97,6 +97,72 @@ export function getSizeParam(entity: VisualEntity): number {
   return Math.min(Math.max(s * VISIBILITY_BASE, SIZE_CLAMP_MIN), SIZE_CLAMP_MAX);
 }
 
+// ── getEntityDimensions ──────────────────────────────────────────────
+
+/**
+ * Compute entity width and height that fit the label text.
+ * Uses a formula inspired by Claude's box-sizing:
+ *   width = max(baseWidth, charCount × charWidth + padding)
+ *   height = max(baseHeight, lineCount × lineHeight + padding)
+ *
+ * The agent's `size` param still controls the base scale.
+ * Auto-sizing only expands beyond the base — never shrinks below it.
+ *
+ * @param entity - VisualEntity descriptor
+ * @param options - Optional overrides
+ * @returns { width, height, halfW, halfH } in SVG pixels
+ */
+export interface EntityDimensions {
+  width: number;
+  height: number;
+  halfW: number;
+  halfH: number;
+}
+
+export function getEntityDimensions(
+  entity: VisualEntity,
+  options?: {
+    /** Width multiplier relative to base size (default: 0.9) */
+    widthRatio?: number;
+    /** Height multiplier relative to base size (default: 0.7) */
+    heightRatio?: number;
+    /** Horizontal padding in px (default: 24) */
+    padX?: number;
+    /** Vertical padding in px (default: 16) */
+    padY?: number;
+    /** Approx px per character at label font size (default: 8) */
+    charWidth?: number;
+    /** Max width before truncation (default: 250) */
+    maxWidth?: number;
+  },
+): EntityDimensions {
+  const s = getSizeParam(entity);
+  const wRatio = options?.widthRatio ?? 0.9;
+  const hRatio = options?.heightRatio ?? 0.7;
+  const padX = options?.padX ?? 24;
+  const padY = options?.padY ?? 16;
+  const charW = options?.charWidth ?? 8;
+  const maxW = options?.maxWidth ?? 250;
+
+  // Base dimensions from size param
+  const baseW = s * wRatio;
+  const baseH = s * hRatio;
+
+  // Label-driven dimensions (only expand, never shrink)
+  const label = entity.label ?? '';
+  const labelW = label.length * charW + padX;
+
+  const width = Math.min(maxW, Math.max(baseW, labelW));
+  const height = baseH; // Height stays base (labels are single-line below entity)
+
+  return {
+    width,
+    height,
+    halfW: width / 2,
+    halfH: height / 2,
+  };
+}
+
 // ── wrapBodyText ─────────────────────────────────────────────────────
 
 /** Conservative char width ratio for wrapping (wider chars → wrap sooner). */

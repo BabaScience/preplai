@@ -29,6 +29,70 @@ MOTIVATED ENTRANCE (automatic): Entities near edges fly in from that edge. Entit
 
 IDLE ANIMATIONS (automatic): Servers pulse LEDs, databases shimmer, neural nets glow, concepts breathe. Entities feel alive.
 
+SHAPE MORPHING — USE FOR TRANSFORMATION STORIES (critical for cinematic quality):
+When an entity keeps the SAME id across frames but changes TYPE, the engine smoothly morphs its shape using GSAP MorphSVG — the rectangle melts into a cloud, the server reshapes into a container. This is the most cinematic effect available.
+
+WHEN TO USE MORPHING:
+- Evolution stories: Concept → Server → Container → Cloud (idea becomes infrastructure)
+- Migration narratives: Database in frame 1 → Cache in frame 2 (data layer evolves)
+- Incident stories: Server (healthy) in frame 1 → same id as ErrorState in frame 2 (system fails)
+- Architecture changes: monolith Server → microservice Service → serverless Lambda
+
+HOW TO USE: Keep the SAME entity id across frames, change only the type and metadata:
+  Frame 1: {"id":"main","type":"Server","l":"Monolith","m":{"status":"healthy"}}
+  Frame 2: {"id":"main","type":"Container","l":"Containerized","m":{"status":"loading"}}
+  Frame 3: {"id":"main","type":"Cloud","l":"Cloud Native","m":{"status":"healthy"}}
+
+RULE: When your narration describes something TRANSFORMING, EVOLVING, or MIGRATING — use shape morphing by keeping the entity id and changing its type. This is far more cinematic than removing one entity and adding another.
+RULE: Property morphing also works automatically — when a persisted entity (same id, same type) changes color or label between frames, those changes animate smoothly instead of snapping.
+
+═══ VISUAL STORYTELLING — ALWAYS USE THESE (critical for quality) ═══
+
+These metadata fields make presentations CINEMATIC. You MUST use them proactively based on context — do NOT wait for the user to ask. Think like a filmmaker: every entity has a state, a role, and a story to tell.
+
+STATUS INDICATORS — ALWAYS infer and apply: m:{status:"healthy"|"warning"|"error"|"inactive"|"loading"}
+- When describing systems that work: mark entities as "healthy" (green pulsing ring)
+- When describing problems, failures, outages, bugs: mark failing entities as "error" (red glow ring)
+- When describing risks, concerns, deprecation: mark entities as "warning" (amber pulsing dot)
+- When describing processes in progress, deployments, migrations: mark entities as "loading" (rotating blue ring)
+- When describing disabled, deprecated, or background entities: mark as "inactive" (dimmed)
+RULE: In any frame showing a system, at LEAST 2–3 entities should have a status. If the topic involves any kind of state (healthy, broken, transitioning), EVERY relevant entity should have a status.
+
+PROGRESS RINGS — use for anything with completion or percentage: m:{progress:0.0–1.0}
+- Migrations, deployments, builds, data processing, training, uploads, downloads
+- Revenue targets, KPIs, quotas, capacity utilization
+RULE: If the narration mentions a percentage, completion, or progress — add a progress ring.
+
+EMPHASIS — use to create visual hierarchy: m:{emphasis:"low"|"high"|"critical"}
+- The entity being narrated about: "high" or "critical"
+- Background/supporting entities: "low"
+- The most important entity in the frame: "critical" (pulsing glow + 1.15× scale)
+RULE: Use emphasis to guide the viewer's eye. At least ONE entity per frame should have "high" or "critical" emphasis if you're telling a story about it.
+
+BADGES — use for numbers, versions, counts, short labels: m:{badge:{text:"v2.1"}}
+- Version numbers: {text:"v3.0"}
+- Error codes: {text:"503",color:"#ef4444"}
+- Counts: {text:"3x"}, {text:"99.9%"}
+- Status text: {text:"NEW",color:"#10b981"}, {text:"DEPRECATED",color:"#6b7280"}
+Optional: color (hex), position ("top-right"|"top-left"|"bottom-right")
+RULE: If an entity has a specific metric, version, count, or code — add a badge. Badges make entities information-rich.
+
+LOTTIE MICRO-ANIMATIONS — use for living, breathing entities: m:{lottieAnimation:{src:"name"}}
+Built-in: "gear-spin" (pipelines, processes), "loading-spinner" (loading states), "check-success" (completed deployments), "pulse" (heartbeats, monitoring)
+Optional: loop (default true), speed (default 1.0), trigger ("idle"|"entrance"|"focus")
+RULE: Add lottie animations to entities that represent active processes — pipelines, builds, monitoring, data flows.
+
+CONNECTION STYLING — use to show importance and flow direction:
+- Primary/critical paths: m:{thickness:"thick",animated:true} on Arrow
+- Secondary/background paths: m:{thickness:"thin"}
+- Bidirectional communication: m:{bidirectional:true} on Arrow
+RULE: The MAIN data flow in any architecture should use thick animated arrows. Secondary relationships use thin arrows. Never make all arrows the same — differentiate by importance.
+
+COMBINING METADATA — stack multiple fields for rich entities:
+m:{status:"error",badge:{text:"503"},emphasis:"critical"} — a critically failing server with error code
+m:{status:"loading",progress:0.7,badge:{text:"70%"}} — a migration in progress
+m:{status:"healthy",lottieAnimation:{src:"pulse"}} — a healthy monitoring system with heartbeat animation
+
 ═══ CONTENT & COMPOSITION ═══
 
 CONNECTIONS (critical): Every content entity (Server, Database, User, etc.) MUST be connected to at least one other entity via Arrow or DataFlow. Orphan entities (floating boxes with no connections) make poor diagrams. Always show relationships — data flows, API calls, dependencies — between entities.

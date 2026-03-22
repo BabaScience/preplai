@@ -15,7 +15,8 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 const CHAR_WIDTH_RATIO = 0.55;
@@ -63,7 +64,7 @@ export function renderConcept(entity: VisualEntity, parentEl: SVGElement): SVGGE
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const color = entity.color ?? getCategoryColor('Concept');
+  const cc = resolveColorCascade(entity);
 
   const meta = entity.metadata ?? {};
   const label = (meta.label as string) ?? entity.label ?? '';
@@ -99,10 +100,9 @@ export function renderConcept(entity: VisualEntity, parentEl: SVGElement): SVGGE
     glow.setAttribute('width', String(w + 6));
     glow.setAttribute('height', String(h + 6));
     glow.setAttribute('rx', String(pillRx + 2));
-    glow.setAttribute('fill', 'none');
-    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     glow.setAttribute('stroke-width', String(STROKE.default));
     glow.setAttribute('stroke-dasharray', '4,4');
+    applyGlowColors(glow, cc);
     scaleGroup.appendChild(glow);
   }
 
@@ -113,16 +113,16 @@ export function renderConcept(entity: VisualEntity, parentEl: SVGElement): SVGGE
   outerRect.setAttribute('width', String(w));
   outerRect.setAttribute('height', String(h));
   outerRect.setAttribute('rx', String(pillRx));
-  outerRect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-  outerRect.setAttribute('stroke', color);
   outerRect.setAttribute('stroke-width', String(STROKE.default));
+  outerRect.setAttribute('data-morph-target', 'true');
+  applyShapeColors(outerRect, cc);
   scaleGroup.appendChild(outerRect);
 
   if (lines.length > 0) {
     const textGroup = document.createElementNS(SVG_NS, 'text');
     textGroup.setAttribute('x', '0');
     textGroup.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    textGroup.setAttribute('fill', color);
+    textGroup.setAttribute('fill', cc.textPrimary);
     textGroup.setAttribute('font-size', String(fontSize));
     textGroup.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     textGroup.setAttribute('font-family', TYPOGRAPHY.fontLabel);
