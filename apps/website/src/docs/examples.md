@@ -2,99 +2,123 @@
 
 Not sure what to ask? Here are real prompts you can copy and paste. Each one creates a multi-frame animated presentation.
 
----
-
-## Computer Science
-
-Great for students and anyone learning CS concepts.
-
-> **"Explain how binary search works, step by step with an array"**
->
-> You'll get: An animated array with pointers moving inward, highlighting comparisons, with Big-O analysis at the end.
-
-> **"Show me how a binary search tree insertion works for values 5, 3, 8, 1, 4"**
->
-> You'll get: A tree that grows node by node, with each insertion highlighted and explained.
-
-> **"Walk me through BFS vs DFS traversal on a graph"**
->
-> You'll get: Side-by-side comparison showing how each algorithm explores nodes in different order.
+**Tip:** Start your prompt with **"Using Preplai,"** so your AI agent knows to create a visual presentation instead of responding with plain text.
 
 ---
 
-## Software Architecture
+## Engineers & SRE Teams
 
-Perfect for developers and technical presentations.
+Turn incident postmortems, architecture decisions, and system designs into visual walkthroughs your team can actually follow.
+
+> **"Using Preplai, create a visual incident postmortem: our API gateway started returning 503s at 2 AM due to a database connection leak in the auth service. We rolled back the deploy and recovered in 20 minutes."**
+>
+> You'll get: An incident timeline with root cause analysis, cascade failure diagram, resolution steps, and action items.
 
 > **"Show me a microservices architecture with API gateway, user service, payment service, and a message queue"**
 >
 > You'll get: A full architecture diagram that builds up layer by layer — gateway, services, database, queue connections.
 
-> **"Explain how OAuth 2.0 authorization code flow works"**
+> **"Explain how our CI/CD pipeline works from code push to production — include canary deploys and rollback"**
+>
+> You'll get: Pipeline stages appearing one by one — commit, build, test, canary, deploy — with rollback strategies.
+
+> **"Walk through how OAuth 2.0 authorization code flow works with PKCE"**
 >
 > You'll get: A step-by-step flow showing the user, app, auth server, and API — with arrows showing each redirect and token exchange.
 
-> **"Create a presentation about a CI/CD pipeline from code push to production"**
+---
+
+## Product Managers
+
+Explain features, present roadmaps, and align stakeholders — without turning AI output into slides.
+
+> **"Explain how our recommendation engine works — show the data signals, scoring pipeline, and business impact. This is for an executive review."**
 >
-> You'll get: Pipeline stages appearing one by one — commit, build, test, staging, deploy — with rollback strategies.
+> You'll get: A visual walkthrough from data inputs through ML scoring to business metrics — conversion rate, AOV, revenue lift.
+
+> **"Create a presentation comparing our current checkout flow (5 steps) vs the proposed redesign (3 steps). Show conversion data."**
+>
+> You'll get: Side-by-side flow comparison with conversion metrics at each step, highlighting where users drop off.
+
+> **"Present our Q3 product roadmap — 4 features, their dependencies, and expected impact on key metrics"**
+>
+> You'll get: A timeline with feature blocks, dependency arrows, and metric projections for each milestone.
+
+> **"Show how user data flows through our system — from signup to personalized homepage. Make it non-technical."**
+>
+> You'll get: A simplified data flow with friendly labels, showing what happens at each stage without exposing infrastructure details.
 
 ---
 
-## DevOps & Infrastructure
+## Consultants & Strategists
 
-Explain infrastructure visually.
+Turn AI research into client-ready visual presentations — market analysis, competitive landscapes, and strategic recommendations.
 
-> **"Show a Kubernetes cluster with pods, services, and a load balancer"**
+> **"Present a market analysis of the European EV charging market — market size, major players and their market share, competitive gaps, and entry strategy"**
 >
-> You'll get: Layered infrastructure — load balancer on top, services in the middle, pods at the bottom, with data flow arrows.
+> You'll get: Pie charts, competitor matrices, go-to-market phases, and financial projections — ready to share with the client.
 
-> **"Explain how Redis caching works between an API server and a database"**
+> **"Create a visual SWOT analysis for a fintech startup entering the payments space"**
 >
-> You'll get: Request flow with and without cache — showing cache hit (fast) vs cache miss (slow) paths.
+> You'll get: Four-quadrant layout with strengths, weaknesses, opportunities, and threats — each with supporting data points.
 
-> **"Walk me through how DNS resolution works when I type a URL"**
+> **"Compare three cloud migration strategies — lift-and-shift, re-platform, and re-architect — with cost and timeline for each"**
 >
-> You'll get: Step-by-step resolution from browser → DNS resolver → root server → authoritative server → IP address.
+> You'll get: Side-by-side comparison with cost bars, timeline charts, risk ratings, and a recommendation frame.
+
+> **"Present a digital transformation roadmap for a retail client — current state, target state, and 3 implementation phases"**
+>
+> You'll get: Before/after architecture diagrams with a phased migration plan, milestones, and expected outcomes.
 
 ---
 
-## Data Structures
+## Financial Advisors & Legal
 
-Animate the algorithms you're learning.
+Walk clients through portfolio reviews, risk analysis, and compliance topics — visually, without jargon.
 
-> **"Show how a hash table handles collisions using chaining"**
+> **"Walk my client through their Q1 portfolio review: 42% US equities, 18% international, 25% fixed income, 10% alternatives, 5% cash. YTD return 8.3%. Recommend rebalancing to reduce concentration risk."**
 >
-> You'll get: A hash table visualization with keys being hashed, collisions shown, and linked lists growing at collision buckets.
+> You'll get: Allocation pie chart, performance bar chart, risk metrics, and a rebalancing plan with specific proposed trades.
 
-> **"Explain the call stack during a recursive factorial calculation for n=4"**
+> **"Explain how a Roth IRA conversion ladder works over 5 years — show the tax implications at each step"**
 >
-> You'll get: Stack frames pushing and popping, with each recursive call and return value shown.
+> You'll get: Year-by-year timeline with conversion amounts, tax brackets, and cumulative savings visualized.
 
-> **"Compare O(1), O(log n), O(n), and O(n²) with a chart"**
+> **"Present the structure of a multi-entity holding company — parent corp, 3 subsidiaries, and the flow of funds between them"**
 >
-> You'll get: A Big-O complexity chart with curves growing at different rates, highlighted one by one.
+> You'll get: Organizational hierarchy with entity nodes, ownership percentages, and fund flow arrows.
+
+> **"Compare traditional vs Roth 401(k) contributions for a client earning $180K — show 20-year projections"**
+>
+> You'll get: Side-by-side comparison with contribution limits, tax treatment, and projected growth charts.
 
 ---
 
-## Reports & Analysis
+## General Purpose
 
-Let AI agents present their findings visually.
+Works for any topic — education, onboarding, training, or just explaining something visually.
 
-> **"Create a visual report of a deploy pipeline: 3 services deployed, 1 rolled back due to errors"**
+> **"Explain how DNS resolution works when I type a URL in my browser"**
 >
-> You'll get: Timeline of the deployment with success/failure states, error details, and rollback flow.
+> You'll get: Step-by-step resolution from browser to DNS resolver to root server to IP address.
 
-> **"Present the pros and cons of React vs Vue for a new project"**
+> **"Compare the pros and cons of React vs Vue for a new project"**
 >
-> You'll get: A comparison layout with concept cards, pros/cons lists, and a final recommendation frame.
+> You'll get: A comparison layout with concept cards, feature lists, and a recommendation frame.
+
+> **"Create an onboarding walkthrough for new team members — show our tech stack, key services, and how they connect"**
+>
+> You'll get: A system overview that builds up layer by layer, with labels explaining what each piece does.
 
 ---
 
 ## Pro Tips
 
+- **Say "Using Preplai"** — Start your prompt with "Using Preplai, ..." so the AI agent knows to create a visual presentation instead of plain text.
 - **Be specific** — "Show a microservices architecture" is good. "Show architecture" is vague.
 - **Mention numbers** — "Walk through 5 steps" or "Show 3 services" helps the AI agent plan the frames.
-- **Name the entities** — "PostgreSQL" is better than "a database". "Redis" is better than "a cache".
+- **Name the entities** — "PostgreSQL" is better than "a database". "S&P 500 index fund" is better than "stocks".
 - **Ask for comparisons** — "Compare X vs Y" creates side-by-side frames.
+- **Set the audience** — "This is for the board" or "Make it non-technical" shapes the narration tone.
 
 Want to customize the look? See [Tips →](/docs/tips)

@@ -31,31 +31,17 @@ export const DOC_META = {
   },
   examples: {
     title: 'Examples — preplai',
-    description: 'Example prompts for preplai presentations: CS concepts, software architecture, DevOps, data structures, and reports. Copy and paste to try.',
-    keywords: ['preplai', 'examples', 'prompts', 'binary search', 'microservices', 'CI/CD', 'presentations'],
+    description: 'Example prompts for preplai presentations: incident postmortems, product walkthroughs, market analysis, portfolio reviews, and more. Copy and paste to try.',
+    keywords: ['preplai', 'examples', 'prompts', 'incident postmortem', 'product walkthrough', 'market analysis', 'portfolio review', 'presentations'],
     schemaType: 'TechArticle',
     section: 'get-started',
   },
   tips: {
     title: 'Tips & Tricks — preplai',
-    description: 'Get better presentations with themes, color palettes, and prompt writing tips. Cinema vs minimal, prompt strategies, sharing and limits.',
-    keywords: ['preplai', 'tips', 'themes', 'palettes', 'prompts', 'cinema', 'minimal'],
+    description: 'Get better presentations with themes, color palettes, and prompt writing tips. Cinema vs light themes, audience-aware prompts, sharing and limits.',
+    keywords: ['preplai', 'tips', 'themes', 'palettes', 'prompts', 'cinema', 'light', 'sharing'],
     schemaType: 'TechArticle',
     section: 'get-started',
-  },
-  'mcp-tools': {
-    title: 'MCP Tools Reference — preplai API',
-    description: 'Complete reference for preplai MCP tools: create_session, add_scene, update_scene, add_narration, get_session_url, list_sessions, delete_session, remove_scene.',
-    keywords: ['preplai', 'MCP tools', 'create_session', 'add_scene', 'API', 'Model Context Protocol', 'AI agents'],
-    schemaType: 'APIReference',
-    section: 'advanced',
-  },
-  visualscript: {
-    title: 'VisualScript Schema — preplai API',
-    description: 'VisualScript JSON schema for preplai scenes: entity types (Server, Database, BinaryTree, etc.), frame structure, design guidelines, and examples.',
-    keywords: ['preplai', 'VisualScript', 'schema', 'entity types', 'add_scene', 'frames', '1920x1080', 'SVG'],
-    schemaType: 'APIReference',
-    section: 'advanced',
   },
 };
 

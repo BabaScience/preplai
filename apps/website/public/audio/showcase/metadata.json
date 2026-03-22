@@ -1,0 +1,2956 @@
+{
+  "hero/0": {
+    "url": "/audio/showcase/hero/0.mp3",
+    "duration": 5.341,
+    "focusCues": [
+      {
+        "time": 1.498,
+        "entityIds": [
+          "idea"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "idea."
+      },
+      {
+        "time": 2.055,
+        "entityIds": [
+          "user1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "You"
+      },
+      {
+        "time": 2.426,
+        "entityIds": [
+          "nn1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "your"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "Every",
+        "startTime": 0,
+        "endTime": 0.267
+      },
+      {
+        "word": "great",
+        "startTime": 0.337,
+        "endTime": 0.569
+      },
+      {
+        "word": "outcome",
+        "startTime": 0.627,
+        "endTime": 0.964
+      },
+      {
+        "word": "starts",
+        "startTime": 0.998,
+        "endTime": 1.231
+      },
+      {
+        "word": "with",
+        "startTime": 1.254,
+        "endTime": 1.358
+      },
+      {
+        "word": "an",
+        "startTime": 1.393,
+        "endTime": 1.451
+      },
+      {
+        "word": "idea.",
+        "startTime": 1.498,
+        "endTime": 1.962
+      },
+      {
+        "word": "You",
+        "startTime": 2.055,
+        "endTime": 2.171
+      },
+      {
+        "word": "ask",
+        "startTime": 2.241,
+        "endTime": 2.392
+      },
+      {
+        "word": "your",
+        "startTime": 2.426,
+        "endTime": 2.554
+      },
+      {
+        "word": "AI",
+        "startTime": 2.612,
+        "endTime": 3.007
+      },
+      {
+        "word": "to",
+        "startTime": 3.065,
+        "endTime": 3.146
+      },
+      {
+        "word": "turn",
+        "startTime": 3.193,
+        "endTime": 3.39
+      },
+      {
+        "word": "it",
+        "startTime": 3.437,
+        "endTime": 3.506
+      },
+      {
+        "word": "into",
+        "startTime": 3.564,
+        "endTime": 3.727
+      },
+      {
+        "word": "something",
+        "startTime": 3.796,
+        "endTime": 4.145
+      },
+      {
+        "word": "people",
+        "startTime": 4.203,
+        "endTime": 4.481
+      },
+      {
+        "word": "can",
+        "startTime": 4.516,
+        "endTime": 4.656
+      },
+      {
+        "word": "see.",
+        "startTime": 4.725,
+        "endTime": 5.341
+      }
+    ]
+  },
+  "hero/1": {
+    "url": "/audio/showcase/hero/1.mp3",
+    "duration": 7.105,
+    "focusCues": [
+      {
+        "time": 0,
+        "entityIds": [
+          "db1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "Your"
+      },
+      {
+        "time": 2.821,
+        "entityIds": [
+          "pipe1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "the"
+      },
+      {
+        "time": 6.362,
+        "entityIds": [
+          "db1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "data."
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "Your",
+        "startTime": 0,
+        "endTime": 0.209
+      },
+      {
+        "word": "AI",
+        "startTime": 0.267,
+        "endTime": 0.639
+      },
+      {
+        "word": "researches,",
+        "startTime": 0.755,
+        "endTime": 1.416
+      },
+      {
+        "word": "analyzes,",
+        "startTime": 1.533,
+        "endTime": 2.125
+      },
+      {
+        "word": "and",
+        "startTime": 2.148,
+        "endTime": 2.241
+      },
+      {
+        "word": "structures",
+        "startTime": 2.299,
+        "endTime": 2.775
+      },
+      {
+        "word": "the",
+        "startTime": 2.821,
+        "endTime": 2.891
+      },
+      {
+        "word": "information",
+        "startTime": 2.949,
+        "endTime": 3.553
+      },
+      {
+        "word": "—",
+        "startTime": 3.634,
+        "endTime": 3.692
+      },
+      {
+        "word": "building",
+        "startTime": 4.017,
+        "endTime": 4.331
+      },
+      {
+        "word": "a",
+        "startTime": 4.389,
+        "endTime": 4.412
+      },
+      {
+        "word": "clear",
+        "startTime": 4.528,
+        "endTime": 4.899
+      },
+      {
+        "word": "narrative",
+        "startTime": 5.016,
+        "endTime": 5.515
+      },
+      {
+        "word": "from",
+        "startTime": 5.55,
+        "endTime": 5.689
+      },
+      {
+        "word": "complex",
+        "startTime": 5.759,
+        "endTime": 6.246
+      },
+      {
+        "word": "data.",
+        "startTime": 6.362,
+        "endTime": 7.105
+      }
+    ]
+  },
+  "hero/2": {
+    "url": "/audio/showcase/hero/2.mp3",
+    "duration": 7.663,
+    "focusCues": [
+      {
+        "time": 0,
+        "entityIds": [
+          "pipe1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "Preplai"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "Preplai",
+        "startTime": 0,
+        "endTime": 0.453
+      },
+      {
+        "word": "transforms",
+        "startTime": 0.511,
+        "endTime": 1.126
+      },
+      {
+        "word": "AI",
+        "startTime": 1.184,
+        "endTime": 1.405
+      },
+      {
+        "word": "output",
+        "startTime": 1.463,
+        "endTime": 1.73
+      },
+      {
+        "word": "into",
+        "startTime": 1.776,
+        "endTime": 1.916
+      },
+      {
+        "word": "animated",
+        "startTime": 2.009,
+        "endTime": 2.496
+      },
+      {
+        "word": "visuals",
+        "startTime": 2.543,
+        "endTime": 2.926
+      },
+      {
+        "word": "—",
+        "startTime": 2.949,
+        "endTime": 2.995
+      },
+      {
+        "word": "charts,",
+        "startTime": 3.065,
+        "endTime": 3.553
+      },
+      {
+        "word": "diagrams,",
+        "startTime": 3.622,
+        "endTime": 4.203
+      },
+      {
+        "word": "flows,",
+        "startTime": 4.249,
+        "endTime": 4.702
+      },
+      {
+        "word": "and",
+        "startTime": 4.737,
+        "endTime": 4.841
+      },
+      {
+        "word": "metrics",
+        "startTime": 4.899,
+        "endTime": 5.317
+      },
+      {
+        "word": "—",
+        "startTime": 5.433,
+        "endTime": 5.503
+      },
+      {
+        "word": "narrated",
+        "startTime": 5.828,
+        "endTime": 6.269
+      },
+      {
+        "word": "frame",
+        "startTime": 6.351,
+        "endTime": 6.699
+      },
+      {
+        "word": "by",
+        "startTime": 6.757,
+        "endTime": 6.92
+      },
+      {
+        "word": "frame.",
+        "startTime": 7.001,
+        "endTime": 7.663
+      }
+    ]
+  },
+  "hero/3": {
+    "url": "/audio/showcase/hero/3.mp3",
+    "duration": 7.012,
+    "focusCues": [
+      {
+        "time": 2.972,
+        "entityIds": [
+          "user3"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "your"
+      },
+      {
+        "time": 3.204,
+        "entityIds": [
+          "user1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "team,"
+      },
+      {
+        "time": 3.762,
+        "entityIds": [
+          "user2"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "client,"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "The",
+        "startTime": 0,
+        "endTime": 0.151
+      },
+      {
+        "word": "result:",
+        "startTime": 0.209,
+        "endTime": 0.592
+      },
+      {
+        "word": "a",
+        "startTime": 0.627,
+        "endTime": 0.662
+      },
+      {
+        "word": "cinematic",
+        "startTime": 0.743,
+        "endTime": 1.231
+      },
+      {
+        "word": "walkthrough",
+        "startTime": 1.3,
+        "endTime": 1.765
+      },
+      {
+        "word": "anyone",
+        "startTime": 1.834,
+        "endTime": 2.252
+      },
+      {
+        "word": "can",
+        "startTime": 2.287,
+        "endTime": 2.403
+      },
+      {
+        "word": "watch",
+        "startTime": 2.461,
+        "endTime": 2.728
+      },
+      {
+        "word": "—",
+        "startTime": 2.775,
+        "endTime": 2.821
+      },
+      {
+        "word": "your",
+        "startTime": 2.972,
+        "endTime": 3.135
+      },
+      {
+        "word": "team,",
+        "startTime": 3.204,
+        "endTime": 3.553
+      },
+      {
+        "word": "your",
+        "startTime": 3.576,
+        "endTime": 3.704
+      },
+      {
+        "word": "client,",
+        "startTime": 3.762,
+        "endTime": 4.18
+      },
+      {
+        "word": "your",
+        "startTime": 4.203,
+        "endTime": 4.342
+      },
+      {
+        "word": "board.",
+        "startTime": 4.412,
+        "endTime": 4.888
+      },
+      {
+        "word": "No",
+        "startTime": 5.166,
+        "endTime": 5.364
+      },
+      {
+        "word": "slides,",
+        "startTime": 5.445,
+        "endTime": 5.886
+      },
+      {
+        "word": "no",
+        "startTime": 6.002,
+        "endTime": 6.2
+      },
+      {
+        "word": "jargon.",
+        "startTime": 6.269,
+        "endTime": 7.012
+      }
+    ]
+  },
+  "hero/4": {
+    "url": "/audio/showcase/hero/4.mp3",
+    "duration": 3.297,
+    "focusCues": [
+      {
+        "time": 0,
+        "entityIds": [
+          "pipe1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "From"
+      },
+      {
+        "time": 2.682,
+        "entityIds": [
+          "monitor1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "watch"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "From",
+        "startTime": 0,
+        "endTime": 0.209
+      },
+      {
+        "word": "idea",
+        "startTime": 0.267,
+        "endTime": 0.522
+      },
+      {
+        "word": "to",
+        "startTime": 0.569,
+        "endTime": 0.627
+      },
+      {
+        "word": "impact",
+        "startTime": 0.708,
+        "endTime": 1.068
+      },
+      {
+        "word": "—",
+        "startTime": 1.091,
+        "endTime": 1.149
+      },
+      {
+        "word": "in",
+        "startTime": 1.173,
+        "endTime": 1.265
+      },
+      {
+        "word": "2",
+        "startTime": 1.324,
+        "endTime": 1.416
+      },
+      {
+        "word": "minutes.",
+        "startTime": 1.474,
+        "endTime": 1.788
+      },
+      {
+        "word": "Don't",
+        "startTime": 1.834,
+        "endTime": 2.043
+      },
+      {
+        "word": "read",
+        "startTime": 2.078,
+        "endTime": 2.229
+      },
+      {
+        "word": "it.",
+        "startTime": 2.276,
+        "endTime": 2.403
+      },
+      {
+        "word": "Just",
+        "startTime": 2.45,
+        "endTime": 2.635
+      },
+      {
+        "word": "watch",
+        "startTime": 2.682,
+        "endTime": 2.914
+      },
+      {
+        "word": "it.",
+        "startTime": 2.972,
+        "endTime": 3.297
+      }
+    ]
+  },
+  "engineer/0": {
+    "url": "/audio/showcase/engineer/0.mp3",
+    "duration": 9.009,
+    "focusCues": [
+      {
+        "time": 1.277,
+        "entityIds": [
+          "gw"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "API"
+      },
+      {
+        "time": 3.03,
+        "entityIds": [
+          "alert1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "503"
+      },
+      {
+        "time": 4.574,
+        "entityIds": [
+          "metric1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "Latency"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "At",
+        "startTime": 0,
+        "endTime": 0.151
+      },
+      {
+        "word": "2:14",
+        "startTime": 0.197,
+        "endTime": 0.755
+      },
+      {
+        "word": "AM,",
+        "startTime": 0.813,
+        "endTime": 1.091
+      },
+      {
+        "word": "the",
+        "startTime": 1.126,
+        "endTime": 1.219
+      },
+      {
+        "word": "API",
+        "startTime": 1.277,
+        "endTime": 1.649
+      },
+      {
+        "word": "Gateway",
+        "startTime": 1.765,
+        "endTime": 2.101
+      },
+      {
+        "word": "starts",
+        "startTime": 2.159,
+        "endTime": 2.45
+      },
+      {
+        "word": "returning",
+        "startTime": 2.508,
+        "endTime": 2.914
+      },
+      {
+        "word": "503",
+        "startTime": 3.03,
+        "endTime": 3.738
+      },
+      {
+        "word": "errors.",
+        "startTime": 3.808,
+        "endTime": 4.296
+      },
+      {
+        "word": "Latency",
+        "startTime": 4.574,
+        "endTime": 4.969
+      },
+      {
+        "word": "spikes",
+        "startTime": 5.027,
+        "endTime": 5.352
+      },
+      {
+        "word": "from",
+        "startTime": 5.387,
+        "endTime": 5.526
+      },
+      {
+        "word": "45ms",
+        "startTime": 5.608,
+        "endTime": 6.362
+      },
+      {
+        "word": "to",
+        "startTime": 6.409,
+        "endTime": 6.478
+      },
+      {
+        "word": "12",
+        "startTime": 6.548,
+        "endTime": 6.815
+      },
+      {
+        "word": "seconds.",
+        "startTime": 6.873,
+        "endTime": 7.396
+      },
+      {
+        "word": "PagerDuty",
+        "startTime": 7.605,
+        "endTime": 8.173
+      },
+      {
+        "word": "fires.",
+        "startTime": 8.231,
+        "endTime": 9.009
+      }
+    ]
+  },
+  "engineer/1": {
+    "url": "/audio/showcase/engineer/1.mp3",
+    "duration": 7.43,
+    "focusCues": [
+      {
+        "time": 0,
+        "entityIds": [
+          "h1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "Root"
+      },
+      {
+        "time": 1.463,
+        "entityIds": [
+          "deploy1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "deploy"
+      },
+      {
+        "time": 5.155,
+        "entityIds": [
+          "metric1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "pool"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "Root",
+        "startTime": 0,
+        "endTime": 0.267
+      },
+      {
+        "word": "cause:",
+        "startTime": 0.337,
+        "endTime": 0.964
+      },
+      {
+        "word": "a",
+        "startTime": 1.347,
+        "endTime": 1.405
+      },
+      {
+        "word": "deploy",
+        "startTime": 1.463,
+        "endTime": 1.753
+      },
+      {
+        "word": "at",
+        "startTime": 1.8,
+        "endTime": 1.869
+      },
+      {
+        "word": "2:12",
+        "startTime": 1.95,
+        "endTime": 2.496
+      },
+      {
+        "word": "AM",
+        "startTime": 2.566,
+        "endTime": 2.786
+      },
+      {
+        "word": "introduced",
+        "startTime": 2.844,
+        "endTime": 3.251
+      },
+      {
+        "word": "a",
+        "startTime": 3.286,
+        "endTime": 3.309
+      },
+      {
+        "word": "database",
+        "startTime": 3.367,
+        "endTime": 3.82
+      },
+      {
+        "word": "connection",
+        "startTime": 3.843,
+        "endTime": 4.214
+      },
+      {
+        "word": "leak.",
+        "startTime": 4.272,
+        "endTime": 4.493
+      },
+      {
+        "word": "The",
+        "startTime": 4.516,
+        "endTime": 4.598
+      },
+      {
+        "word": "connection",
+        "startTime": 4.644,
+        "endTime": 5.085
+      },
+      {
+        "word": "pool",
+        "startTime": 5.155,
+        "endTime": 5.422
+      },
+      {
+        "word": "exhausted",
+        "startTime": 5.503,
+        "endTime": 6.014
+      },
+      {
+        "word": "within",
+        "startTime": 6.06,
+        "endTime": 6.316
+      },
+      {
+        "word": "2",
+        "startTime": 6.409,
+        "endTime": 6.583
+      },
+      {
+        "word": "minutes.",
+        "startTime": 6.664,
+        "endTime": 7.43
+      }
+    ]
+  },
+  "engineer/2": {
+    "url": "/audio/showcase/engineer/2.mp3",
+    "duration": 7.477,
+    "focusCues": [
+      {
+        "time": 2.194,
+        "entityIds": [
+          "svc1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "Auth"
+      },
+      {
+        "time": 3.437,
+        "entityIds": [
+          "gw"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "gateway"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "The",
+        "startTime": 0,
+        "endTime": 0.151
+      },
+      {
+        "word": "connection",
+        "startTime": 0.197,
+        "endTime": 0.569
+      },
+      {
+        "word": "leak",
+        "startTime": 0.615,
+        "endTime": 0.766
+      },
+      {
+        "word": "cascaded",
+        "startTime": 0.824,
+        "endTime": 1.347
+      },
+      {
+        "word": "downstream.",
+        "startTime": 1.393,
+        "endTime": 1.985
+      },
+      {
+        "word": "Auth",
+        "startTime": 2.194,
+        "endTime": 2.45
+      },
+      {
+        "word": "failures",
+        "startTime": 2.496,
+        "endTime": 2.902
+      },
+      {
+        "word": "caused",
+        "startTime": 2.972,
+        "endTime": 3.286
+      },
+      {
+        "word": "the",
+        "startTime": 3.32,
+        "endTime": 3.39
+      },
+      {
+        "word": "gateway",
+        "startTime": 3.437,
+        "endTime": 3.762
+      },
+      {
+        "word": "to",
+        "startTime": 3.808,
+        "endTime": 3.878
+      },
+      {
+        "word": "retry,",
+        "startTime": 3.994,
+        "endTime": 4.609
+      },
+      {
+        "word": "amplifying",
+        "startTime": 4.644,
+        "endTime": 5.178
+      },
+      {
+        "word": "load",
+        "startTime": 5.271,
+        "endTime": 5.48
+      },
+      {
+        "word": "4x",
+        "startTime": 5.561,
+        "endTime": 5.944
+      },
+      {
+        "word": "across",
+        "startTime": 5.991,
+        "endTime": 6.293
+      },
+      {
+        "word": "all",
+        "startTime": 6.351,
+        "endTime": 6.502
+      },
+      {
+        "word": "services.",
+        "startTime": 6.56,
+        "endTime": 7.477
+      }
+    ]
+  },
+  "engineer/3": {
+    "url": "/audio/showcase/engineer/3.mp3",
+    "duration": 7.384,
+    "focusCues": [
+      {
+        "time": 5.132,
+        "entityIds": [
+          "svc1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "service"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "Resolution:",
+        "startTime": 0,
+        "endTime": 0.627
+      },
+      {
+        "word": "team",
+        "startTime": 0.673,
+        "endTime": 0.964
+      },
+      {
+        "word": "rolled",
+        "startTime": 1.115,
+        "endTime": 1.382
+      },
+      {
+        "word": "back",
+        "startTime": 1.405,
+        "endTime": 1.579
+      },
+      {
+        "word": "the",
+        "startTime": 1.637,
+        "endTime": 1.707
+      },
+      {
+        "word": "deploy",
+        "startTime": 1.753,
+        "endTime": 2.171
+      },
+      {
+        "word": "at",
+        "startTime": 2.241,
+        "endTime": 2.334
+      },
+      {
+        "word": "2:31",
+        "startTime": 2.392,
+        "endTime": 3.03
+      },
+      {
+        "word": "AM.",
+        "startTime": 3.146,
+        "endTime": 3.506
+      },
+      {
+        "word": "Connection",
+        "startTime": 3.541,
+        "endTime": 3.901
+      },
+      {
+        "word": "pool",
+        "startTime": 3.936,
+        "endTime": 4.122
+      },
+      {
+        "word": "recovered.",
+        "startTime": 4.18,
+        "endTime": 4.656
+      },
+      {
+        "word": "Full",
+        "startTime": 4.865,
+        "endTime": 5.074
+      },
+      {
+        "word": "service",
+        "startTime": 5.132,
+        "endTime": 5.48
+      },
+      {
+        "word": "restored",
+        "startTime": 5.526,
+        "endTime": 5.933
+      },
+      {
+        "word": "by",
+        "startTime": 5.968,
+        "endTime": 6.06
+      },
+      {
+        "word": "2:34",
+        "startTime": 6.13,
+        "endTime": 6.757
+      },
+      {
+        "word": "AM.",
+        "startTime": 6.827,
+        "endTime": 7.384
+      }
+    ]
+  },
+  "engineer/4": {
+    "url": "/audio/showcase/engineer/4.mp3",
+    "duration": 7.57,
+    "focusCues": [
+      {
+        "time": 6.049,
+        "entityIds": [
+          "metric1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "downtime:"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "Action",
+        "startTime": 0,
+        "endTime": 0.302
+      },
+      {
+        "word": "items:",
+        "startTime": 0.36,
+        "endTime": 0.662
+      },
+      {
+        "word": "add",
+        "startTime": 0.708,
+        "endTime": 0.871
+      },
+      {
+        "word": "circuit",
+        "startTime": 0.917,
+        "endTime": 1.196
+      },
+      {
+        "word": "breakers,",
+        "startTime": 1.219,
+        "endTime": 1.625
+      },
+      {
+        "word": "connection",
+        "startTime": 1.672,
+        "endTime": 2.043
+      },
+      {
+        "word": "pool",
+        "startTime": 2.09,
+        "endTime": 2.276
+      },
+      {
+        "word": "alerts",
+        "startTime": 2.322,
+        "endTime": 2.589
+      },
+      {
+        "word": "at",
+        "startTime": 2.624,
+        "endTime": 2.682
+      },
+      {
+        "word": "80%,",
+        "startTime": 2.74,
+        "endTime": 3.518
+      },
+      {
+        "word": "and",
+        "startTime": 3.762,
+        "endTime": 3.901
+      },
+      {
+        "word": "mandatory",
+        "startTime": 3.947,
+        "endTime": 4.458
+      },
+      {
+        "word": "canary",
+        "startTime": 4.516,
+        "endTime": 4.899
+      },
+      {
+        "word": "deploys.",
+        "startTime": 4.946,
+        "endTime": 5.526
+      },
+      {
+        "word": "Total",
+        "startTime": 5.735,
+        "endTime": 6.002
+      },
+      {
+        "word": "downtime:",
+        "startTime": 6.049,
+        "endTime": 6.571
+      },
+      {
+        "word": "20",
+        "startTime": 6.687,
+        "endTime": 6.873
+      },
+      {
+        "word": "minutes.",
+        "startTime": 6.92,
+        "endTime": 7.57
+      }
+    ]
+  },
+  "pm/0": {
+    "url": "/audio/showcase/pm/0.mp3",
+    "duration": 7.105,
+    "focusCues": [
+      {
+        "time": 3.111,
+        "entityIds": [
+          "nn1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "engine"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "The",
+        "startTime": 0,
+        "endTime": 0.151
+      },
+      {
+        "word": "executive",
+        "startTime": 0.209,
+        "endTime": 0.662
+      },
+      {
+        "word": "team",
+        "startTime": 0.685,
+        "endTime": 0.906
+      },
+      {
+        "word": "wants",
+        "startTime": 1.057,
+        "endTime": 1.289
+      },
+      {
+        "word": "to",
+        "startTime": 1.324,
+        "endTime": 1.37
+      },
+      {
+        "word": "understand",
+        "startTime": 1.428,
+        "endTime": 1.811
+      },
+      {
+        "word": "how",
+        "startTime": 1.869,
+        "endTime": 1.974
+      },
+      {
+        "word": "our",
+        "startTime": 2.02,
+        "endTime": 2.125
+      },
+      {
+        "word": "new",
+        "startTime": 2.194,
+        "endTime": 2.322
+      },
+      {
+        "word": "recommendation",
+        "startTime": 2.38,
+        "endTime": 3.03
+      },
+      {
+        "word": "engine",
+        "startTime": 3.111,
+        "endTime": 3.425
+      },
+      {
+        "word": "works.",
+        "startTime": 3.471,
+        "endTime": 3.971
+      },
+      {
+        "word": "Instead",
+        "startTime": 4.214,
+        "endTime": 4.481
+      },
+      {
+        "word": "of",
+        "startTime": 4.516,
+        "endTime": 4.563
+      },
+      {
+        "word": "slides,",
+        "startTime": 4.621,
+        "endTime": 5.19
+      },
+      {
+        "word": "let's",
+        "startTime": 5.236,
+        "endTime": 5.445
+      },
+      {
+        "word": "walk",
+        "startTime": 5.526,
+        "endTime": 5.782
+      },
+      {
+        "word": "through",
+        "startTime": 5.851,
+        "endTime": 6.107
+      },
+      {
+        "word": "it",
+        "startTime": 6.142,
+        "endTime": 6.2
+      },
+      {
+        "word": "visually.",
+        "startTime": 6.269,
+        "endTime": 7.105
+      }
+    ]
+  },
+  "pm/1": {
+    "url": "/audio/showcase/pm/1.mp3",
+    "duration": 8.034,
+    "focusCues": [
+      {
+        "time": 0.348,
+        "entityIds": [
+          "db2"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "data"
+      },
+      {
+        "time": 1.591,
+        "entityIds": [
+          "nn1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "engine:"
+      },
+      {
+        "time": 2.426,
+        "entityIds": [
+          "db1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "history,"
+      },
+      {
+        "time": 3.03,
+        "entityIds": [
+          "db2"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "purchase"
+      },
+      {
+        "time": 4.609,
+        "entityIds": [
+          "db3"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "similar"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "Three",
+        "startTime": 0,
+        "endTime": 0.279
+      },
+      {
+        "word": "data",
+        "startTime": 0.348,
+        "endTime": 0.639
+      },
+      {
+        "word": "signals",
+        "startTime": 0.708,
+        "endTime": 1.138
+      },
+      {
+        "word": "feed",
+        "startTime": 1.196,
+        "endTime": 1.393
+      },
+      {
+        "word": "the",
+        "startTime": 1.44,
+        "endTime": 1.509
+      },
+      {
+        "word": "engine:",
+        "startTime": 1.591,
+        "endTime": 1.962
+      },
+      {
+        "word": "browsing",
+        "startTime": 1.985,
+        "endTime": 2.345
+      },
+      {
+        "word": "history,",
+        "startTime": 2.426,
+        "endTime": 2.914
+      },
+      {
+        "word": "purchase",
+        "startTime": 3.03,
+        "endTime": 3.367
+      },
+      {
+        "word": "patterns,",
+        "startTime": 3.402,
+        "endTime": 3.901
+      },
+      {
+        "word": "and",
+        "startTime": 4.075,
+        "endTime": 4.214
+      },
+      {
+        "word": "items",
+        "startTime": 4.284,
+        "endTime": 4.574
+      },
+      {
+        "word": "similar",
+        "startTime": 4.609,
+        "endTime": 4.946
+      },
+      {
+        "word": "customers",
+        "startTime": 5.016,
+        "endTime": 5.492
+      },
+      {
+        "word": "liked.",
+        "startTime": 5.561,
+        "endTime": 5.991
+      },
+      {
+        "word": "Each",
+        "startTime": 6.269,
+        "endTime": 6.467
+      },
+      {
+        "word": "signal",
+        "startTime": 6.525,
+        "endTime": 6.896
+      },
+      {
+        "word": "has",
+        "startTime": 7.105,
+        "endTime": 7.279
+      },
+      {
+        "word": "a",
+        "startTime": 7.326,
+        "endTime": 7.361
+      },
+      {
+        "word": "weight.",
+        "startTime": 7.407,
+        "endTime": 8.034
+      }
+    ]
+  },
+  "pm/2": {
+    "url": "/audio/showcase/pm/2.mp3",
+    "duration": 7.384,
+    "focusCues": [
+      {
+        "time": 0.209,
+        "entityIds": [
+          "nn1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "engine"
+      },
+      {
+        "time": 5.642,
+        "entityIds": [
+          "metric1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "refresh"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "The",
+        "startTime": 0,
+        "endTime": 0.151
+      },
+      {
+        "word": "engine",
+        "startTime": 0.209,
+        "endTime": 0.464
+      },
+      {
+        "word": "scores",
+        "startTime": 0.488,
+        "endTime": 0.824
+      },
+      {
+        "word": "every",
+        "startTime": 0.906,
+        "endTime": 1.115
+      },
+      {
+        "word": "product",
+        "startTime": 1.173,
+        "endTime": 1.509
+      },
+      {
+        "word": "and",
+        "startTime": 1.544,
+        "endTime": 1.614
+      },
+      {
+        "word": "ranks",
+        "startTime": 1.672,
+        "endTime": 1.904
+      },
+      {
+        "word": "them.",
+        "startTime": 1.95,
+        "endTime": 2.206
+      },
+      {
+        "word": "The",
+        "startTime": 2.264,
+        "endTime": 2.38
+      },
+      {
+        "word": "top",
+        "startTime": 2.426,
+        "endTime": 2.612
+      },
+      {
+        "word": "12",
+        "startTime": 2.67,
+        "endTime": 2.902
+      },
+      {
+        "word": "populate",
+        "startTime": 2.961,
+        "endTime": 3.413
+      },
+      {
+        "word": "the",
+        "startTime": 3.448,
+        "endTime": 3.541
+      },
+      {
+        "word": "\"For",
+        "startTime": 3.692,
+        "endTime": 3.982
+      },
+      {
+        "word": "You\"",
+        "startTime": 4.04,
+        "endTime": 4.261
+      },
+      {
+        "word": "section.",
+        "startTime": 4.284,
+        "endTime": 4.807
+      },
+      {
+        "word": "Scores",
+        "startTime": 5.19,
+        "endTime": 5.561
+      },
+      {
+        "word": "refresh",
+        "startTime": 5.642,
+        "endTime": 6.072
+      },
+      {
+        "word": "every",
+        "startTime": 6.142,
+        "endTime": 6.362
+      },
+      {
+        "word": "4",
+        "startTime": 6.444,
+        "endTime": 6.618
+      },
+      {
+        "word": "hours.",
+        "startTime": 6.653,
+        "endTime": 7.384
+      }
+    ]
+  },
+  "pm/3": {
+    "url": "/audio/showcase/pm/3.mp3",
+    "duration": 8.731,
+    "focusCues": [
+      {
+        "time": 1.138,
+        "entityIds": [
+          "metric1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "conversion"
+      },
+      {
+        "time": 3.762,
+        "entityIds": [
+          "metric2"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "order"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "Impact",
+        "startTime": 0,
+        "endTime": 0.383
+      },
+      {
+        "word": "so",
+        "startTime": 0.418,
+        "endTime": 0.546
+      },
+      {
+        "word": "far:",
+        "startTime": 0.615,
+        "endTime": 1.057
+      },
+      {
+        "word": "conversion",
+        "startTime": 1.138,
+        "endTime": 1.544
+      },
+      {
+        "word": "rate",
+        "startTime": 1.614,
+        "endTime": 1.811
+      },
+      {
+        "word": "up",
+        "startTime": 1.846,
+        "endTime": 1.962
+      },
+      {
+        "word": "23%,",
+        "startTime": 2.055,
+        "endTime": 3.158
+      },
+      {
+        "word": "average",
+        "startTime": 3.332,
+        "endTime": 3.715
+      },
+      {
+        "word": "order",
+        "startTime": 3.762,
+        "endTime": 4.005
+      },
+      {
+        "word": "value",
+        "startTime": 4.063,
+        "endTime": 4.4
+      },
+      {
+        "word": "up",
+        "startTime": 4.423,
+        "endTime": 4.516
+      },
+      {
+        "word": "18%.",
+        "startTime": 4.586,
+        "endTime": 5.689
+      },
+      {
+        "word": "The",
+        "startTime": 6.014,
+        "endTime": 6.142
+      },
+      {
+        "word": "engine",
+        "startTime": 6.2,
+        "endTime": 6.467
+      },
+      {
+        "word": "pays",
+        "startTime": 6.525,
+        "endTime": 6.861
+      },
+      {
+        "word": "for",
+        "startTime": 6.92,
+        "endTime": 7.024
+      },
+      {
+        "word": "itself",
+        "startTime": 7.082,
+        "endTime": 7.407
+      },
+      {
+        "word": "within",
+        "startTime": 7.454,
+        "endTime": 7.674
+      },
+      {
+        "word": "the",
+        "startTime": 7.721,
+        "endTime": 7.79
+      },
+      {
+        "word": "first",
+        "startTime": 7.825,
+        "endTime": 8.057
+      },
+      {
+        "word": "month.",
+        "startTime": 8.127,
+        "endTime": 8.731
+      }
+    ]
+  },
+  "pm/4": {
+    "url": "/audio/showcase/pm/4.mp3",
+    "duration": 7.57,
+    "focusCues": [],
+    "wordTimestamps": [
+      {
+        "word": "Next",
+        "startTime": 0,
+        "endTime": 0.302
+      },
+      {
+        "word": "quarter:",
+        "startTime": 0.337,
+        "endTime": 0.743
+      },
+      {
+        "word": "real-time",
+        "startTime": 1.126,
+        "endTime": 1.579
+      },
+      {
+        "word": "scoring,",
+        "startTime": 1.614,
+        "endTime": 2.101
+      },
+      {
+        "word": "cross-sell",
+        "startTime": 2.183,
+        "endTime": 2.752
+      },
+      {
+        "word": "in",
+        "startTime": 2.81,
+        "endTime": 2.879
+      },
+      {
+        "word": "checkout,",
+        "startTime": 2.937,
+        "endTime": 3.437
+      },
+      {
+        "word": "and",
+        "startTime": 3.471,
+        "endTime": 3.599
+      },
+      {
+        "word": "email",
+        "startTime": 3.715,
+        "endTime": 4.04
+      },
+      {
+        "word": "personalization.",
+        "startTime": 4.098,
+        "endTime": 5.062
+      },
+      {
+        "word": "Share",
+        "startTime": 5.503,
+        "endTime": 5.759
+      },
+      {
+        "word": "this",
+        "startTime": 5.793,
+        "endTime": 5.933
+      },
+      {
+        "word": "walkthrough",
+        "startTime": 6.014,
+        "endTime": 6.513
+      },
+      {
+        "word": "with",
+        "startTime": 6.583,
+        "endTime": 6.757
+      },
+      {
+        "word": "the",
+        "startTime": 6.815,
+        "endTime": 6.885
+      },
+      {
+        "word": "board.",
+        "startTime": 6.931,
+        "endTime": 7.57
+      }
+    ]
+  },
+  "consultant/0": {
+    "url": "/audio/showcase/consultant/0.mp3",
+    "duration": 8.406,
+    "focusCues": [
+      {
+        "time": 0.801,
+        "entityIds": [
+          "metric1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "market"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "The",
+        "startTime": 0,
+        "endTime": 0.139
+      },
+      {
+        "word": "EV",
+        "startTime": 0.186,
+        "endTime": 0.313
+      },
+      {
+        "word": "charging",
+        "startTime": 0.406,
+        "endTime": 0.743
+      },
+      {
+        "word": "market",
+        "startTime": 0.801,
+        "endTime": 1.057
+      },
+      {
+        "word": "is",
+        "startTime": 1.091,
+        "endTime": 1.149
+      },
+      {
+        "word": "projected",
+        "startTime": 1.196,
+        "endTime": 1.625
+      },
+      {
+        "word": "to",
+        "startTime": 1.672,
+        "endTime": 1.741
+      },
+      {
+        "word": "reach",
+        "startTime": 1.834,
+        "endTime": 2.067
+      },
+      {
+        "word": "$190",
+        "startTime": 2.125,
+        "endTime": 2.949
+      },
+      {
+        "word": "billion",
+        "startTime": 3.065,
+        "endTime": 3.448
+      },
+      {
+        "word": "by",
+        "startTime": 3.518,
+        "endTime": 3.622
+      },
+      {
+        "word": "2030.",
+        "startTime": 3.704,
+        "endTime": 4.528
+      },
+      {
+        "word": "Here's",
+        "startTime": 4.853,
+        "endTime": 5.085
+      },
+      {
+        "word": "the",
+        "startTime": 5.12,
+        "endTime": 5.19
+      },
+      {
+        "word": "competitive",
+        "startTime": 5.236,
+        "endTime": 5.817
+      },
+      {
+        "word": "landscape",
+        "startTime": 5.875,
+        "endTime": 6.339
+      },
+      {
+        "word": "your",
+        "startTime": 6.374,
+        "endTime": 6.49
+      },
+      {
+        "word": "client",
+        "startTime": 6.548,
+        "endTime": 6.966
+      },
+      {
+        "word": "needs",
+        "startTime": 7.024,
+        "endTime": 7.245
+      },
+      {
+        "word": "to",
+        "startTime": 7.279,
+        "endTime": 7.338
+      },
+      {
+        "word": "understand.",
+        "startTime": 7.407,
+        "endTime": 8.406
+      }
+    ]
+  },
+  "consultant/1": {
+    "url": "/audio/showcase/consultant/1.mp3",
+    "duration": 11.146,
+    "focusCues": [],
+    "wordTimestamps": [
+      {
+        "word": "Three",
+        "startTime": 0,
+        "endTime": 0.313
+      },
+      {
+        "word": "dominant",
+        "startTime": 0.372,
+        "endTime": 0.72
+      },
+      {
+        "word": "players",
+        "startTime": 0.766,
+        "endTime": 1.103
+      },
+      {
+        "word": "control",
+        "startTime": 1.149,
+        "endTime": 1.44
+      },
+      {
+        "word": "68%",
+        "startTime": 1.556,
+        "endTime": 2.392
+      },
+      {
+        "word": "of",
+        "startTime": 2.461,
+        "endTime": 2.508
+      },
+      {
+        "word": "the",
+        "startTime": 2.554,
+        "endTime": 2.624
+      },
+      {
+        "word": "market.",
+        "startTime": 2.67,
+        "endTime": 3.111
+      },
+      {
+        "word": "ChargePoint",
+        "startTime": 3.437,
+        "endTime": 3.901
+      },
+      {
+        "word": "leads",
+        "startTime": 3.982,
+        "endTime": 4.272
+      },
+      {
+        "word": "with",
+        "startTime": 4.307,
+        "endTime": 4.458
+      },
+      {
+        "word": "31%,",
+        "startTime": 4.574,
+        "endTime": 5.782
+      },
+      {
+        "word": "followed",
+        "startTime": 6.026,
+        "endTime": 6.316
+      },
+      {
+        "word": "by",
+        "startTime": 6.339,
+        "endTime": 6.432
+      },
+      {
+        "word": "Tesla",
+        "startTime": 6.513,
+        "endTime": 6.908
+      },
+      {
+        "word": "Supercharger",
+        "startTime": 6.978,
+        "endTime": 7.593
+      },
+      {
+        "word": "at",
+        "startTime": 7.639,
+        "endTime": 7.721
+      },
+      {
+        "word": "22%",
+        "startTime": 7.802,
+        "endTime": 8.58
+      },
+      {
+        "word": "and",
+        "startTime": 8.905,
+        "endTime": 9.067
+      },
+      {
+        "word": "EVgo",
+        "startTime": 9.16,
+        "endTime": 9.636
+      },
+      {
+        "word": "at",
+        "startTime": 9.706,
+        "endTime": 9.81
+      },
+      {
+        "word": "15%.",
+        "startTime": 9.868,
+        "endTime": 11.146
+      }
+    ]
+  },
+  "consultant/2": {
+    "url": "/audio/showcase/consultant/2.mp3",
+    "duration": 8.545,
+    "focusCues": [],
+    "wordTimestamps": [
+      {
+        "word": "Our",
+        "startTime": 0,
+        "endTime": 0.174
+      },
+      {
+        "word": "recommended",
+        "startTime": 0.232,
+        "endTime": 0.766
+      },
+      {
+        "word": "strategy:",
+        "startTime": 0.813,
+        "endTime": 1.44
+      },
+      {
+        "word": "target",
+        "startTime": 1.509,
+        "endTime": 1.823
+      },
+      {
+        "word": "underserved",
+        "startTime": 1.904,
+        "endTime": 2.531
+      },
+      {
+        "word": "suburban",
+        "startTime": 2.577,
+        "endTime": 2.995
+      },
+      {
+        "word": "corridors",
+        "startTime": 3.053,
+        "endTime": 3.506
+      },
+      {
+        "word": "where",
+        "startTime": 3.541,
+        "endTime": 3.704
+      },
+      {
+        "word": "existing",
+        "startTime": 3.738,
+        "endTime": 4.203
+      },
+      {
+        "word": "coverage",
+        "startTime": 4.272,
+        "endTime": 4.667
+      },
+      {
+        "word": "is",
+        "startTime": 4.725,
+        "endTime": 4.818
+      },
+      {
+        "word": "sparse",
+        "startTime": 4.888,
+        "endTime": 5.503
+      },
+      {
+        "word": "and",
+        "startTime": 5.712,
+        "endTime": 5.851
+      },
+      {
+        "word": "demand",
+        "startTime": 5.898,
+        "endTime": 6.153
+      },
+      {
+        "word": "is",
+        "startTime": 6.2,
+        "endTime": 6.258
+      },
+      {
+        "word": "growing",
+        "startTime": 6.304,
+        "endTime": 6.56
+      },
+      {
+        "word": "40%",
+        "startTime": 6.676,
+        "endTime": 7.419
+      },
+      {
+        "word": "year",
+        "startTime": 7.57,
+        "endTime": 7.732
+      },
+      {
+        "word": "over",
+        "startTime": 7.779,
+        "endTime": 7.953
+      },
+      {
+        "word": "year.",
+        "startTime": 8.022,
+        "endTime": 8.545
+      }
+    ]
+  },
+  "consultant/3": {
+    "url": "/audio/showcase/consultant/3.mp3",
+    "duration": 11.285,
+    "focusCues": [
+      {
+        "time": 0,
+        "entityIds": [
+          "bar1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "Revenue"
+      },
+      {
+        "time": 2.159,
+        "entityIds": [
+          "metric3"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "stations:"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "Revenue",
+        "startTime": 0,
+        "endTime": 0.418
+      },
+      {
+        "word": "projections",
+        "startTime": 0.453,
+        "endTime": 1.022
+      },
+      {
+        "word": "based",
+        "startTime": 1.091,
+        "endTime": 1.358
+      },
+      {
+        "word": "on",
+        "startTime": 1.405,
+        "endTime": 1.486
+      },
+      {
+        "word": "200",
+        "startTime": 1.567,
+        "endTime": 2.101
+      },
+      {
+        "word": "stations:",
+        "startTime": 2.159,
+        "endTime": 2.647
+      },
+      {
+        "word": "$48M",
+        "startTime": 2.67,
+        "endTime": 3.564
+      },
+      {
+        "word": "Year",
+        "startTime": 3.68,
+        "endTime": 3.866
+      },
+      {
+        "word": "1,",
+        "startTime": 3.936,
+        "endTime": 4.319
+      },
+      {
+        "word": "scaling",
+        "startTime": 4.644,
+        "endTime": 4.969
+      },
+      {
+        "word": "to",
+        "startTime": 5.016,
+        "endTime": 5.085
+      },
+      {
+        "word": "$120M",
+        "startTime": 5.178,
+        "endTime": 6.467
+      },
+      {
+        "word": "by",
+        "startTime": 6.583,
+        "endTime": 6.757
+      },
+      {
+        "word": "Year",
+        "startTime": 7.082,
+        "endTime": 7.279
+      },
+      {
+        "word": "3",
+        "startTime": 7.396,
+        "endTime": 7.639
+      },
+      {
+        "word": "as",
+        "startTime": 7.697,
+        "endTime": 7.779
+      },
+      {
+        "word": "utilization",
+        "startTime": 7.848,
+        "endTime": 8.545
+      },
+      {
+        "word": "increases",
+        "startTime": 8.719,
+        "endTime": 9.195
+      },
+      {
+        "word": "from",
+        "startTime": 9.218,
+        "endTime": 9.346
+      },
+      {
+        "word": "15%",
+        "startTime": 9.404,
+        "endTime": 9.996
+      },
+      {
+        "word": "to",
+        "startTime": 10.112,
+        "endTime": 10.159
+      },
+      {
+        "word": "40%.",
+        "startTime": 10.24,
+        "endTime": 11.285
+      }
+    ]
+  },
+  "consultant/4": {
+    "url": "/audio/showcase/consultant/4.mp3",
+    "duration": 9.102,
+    "focusCues": [],
+    "wordTimestamps": [
+      {
+        "word": "Key",
+        "startTime": 0,
+        "endTime": 0.209
+      },
+      {
+        "word": "risks",
+        "startTime": 0.255,
+        "endTime": 0.569
+      },
+      {
+        "word": "to",
+        "startTime": 0.615,
+        "endTime": 0.685
+      },
+      {
+        "word": "monitor:",
+        "startTime": 0.755,
+        "endTime": 1.3
+      },
+      {
+        "word": "regulatory",
+        "startTime": 1.683,
+        "endTime": 2.322
+      },
+      {
+        "word": "changes",
+        "startTime": 2.38,
+        "endTime": 2.74
+      },
+      {
+        "word": "in",
+        "startTime": 2.786,
+        "endTime": 2.844
+      },
+      {
+        "word": "three",
+        "startTime": 2.902,
+        "endTime": 3.135
+      },
+      {
+        "word": "states,",
+        "startTime": 3.181,
+        "endTime": 3.727
+      },
+      {
+        "word": "potential",
+        "startTime": 3.796,
+        "endTime": 4.203
+      },
+      {
+        "word": "grid",
+        "startTime": 4.272,
+        "endTime": 4.47
+      },
+      {
+        "word": "capacity",
+        "startTime": 4.528,
+        "endTime": 5.12
+      },
+      {
+        "word": "constraints,",
+        "startTime": 5.19,
+        "endTime": 5.805
+      },
+      {
+        "word": "and",
+        "startTime": 5.979,
+        "endTime": 6.118
+      },
+      {
+        "word": "competitive",
+        "startTime": 6.165,
+        "endTime": 6.699
+      },
+      {
+        "word": "response",
+        "startTime": 6.734,
+        "endTime": 7.221
+      },
+      {
+        "word": "from",
+        "startTime": 7.245,
+        "endTime": 7.372
+      },
+      {
+        "word": "Tesla's",
+        "startTime": 7.43,
+        "endTime": 7.848
+      },
+      {
+        "word": "expansion",
+        "startTime": 7.883,
+        "endTime": 8.417
+      },
+      {
+        "word": "plan.",
+        "startTime": 8.475,
+        "endTime": 9.102
+      }
+    ]
+  },
+  "finance/0": {
+    "url": "/audio/showcase/finance/0.mp3",
+    "duration": 8.266,
+    "focusCues": [
+      {
+        "time": 2.659,
+        "entityIds": [
+          "metric1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "Total"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "Portfolio",
+        "startTime": 0,
+        "endTime": 0.615
+      },
+      {
+        "word": "Review",
+        "startTime": 0.708,
+        "endTime": 0.998
+      },
+      {
+        "word": "for",
+        "startTime": 1.057,
+        "endTime": 1.161
+      },
+      {
+        "word": "Q1",
+        "startTime": 1.231,
+        "endTime": 1.66
+      },
+      {
+        "word": "2026.",
+        "startTime": 1.776,
+        "endTime": 2.624
+      },
+      {
+        "word": "Total",
+        "startTime": 2.659,
+        "endTime": 2.961
+      },
+      {
+        "word": "portfolio",
+        "startTime": 3.03,
+        "endTime": 3.564
+      },
+      {
+        "word": "value:",
+        "startTime": 3.634,
+        "endTime": 4.075
+      },
+      {
+        "word": "$2.4M",
+        "startTime": 4.249,
+        "endTime": 5.085
+      },
+      {
+        "word": "across",
+        "startTime": 5.143,
+        "endTime": 5.422
+      },
+      {
+        "word": "equities,",
+        "startTime": 5.503,
+        "endTime": 5.979
+      },
+      {
+        "word": "fixed",
+        "startTime": 6.026,
+        "endTime": 6.304
+      },
+      {
+        "word": "income,",
+        "startTime": 6.351,
+        "endTime": 6.687
+      },
+      {
+        "word": "alternatives,",
+        "startTime": 6.711,
+        "endTime": 7.338
+      },
+      {
+        "word": "and",
+        "startTime": 7.361,
+        "endTime": 7.488
+      },
+      {
+        "word": "cash.",
+        "startTime": 7.558,
+        "endTime": 8.266
+      }
+    ]
+  },
+  "finance/1": {
+    "url": "/audio/showcase/finance/1.mp3",
+    "duration": 14.025,
+    "focusCues": [],
+    "wordTimestamps": [
+      {
+        "word": "Current",
+        "startTime": 0,
+        "endTime": 0.29
+      },
+      {
+        "word": "allocation:",
+        "startTime": 0.325,
+        "endTime": 1.01
+      },
+      {
+        "word": "US",
+        "startTime": 1.08,
+        "endTime": 1.324
+      },
+      {
+        "word": "equities",
+        "startTime": 1.37,
+        "endTime": 1.695
+      },
+      {
+        "word": "42%,",
+        "startTime": 1.776,
+        "endTime": 2.844
+      },
+      {
+        "word": "international",
+        "startTime": 3.123,
+        "endTime": 3.773
+      },
+      {
+        "word": "18%,",
+        "startTime": 3.855,
+        "endTime": 5.004
+      },
+      {
+        "word": "fixed",
+        "startTime": 5.213,
+        "endTime": 5.468
+      },
+      {
+        "word": "income",
+        "startTime": 5.526,
+        "endTime": 5.805
+      },
+      {
+        "word": "25%,",
+        "startTime": 5.851,
+        "endTime": 6.885
+      },
+      {
+        "word": "alternatives",
+        "startTime": 7.163,
+        "endTime": 7.802
+      },
+      {
+        "word": "10%,",
+        "startTime": 8.081,
+        "endTime": 8.94
+      },
+      {
+        "word": "cash",
+        "startTime": 9.183,
+        "endTime": 9.543
+      },
+      {
+        "word": "5%.",
+        "startTime": 9.59,
+        "endTime": 10.298
+      },
+      {
+        "word": "Benchmark-aligned",
+        "startTime": 10.902,
+        "endTime": 11.842
+      },
+      {
+        "word": "with",
+        "startTime": 11.9,
+        "endTime": 12.051
+      },
+      {
+        "word": "slight",
+        "startTime": 12.121,
+        "endTime": 12.516
+      },
+      {
+        "word": "US",
+        "startTime": 12.597,
+        "endTime": 12.98
+      },
+      {
+        "word": "overweight.",
+        "startTime": 13.096,
+        "endTime": 14.025
+      }
+    ]
+  },
+  "finance/2": {
+    "url": "/audio/showcase/finance/2.mp3",
+    "duration": 8.638,
+    "focusCues": [],
+    "wordTimestamps": [
+      {
+        "word": "Performance",
+        "startTime": 0,
+        "endTime": 0.65
+      },
+      {
+        "word": "by",
+        "startTime": 0.685,
+        "endTime": 0.801
+      },
+      {
+        "word": "asset",
+        "startTime": 0.871,
+        "endTime": 1.184
+      },
+      {
+        "word": "class:",
+        "startTime": 1.219,
+        "endTime": 1.533
+      },
+      {
+        "word": "US",
+        "startTime": 1.579,
+        "endTime": 1.916
+      },
+      {
+        "word": "equities",
+        "startTime": 2.032,
+        "endTime": 2.508
+      },
+      {
+        "word": "drove",
+        "startTime": 2.566,
+        "endTime": 2.833
+      },
+      {
+        "word": "most",
+        "startTime": 2.926,
+        "endTime": 3.216
+      },
+      {
+        "word": "of",
+        "startTime": 3.262,
+        "endTime": 3.309
+      },
+      {
+        "word": "the",
+        "startTime": 3.355,
+        "endTime": 3.425
+      },
+      {
+        "word": "gains,",
+        "startTime": 3.471,
+        "endTime": 3.831
+      },
+      {
+        "word": "but",
+        "startTime": 3.901,
+        "endTime": 4.075
+      },
+      {
+        "word": "international",
+        "startTime": 4.145,
+        "endTime": 4.69
+      },
+      {
+        "word": "markets",
+        "startTime": 4.748,
+        "endTime": 5.132
+      },
+      {
+        "word": "underperformed.",
+        "startTime": 5.248,
+        "endTime": 6.142
+      },
+      {
+        "word": "Fixed",
+        "startTime": 6.653,
+        "endTime": 6.966
+      },
+      {
+        "word": "income",
+        "startTime": 7.024,
+        "endTime": 7.384
+      },
+      {
+        "word": "provided",
+        "startTime": 7.419,
+        "endTime": 7.848
+      },
+      {
+        "word": "stability.",
+        "startTime": 7.895,
+        "endTime": 8.638
+      }
+    ]
+  },
+  "finance/3": {
+    "url": "/audio/showcase/finance/3.mp3",
+    "duration": 9.381,
+    "focusCues": [
+      {
+        "time": 0.998,
+        "entityIds": [
+          "metric1"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "Sharpe"
+      },
+      {
+        "time": 4.574,
+        "entityIds": [
+          "metric2"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "drawdown"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "Risk",
+        "startTime": 0,
+        "endTime": 0.302
+      },
+      {
+        "word": "analysis:",
+        "startTime": 0.348,
+        "endTime": 0.964
+      },
+      {
+        "word": "Sharpe",
+        "startTime": 0.998,
+        "endTime": 1.265
+      },
+      {
+        "word": "ratio",
+        "startTime": 1.312,
+        "endTime": 1.741
+      },
+      {
+        "word": "at",
+        "startTime": 1.834,
+        "endTime": 1.927
+      },
+      {
+        "word": "1.2,",
+        "startTime": 1.997,
+        "endTime": 2.821
+      },
+      {
+        "word": "above",
+        "startTime": 3.146,
+        "endTime": 3.46
+      },
+      {
+        "word": "benchmark.",
+        "startTime": 3.495,
+        "endTime": 4.04
+      },
+      {
+        "word": "Maximum",
+        "startTime": 4.075,
+        "endTime": 4.528
+      },
+      {
+        "word": "drawdown",
+        "startTime": 4.574,
+        "endTime": 4.981
+      },
+      {
+        "word": "contained",
+        "startTime": 5.027,
+        "endTime": 5.399
+      },
+      {
+        "word": "to",
+        "startTime": 5.433,
+        "endTime": 5.503
+      },
+      {
+        "word": "negative",
+        "startTime": 5.596,
+        "endTime": 6.002
+      },
+      {
+        "word": "12%.",
+        "startTime": 6.037,
+        "endTime": 6.966
+      },
+      {
+        "word": "Volatility",
+        "startTime": 7.349,
+        "endTime": 8.081
+      },
+      {
+        "word": "within",
+        "startTime": 8.255,
+        "endTime": 8.545
+      },
+      {
+        "word": "target",
+        "startTime": 8.591,
+        "endTime": 8.893
+      },
+      {
+        "word": "range.",
+        "startTime": 8.951,
+        "endTime": 9.381
+      }
+    ]
+  },
+  "finance/4": {
+    "url": "/audio/showcase/finance/4.mp3",
+    "duration": 10.263,
+    "focusCues": [
+      {
+        "time": 7.755,
+        "entityIds": [
+          "metric3"
+        ],
+        "confidences": [
+          1
+        ],
+        "word": "risk"
+      }
+    ],
+    "wordTimestamps": [
+      {
+        "word": "Rebalancing",
+        "startTime": 0,
+        "endTime": 0.778
+      },
+      {
+        "word": "plan:",
+        "startTime": 0.848,
+        "endTime": 1.265
+      },
+      {
+        "word": "trim",
+        "startTime": 1.416,
+        "endTime": 1.776
+      },
+      {
+        "word": "US",
+        "startTime": 1.892,
+        "endTime": 2.241
+      },
+      {
+        "word": "equities",
+        "startTime": 2.334,
+        "endTime": 2.763
+      },
+      {
+        "word": "by",
+        "startTime": 2.833,
+        "endTime": 2.961
+      },
+      {
+        "word": "7%,",
+        "startTime": 3.077,
+        "endTime": 3.994
+      },
+      {
+        "word": "add",
+        "startTime": 4.203,
+        "endTime": 4.435
+      },
+      {
+        "word": "to",
+        "startTime": 4.47,
+        "endTime": 4.563
+      },
+      {
+        "word": "fixed",
+        "startTime": 4.644,
+        "endTime": 4.923
+      },
+      {
+        "word": "income",
+        "startTime": 4.992,
+        "endTime": 5.364
+      },
+      {
+        "word": "and",
+        "startTime": 5.422,
+        "endTime": 5.538
+      },
+      {
+        "word": "international.",
+        "startTime": 5.608,
+        "endTime": 6.281
+      },
+      {
+        "word": "This",
+        "startTime": 6.327,
+        "endTime": 6.525
+      },
+      {
+        "word": "reduces",
+        "startTime": 6.606,
+        "endTime": 7.07
+      },
+      {
+        "word": "drawdown",
+        "startTime": 7.129,
+        "endTime": 7.674
+      },
+      {
+        "word": "risk",
+        "startTime": 7.755,
+        "endTime": 8.046
+      },
+      {
+        "word": "while",
+        "startTime": 8.127,
+        "endTime": 8.371
+      },
+      {
+        "word": "maintaining",
+        "startTime": 8.417,
+        "endTime": 8.998
+      },
+      {
+        "word": "growth",
+        "startTime": 9.079,
+        "endTime": 9.392
+      },
+      {
+        "word": "exposure.",
+        "startTime": 9.451,
+        "endTime": 10.263
+      }
+    ]
+  }
+}

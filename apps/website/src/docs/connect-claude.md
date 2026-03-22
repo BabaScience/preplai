@@ -59,9 +59,11 @@ Quit and reopen Claude Desktop. That's it — you're connected.
 
 Open a new conversation and type:
 
-> **"Create a presentation about how a load balancer distributes traffic"**
+> **"Using Preplai, create a presentation about how a load balancer distributes traffic"**
 
 Claude will build the presentation and give you a link to watch it.
+
+**Tip:** Including "Using Preplai" in your prompt tells Claude to use preplai for the visual. Without it, Claude might respond with plain text instead.
 
 > **Other desktop MCP clients** (Cursor, Windsurf, etc.) use the same setup — create an API token and add the same config to your MCP client's settings.
 
@@ -91,7 +93,7 @@ Go to [preplai.com/dashboard/connectors](https://preplai.com/dashboard/connector
 
 ### 3. Use it in chat
 
-When starting a new conversation, click the **+** button and enable preplai. Then just ask Claude to create a presentation.
+When starting a new conversation, click the **+** button and enable preplai. Then ask Claude to create a presentation — start your prompt with **"Using Preplai, ..."**
 
 ---
 
