@@ -209,6 +209,10 @@ const TOPIC_HINTS: Record<string, string[]> = {
 
   // ── Product & Design (Composable) ──
   'product roadmap, feature, milestone, release plan': ['Composable', 'Timeline'],
+  'bot, chatbot, robot, virtual agent, automated assistant': ['Composable'],
+  'ai agent, copilot, ai assistant, llm agent': ['Composable'],
+  'ai architecture, rag, retrieval augmented generation': ['Composable', 'Database', 'Service', 'Arrow'],
+  'prompt, prompt engineering, system prompt': ['Composable', 'CodeBlock'],
   'persona, user segment, cohort, demographic': ['Composable'],
   'funnel, conversion, retention, churn, growth': ['Composable', 'BarChart'],
   'a/b test, experiment, hypothesis, variant': ['Composable'],
@@ -439,6 +443,7 @@ export interface IllustrationsReference {
   topicHints: Record<string, string[]>;
   metadataHints: Record<string, string>;
   universalMetadata: Record<string, string>;
+  diagramStyles: Record<string, string>;
   composableShapes: string[];
   composableIcons: Record<string, string[]>;
   positionFormat: string;
@@ -465,6 +470,13 @@ export function getIllustrationsReference(): IllustrationsReference {
     topicHints: { ...TOPIC_HINTS },
     metadataHints: { ...METADATA_HINTS },
     universalMetadata: { ...UNIVERSAL_METADATA },
+    diagramStyles: {
+      illustrative: 'Central hub + radial satellites. Use for: "How does X work?", "Explain X". Layout: main at [50,40], satellites around it.',
+      sequential: 'Left-to-right or top-to-bottom chain. Use for: "X flow", "X pipeline", "steps to X". Layout: entities at x=[15,35,55,75].',
+      structural: 'Hierarchical tree, top-down. Use for: "X architecture", "X stack", "layers". Layout: root at [50,15], children spread below.',
+      comparative: 'Side-by-side mirrored clusters. Use for: "X vs Y", "compare". Layout: left at x=20-35, right at x=65-80.',
+      temporal: 'Timeline with evolution. Use for: "X timeline", "history of X". Best with shape morphing across frames.',
+    },
     composableShapes: [...COMPOSABLE_SHAPES],
     composableIcons: { ...ICON_CATEGORIES },
     positionFormat: '[x,y]',

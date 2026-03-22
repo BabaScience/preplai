@@ -41,8 +41,8 @@ export {
   getSemanticCategory,
   getParticleColors,
 } from './design-tokens.js';
-export type { PaletteName, Palette, SemanticCategory, EntityStatus, EntityEmphasis } from './design-tokens.js';
-export { STATUS_COLORS, EMPHASIS_SCALES } from './design-tokens.js';
+export type { PaletteName, Palette, SemanticCategory, EntityStatus, EntityEmphasis, ColorRamp, ColorStop } from './design-tokens.js';
+export { STATUS_COLORS, EMPHASIS_SCALES, generateColorRamp, clearColorRampCache } from './design-tokens.js';
 
 // ── Color cascade system
 export { resolveColorCascade, resolveColorCascadeFromHex, applyShapeColors, applyTextColor, applyGlowColors } from './color-cascade.js';

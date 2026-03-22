@@ -83,6 +83,14 @@ const SEMANTIC_MAP: Array<{ keywords: string[]; hint: SemanticHint }> = [
   { keywords: ['cloud'],                             hint: { shape: 'cloud', icon: 'cloud-icon' } },
   { keywords: ['config', 'setting'],                 hint: { shape: 'rect', icon: 'settings' } },
 
+  // ── AI / Bots / Agents ──────────────────────────────────────────────
+  { keywords: ['bot', 'chatbot', 'robot'],              hint: { shape: 'rect', icon: 'bot' } },
+  { keywords: ['agent', 'assistant', 'copilot'],        hint: { shape: 'hexagon', icon: 'bot' } },
+  { keywords: ['ai', 'artificial intelligence'],        hint: { shape: 'circle', icon: 'bot' } },
+  { keywords: ['llm', 'model', 'gpt', 'claude'],       hint: { shape: 'hexagon', icon: 'brain' } },
+  { keywords: ['prompt', 'instruction'],                hint: { shape: 'document', icon: 'message-circle' } },
+  { keywords: ['embedding', 'vector store'],            hint: { shape: 'cylinder', icon: 'database' } },
+
   // ── Workflow / Process ───────────────────────────────────────────────
   { keywords: ['workflow', 'process', 'flow'],       hint: { shape: 'parallelogram', icon: 'workflow' } },
   { keywords: ['step', 'stage'],                     hint: { shape: 'rect', icon: 'chevron-right' } },

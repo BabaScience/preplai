@@ -93,6 +93,51 @@ m:{status:"error",badge:{text:"503"},emphasis:"critical"} — a critically faili
 m:{status:"loading",progress:0.7,badge:{text:"70%"}} — a migration in progress
 m:{status:"healthy",lottieAnimation:{src:"pulse"}} — a healthy monitoring system with heartbeat animation
 
+═══ DIAGRAM TAXONOMY — Choose Layout by Intent (critical) ═══
+
+Before placing entities, CLASSIFY the user's request into a diagram style. The SAME topic produces completely different layouts depending on what was asked. This is the Strategy Pattern — route by intent, not subject.
+
+DETECT THE STYLE from the user's phrasing:
+
+ILLUSTRATIVE (default — "How does X work?", "Explain X", "What is X?"):
+- Layout: Central hub entity + radial satellites connected by arrows
+- Position pattern: main entity at [50,40], satellites at [20,25], [80,25], [20,65], [80,65]
+- Purpose: build a mental model, show relationships
+- Use: Concept/Server as central hub, Arrow to connect surrounding entities
+- Narration: explain each part and how it connects to the whole
+
+SEQUENTIAL ("X flow", "X pipeline", "steps to X", "process of X", "how to X"):
+- Layout: Left-to-right or top-to-bottom chain with DataFlow arrows
+- Position pattern: entities at x=[15,35,55,75] same y, or y=[20,40,60,80] same x
+- Purpose: show order, causation, temporal sequence
+- Use: Pipeline, PipelineStage, DataFlow connections, progress metadata
+- Narration: walk through steps in order, explain transitions
+
+STRUCTURAL ("X architecture", "X stack", "layers of X", "X components"):
+- Layout: Hierarchical tree — top-down or nested containment
+- Position pattern: root at [50,15], children at [25,40],[50,40],[75,40], grandchildren at [15,65],...
+- Purpose: show hierarchy, containment, dependencies
+- Use: Stack (for layers), Group (for containment), Arrow (for dependencies)
+- Narration: describe from top-level down to implementation details
+
+COMPARATIVE ("X vs Y", "compare X and Y", "difference between X and Y"):
+- Layout: Two mirrored clusters side-by-side with shared elements in center
+- Position pattern: left cluster at x=20–35, right cluster at x=65–80, shared at x=45–55
+- Purpose: highlight similarities and differences
+- Use: matching entity types on both sides, DottedArrow for comparisons
+- Narration: contrast each pair, highlight what's shared vs different
+
+TEMPORAL ("X timeline", "history of X", "evolution of X", "X over time"):
+- Layout: Horizontal timeline with events/milestones
+- Position pattern: Timeline entity at [50,30], events below at increasing x positions
+- Purpose: show chronological progression
+- Use: Timeline entity, or sequential Concept entities with dates as labels
+- Best with shape morphing: same entity id evolves type across frames (Concept→Server→Cloud)
+- Narration: narrate chronologically, frame by frame
+
+RULE: ALWAYS classify the user's request into one of these 5 styles BEFORE composing entities. If unclear, default to ILLUSTRATIVE. The layout pattern determines entity positions — don't place entities randomly.
+RULE: Use shape morphing (same id, different type across frames) for TEMPORAL diagrams to show evolution cinematically.
+
 ═══ CONTENT & COMPOSITION ═══
 
 CONNECTIONS (critical): Every content entity (Server, Database, User, etc.) MUST be connected to at least one other entity via Arrow or DataFlow. Orphan entities (floating boxes with no connections) make poor diagrams. Always show relationships — data flows, API calls, dependencies — between entities.
@@ -106,6 +151,18 @@ CONTENT QUALITY: Match the richness and detail of GPT/Claude chat explanations �
 NARRATION QUALITY: Good — "Binary search works by repeatedly halving the search space. We maintain two pointers, lo and hi; each comparison eliminates half the remaining elements, giving O(log n) time." Bad — "Binary search divides the array. It's efficient."
 
 NARRATIVE ARC: Structure frames like a film — (1) Establish the scene with core entities, (2) Focus on one part with highlight, (3) Expand with new entities, (4) Resolve with complete picture. Build complexity gradually across frames.
+
+COLOR BUDGET (critical — information density through restraint):
+Limit each frame to 2–3 semantic color categories. When every entity uses a different color, no color carries meaning. When you restrict to 2–3 colors, each one becomes a signal.
+
+Semantic categories: compute (green), data (blue), structure (violet), human (gold), state (red), environment (teal), annotation (orange).
+
+RULE: Before composing a frame, pick 2–3 categories that match the story. For example:
+- API architecture → compute (servers) + data (databases) = 2 colors
+- Incident response → compute (servers) + state (alerts, errors) + environment (monitoring) = 3 colors
+- User journey → human (user) + compute (services) + data (databases) = 3 colors
+RULE: If you need a 4th color, ask: can this entity use an existing category instead? A monitoring dashboard can be "compute" instead of "environment" if the frame is already using 3 categories.
+RULE: Connections (Arrow, DataFlow) don't count toward the budget — they use the palette accent color automatically.
 
 DESIGN GUIDELINES:
 - COLORS — Omit entity.color by default (palette auto-assigns). Use c (color) to override when a specific color is needed (e.g. "#e74c3c" for error states).

@@ -702,15 +702,16 @@ describe('scoreVisualScript', () => {
     // Manually compute expected weighted average (updated weights)
     const d = report.dimensions;
     const expected = Math.round(
-      d.entityDensity.score * 0.12 +
-      d.layoutQuality.score * 0.12 +
-      d.visualBalance.score * 0.10 +
-      d.entityPersistence.score * 0.12 +
-      d.narrationCoverage.score * 0.10 +
+      d.entityDensity.score * 0.11 +
+      d.layoutQuality.score * 0.11 +
+      d.visualBalance.score * 0.09 +
+      d.entityPersistence.score * 0.11 +
+      d.narrationCoverage.score * 0.09 +
       d.formatCompliance.score * 0.04 +
-      d.narrationQuality.score * 0.14 +
-      d.narrativeArc.score * 0.14 +
-      d.connectionCompleteness.score * 0.12,
+      d.narrationQuality.score * 0.13 +
+      d.narrativeArc.score * 0.13 +
+      d.connectionCompleteness.score * 0.11 +
+      (d as any).colorBudget.score * 0.08,
     );
     expect(report.overall).toBe(expected);
   });

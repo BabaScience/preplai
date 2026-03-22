@@ -59,15 +59,16 @@ const OVERLAP_THRESHOLD = 8;
 
 /** Dimension weights for aggregate score (must sum to 1.0) */
 const WEIGHTS = {
-  entityDensity: 0.12,
-  layoutQuality: 0.12,
-  visualBalance: 0.10,       // ↑ from 0.06 — Pillar II (Compositional Structure) was under-represented
-  entityPersistence: 0.12,
-  narrationCoverage: 0.10,
-  formatCompliance: 0.04,    // ↓ from 0.06 — least impactful on design quality
-  narrationQuality: 0.14,    // ↓ from 0.16 — still high, but balance matters more
-  narrativeArc: 0.14,
-  connectionCompleteness: 0.12,
+  entityDensity: 0.11,
+  layoutQuality: 0.11,
+  visualBalance: 0.09,
+  entityPersistence: 0.11,
+  narrationCoverage: 0.09,
+  formatCompliance: 0.04,
+  narrationQuality: 0.13,
+  narrativeArc: 0.13,
+  connectionCompleteness: 0.11,
+  colorBudget: 0.08,          // new: reward color restraint (2-3 categories per frame)
 } as const;
 
 // ── Connection types that don't count toward density ─────────────────────
@@ -719,6 +720,84 @@ export function scoreConnectionCompleteness(frames: IllustrationFrame[]): Dimens
   };
 }
 
+// ── Color Budget ─────────────────────────────────────────────────────────
+
+/**
+ * Color Budget: measures color restraint per frame.
+ * Great diagrams use 2-3 semantic color categories per frame.
+ * Too many colors = visual noise, no color carries meaning.
+ *
+ * Scoring:
+ *   1-3 categories = 100 (ideal — focused, each color carries weight)
+ *   4 categories = 80 (acceptable — still readable)
+ *   5 categories = 60 (busy — consider reducing)
+ *   6+ categories = 40 (visual noise — too many colors)
+ */
+
+/** Simple entity type → color category mapping (inline, no external dependency) */
+const COLOR_CATEGORIES: Record<string, string> = {
+  // Compute (green)
+  Server: 'compute', Service: 'compute', Lambda: 'compute', Pipeline: 'compute',
+  CPU: 'compute', Process: 'compute', Build: 'compute', CodeBlock: 'compute',
+  APIEndpoint: 'compute', PullRequest: 'compute',
+  // Data (blue)
+  Database: 'data', Cache: 'data', Volume: 'data', HashTable: 'data',
+  Schema: 'data', StorageBucket: 'data', Dashboard: 'data',
+  // Structure (violet)
+  Container: 'structure', Pod: 'structure', Network: 'structure',
+  Module: 'structure', GitBranch: 'structure', BinaryTree: 'structure',
+  // Human (gold)
+  User: 'human', Concept: 'human', Decision: 'human', Metric: 'human',
+  // State (red)
+  Firewall: 'state', Alert: 'state', ErrorState: 'state', Secret: 'state',
+  // Environment (teal)
+  Cloud: 'environment', Monitor: 'environment', Timeline: 'environment',
+  Stream: 'environment', WebSocket: 'environment',
+  // Annotation (orange)
+  Label: 'annotation', Callout: 'annotation', Notification: 'annotation',
+};
+
+function getEntityColorCategory(type: string): string {
+  return COLOR_CATEGORIES[type] ?? 'generic';
+}
+
+export function scoreColorBudget(frames: IllustrationFrame[]): DimensionScore {
+  if (frames.length === 0) return { score: 100, details: 'No frames' };
+
+  const frameScores: number[] = [];
+  let totalCategories = 0;
+
+  for (const frame of frames) {
+    const contentEntities = getContentEntities(frame.entities);
+    if (contentEntities.length === 0) {
+      frameScores.push(100);
+      continue;
+    }
+
+    // Count unique color categories in this frame
+    const categories = new Set(contentEntities.map(e => getEntityColorCategory(e.type)));
+    const count = categories.size;
+    totalCategories += count;
+
+    // Score based on category count
+    let score: number;
+    if (count <= 3) score = 100;       // ideal
+    else if (count === 4) score = 80;  // acceptable
+    else if (count === 5) score = 60;  // busy
+    else score = 40;                   // visual noise
+
+    frameScores.push(score);
+  }
+
+  const avg = frameScores.reduce((s, v) => s + v, 0) / frameScores.length;
+  const avgCategories = (totalCategories / frames.length).toFixed(1);
+
+  return {
+    score: Math.round(clamp(avg, 0, 100)),
+    details: `Avg ${avgCategories} color categories per frame (ideal: 2-3)`,
+  };
+}
+
 // ── Main Scorer ──────────────────────────────────────────────────────────
 
 /**
@@ -738,6 +817,7 @@ export function scoreVisualScript(script: VisualScript): QualityReport {
     narrationQuality: scoreNarrationQuality(frames),
     narrativeArc: scoreNarrativeArc(frames),
     connectionCompleteness: scoreConnectionCompleteness(frames),
+    colorBudget: scoreColorBudget(frames),
   };
 
   // Weighted average
@@ -750,7 +830,8 @@ export function scoreVisualScript(script: VisualScript): QualityReport {
     dimensions.formatCompliance.score * WEIGHTS.formatCompliance +
     dimensions.narrationQuality.score * WEIGHTS.narrationQuality +
     dimensions.narrativeArc.score * WEIGHTS.narrativeArc +
-    dimensions.connectionCompleteness.score * WEIGHTS.connectionCompleteness,
+    dimensions.connectionCompleteness.score * WEIGHTS.connectionCompleteness +
+    dimensions.colorBudget.score * WEIGHTS.colorBudget,
   );
 
   const totalEntities = frames.reduce((s, f) => s + f.entities.length, 0);
