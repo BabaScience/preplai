@@ -8,14 +8,15 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderDevice(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const color = entity.color ?? getCategoryColor('Device');
+  const cc = resolveColorCascade(entity);
 
   const screenW = s * 0.9;
   const screenH = s * 0.6;
@@ -34,10 +35,9 @@ export function renderDevice(entity: VisualEntity, parentEl: SVGElement): SVGGEl
     glow.setAttribute('width', String(baseW + 6));
     glow.setAttribute('height', String(screenH + gap + baseH + 6));
     glow.setAttribute('rx', '6');
-    glow.setAttribute('fill', 'none');
-    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     glow.setAttribute('stroke-width', String(STROKE.default));
     glow.setAttribute('stroke-dasharray', '4,4');
+    applyGlowColors(glow, cc);
     innerG.appendChild(glow);
   }
 
@@ -48,9 +48,8 @@ export function renderDevice(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   screen.setAttribute('width', String(screenW));
   screen.setAttribute('height', String(screenH));
   screen.setAttribute('rx', '4');
-  screen.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-  screen.setAttribute('stroke', color);
   screen.setAttribute('stroke-width', String(STROKE.default));
+  applyShapeColors(screen, cc);
   innerG.appendChild(screen);
 
   // Base (thin bar)
@@ -60,7 +59,7 @@ export function renderDevice(entity: VisualEntity, parentEl: SVGElement): SVGGEl
   base.setAttribute('width', String(baseW));
   base.setAttribute('height', String(baseH));
   base.setAttribute('rx', '2');
-  base.setAttribute('fill', color);
+  base.setAttribute('fill', cc.stroke);
   base.setAttribute('opacity', '0.4');
   innerG.appendChild(base);
 
@@ -70,7 +69,7 @@ export function renderDevice(entity: VisualEntity, parentEl: SVGElement): SVGGEl
     text.setAttribute('x', '0');
     text.setAttribute('y', String(baseTop + baseH + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);

@@ -6,7 +6,7 @@ PREREQUISITE — MANDATORY: NEVER call this tool until you have asked the user a
 
 THEMES: "light" (warm beige, light mode — default) or "cinema" (rich gradients, dark). PALETTES: "default", "ocean", "sunset", "forest", "mono". The user's dashboard preference is used unless you pass style. Omit entity.color in add_scene by default — the player uses the palette automatically. Player URL: open in browser for user to watch.
 
-RETURNS: session_id, player_url, embed_url (for iframe embedding), preferences (theme, palette), AND illustrations reference (entityTypes, aliases, shortKeys, topicHints, metadataHints). Use the illustrations data to choose the right entity types for add_scene.
+RETURNS: session_id, player_url, embed_url (for iframe embedding), preferences (theme, palette), AND illustrations reference (entityTypes, aliases, shortKeys, topicHints, metadataHints, universalMetadata). Use the illustrations data to choose the right entity types for add_scene. The universalMetadata field documents enhanced visual control knobs (status, progress, emphasis, badge, lottieAnimation) available on ALL entity types.
 
 LANGUAGE: For non-English presentations, set lang in the visual_script passed to add_scene. Supported: "en" (default), "fr", "it". TTS generates voice in the matching language.
 

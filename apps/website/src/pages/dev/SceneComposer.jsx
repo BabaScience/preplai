@@ -1,8 +1,42 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { registry } from '@preplai/illustrations';
 import { ENTITY_DEFAULTS, isConnectionType } from '@preplai/shared';
 import { METADATA_DEFAULTS, ENTITY_FIELD_DEFAULTS, COMPOSABLE_SHOWCASE } from './entity-defaults';
 import ScenePreview from './ScenePreview';
+
+/* ── Multi-frame morph demo preset ────────────────────────────────── */
+const MORPH_DEMO_FRAMES = [
+  {
+    label: 'Healthy System',
+    entities: [
+      { id: 'title', type: 'H1', position: { x: 50, y: 8 }, label: 'System Architecture', size: 2.5 },
+      { id: 'main', type: 'Server', position: { x: 30, y: 45 }, label: 'API Server', size: 3, metadata: { status: 'healthy', badge: { text: 'v2.1' } } },
+      { id: 'store', type: 'Database', position: { x: 70, y: 45 }, label: 'PostgreSQL', size: 3, metadata: { status: 'healthy' } },
+      { id: 'flow', type: 'Arrow', position: { x: 50, y: 45 }, sourceEntityId: 'main', targetEntityId: 'store', label: 'SQL Queries', metadata: { animated: true } },
+    ],
+    narration: 'Frame 1: Everything is healthy',
+  },
+  {
+    label: 'Incident',
+    entities: [
+      { id: 'title', type: 'H1', position: { x: 50, y: 8 }, label: 'Incident in Progress', size: 2.5 },
+      { id: 'main', type: 'Container', position: { x: 30, y: 45 }, label: 'Containerized', size: 3, metadata: { status: 'error', badge: { text: '503', color: '#ef4444' }, emphasis: 'critical' } },
+      { id: 'store', type: 'Database', position: { x: 70, y: 45 }, label: 'PostgreSQL', size: 3, metadata: { status: 'warning', progress: 0.4, badge: { text: 'Migrating' } } },
+      { id: 'flow', type: 'Arrow', position: { x: 50, y: 45 }, sourceEntityId: 'main', targetEntityId: 'store', label: 'Failing', metadata: { thickness: 'thick', animated: true } },
+    ],
+    narration: 'Frame 2: Server morphs to Container, error status, database migrating',
+  },
+  {
+    label: 'Recovery',
+    entities: [
+      { id: 'title', type: 'H1', position: { x: 50, y: 8 }, label: 'Recovery Complete', size: 2.5 },
+      { id: 'main', type: 'Cloud', position: { x: 30, y: 45 }, label: 'Cloud Native', size: 3, metadata: { status: 'healthy', badge: { text: 'v3.0', color: '#10b981' } } },
+      { id: 'store', type: 'Database', position: { x: 70, y: 45 }, label: 'PostgreSQL', size: 3, metadata: { status: 'healthy', progress: 1.0, badge: { text: '100%', color: '#10b981' } } },
+      { id: 'flow', type: 'DataFlow', position: { x: 50, y: 45 }, sourceEntityId: 'main', targetEntityId: 'store', label: 'Streaming', metadata: { thickness: 'thick' } },
+    ],
+    narration: 'Frame 3: Container morphs to Cloud, migration complete, all healthy',
+  },
+];
 
 /* ── Available types ────────────────────────────────────────────────── */
 const EXCLUDED_TYPES = new Set([
@@ -277,7 +311,8 @@ const THEMES = ['light', 'cinema'];
 const PALETTES = ['default', 'ocean', 'sunset', 'forest', 'mono'];
 
 export default function SceneComposer() {
-  const [entities, setEntities] = useState([]);
+  const [frames, setFrames] = useState([{ entities: [], narration: '' }]);
+  const [currentFrameIdx, setCurrentFrameIdx] = useState(0);
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState('');
   const [copyFeedback, setCopyFeedback] = useState(false);
@@ -286,7 +321,22 @@ export default function SceneComposer() {
   const [jsonError, setJsonError] = useState(null);
   const [theme, setTheme] = useState('light');
   const [palette, setPalette] = useState('sunset');
+  const [isPlaying, setIsPlaying] = useState(false);
   const searchRef = useRef(null);
+  const previewRef = useRef(null);
+  const playTimerRef = useRef(null);
+
+  // Current frame's entities (convenience accessor)
+  const entities = frames[currentFrameIdx]?.entities ?? [];
+  const setEntities = useCallback((updater) => {
+    setFrames((prev) => prev.map((f, i) =>
+      i === currentFrameIdx
+        ? { ...f, entities: typeof updater === 'function' ? updater(f.entities) : updater }
+        : f,
+    ));
+  }, [currentFrameIdx]);
+
+  const isMultiFrame = frames.length > 1;
 
   const filtered = search.trim()
     ? ENTITY_TYPES.filter((t) => t.toLowerCase().includes(search.trim().toLowerCase()))
@@ -327,14 +377,45 @@ export default function SceneComposer() {
     );
   }, []);
 
+  /** Merge a single key into entity.metadata without replacing other fields */
+  const updateMetadata = useCallback((id, key, value) => {
+    setEntities((prev) =>
+      prev.map((e) => {
+        if (e.id !== id) return e;
+        const meta = { ...(e.metadata ?? {}) };
+        if (value === undefined || value === null || value === '' || value === 'none' || value === 'normal') {
+          delete meta[key];
+        } else {
+          meta[key] = value;
+        }
+        return { ...e, metadata: Object.keys(meta).length > 0 ? meta : undefined };
+      }),
+    );
+  }, []);
+
   const clearScene = useCallback(() => {
-    setEntities([]);
+    setFrames([{ entities: [], narration: '' }]);
+    setCurrentFrameIdx(0);
     setSelectedId(null);
+    setIsPlaying(false);
     nextId = 1;
   }, []);
 
   const loadPreset = useCallback((name) => {
     nextId = 1;
+    setIsPlaying(false);
+
+    // Special: Morph Demo loads multi-frame preset
+    if (name === 'Morph Demo') {
+      setFrames(MORPH_DEMO_FRAMES.map((f) => ({
+        entities: f.entities,
+        narration: f.narration,
+      })));
+      setCurrentFrameIdx(0);
+      setSelectedId(MORPH_DEMO_FRAMES[0].entities[0]?.id ?? null);
+      return;
+    }
+
     const template = SCENE_PRESETS[name];
     if (!template) return;
 
@@ -365,7 +446,8 @@ export default function SceneComposer() {
       created.push(conn);
     }
 
-    setEntities(created);
+    setFrames([{ entities: created, narration: '' }]);
+    setCurrentFrameIdx(0);
     setSelectedId(created[0]?.id ?? null);
   }, []);
 
@@ -382,18 +464,22 @@ export default function SceneComposer() {
   }, [entities]);
 
   const copySceneJson = useCallback(() => {
-    const frame = {
-      id: 'frame-1',
-      startTime: 0,
-      endTime: 8000,
-      entities: entities,
-      narrationSegment: '',
-      description: 'Scene composed in debug page',
+    const script = {
+      sceneId: 'composer-export',
+      totalDuration: frames.length * 5000,
+      frames: frames.map((f, i) => ({
+        id: `frame-${i + 1}`,
+        startTime: i * 5000,
+        endTime: (i + 1) * 5000,
+        entities: f.entities,
+        narrationSegment: f.narration || '',
+        description: '',
+      })),
     };
-    navigator.clipboard.writeText(JSON.stringify(frame, null, 2));
+    navigator.clipboard.writeText(JSON.stringify(script, null, 2));
     setCopyFeedback(true);
     setTimeout(() => setCopyFeedback(false), 1500);
-  }, [entities]);
+  }, [frames]);
 
   const handleJsonImport = useCallback(() => {
     setJsonError(null);
@@ -414,6 +500,43 @@ export default function SceneComposer() {
     }
   }, [jsonInput]);
 
+  /* ── Frame management ─────────── */
+
+  const addFrame = useCallback(() => {
+    // Duplicate current frame so user can modify the copy
+    const current = frames[currentFrameIdx];
+    const copy = { entities: JSON.parse(JSON.stringify(current?.entities ?? [])), narration: '' };
+    setFrames((prev) => [...prev, copy]);
+    setCurrentFrameIdx(frames.length);
+  }, [frames, currentFrameIdx]);
+
+  const deleteFrame = useCallback(() => {
+    if (frames.length <= 1) return;
+    setFrames((prev) => prev.filter((_, i) => i !== currentFrameIdx));
+    setCurrentFrameIdx((prev) => Math.max(0, prev - 1));
+  }, [frames.length, currentFrameIdx]);
+
+  const goToFrame = useCallback((idx) => {
+    setCurrentFrameIdx(idx);
+    setSelectedId(null);
+  }, []);
+
+  // Auto-play through frames
+  useEffect(() => {
+    if (!isPlaying || frames.length <= 1) return;
+    playTimerRef.current = setInterval(() => {
+      setCurrentFrameIdx((prev) => {
+        const next = prev + 1;
+        if (next >= frames.length) {
+          setIsPlaying(false);
+          return 0;
+        }
+        return next;
+      });
+    }, 2500);
+    return () => clearInterval(playTimerRef.current);
+  }, [isPlaying, frames.length]);
+
   const selected = entities.find((e) => e.id === selectedId);
 
   return (
@@ -421,6 +544,85 @@ export default function SceneComposer() {
       {/* Left panel: entity palette + scene list */}
       <div className="dev-panel dev-panel-left dev-panel-left-inner">
         <h2 className="dev-heading">Scene Composer</h2>
+
+        {/* ── Frame Timeline ────────────────────────────────── */}
+        <div className="dev-section">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <label className="dev-label" style={{ margin: 0 }}>
+              Frames ({frames.length})
+            </label>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              {frames.length > 1 && (
+                <button
+                  type="button"
+                  className="scene-preset-btn"
+                  style={{ fontSize: '11px', padding: '2px 8px' }}
+                  onClick={() => setIsPlaying(!isPlaying)}
+                >
+                  {isPlaying ? '⏸ Stop' : '▶ Play'}
+                </button>
+              )}
+              <button
+                type="button"
+                className="scene-preset-btn"
+                style={{ fontSize: '11px', padding: '2px 8px' }}
+                onClick={addFrame}
+              >
+                + Frame
+              </button>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '4px', marginTop: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {frames.map((f, i) => (
+              <button
+                key={i}
+                type="button"
+                className="scene-preset-btn"
+                style={{
+                  minWidth: '32px',
+                  padding: '4px 8px',
+                  fontSize: '12px',
+                  fontWeight: currentFrameIdx === i ? 700 : 400,
+                  background: currentFrameIdx === i ? 'var(--color-accent, #C9A84C)' : 'transparent',
+                  color: currentFrameIdx === i ? '#fff' : 'inherit',
+                  borderColor: currentFrameIdx === i ? 'var(--color-accent, #C9A84C)' : undefined,
+                }}
+                onClick={() => goToFrame(i)}
+              >
+                {i + 1}
+              </button>
+            ))}
+            {frames.length > 1 && (
+              <button
+                type="button"
+                className="dev-btn-ghost"
+                style={{ fontSize: '11px', padding: '2px 6px', color: 'var(--color-error, #ef4444)' }}
+                onClick={deleteFrame}
+                title="Delete current frame"
+              >
+                ×
+              </button>
+            )}
+          </div>
+          {isMultiFrame && (
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '6px' }}>
+              Same entity IDs across frames = cinematic morphing
+            </p>
+          )}
+        </div>
+
+        {/* Morph Demo */}
+        <div className="dev-section">
+          <label className="dev-label">Demos</label>
+          <button
+            type="button"
+            className="scene-preset-btn"
+            style={{ background: 'linear-gradient(135deg, #10b981, #3b82f6)', color: '#fff', border: 'none', fontWeight: 600 }}
+            onClick={() => loadPreset('Morph Demo')}
+          >
+            Morph Demo (3 frames)
+          </button>
+        </div>
 
         {/* Presets by user type */}
         {PRESET_CATEGORIES.map((cat) => (
@@ -568,11 +770,15 @@ export default function SceneComposer() {
       {/* Center: Scene canvas */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
         <ScenePreview
+          ref={previewRef}
           entities={entities}
           selectedId={selectedId}
           onSelectEntity={setSelectedId}
           theme={theme}
           palette={palette}
+          useController={isMultiFrame}
+          frames={isMultiFrame ? frames : null}
+          currentFrameIdx={currentFrameIdx}
         />
       </div>
 
@@ -658,6 +864,152 @@ export default function SceneComposer() {
                 onChange={(e) => updateEntity(selected.id, { color: e.target.value || undefined })}
               />
             </div>
+
+            {/* ── Enhanced Metadata Controls ─────────────────────── */}
+            {!isConnectionType(selected.type) && (
+              <>
+                {/* Status */}
+                <div className="dev-input-group" style={{ marginBottom: 'var(--space-3)' }}>
+                  <label className="dev-label">Status</label>
+                  <select
+                    className="dev-input"
+                    value={selected.metadata?.status ?? 'none'}
+                    onChange={(e) => updateMetadata(selected.id, 'status', e.target.value)}
+                  >
+                    <option value="none">None</option>
+                    <option value="healthy">Healthy</option>
+                    <option value="warning">Warning</option>
+                    <option value="error">Error</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="loading">Loading</option>
+                  </select>
+                </div>
+
+                {/* Progress */}
+                <div className="dev-input-group" style={{ marginBottom: 'var(--space-3)' }}>
+                  <label className="dev-label">Progress</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                    <input
+                      type="range"
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      value={selected.metadata?.progress ?? 0}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        updateMetadata(selected.id, 'progress', v > 0 ? v : undefined);
+                      }}
+                      className="dev-input"
+                      style={{ flex: 1 }}
+                    />
+                    <span className="dev-value" style={{ minWidth: 36 }}>
+                      {selected.metadata?.progress != null ? `${Math.round(selected.metadata.progress * 100)}%` : 'Off'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Emphasis */}
+                <div className="dev-input-group" style={{ marginBottom: 'var(--space-3)' }}>
+                  <label className="dev-label">Emphasis</label>
+                  <select
+                    className="dev-input"
+                    value={selected.metadata?.emphasis ?? 'normal'}
+                    onChange={(e) => updateMetadata(selected.id, 'emphasis', e.target.value)}
+                  >
+                    <option value="normal">Normal</option>
+                    <option value="low">Low</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                  </select>
+                </div>
+
+                {/* Badge */}
+                <div className="dev-input-group" style={{ marginBottom: 'var(--space-3)' }}>
+                  <label className="dev-label">Badge</label>
+                  <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
+                    <input
+                      type="text"
+                      className="dev-input"
+                      placeholder="Badge text..."
+                      value={selected.metadata?.badge?.text ?? ''}
+                      onChange={(e) => {
+                        const text = e.target.value;
+                        if (!text) {
+                          updateMetadata(selected.id, 'badge', undefined);
+                        } else {
+                          updateMetadata(selected.id, 'badge', {
+                            text,
+                            position: selected.metadata?.badge?.position ?? 'top-right',
+                          });
+                        }
+                      }}
+                      style={{ flex: 1 }}
+                    />
+                    <select
+                      className="dev-input"
+                      style={{ width: 'auto', minWidth: 80 }}
+                      value={selected.metadata?.badge?.position ?? 'top-right'}
+                      onChange={(e) => {
+                        if (!selected.metadata?.badge?.text) return;
+                        updateMetadata(selected.id, 'badge', {
+                          ...selected.metadata.badge,
+                          position: e.target.value,
+                        });
+                      }}
+                    >
+                      <option value="top-right">Top-Right</option>
+                      <option value="top-left">Top-Left</option>
+                      <option value="bottom-right">Bottom-Right</option>
+                    </select>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ── Connection Enhancements ─────────────────────────── */}
+            {isConnectionType(selected.type) && (
+              <>
+                {/* Thickness */}
+                <div className="dev-input-group" style={{ marginBottom: 'var(--space-3)' }}>
+                  <label className="dev-label">Thickness</label>
+                  <select
+                    className="dev-input"
+                    value={selected.metadata?.thickness ?? 'normal'}
+                    onChange={(e) => updateMetadata(selected.id, 'thickness', e.target.value === 'normal' ? undefined : e.target.value)}
+                  >
+                    <option value="normal">Normal</option>
+                    <option value="thin">Thin</option>
+                    <option value="thick">Thick</option>
+                  </select>
+                </div>
+
+                {/* Animated */}
+                <div className="dev-input-group" style={{ marginBottom: 'var(--space-3)' }}>
+                  <label className="dev-label" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                    <input
+                      type="checkbox"
+                      checked={selected.metadata?.animated === true}
+                      onChange={(e) => updateMetadata(selected.id, 'animated', e.target.checked || undefined)}
+                    />
+                    Animated flow
+                  </label>
+                </div>
+
+                {/* Bidirectional */}
+                {selected.type === 'Arrow' && (
+                  <div className="dev-input-group" style={{ marginBottom: 'var(--space-3)' }}>
+                    <label className="dev-label" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                      <input
+                        type="checkbox"
+                        checked={selected.metadata?.bidirectional === true}
+                        onChange={(e) => updateMetadata(selected.id, 'bidirectional', e.target.checked || undefined)}
+                      />
+                      Bidirectional
+                    </label>
+                  </div>
+                )}
+              </>
+            )}
 
             {/* Connection source/target */}
             {isConnectionType(selected.type) && (

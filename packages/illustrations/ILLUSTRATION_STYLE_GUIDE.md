@@ -129,15 +129,152 @@ When `entity.highlight` is true:
 
 ---
 
+## Visual Treatment Rules (Constraint Layer)
+
+**Allowed treatments** — used across components for our cinematic identity:
+- Flat fills with transparency (`colorWithAlpha(color, OPACITY.fillLight)`)
+- Solid strokes at token widths (`STROKE.default`, `.thin`, `.emphasized`)
+- Dashed strokes for highlight glows and containment boundaries
+- Cylinder 3D effect (top/bottom ellipses) for Database/Cache/Volume
+- Simple stroke-based icons inside shapes (rack lines, lightning bolt, etc.)
+
+**Use sparingly** — justified in specific components only:
+- Gradients: allowed for cylinder bodies, charts, and composable shapes (20 components)
+- SVG filters (`soft-shadow`): allowed for cylinder bodies and specialized components (5 components)
+- Drop shadows: only via `ensureDropShadowFilter()`, never inline CSS shadows
+
+**Prohibited** — never use in illustration components:
+- CSS `box-shadow` or `text-shadow`
+- CSS `backdrop-filter` or `blur()` on entities (only player UI uses these)
+- Decorative elements that don't carry semantic meaning
+- Rotated text (always horizontal for readability)
+- Emoji or Unicode symbols as primary visuals (λ in Lambda is an exception)
+- Hardcoded hex colors — always use design tokens or color cascade
+
+---
+
+## Color Cascade System
+
+**File:** `src/color-cascade.ts`
+
+Instead of manually calling `colorWithAlpha()` throughout a component, use the color cascade:
+
+```typescript
+import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
+
+const cc = resolveColorCascade(entity);
+
+// Shape: fill + stroke in one call
+applyShapeColors(rect, cc);
+
+// Glow: fill=none + stroke=glow
+applyGlowColors(glowRect, cc);
+
+// Text
+text.setAttribute('fill', cc.textPrimary);     // labels
+text.setAttribute('fill', cc.textSecondary);    // subtitles
+text.setAttribute('fill', cc.textTertiary);     // captions
+
+// Manual access
+cc.base        // raw color hex
+cc.fill        // 15% opacity fill
+cc.fillMedium  // 25% opacity fill
+cc.stroke      // full color stroke
+cc.strokeSoft  // 60% opacity stroke
+cc.glow        // 40% opacity (for highlight rings)
+```
+
+New components MUST use the color cascade. Existing components are being migrated incrementally.
+
+---
+
+## Typography Tiers
+
+Three semantic tiers, 2 weights. Components MUST use `TYPOGRAPHY` tokens — no hardcoded px.
+
+| Tier | Role | Size | Token |
+|------|------|------|-------|
+| Detail | Indices, captions, badges | 9–11px | `fontSizeIndex`, `fontSizeInline`, `fontSizeValue`, `fontSizeBadge` |
+| Body | Entity labels, definitions | 14–15px | `fontSizeBodyMax`, `fontSizeDefault`, `fontSizeLabel` |
+| Display | Titles, metrics, headings | 16–18px | `fontSizeTitle`, `fontSizeMetric`, `fontSizeSymbol` |
+
+| Weight | Role | Token |
+|--------|------|-------|
+| 500 | Regular labels | `fontWeightLabel` |
+| 600–700 | Titles, emphasis | `fontWeightTitle`, `fontWeightEmphasis`, `fontWeightBold` |
+
+---
+
+## Entity Auto-Sizing
+
+Use `getEntityDimensions(entity)` for components that should auto-size to fit their label:
+
+```typescript
+import { getEntityDimensions } from '../utils.js';
+
+const { width, height, halfW, halfH } = getEntityDimensions(entity);
+```
+
+Formula: `width = max(baseWidth, charCount × 8 + 24)`, clamped to `maxWidth: 250`.
+Agent's `size` param controls the base scale. Auto-sizing only expands, never shrinks below base.
+
+---
+
+## Universal Metadata (Enhanced Visual Control)
+
+Applied automatically by `entity-overlays.ts` after component rendering:
+
+| Field | Type | Visual |
+|-------|------|--------|
+| `status` | `'healthy'\|'warning'\|'error'\|'inactive'\|'loading'` | Status ring/dot/glow |
+| `progress` | `0.0–1.0` | Circular progress arc |
+| `emphasis` | `'low'\|'normal'\|'high'\|'critical'` | Scale/opacity adjustment |
+| `badge` | `{ text, color?, position? }` | Pill badge overlay |
+| `lottieAnimation` | `{ src, loop?, speed?, trigger? }` | Animated micro-asset |
+
+These stack: an entity can have status + progress + badge simultaneously.
+
+---
+
+## Arrow Collision Detection
+
+Arrows automatically curve when their straight-line path would cross an unrelated entity's bounding box. This is handled in `arrow.ts` at render time — no agent or compiler configuration needed.
+
+---
+
+## Streaming-Safe SVG Properties
+
+For future reference if we add real-time entity streaming:
+
+**Safe (GPU-composited, no visual flashing):**
+- `opacity`, `transform` (translate, scale, rotate)
+- `stroke-dashoffset` (for draw-on animations)
+- CSS `animation` and `transition` on these properties
+
+**Unsafe (cause DOM reflow or visual artifacts during streaming):**
+- `fill`, `stroke` (color changes cause repaint)
+- `x`, `y`, `width`, `height` (trigger layout recalculation)
+- SVG `filter` (expensive to recalculate during streaming)
+- `gradientTransform`, `patternTransform` (recompute on every change)
+- `d` attribute on `<path>` (full re-render of shape geometry)
+
+Current architecture renders from compiled JSON (not streaming), so all treatments are safe today.
+
+---
+
 ## Metadata Conventions
 
 The `metadata` field is optional and extensible. Documented conventions:
 
 | Key | Type | Description |
 |-----|------|-------------|
+| `metadata.status` | EntityStatus | Universal status indicator (healthy/warning/error/inactive/loading) |
+| `metadata.progress` | number (0–1) | Circular progress arc |
+| `metadata.emphasis` | EntityEmphasis | Visual hierarchy scaling |
+| `metadata.badge` | BadgeConfig | Pill badge overlay |
+| `metadata.lottieAnimation` | LottieAnimationConfig | Animated micro-asset |
 | `metadata.tooltip` | string | Hover tooltip text (player integration future) |
-| `metadata.expandable` | boolean | Indicates drill-down capability (player integration future) |
-| `metadata.visualStyle` | 'default' \| 'minimal' \| 'emphasized' | Used by generic renderer |
+| `metadata.expandable` | boolean | Indicates drill-down capability (future) |
 
 ---
 

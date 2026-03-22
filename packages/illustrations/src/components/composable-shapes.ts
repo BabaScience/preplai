@@ -122,6 +122,7 @@ export function renderShape(
       rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       rect.setAttribute('stroke', color);
       rect.setAttribute('stroke-width', String(sw));
+      rect.setAttribute('data-morph-target', 'true');
       innerG.appendChild(rect);
       if (highlight) addHighlightRect(innerG, w, h, SHAPES.borderRadius, color, rect);
       return { width: w, height: h };
@@ -136,6 +137,7 @@ export function renderShape(
       circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       circle.setAttribute('stroke', color);
       circle.setAttribute('stroke-width', String(sw));
+      circle.setAttribute('data-morph-target', 'true');
       innerG.appendChild(circle);
       if (highlight) addHighlightCircle(innerG, r, color, circle);
       return { width: s, height: s };
@@ -148,6 +150,7 @@ export function renderShape(
       polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(sw));
+      polygon.setAttribute('data-morph-target', 'true');
       innerG.appendChild(polygon);
       if (highlight) addHighlightCircle(innerG, r, color, polygon);
       return { width: r * 2, height: r * 2 };
@@ -160,6 +163,7 @@ export function renderShape(
       polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(sw));
+      polygon.setAttribute('data-morph-target', 'true');
       innerG.appendChild(polygon);
       if (highlight) addHighlightCircle(innerG, d, color, polygon);
       return { width: s, height: s };
@@ -184,6 +188,7 @@ export function renderShape(
       path.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       path.setAttribute('stroke', color);
       path.setAttribute('stroke-width', String(sw));
+      path.setAttribute('data-morph-target', 'true');
       innerG.appendChild(path);
       if (highlight) addHighlightCircle(innerG, Math.max(hw, hh), color, path);
       return { width: w, height: h };
@@ -207,6 +212,7 @@ export function renderShape(
       body.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       body.setAttribute('stroke', color);
       body.setAttribute('stroke-width', String(sw));
+      body.setAttribute('data-morph-target', 'true');
       innerG.appendChild(body);
 
       // Bottom ellipse
@@ -255,6 +261,7 @@ export function renderShape(
       path.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       path.setAttribute('stroke', color);
       path.setAttribute('stroke-width', String(sw));
+      path.setAttribute('data-morph-target', 'true');
       innerG.appendChild(path);
 
       // Fold triangle
@@ -286,6 +293,7 @@ export function renderShape(
       rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       rect.setAttribute('stroke', color);
       rect.setAttribute('stroke-width', String(sw));
+      rect.setAttribute('data-morph-target', 'true');
       innerG.appendChild(rect);
       if (highlight) addHighlightRect(innerG, w, h, r, color, rect);
       return { width: w, height: h };
@@ -304,6 +312,7 @@ export function renderShape(
       rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       rect.setAttribute('stroke', color);
       rect.setAttribute('stroke-width', String(sw));
+      rect.setAttribute('data-morph-target', 'true');
       innerG.appendChild(rect);
       if (highlight) addHighlightRect(innerG, w, h, r, color, rect);
       return { width: w, height: h };
@@ -325,6 +334,7 @@ export function renderShape(
       polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(sw));
+      polygon.setAttribute('data-morph-target', 'true');
       innerG.appendChild(polygon);
       if (highlight) addHighlightRect(innerG, w + skew * 2, h, 0, color, polygon);
       return { width: w + skew * 2, height: h };
@@ -337,6 +347,7 @@ export function renderShape(
       polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(sw));
+      polygon.setAttribute('data-morph-target', 'true');
       innerG.appendChild(polygon);
       if (highlight) addHighlightCircle(innerG, r, color, polygon);
       return { width: r * 2, height: r * 2 };
@@ -349,6 +360,7 @@ export function renderShape(
       polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(sw));
+      polygon.setAttribute('data-morph-target', 'true');
       innerG.appendChild(polygon);
       if (highlight) addHighlightCircle(innerG, r, color, polygon);
       return { width: r * 2, height: r * 2 };
@@ -361,6 +373,7 @@ export function renderShape(
       polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(sw));
+      polygon.setAttribute('data-morph-target', 'true');
       innerG.appendChild(polygon);
       if (highlight) addHighlightCircle(innerG, r, color, polygon);
       return { width: r * 2, height: r * 2 };
@@ -382,6 +395,7 @@ export function renderShape(
       polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       polygon.setAttribute('stroke', color);
       polygon.setAttribute('stroke-width', String(sw));
+      polygon.setAttribute('data-morph-target', 'true');
       innerG.appendChild(polygon);
       if (highlight) addHighlightRect(innerG, w, h, 0, color, polygon);
       return { width: w, height: h };
@@ -406,6 +420,7 @@ export function renderShape(
       path.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       path.setAttribute('stroke', color);
       path.setAttribute('stroke-width', String(sw));
+      path.setAttribute('data-morph-target', 'true');
       innerG.appendChild(path);
       if (highlight) addHighlightCircle(innerG, Math.max(hw, hh), color, path);
       return { width: w, height: h };

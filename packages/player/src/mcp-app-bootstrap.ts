@@ -25,11 +25,33 @@ const CH = 1080;
 // so we load GSAP dynamically. CSP resourceDomains allows the CDN.
 async function loadGSAP(): Promise<void> {
   if ((window as any).gsap) return;
-  return new Promise((resolve, reject) => {
+  // Load base GSAP
+  await new Promise<void>((resolve, reject) => {
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js';
     script.onload = () => resolve();
     script.onerror = () => reject(new Error('Failed to load GSAP from CDN'));
+    document.head.appendChild(script);
+  });
+  // Load MorphSVG plugin
+  await new Promise<void>((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/MorphSVGPlugin.min.js';
+    script.onload = () => {
+      if ((window as any).gsap && (window as any).MorphSVGPlugin) {
+        (window as any).gsap.registerPlugin((window as any).MorphSVGPlugin);
+      }
+      resolve();
+    };
+    script.onerror = () => resolve(); // Non-critical — morphing degrades gracefully
+    document.head.appendChild(script);
+  });
+  // Load Lottie for animated micro-assets
+  await new Promise<void>((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js';
+    script.onload = () => resolve();
+    script.onerror = () => resolve(); // Non-critical — Lottie degrades gracefully
     document.head.appendChild(script);
   });
 }

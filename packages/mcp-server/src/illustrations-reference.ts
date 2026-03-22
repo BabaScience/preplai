@@ -257,11 +257,11 @@ const METADATA_HINTS: Record<string, string> = {
   Monitor: 'label?',
   Pipeline: 'label?',
   PipelineStage: 'label, status?',
-  // Flow
-  Arrow: 'sourceEntityId, targetEntityId; label?',
-  BidirectArrow: 'sourceEntityId, targetEntityId; label?',
-  DottedArrow: 'sourceEntityId, targetEntityId; label?',
-  DataFlow: 'sourceEntityId, targetEntityId; label?',
+  // Flow (connections support: thickness?: "thin"|"thick", animated?: boolean, bidirectional?: boolean)
+  Arrow: 'sourceEntityId, targetEntityId; label?; thickness?: "thin"|"thick"; animated?: boolean; bidirectional?: boolean',
+  BidirectArrow: 'sourceEntityId, targetEntityId; label?; thickness?: "thin"|"thick"',
+  DottedArrow: 'sourceEntityId, targetEntityId; label?; thickness?: "thin"|"thick"',
+  DataFlow: 'sourceEntityId, targetEntityId; label?; thickness?: "thin"|"thick"',
   Bus: 'sourceEntityId, targetEntityId; label?',
   // Universal
   Concept: 'label? (≤12 chars inside, else below)',
@@ -438,11 +438,24 @@ export interface IllustrationsReference {
   shortKeys: Record<string, string>;
   topicHints: Record<string, string[]>;
   metadataHints: Record<string, string>;
+  universalMetadata: Record<string, string>;
   composableShapes: string[];
   composableIcons: Record<string, string[]>;
   positionFormat: string;
   defaultSize: number;
 }
+
+/**
+ * Universal metadata fields available on ALL entity types (non-connections).
+ * These are applied as overlays after component rendering.
+ */
+const UNIVERSAL_METADATA: Record<string, string> = {
+  status: '"healthy"|"warning"|"error"|"inactive"|"loading" — adds visual status indicator (ring, dot, glow, or opacity change)',
+  progress: '0.0–1.0 — renders circular progress arc around entity',
+  emphasis: '"low"|"normal"|"high"|"critical" — scales entity presence (0.85× to 1.15×)',
+  badge: '{ text: string, color?: string, position?: "top-right"|"top-left"|"bottom-right" } — pill badge overlay',
+  lottieAnimation: '{ src: string, loop?: boolean, speed?: number, trigger?: "idle"|"entrance"|"focus" } — animated micro-asset overlay. Built-in src values: "gear-spin", "loading-spinner", "check-success", "pulse"',
+};
 
 export function getIllustrationsReference(): IllustrationsReference {
   return {
@@ -451,6 +464,7 @@ export function getIllustrationsReference(): IllustrationsReference {
     shortKeys: { ...AGENT_SHORT_KEYS },
     topicHints: { ...TOPIC_HINTS },
     metadataHints: { ...METADATA_HINTS },
+    universalMetadata: { ...UNIVERSAL_METADATA },
     composableShapes: [...COMPOSABLE_SHAPES],
     composableIcons: { ...ICON_CATEGORIES },
     positionFormat: '[x,y]',

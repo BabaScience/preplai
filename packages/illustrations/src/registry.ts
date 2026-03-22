@@ -12,6 +12,7 @@
  */
 
 import type { VisualEntity } from '@preplai/shared';
+import { applyEntityOverlays } from './entity-overlays.js';
 
 // ── Fully implemented components
 import { renderServer } from './components/server.js';
@@ -451,7 +452,12 @@ export function renderEntity(
     // ── Tier 2: entity has explicit shape/icon metadata → composable renderer
     if (meta.shape || meta.icon) {
       console.info(`[PRE registry] "${entity.type}" → composable (shape=${meta.shape}, icon=${meta.icon})`);
-      return renderComposable(entity, parentEl);
+      const result = renderComposable(entity, parentEl);
+      if (result) {
+        const innerG = result.querySelector('.animate-element') as SVGGElement | null;
+        if (innerG) applyEntityOverlays(result as SVGGElement, innerG, entity);
+      }
+      return result;
     }
 
     // ── Tier 3: semantic resolver — auto-map type name to shape+icon
@@ -462,7 +468,12 @@ export function renderEntity(
         metadata: { ...meta, shape: hint.shape, icon: hint.icon },
       };
       console.info(`[PRE registry] "${entity.type}" → semantic resolve (${hint.shape}+${hint.icon})`);
-      return renderComposable(resolved, parentEl);
+      const result = renderComposable(resolved, parentEl);
+      if (result) {
+        const innerG = result.querySelector('.animate-element') as SVGGElement | null;
+        if (innerG) applyEntityOverlays(result as SVGGElement, innerG, entity);
+      }
+      return result;
     }
 
     console.warn(`[PRE registry] Unknown entity type: "${entity.type}". Skipping.`);
@@ -481,5 +492,16 @@ export function renderEntity(
     return (fn as any)(entity, allEntities, parentEl);
   }
 
-  return fn(entity, parentEl);
+  const result = fn(entity, parentEl);
+
+  // Apply universal overlays (status, progress, emphasis, badge)
+  // Only for non-connection entities that use the double-<g> pattern
+  if (result) {
+    const innerG = result.querySelector('.animate-element') as SVGGElement | null;
+    if (innerG) {
+      applyEntityOverlays(result as SVGGElement, innerG, entity);
+    }
+  }
+
+  return result;
 }

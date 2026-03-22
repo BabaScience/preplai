@@ -1871,4 +1871,72 @@ body[data-theme="light"] {
 [data-theme="light"] #feedback-success p {
   color: rgba(0, 0, 0, 0.5);
 }
+
+/* ── Universal Entity Overlays (Move 2: Enhanced Metadata) ────────── */
+
+/* Status: healthy — subtle green ring pulse */
+@keyframes statusHealthyPulse {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 0.7; }
+}
+.status-healthy-ring {
+  animation: statusHealthyPulse 3s ease-in-out infinite;
+}
+
+/* Status: warning — amber pulsing dot */
+@keyframes statusWarningPulse {
+  0%, 100% { r: 4; opacity: 0.8; }
+  50%      { r: 6; opacity: 1; }
+}
+.status-warning-dot {
+  animation: statusWarningPulse 1.5s ease-in-out infinite;
+}
+
+/* Status: error — red glow ring */
+@keyframes statusErrorGlow {
+  0%, 100% { opacity: 0.3; stroke-width: 2; }
+  50%      { opacity: 0.6; stroke-width: 3; }
+}
+.status-error-ring {
+  animation: statusErrorGlow 1.8s ease-in-out infinite;
+}
+
+/* Status: loading — rotating dashed ring */
+@keyframes statusLoadingRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.status-loading-ring {
+  transform-box: fill-box;
+  transform-origin: center center;
+  animation: statusLoadingRotate 2s linear infinite;
+}
+
+/* Progress ring — smooth entrance */
+.progress-ring-arc {
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Emphasis: low — reduced presence */
+[data-emphasis="low"] > .animate-element {
+  transform: scale(0.85);
+}
+
+/* Emphasis: high — elevated presence */
+[data-emphasis="high"] > .animate-element {
+  transform: scale(1.1);
+}
+
+/* Emphasis: critical — pulsing glow ring + elevated */
+@keyframes emphasisCriticalPulse {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 0.55; }
+}
+.emphasis-critical-ring {
+  animation: emphasisCriticalPulse 2s ease-in-out infinite;
+}
+
+[data-emphasis="critical"] > .animate-element {
+  transform: scale(1.15);
+}
 `;

@@ -13,14 +13,8 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import {
-  getCategoryColor,
-  TYPOGRAPHY,
-  STROKE,
-  LABEL_DEFAULTS,
-  colorWithAlpha,
-  OPACITY,
-} from '../design-tokens.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { resolveColorCascade, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 const CLOUD_ELLIPSES = [
@@ -34,9 +28,7 @@ export function renderCloud(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const color = entity.color ?? getCategoryColor('Cloud');
-
-  const strokeColor = colorWithAlpha(color, OPACITY.strokeSoft);
+  const cc = resolveColorCascade(entity);
 
   // Highlight glow (larger cloud outline behind)
   if (entity.highlight) {
@@ -46,24 +38,25 @@ export function renderCloud(entity: VisualEntity, parentEl: SVGElement): SVGGEle
       el.setAttribute('cy', String(e.cy * s));
       el.setAttribute('rx', String((e.rx + 0.04) * s));
       el.setAttribute('ry', String((e.ry + 0.04) * s));
-      el.setAttribute('fill', 'none');
-      el.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
       el.setAttribute('stroke-width', String(STROKE.default));
       el.setAttribute('stroke-dasharray', '4,4');
+      applyGlowColors(el, cc);
       innerG.appendChild(el);
     }
   }
 
   // Cloud bumps
-  for (const e of CLOUD_ELLIPSES) {
+  for (let i = 0; i < CLOUD_ELLIPSES.length; i++) {
+    const e = CLOUD_ELLIPSES[i];
     const el = document.createElementNS(SVG_NS, 'ellipse');
     el.setAttribute('cx', String(e.cx * s));
     el.setAttribute('cy', String(e.cy * s));
     el.setAttribute('rx', String(e.rx * s));
     el.setAttribute('ry', String(e.ry * s));
-    el.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-    el.setAttribute('stroke', strokeColor);
+    el.setAttribute('fill', cc.fill);
+    el.setAttribute('stroke', cc.strokeSoft);
     el.setAttribute('stroke-width', String(STROKE.default));
+    if (i === 0) el.setAttribute('data-morph-target', 'true');
     innerG.appendChild(el);
   }
 
@@ -73,7 +66,7 @@ export function renderCloud(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   base.setAttribute('cy', String(CLOUD_BASE.cy * s));
   base.setAttribute('rx', String(CLOUD_BASE.rx * s));
   base.setAttribute('ry', String(CLOUD_BASE.ry * s));
-  base.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
+  base.setAttribute('fill', cc.fill);
   base.setAttribute('stroke', 'none');
   innerG.appendChild(base);
 
@@ -83,7 +76,7 @@ export function renderCloud(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     text.setAttribute('x', '0');
     text.setAttribute('y', String(s / 2 + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);

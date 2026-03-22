@@ -78,6 +78,7 @@ export function renderCylinderBase(
   bodyFill.setAttribute('height', String(bodyH));
   bodyFill.setAttribute('fill', `url(#${gradId})`);
   bodyFill.setAttribute('stroke', 'none');
+  bodyFill.setAttribute('data-morph-target', 'true');
   bodyTarget.appendChild(bodyFill);
 
   // Bottom ellipse (base)

@@ -8,14 +8,15 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { resolveColorCascade, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderNetwork(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const color = entity.color ?? getCategoryColor('Network');
+  const cc = resolveColorCascade(entity);
 
   const r = s * 0.42;
 
@@ -25,10 +26,9 @@ export function renderNetwork(entity: VisualEntity, parentEl: SVGElement): SVGGE
     glow.setAttribute('cx', '0');
     glow.setAttribute('cy', '0');
     glow.setAttribute('r', String(r + 4));
-    glow.setAttribute('fill', 'none');
-    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     glow.setAttribute('stroke-width', String(STROKE.default));
     glow.setAttribute('stroke-dasharray', '4,4');
+    applyGlowColors(glow, cc);
     innerG.appendChild(glow);
   }
 
@@ -37,8 +37,8 @@ export function renderNetwork(entity: VisualEntity, parentEl: SVGElement): SVGGE
   circle.setAttribute('cx', '0');
   circle.setAttribute('cy', '0');
   circle.setAttribute('r', String(r));
-  circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-  circle.setAttribute('stroke', color);
+  circle.setAttribute('fill', cc.fill);
+  circle.setAttribute('stroke', cc.stroke);
   circle.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(circle);
 
@@ -59,7 +59,7 @@ export function renderNetwork(entity: VisualEntity, parentEl: SVGElement): SVGGE
     line.setAttribute('y1', String(nodes[i].y));
     line.setAttribute('x2', String(nodes[j].x));
     line.setAttribute('y2', String(nodes[j].y));
-    line.setAttribute('stroke', color);
+    line.setAttribute('stroke', cc.stroke);
     line.setAttribute('stroke-width', String(STROKE.default));
     line.setAttribute('stroke-linecap', 'round');
     innerG.appendChild(line);
@@ -71,7 +71,7 @@ export function renderNetwork(entity: VisualEntity, parentEl: SVGElement): SVGGE
     dot.setAttribute('cx', String(n.x));
     dot.setAttribute('cy', String(n.y));
     dot.setAttribute('r', String(dotR));
-    dot.setAttribute('fill', color);
+    dot.setAttribute('fill', cc.stroke);
     innerG.appendChild(dot);
   }
 
@@ -81,7 +81,7 @@ export function renderNetwork(entity: VisualEntity, parentEl: SVGElement): SVGGE
     text.setAttribute('x', '0');
     text.setAttribute('y', String(r + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);

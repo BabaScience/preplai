@@ -23,7 +23,7 @@ import {
   ENTITY_COUNT_ERROR_THRESHOLD,
   INTER_ENTITY_STAGGER_MS,
 } from '@preplai/shared';
-import { renderEntity } from '@preplai/illustrations';
+import { renderEntity, destroyLottieOverlay } from '@preplai/illustrations';
 import { applyDefaults, assignEntranceDelays } from './apply-defaults.js';
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -220,12 +220,22 @@ export class SceneController {
       }
     }
 
-    // ── Update kept entities (position changes) ────────────────────
+    // ── Update kept entities (position, type, color, label changes) ──
     const prevMap = new Map(this.prevNonConnections.map(e => [e.id, e]));
     for (const entity of kept) {
       const prev = prevMap.get(entity.id);
-      if (prev) {
-        this._updateEntityPosition(entity.id, prev.position, entity.position);
+      if (!prev) continue;
+
+      // Position change
+      this._updateEntityPosition(entity.id, prev.position, entity.position);
+
+      // Type change → morph transition (shape morph)
+      if (prev.type !== entity.type) {
+        this._morphEntity(entity.id, prev, entity);
+      }
+      // Same type but property changes → property morph (color, label)
+      else {
+        this._morphEntityProperties(entity.id, prev, entity);
       }
     }
 
@@ -328,6 +338,8 @@ export class SceneController {
 
     this.renderedEntityIds.delete(entityId);
     this.liveEntityIds.delete(entityId);
+    // Clean up any Lottie animation instance for this entity
+    destroyLottieOverlay(entityId);
   }
 
   // ── Entity position update ─────────────────────────────────────────
@@ -353,6 +365,195 @@ export class SceneController {
     setTimeout(() => {
       el.style.transition = '';
     }, 550);
+  }
+
+  // ── Entity type morph (Move 1: GSAP MorphSVG) ─────────────────────────
+
+  /**
+   * Morph an entity from one type to another using GSAP MorphSVG.
+   * The entity stays in DOM — its primary shape morphs smoothly.
+   * Falls back to exit/enter if morph target not found or MorphSVG unavailable.
+   */
+  private _morphEntity(
+    entityId: string,
+    prevEntity: VisualEntity,
+    newEntity: VisualEntity,
+  ): void {
+    const gsap = (window as any).gsap;
+    const hasMorphPlugin = gsap && typeof gsap.to === 'function' && (window as any).MorphSVGPlugin;
+
+    const el = this._findEntity(entityId);
+    if (!el) return;
+
+    const innerG = el.querySelector('.animate-element') as SVGGElement | null;
+    if (!innerG) return;
+
+    // Find the current morph target shape
+    const currentShape = innerG.querySelector('[data-morph-target]') as SVGElement | null;
+    if (!currentShape || !hasMorphPlugin) {
+      // Fallback: exit old, enter new
+      this._exitEntity(entityId, prevEntity.position);
+      this.renderedEntityIds.delete(entityId);
+      this.liveEntityIds.delete(entityId);
+
+      const defaulted = applyDefaults(newEntity);
+      defaulted.animation = { ...(defaulted.animation ?? {}), entrance: 'entrance-scaleIn' };
+      setTimeout(() => {
+        const newEl = renderEntity(defaulted, this.entityLayer);
+        if (newEl) {
+          this.renderedEntityIds.add(entityId);
+          this.liveEntityIds.add(entityId);
+        }
+      }, EXIT_DURATION_MS + 50);
+      return;
+    }
+
+    // Render the new entity off-screen to get its target shape
+    const offscreen = document.createElementNS('http://www.w3.org/2000/svg', 'g') as SVGGElement;
+    offscreen.style.visibility = 'hidden';
+    offscreen.style.position = 'absolute';
+    this.entityLayer.appendChild(offscreen);
+
+    const defaulted = applyDefaults(newEntity);
+    defaulted.animation = { ...(defaulted.animation ?? {}), entrance: 'none' };
+    const tempEl = renderEntity(defaulted, offscreen);
+    const targetShape = tempEl?.querySelector('[data-morph-target]') as SVGElement | null;
+
+    if (!targetShape) {
+      // No target shape in new entity — clean up and fallback
+      offscreen.remove();
+      this._exitEntity(entityId, prevEntity.position);
+      setTimeout(() => {
+        const def2 = applyDefaults(newEntity);
+        def2.animation = { ...(def2.animation ?? {}), entrance: 'entrance-scaleIn' };
+        const newEl = renderEntity(def2, this.entityLayer);
+        if (newEl) {
+          this.renderedEntityIds.add(entityId);
+          this.liveEntityIds.add(entityId);
+        }
+      }, EXIT_DURATION_MS + 50);
+      return;
+    }
+
+    // Perform the morph animation
+    const morphDuration = 0.6;
+    const MorphSVGPlugin = (window as any).MorphSVGPlugin;
+
+    // MorphSVG requires <path> elements — convert rect/circle/ellipse to path first
+    // convertToPath() replaces the element in DOM and returns the new <path>
+    let morphSource: SVGElement = currentShape;
+    let morphTargetEl: SVGElement = targetShape;
+    try {
+      if (currentShape.tagName.toLowerCase() !== 'path') {
+        const converted = MorphSVGPlugin.convertToPath(currentShape);
+        if (converted && converted.length > 0) {
+          morphSource = converted[0];
+          // Preserve the morph-target attribute on the converted path
+          morphSource.setAttribute('data-morph-target', 'true');
+        }
+      }
+      if (targetShape.tagName.toLowerCase() !== 'path') {
+        const converted = MorphSVGPlugin.convertToPath(targetShape);
+        if (converted && converted.length > 0) {
+          morphTargetEl = converted[0];
+        }
+      }
+    } catch (e) {
+      console.warn('[morph] convertToPath failed, using fallback', e);
+    }
+
+    // Get the path data string from the target for morphSVG
+    const targetPathData = morphTargetEl.getAttribute('d') || morphTargetEl;
+
+    // Morph the shape path
+    gsap.to(morphSource, {
+      morphSVG: targetPathData,
+      duration: morphDuration,
+      ease: 'power2.inOut',
+    });
+
+    // Morph fill and stroke colors
+    const newFill = targetShape.getAttribute('fill') ?? morphTargetEl.getAttribute('fill') ?? '';
+    const newStroke = targetShape.getAttribute('stroke') ?? morphTargetEl.getAttribute('stroke') ?? '';
+    if (newFill) {
+      gsap.to(morphSource, { attr: { fill: newFill }, duration: morphDuration, ease: 'power2.inOut' });
+    }
+    if (newStroke) {
+      gsap.to(morphSource, { attr: { stroke: newStroke }, duration: morphDuration, ease: 'power2.inOut' });
+    }
+
+    // Update the data-type attribute
+    el.setAttribute('data-type', newEntity.type);
+
+    // After morph completes, swap innerG contents with the properly rendered new entity
+    setTimeout(() => {
+      offscreen.remove();
+      // Re-render the entity properly in place
+      const finalDefaulted = applyDefaults(newEntity);
+      finalDefaulted.animation = { ...(finalDefaulted.animation ?? {}), entrance: 'none' };
+      const finalOffscreen = document.createElementNS('http://www.w3.org/2000/svg', 'g') as SVGGElement;
+      finalOffscreen.style.visibility = 'hidden';
+      this.entityLayer.appendChild(finalOffscreen);
+      const finalEl = renderEntity(finalDefaulted, finalOffscreen);
+      const finalInner = finalEl?.querySelector('.animate-element');
+      if (finalInner && innerG.parentNode) {
+        while (innerG.firstChild) innerG.removeChild(innerG.firstChild);
+        while (finalInner.firstChild) innerG.appendChild(finalInner.firstChild);
+      }
+      finalOffscreen.remove();
+    }, morphDuration * 1000 + 50);
+  }
+
+  // ── Entity property morph (color, label changes on same type) ─────────
+
+  /**
+   * Animate property changes (color, label) when an entity persists
+   * across frames with the same type but different visual properties.
+   */
+  private _morphEntityProperties(
+    entityId: string,
+    prevEntity: VisualEntity,
+    newEntity: VisualEntity,
+  ): void {
+    const gsap = (window as any).gsap;
+    if (!gsap) return;
+
+    const el = this._findEntity(entityId);
+    if (!el) return;
+
+    const innerG = el.querySelector('.animate-element') as SVGGElement | null;
+    if (!innerG) return;
+
+    const prevColor = prevEntity.color;
+    const newColor = newEntity.color;
+
+    // Color change: animate fill/stroke on morph target
+    if (prevColor !== newColor && newColor) {
+      const morphTarget = innerG.querySelector('[data-morph-target]') as SVGElement | null;
+      if (morphTarget) {
+        const currentStroke = morphTarget.getAttribute('stroke');
+        if (currentStroke && currentStroke !== '#ffffff') {
+          gsap.to(morphTarget, { attr: { stroke: newColor }, duration: 0.4, ease: 'power2.inOut' });
+        }
+      }
+    }
+
+    // Label change: crossfade text
+    if (prevEntity.label !== newEntity.label && newEntity.label) {
+      const labels = innerG.querySelectorAll('text');
+      const lastLabel = labels[labels.length - 1] as SVGTextElement | null;
+      if (lastLabel) {
+        gsap.to(lastLabel, {
+          opacity: 0,
+          duration: 0.2,
+          ease: 'power2.in',
+          onComplete: () => {
+            lastLabel.textContent = newEntity.label ?? '';
+            gsap.to(lastLabel, { opacity: 1, duration: 0.2, ease: 'power2.out' });
+          },
+        });
+      }
+    }
   }
 
   // ── Motivated entrance direction (P2.4) ──────────────────────────────

@@ -20,9 +20,33 @@ export const COLORS = {
   emerald: '#34d399',
 } as const;
 
-// ── Opacity scales (hex alpha) ────────────────────────────────────────
+// ── Status colors (universal semantic states) ─────────────────────────
 
-export const OPACITY = {
+export type EntityStatus = 'healthy' | 'warning' | 'error' | 'inactive' | 'loading';
+
+export const STATUS_COLORS: Record<EntityStatus, string> = {
+  healthy: '#10b981',   // emerald-500
+  warning: '#f59e0b',   // amber-500
+  error: '#ef4444',     // red-500
+  inactive: '#6b7280',  // gray-500
+  loading: '#3b82f6',   // blue-500
+} as const;
+
+// ── Emphasis levels ───────────────────────────────────────────────────
+
+export type EntityEmphasis = 'low' | 'normal' | 'high' | 'critical';
+
+export const EMPHASIS_SCALES: Record<EntityEmphasis, { scale: number; opacity: number; stroke: keyof typeof STROKE }> = {
+  low: { scale: 0.85, opacity: 0.7, stroke: 'thin' },
+  normal: { scale: 1.0, opacity: 1.0, stroke: 'default' },
+  high: { scale: 1.1, opacity: 1.0, stroke: 'emphasized' },
+  critical: { scale: 1.15, opacity: 1.0, stroke: 'emphasized' },
+} as const;
+
+// ── Opacity scales (hex alpha) ────────────────────────────────────────
+// Light theme uses boosted fill opacities for contrast on warm beige background.
+
+const _OPACITY_CINEMA = {
   fillLight: '15',
   fillMedium: '25',
   fillHeavy: '40',
@@ -31,38 +55,81 @@ export const OPACITY = {
   strokeFull: 'ff',
 } as const;
 
+const _OPACITY_LIGHT = {
+  fillLight: '25',     // 15% → 25% (shapes more visible on beige)
+  fillMedium: '35',    // 25% → 35%
+  fillHeavy: '50',     // 40% → 50%
+  strokeMuted: '45',   // 40% → 45% (slightly stronger glow)
+  strokeSoft: '70',    // 60% → 70% (secondary text more readable)
+  strokeFull: 'ff',    // same
+} as const;
+
+/**
+ * Theme-aware opacity scale.
+ * Returns boosted values when light theme is active for better contrast.
+ * All components using OPACITY automatically get the right values.
+ */
+export const OPACITY = {
+  get fillLight() { return _activeTheme === 'light' ? _OPACITY_LIGHT.fillLight : _OPACITY_CINEMA.fillLight; },
+  get fillMedium() { return _activeTheme === 'light' ? _OPACITY_LIGHT.fillMedium : _OPACITY_CINEMA.fillMedium; },
+  get fillHeavy() { return _activeTheme === 'light' ? _OPACITY_LIGHT.fillHeavy : _OPACITY_CINEMA.fillHeavy; },
+  get strokeMuted() { return _activeTheme === 'light' ? _OPACITY_LIGHT.strokeMuted : _OPACITY_CINEMA.strokeMuted; },
+  get strokeSoft() { return _activeTheme === 'light' ? _OPACITY_LIGHT.strokeSoft : _OPACITY_CINEMA.strokeSoft; },
+  get strokeFull() { return _OPACITY_CINEMA.strokeFull; },
+};
+
 /** Append hex alpha to a color. Example: colorWithAlpha('#4ECDC4', '15') → '#4ECDC415' */
 export function colorWithAlpha(hex: string, alpha: string): string {
   return `${hex}${alpha}`;
 }
 
 // ── Typography (single source of truth for labels in illustrations) ───
+//
+// Typographic Scale Constraint:
+//   3 semantic tiers × 2 weights = the full type system.
+//   Components MUST use these tokens — no hardcoded px values.
+//
+//   Tier 1 — DETAIL (small): indices, captions, badges, inline notes (9–11px)
+//   Tier 2 — BODY (default): entity labels, definitions, descriptions (14–15px)
+//   Tier 3 — DISPLAY (large): titles, metrics, headings (16–18px)
+//
+//   Weights: 500 (regular labels) and 600–700 (emphasis/titles)
 
 export const TYPOGRAPHY = {
   fontLabel: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   fontBadge: "'JetBrains Mono', 'Geist Mono', monospace",
   fontCode: "'JetBrains Mono', 'Geist Mono', monospace",
-  /** Default font size for entity labels (e.g. Service, main label below illustration) */
-  fontSizeDefault: 15,
-  /** Index/cell index (e.g. above array cells) */
+
+  // ── Tier 1: Detail (small text) ────────────────────────────────
+  /** Index/cell index (e.g. above array cells) — smallest readable */
   fontSizeIndex: 9,
-  /** Cell value, inline content */
-  fontSizeValue: 11,
   /** Pointer labels, captions, small text */
   fontSizeInline: 10,
-  /** Badge, type indicator */
+  /** Cell value, inline content, badges */
+  fontSizeValue: 11,
+  /** Badge, type indicator (alias for fontSizeValue) */
   fontSizeBadge: 11,
-  /** Main entity label below illustration */
-  fontSizeLabel: 15,
-  /** Section/title */
-  fontSizeTitle: 16,
-  /** Metric, large value */
-  fontSizeMetric: 18,
+
+  // ── Tier 2: Body (default text) ────────────────────────────────
   /** Body text max (e.g. annotation); can shrink to fit */
   fontSizeBodyMax: 14,
-  /** Symbol/accent (e.g. ~ in analogy) */
+  /** Default font size for entity labels — THE primary size */
+  fontSizeDefault: 15,
+  /** Main entity label below illustration (alias for fontSizeDefault) */
+  fontSizeLabel: 15,
+
+  // ── Tier 3: Display (large text) ───────────────────────────────
+  /** Section/title heading */
+  fontSizeTitle: 16,
+  /** Metric, large value, symbol/accent */
+  fontSizeMetric: 18,
+  /** Symbol/accent (alias for fontSizeMetric) */
   fontSizeSymbol: 18,
+
+  // ── Weights ────────────────────────────────────────────────────
+  /** Regular labels */
   fontWeightLabel: 500,
+  /** Titles, emphasized text */
   fontWeightTitle: 600,
   /** Emphasized (values, active) */
   fontWeightEmphasis: 600,

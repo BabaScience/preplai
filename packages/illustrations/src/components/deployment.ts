@@ -8,14 +8,15 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderDeployment(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const color = entity.color ?? getCategoryColor('Deployment');
+  const cc = resolveColorCascade(entity);
 
   const w = s * 0.85;
   const h = s * 0.7;
@@ -30,10 +31,9 @@ export function renderDeployment(entity: VisualEntity, parentEl: SVGElement): SV
     glow.setAttribute('width', String(w + 6));
     glow.setAttribute('height', String(h + 6));
     glow.setAttribute('rx', String(SHAPES.borderRadius + 2));
-    glow.setAttribute('fill', 'none');
-    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     glow.setAttribute('stroke-width', String(STROKE.default));
     glow.setAttribute('stroke-dasharray', '4,4');
+    applyGlowColors(glow, cc);
     innerG.appendChild(glow);
   }
 
@@ -44,9 +44,8 @@ export function renderDeployment(entity: VisualEntity, parentEl: SVGElement): SV
   card.setAttribute('width', String(w));
   card.setAttribute('height', String(h));
   card.setAttribute('rx', String(SHAPES.borderRadius));
-  card.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-  card.setAttribute('stroke', color);
   card.setAttribute('stroke-width', String(STROKE.default));
+  applyShapeColors(card, cc);
   innerG.appendChild(card);
 
   // Upload arrow icon (stroke-based)
@@ -60,7 +59,7 @@ export function renderDeployment(entity: VisualEntity, parentEl: SVGElement): SV
     `L ${is * 0.6} ${-is * 0.3}`,
   ].join(' '));
   arrow.setAttribute('fill', 'none');
-  arrow.setAttribute('stroke', color);
+  arrow.setAttribute('stroke', cc.stroke);
   arrow.setAttribute('stroke-width', String(STROKE.default));
   arrow.setAttribute('stroke-linecap', 'round');
   arrow.setAttribute('stroke-linejoin', 'round');
@@ -72,7 +71,7 @@ export function renderDeployment(entity: VisualEntity, parentEl: SVGElement): SV
     text.setAttribute('x', '0');
     text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);

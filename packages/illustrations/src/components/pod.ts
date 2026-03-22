@@ -8,14 +8,15 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderPod(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const color = entity.color ?? getCategoryColor('Pod');
+  const cc = resolveColorCascade(entity);
 
   const w = s * 0.85;
   const h = s * 0.7;
@@ -31,10 +32,9 @@ export function renderPod(entity: VisualEntity, parentEl: SVGElement): SVGGEleme
     glow.setAttribute('width', String(w + 6));
     glow.setAttribute('height', String(h + 6));
     glow.setAttribute('rx', String(rx + 2));
-    glow.setAttribute('fill', 'none');
-    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     glow.setAttribute('stroke-width', String(STROKE.default));
     glow.setAttribute('stroke-dasharray', '4,4');
+    applyGlowColors(glow, cc);
     innerG.appendChild(glow);
   }
 
@@ -45,9 +45,9 @@ export function renderPod(entity: VisualEntity, parentEl: SVGElement): SVGGEleme
   body.setAttribute('width', String(w));
   body.setAttribute('height', String(h));
   body.setAttribute('rx', String(rx));
-  body.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-  body.setAttribute('stroke', color);
   body.setAttribute('stroke-width', String(STROKE.default));
+  body.setAttribute('data-morph-target', 'true');
+  applyShapeColors(body, cc);
   innerG.appendChild(body);
 
   // Pod icon: circle with inner dot (suggests contained unit)
@@ -57,7 +57,7 @@ export function renderPod(entity: VisualEntity, parentEl: SVGElement): SVGGEleme
   outerCircle.setAttribute('cy', '0');
   outerCircle.setAttribute('r', String(iconR));
   outerCircle.setAttribute('fill', 'none');
-  outerCircle.setAttribute('stroke', color);
+  outerCircle.setAttribute('stroke', cc.stroke);
   outerCircle.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(outerCircle);
 
@@ -65,7 +65,7 @@ export function renderPod(entity: VisualEntity, parentEl: SVGElement): SVGGEleme
   innerDot.setAttribute('cx', '0');
   innerDot.setAttribute('cy', '0');
   innerDot.setAttribute('r', String(iconR * 0.35));
-  innerDot.setAttribute('fill', color);
+  innerDot.setAttribute('fill', cc.stroke);
   innerG.appendChild(innerDot);
 
   // Label below
@@ -74,7 +74,7 @@ export function renderPod(entity: VisualEntity, parentEl: SVGElement): SVGGEleme
     text.setAttribute('x', '0');
     text.setAttribute('y', String(hh + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);

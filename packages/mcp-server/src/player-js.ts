@@ -24,6 +24,11 @@
 export const PLAYER_JS = `(function() {
   'use strict';
 
+  // Register GSAP MorphSVG plugin if available
+  if (typeof gsap !== 'undefined' && typeof MorphSVGPlugin !== 'undefined') {
+    gsap.registerPlugin(MorphSVGPlugin);
+  }
+
   // ═══════════════════════════════════════════════════════════════════
   // Constants
   // ═══════════════════════════════════════════════════════════════════

@@ -8,14 +8,15 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const color = entity.color ?? getCategoryColor('Service');
+  const cc = resolveColorCascade(entity);
 
   const r = s * 0.45;
 
@@ -30,10 +31,9 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
       .join(' ');
     const glow = document.createElementNS(SVG_NS, 'polygon');
     glow.setAttribute('points', glowPoints);
-    glow.setAttribute('fill', 'none');
-    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     glow.setAttribute('stroke-width', String(STROKE.default));
     glow.setAttribute('stroke-dasharray', '4,4');
+    applyGlowColors(glow, cc);
     innerG.appendChild(glow);
   }
 
@@ -47,10 +47,10 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
 
   const polygon = document.createElementNS(SVG_NS, 'polygon');
   polygon.setAttribute('points', hexPoints);
-  polygon.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-  polygon.setAttribute('stroke', color);
   polygon.setAttribute('stroke-width', String(STROKE.default));
   polygon.setAttribute('stroke-linejoin', 'round');
+  polygon.setAttribute('data-morph-target', 'true');
+  applyShapeColors(polygon, cc);
   innerG.appendChild(polygon);
 
   // Gear icon (stroke-based): circle with 4 tick marks at N/E/S/W
@@ -62,7 +62,7 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
   gearCircle.setAttribute('cy', '0');
   gearCircle.setAttribute('r', String(gearR));
   gearCircle.setAttribute('fill', 'none');
-  gearCircle.setAttribute('stroke', color);
+  gearCircle.setAttribute('stroke', cc.stroke);
   gearCircle.setAttribute('stroke-width', String(STROKE.default));
   innerG.appendChild(gearCircle);
 
@@ -77,7 +77,7 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
     tick.setAttribute('y1', String(y1));
     tick.setAttribute('x2', String(x2));
     tick.setAttribute('y2', String(y2));
-    tick.setAttribute('stroke', color);
+    tick.setAttribute('stroke', cc.stroke);
     tick.setAttribute('stroke-width', String(STROKE.default));
     tick.setAttribute('stroke-linecap', 'round');
     innerG.appendChild(tick);
@@ -89,7 +89,7 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
     text.setAttribute('x', '0');
     text.setAttribute('y', String(r + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);

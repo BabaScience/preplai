@@ -8,14 +8,15 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { getCategoryColor, TYPOGRAPHY, STROKE, LABEL_DEFAULTS, colorWithAlpha, OPACITY } from '../design-tokens.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
+import { resolveColorCascade, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderPipeline(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
 
   const s = getSizeParam(entity);
-  const color = entity.color ?? getCategoryColor('Pipeline');
+  const cc = resolveColorCascade(entity);
 
   const segCount = 3;
   const segW = s * 0.28;
@@ -31,10 +32,9 @@ export function renderPipeline(entity: VisualEntity, parentEl: SVGElement): SVGG
     glow.setAttribute('width', String(totalW + 10));
     glow.setAttribute('height', String(segH + 10));
     glow.setAttribute('rx', '5');
-    glow.setAttribute('fill', 'none');
-    glow.setAttribute('stroke', colorWithAlpha(color, OPACITY.strokeMuted));
     glow.setAttribute('stroke-width', String(STROKE.default));
     glow.setAttribute('stroke-dasharray', '4,4');
+    applyGlowColors(glow, cc);
     innerG.appendChild(glow);
   }
 
@@ -50,8 +50,8 @@ export function renderPipeline(entity: VisualEntity, parentEl: SVGElement): SVGG
       `L ${cx - segW / 4} 0`,
       'Z',
     ].join(' '));
-    chevron.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-    chevron.setAttribute('stroke', color);
+    chevron.setAttribute('fill', cc.fill);
+    chevron.setAttribute('stroke', cc.stroke);
     chevron.setAttribute('stroke-width', String(STROKE.default));
     chevron.setAttribute('stroke-linejoin', 'round');
     innerG.appendChild(chevron);
@@ -63,7 +63,7 @@ export function renderPipeline(entity: VisualEntity, parentEl: SVGElement): SVGG
     text.setAttribute('x', '0');
     text.setAttribute('y', String(segH / 2 + LABEL_DEFAULTS.offsetBelow));
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    text.setAttribute('fill', color);
+    text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
