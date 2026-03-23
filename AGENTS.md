@@ -69,8 +69,14 @@ preplai/
 | Semantic resolver (Tier 3) | `packages/illustrations/src/components/semantic-resolver.ts` |
 | Illustration registry | `packages/illustrations/src/registry.ts` |
 | Design tokens (colors, typography, stroke) | `packages/illustrations/src/design-tokens.ts` |
-| Player scene controller | `packages/player/src/scene-controller.js` |
-| MCP tools | `packages/mcp-server/src/tools.ts` |
+| Color cascade system | `packages/illustrations/src/color-cascade.ts` |
+| Entity overlays (status/progress/badge) | `packages/illustrations/src/entity-overlays.ts` |
+| Lottie overlay animations | `packages/illustrations/src/lottie-overlay.ts` |
+| Player scene controller | `packages/player/src/scene-controller.ts` |
+| Quality scorer (14 dimensions) | `packages/mcp-server/src/quality-scorer.ts` |
+| Semantic focus generation | `packages/mcp-server/src/semantic-focus.ts` |
+| MCP tools | `packages/mcp-server/src/mcp-tools.ts` |
+| Agent tool descriptions | `packages/mcp-server/src/tool-descriptions/add-scene.v1.md` |
 | Illustration debug UI | `apps/website/src/pages/dev/IllustrationDebugPage.jsx` |
 | Entity defaults for debug | `apps/website/src/pages/dev/entity-defaults.ts` |
 
@@ -106,6 +112,43 @@ Agent emits flat `entities[]` with ID references (`sourceEntityId`, `targetEntit
 ### 4. Use Design Tokens
 
 Import from `design-tokens.ts`: `STROKE`, `TYPOGRAPHY`, `COLORS`, `getCategoryColor`, `getLabelFontSize`, `LABEL_DEFAULTS`. Avoid hardcoded values.
+
+### 5. Color Cascade System
+
+Use `resolveColorCascade(color)` from `color-cascade.ts` for consistent fill/stroke/text across themes. Returns `{ base, fill, fillMedium, stroke, strokeSoft, glow, textPrimary, textSecondary }`. Use `applyShapeColors(el, cc)` and `applyGlowColors(el, cc)` helpers. Never use raw `colorWithAlpha()` for standard patterns.
+
+### 6. Perceptual Color Ramps
+
+`design-tokens.ts` provides `COLOR_RAMPS` — 7-stop perceptual ramps per color (50→900). Stop 50 = fill, 600 = stroke, 800-900 = text. Use `getColorRamp(color)` for consistent color relationships.
+
+---
+
+## Design System Features
+
+### Entity Overlays (Universal Metadata)
+All entity types support these metadata fields:
+- `status`: `"healthy"` | `"warning"` | `"error"` | `"inactive"` | `"loading"` — visual status indicator
+- `progress`: `0.0–1.0` — circular progress arc
+- `emphasis`: `"low"` | `"normal"` | `"high"` | `"critical"` — scales entity presence
+- `badge`: `{ text, color?, position? }` — pill badge overlay
+- `lottieAnimation`: `{ src, loop?, speed?, trigger? }` — animated micro-asset
+
+### Layout Templates (16 templates)
+Agent instructions include 16 diagram templates organized by client avatar:
+- **Engineers:** hub-spoke, pipeline, incident-timeline, before-after, layered-stack
+- **PMs:** user-flow, metric-dashboard, feature-tree, roadmap
+- **Consultants:** org-chart, quadrant, strategy-tree, process-flow
+- **Finance/Legal:** fund-hierarchy, decision-flow, waterfall
+
+### Quality Scorer (14 dimensions)
+Every `add_scene` call is scored 0-100 across 14 dimensions including cognitive science metrics (signal-to-noise, visual hierarchy, cognitive load, modality alignment, temporal coherence, systematization). Uses multiplicative bottleneck scoring — weakest dimension constrains overall score.
+
+### Focus System (Cinematic Depth-of-Field)
+Narration-synced focus with three-tier generation (LLM semantic → string matching → agent hints). Features:
+- **Cue coalescing:** Rapid successive cues (within 800ms) merge into multi-entity focus
+- **Focus decay:** After 4s with no cues, all entities return to normal (no perpetual blur)
+- **Always-visible types:** H1, H2, H3, Label, StepList, Badge, Quote, Definition, Callout, Annotation, Table never get background blur
+- **Three DoF levels:** Primary (1.15×, full opacity), Secondary (1.05×, 85% opacity), Background (0.88×, 35% opacity)
 
 ---
 

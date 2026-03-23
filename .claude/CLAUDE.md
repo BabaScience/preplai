@@ -49,7 +49,32 @@ Skills in `.claude/skills/` are loaded automatically when relevant, or invoke di
 1. **Double-`<g>` pattern:** outerG = position, innerG = shapes + animation. Never animate outerG.
 2. **GPU-only animation:** `opacity`, `transform` only. Never `x`, `y`, `width`, `height`, `fill`, `stroke`.
 3. **Design tokens:** Import from `design-tokens.ts`. No hardcoded values.
-4. **After edits:** `pnpm --filter @preplai/illustrations run build`
+4. **Color cascade:** Use `resolveColorCascade(color)` from `color-cascade.ts` for consistent fill/stroke/text. Use `applyShapeColors()` and `applyGlowColors()` helpers.
+5. **After edits:** `pnpm --filter @preplai/illustrations run build`
+
+---
+
+## Recent Architecture Additions
+
+### Color Cascade (`color-cascade.ts`)
+Single-call color resolution: `resolveColorCascade(color)` → `{ base, fill, fillMedium, stroke, strokeSoft, glow, textPrimary, textSecondary }`. All 21+ components migrated.
+
+### Entity Overlays (`entity-overlays.ts`)
+Universal metadata: `status`, `progress`, `emphasis`, `badge`, `lottieAnimation`. Applied automatically by `renderEntity()`.
+
+### Perceptual Color Ramps (`design-tokens.ts`)
+7-stop ramps per color (50→900). `getColorRamp(color)` returns stops calibrated for fill/stroke/text roles.
+
+### Quality Scorer (`quality-scorer.ts`)
+14-dimension cognitive science framework. Multiplicative bottleneck scoring. Includes signal-to-noise, visual hierarchy, cognitive load, modality alignment, temporal coherence, systematization.
+
+### Layout Templates (16 templates)
+In `add-scene.v1.md` tool description. Hub-spoke, pipeline, incident-timeline, before-after, layered-stack, user-flow, metric-dashboard, feature-tree, roadmap, org-chart, quadrant, strategy-tree, process-flow, fund-hierarchy, decision-flow, waterfall.
+
+### Focus System Improvements (`scene-controller.ts`)
+- **Cue coalescing:** Cues within 800ms merge into multi-entity focus (no rapid blinking)
+- **Focus decay:** After 4s without cues, all entities return to normal state (no perpetual blur)
+- **Always-visible types:** H1, H2, H3, Label, StepList, Badge, Quote, Definition, Callout, Annotation, Table never blur
 
 ---
 
@@ -58,5 +83,7 @@ Skills in `.claude/skills/` are loaded automatically when relevant, or invoke di
 ```bash
 pnpm install && pnpm run build
 pnpm --filter @preplai/illustrations run build   # after illustration edits
+pnpm --filter @preplai/player run build          # after player/scene-controller edits
+pnpm --filter @preplai/mcp-server run build      # after MCP server edits
 pnpm --filter website run dev                     # Illustration Debug at /dev/illustrations
 ```

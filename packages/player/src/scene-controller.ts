@@ -63,6 +63,21 @@ function isConnectionType(type: string): boolean {
   return CONNECTION_TYPES.has(type);
 }
 
+// ── Always-visible entity types (never get dof-bg blur) ─────────────
+// These types provide context, headings, or supporting text that the viewer
+// needs to read regardless of which entity the narrator is discussing.
+const ALWAYS_VISIBLE_TYPES = new Set([
+  'H1', 'H2', 'H3',         // Headings — always needed for context
+  'Label',                    // Explanatory text — always readable
+  'StepList',                 // Steps/lists — reference material
+  'Badge',                    // Status badges — always informative
+  'Quote',                    // Quotes — always readable
+  'Definition',               // Definitions — reference text
+  'Callout',                  // Callouts — supporting context
+  'Annotation',               // Annotations — supporting context
+  'Table',                    // Data tables — reference material
+]);
+
 // ── Exit animation duration ──────────────────────────────────────────
 
 const EXIT_DURATION_MS = 300;
@@ -120,6 +135,16 @@ export class SceneController {
   private prevNonConnections: VisualEntity[] = [];
   /** Active viewBox animation frame ID */
   private viewBoxAnimId: number = 0;
+
+  // ── Focus coalescing state ──────────────────────────────────────────
+  /** Currently active focus entity IDs (accumulated via coalescing) */
+  private _activeFocusIds: Set<string> = new Set();
+  /** Confidence map for currently active focus */
+  private _activeFocusConfidences: Map<string, number> = new Map();
+  /** Timer to clear stale focus after no new cues arrive */
+  private _focusDecayTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Timestamp of last focus cue (for coalescing window) */
+  private _lastCueTime: number = 0;
 
   constructor(options: SceneControllerOptions) {
     this.entityLayer = options.entityLayer;
@@ -801,9 +826,22 @@ export class SceneController {
   }
 
   /**
+   * Coalescing focus: when a new cue arrives within COALESCE_WINDOW_MS of the
+   * previous one, merge the new entity IDs into the active focus set instead
+   * of replacing them. This prevents the "rapid blink" effect when the narrator
+   * mentions two entities in quick succession (e.g. "the server and database").
+   *
+   * After no new cues arrive for FOCUS_DECAY_MS, focus clears and all entities
+   * return to their normal state (no blur). This prevents the "everything is
+   * blurred with nothing highlighted" dead zone.
+   */
+  private static readonly COALESCE_WINDOW_MS = 800;
+  private static readonly FOCUS_DECAY_MS = 4000;
+
+  /**
    * Dynamically shift focus to one or more entities during audio playback.
-   * Used by AudioEngine focus cues to drive narration-synced highlight shifts.
-   * Applies DoF classes and fires onFocusChange callback for spatial narrator.
+   * Uses cue coalescing: rapid successive cues merge into multi-entity focus.
+   * Always-visible types (H1, Label, StepList, etc.) never get background blur.
    *
    * @param entityIds  Entity IDs to focus on (array, single string, or null to clear)
    * @param confidences  Per-entity confidence scores (0-1), same order as entityIds
@@ -813,58 +851,108 @@ export class SceneController {
     const frame = this.currentScript.frames[this.currentFrameIdx];
     if (!frame) return;
 
+    // ── Null = explicit clear (audio ended, frame change) ──────────
+    if (entityIds === null) {
+      this._activeFocusIds.clear();
+      this._activeFocusConfidences.clear();
+      if (this._focusDecayTimer) {
+        clearTimeout(this._focusDecayTimer);
+        this._focusDecayTimer = null;
+      }
+      this._applyFocusToDOM(frame);
+      return;
+    }
+
     // Normalize to array
-    const focusIds: string[] | null = entityIds === null
-      ? null
-      : typeof entityIds === 'string'
-        ? [entityIds]
-        : entityIds;
+    const newIds: string[] = typeof entityIds === 'string' ? [entityIds] : entityIds;
 
-    const focusSet = new Set(focusIds ?? []);
-    const hasFocus = focusSet.size > 0;
+    // ── Coalescing: merge with active focus if within window ───────
+    const now = performance.now();
+    const withinWindow = (now - this._lastCueTime) < SceneController.COALESCE_WINDOW_MS;
 
-    // Build confidence map for graduated focus
-    const confidenceMap = new Map<string, number>();
-    if (focusIds && confidences) {
-      for (let i = 0; i < focusIds.length; i++) {
-        confidenceMap.set(focusIds[i], confidences[i] ?? 1.0);
+    if (withinWindow && this._activeFocusIds.size > 0) {
+      // Merge new IDs into existing focus set
+      for (let i = 0; i < newIds.length; i++) {
+        this._activeFocusIds.add(newIds[i]);
+        this._activeFocusConfidences.set(newIds[i], confidences?.[i] ?? 1.0);
+      }
+    } else {
+      // New focus set — replace active
+      this._activeFocusIds.clear();
+      this._activeFocusConfidences.clear();
+      for (let i = 0; i < newIds.length; i++) {
+        this._activeFocusIds.add(newIds[i]);
+        this._activeFocusConfidences.set(newIds[i], confidences?.[i] ?? 1.0);
       }
     }
 
+    this._lastCueTime = now;
+
+    // ── Reset decay timer: clear focus after no new cues ──────────
+    if (this._focusDecayTimer) {
+      clearTimeout(this._focusDecayTimer);
+    }
+    this._focusDecayTimer = setTimeout(() => {
+      this._activeFocusIds.clear();
+      this._activeFocusConfidences.clear();
+      this._focusDecayTimer = null;
+      if (this.currentScript) {
+        const f = this.currentScript.frames[this.currentFrameIdx];
+        if (f) this._applyFocusToDOM(f);
+      }
+    }, SceneController.FOCUS_DECAY_MS);
+
+    // ── Apply to DOM ──────────────────────────────────────────────
+    this._applyFocusToDOM(frame);
+  }
+
+  /**
+   * Apply current focus state to DOM elements.
+   * Handles: coalesced focus set, always-visible exemptions, no-focus reset.
+   */
+  private _applyFocusToDOM(frame: IllustrationFrame): void {
+    const hasFocus = this._activeFocusIds.size > 0;
     const nonConnections = frame.entities.filter(e => !isConnectionType(e.type));
 
     for (const entity of nonConnections) {
       const el = this._findEntity(entity.id);
       if (!el) continue;
 
-      if (hasFocus && focusSet.has(entity.id)) {
-        const confidence = confidenceMap.get(entity.id) ?? 1.0;
+      if (hasFocus && this._activeFocusIds.has(entity.id)) {
+        // ── Focused entity: primary or secondary based on confidence ──
+        const confidence = this._activeFocusConfidences.get(entity.id) ?? 1.0;
         el.classList.remove('dof-bg', 'dof-focus', 'dof-focus-secondary');
-
         if (confidence >= 0.8) {
           el.classList.add('dof-focus');
         } else {
           el.classList.add('dof-focus-secondary');
         }
+      } else if (hasFocus && ALWAYS_VISIBLE_TYPES.has(entity.type)) {
+        // ── Always-visible type: never blur, use secondary focus ──
+        el.classList.remove('dof-bg', 'dof-focus');
+        el.classList.add('dof-focus-secondary');
       } else if (hasFocus) {
+        // ── Background entity: dim and blur ──
         el.classList.remove('dof-focus', 'dof-focus-secondary');
         el.classList.add('dof-bg');
       } else {
-        // No focus — clear all DoF
+        // ── No focus: clear all DoF, show everything normally ──
         el.classList.remove('dof-focus', 'dof-bg', 'dof-focus-secondary');
       }
     }
 
-    // Emit focus change for spatial narrator positioning (use primary entity)
+    // Emit focus change for spatial narrator positioning
     if (this.onFocusChange) {
-      if (hasFocus && focusIds && focusIds.length > 0) {
-        const primaryId = focusIds[0];
+      if (hasFocus) {
+        // Use the most recently added entity as primary for narrator positioning
+        const allIds = Array.from(this._activeFocusIds);
+        const primaryId = allIds[allIds.length - 1];
         const el = this._findEntity(primaryId);
         if (el) {
           const rect = el.getBoundingClientRect();
           this.onFocusChange({
             entityId: primaryId,
-            entityIds: focusIds,
+            entityIds: allIds,
             screenX: rect.left + rect.width / 2,
             screenY: rect.top,
           });
@@ -892,6 +980,15 @@ export class SceneController {
       cancelAnimationFrame(this.viewBoxAnimId);
       this.viewBoxAnimId = 0;
     }
+    // Clear focus coalescing state
+    this._activeFocusIds.clear();
+    this._activeFocusConfidences.clear();
+    if (this._focusDecayTimer) {
+      clearTimeout(this._focusDecayTimer);
+      this._focusDecayTimer = null;
+    }
+    this._lastCueTime = 0;
+
     this.entityLayer.innerHTML = '';
     this.connectionLayer.innerHTML = '';
     this.renderedEntityIds.clear();
