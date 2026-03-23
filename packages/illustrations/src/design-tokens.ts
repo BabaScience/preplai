@@ -440,6 +440,8 @@ export const ENTITY_COLORS: Record<string, string> = {
 
   // ── Orange: Annotations / Scheduling / Peripherals ───────────────
   Label: COLORS.orange,
+  Text: COLORS.blue,             // Paragraph body text — neutral blue
+  Span: COLORS.teal,             // Inline annotation — subtle teal
   Callout: COLORS.orange,
   Annotation: COLORS.orange,
   Comparison: COLORS.orange,

@@ -274,6 +274,8 @@ const METADATA_HINTS: Record<string, string> = {
   H1: 'label?',
   H2: 'label?',
   H3: 'label?',
+  Text: 'Paragraph body text (wide, multi-line). Use textContent or label for text body. 800px wide, 22px font, left-aligned by default. Overrides: maxWidth?, maxLines? (default 8), align?: "left"|"center"|"right", fontSize?, fontWeight?, lineHeight?, background? (boolean for card backing)',
+  Span: 'Short inline annotation text beside entities (compact). Use textContent or label. 250px wide, 15px font, center-aligned by default. Overrides: maxWidth?, maxLines? (default 2), align?: "left"|"center"|"right"',
   Comparison: 'left, right (or label parsed for "X vs Y")',
   Timeline: 'events: [{label, position}]',
   Metric: 'label?, value?',

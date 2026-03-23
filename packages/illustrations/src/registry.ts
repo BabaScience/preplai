@@ -43,6 +43,7 @@ import { renderAnnotation } from './components/annotation.js';
 import { renderComparison } from './components/card-types.js';
 import { renderQuote } from './components/quote.js';
 import { renderH1, renderH2, renderH3 } from './components/heading.js';
+import { renderText, renderSpan } from './components/text.js';
 import { renderStack } from './components/stack.js';
 import { renderArray } from './components/array.js';
 import { renderArrayCell } from './components/arraycell.js';
@@ -252,6 +253,8 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   H1: renderH1,
   H2: renderH2,
   H3: renderH3,
+  Text: renderText,             // Paragraph — wide body text, multi-line
+  Span: renderSpan,             // Inline — compact annotation text next to entities
   Comparison: renderComparison,
   Timeline: renderTimeline,
   Metric: renderMetric,
