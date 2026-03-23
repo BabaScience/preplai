@@ -69,6 +69,8 @@ function isConnectionType(type: string): boolean {
 const ALWAYS_VISIBLE_TYPES = new Set([
   'H1', 'H2', 'H3',         // Headings — always needed for context
   'Label',                    // Explanatory text — always readable
+  'Text',                     // Paragraph / body text — always readable
+  'Span',                     // Inline annotation text — always readable
   'StepList',                 // Steps/lists — reference material
   'Badge',                    // Status badges — always informative
   'Quote',                    // Quotes — always readable

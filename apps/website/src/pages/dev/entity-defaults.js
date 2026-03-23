@@ -223,6 +223,8 @@ export const METADATA_DEFAULTS = {
   H1: { label: 'Main Heading' },
   H2: { label: 'Section Heading' },
   H3: { label: 'Subsection Heading' },
+  Text: { label: 'The focus system starts with narration text. When the TTS engine generates audio, it also produces word-level timestamps enabling precise visual focus shifts during playback. This creates a cinematic depth-of-field effect where the audience naturally follows the narration.' },
+  Span: { label: '50ms avg latency' },
   Comparison: { left: 'Array', right: 'LinkedList', label: 'Array vs LinkedList' },
   Proof: { label: 'Proof step or statement.', width: 200, maxLines: 6 },
   Definition: { term: 'Binary Search', definition: 'A divide-and-conquer algorithm that finds a target in a sorted array by repeatedly halving the search space.' },
@@ -342,6 +344,15 @@ export const METADATA_DEFAULTS = {
     author: '— Steve Jobs',
     width: 200,
     maxLines: 6,
+  },
+  Text: {
+    maxLines: 8,
+    align: 'left',
+    background: false,
+  },
+  Span: {
+    maxLines: 3,
+    align: 'center',
   },
   Subnet: {
     cidr: '192.168.1.0/24',

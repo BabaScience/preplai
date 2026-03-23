@@ -217,6 +217,7 @@ RULE: Connections (Arrow, DataFlow) don't count toward the budget — they use t
 DESIGN GUIDELINES:
 - COLORS — Omit entity.color by default (palette auto-assigns). Use c (color) to override when a specific color is needed (e.g. "#e74c3c" for error states).
 - Title: type H1 (main heading), H2 (section), or H3 (subsection). Use metadata.label or l.
+- Body text: type Text for paragraphs (800px wide, 22px, left-aligned — use for explanations, descriptions, body copy). Type Span for short inline annotations beside entities (250px wide, 15px, center-aligned — use for metrics, notes, captions). Both use l (label) or tc (textContent) for content. Text and Span are always visible during focus shifts (never blurred).
 - Space entities evenly across the canvas (x: 20–80, y: 20–80). Minimum 15% gap between entity positions.
 - Entities use a tuned default size. Omit sz by default. Use sz (0.5–3.0) to scale entities when needed.
 - Each entity type has a smart default entrance animation. Override via a (animation): {entrance, delay (ms), duration (ms), easing (CSS)}. Example: "a":{"entrance":"scaleIn","delay":500,"duration":800}.
@@ -224,7 +225,7 @@ DESIGN GUIDELINES:
 
 FRAME PACING: 3–5 seconds per frame for readability. Build complexity gradually — simpler frames first, add entities in later frames.
 
-ENTITY TYPES & METADATA: create_session returns full illustrations reference (entityTypes, aliases, topicHints, metadataHints). Key types: Server, Database, Cache, User, Cloud, Service (metadata.kind: API|Service|APIGateway), Queue, LoadBalancer, Container, Pod, Lambda, Pipeline, Monitor, Firewall, Network, Volume, CodeBlock, BinaryTree, Array, StepList, BigO, BarChart, Graph2D, CoordinateSystem, ProcessState, CallStack, Stack, H1/H2/H3, Concept, Arrow, DataFlow. Avoid generic Entity/Group — use dedicated types for rich visuals.
+ENTITY TYPES & METADATA: create_session returns full illustrations reference (entityTypes, aliases, topicHints, metadataHints). Key types: Server, Database, Cache, User, Cloud, Service (metadata.kind: API|Service|APIGateway), Queue, LoadBalancer, Container, Pod, Lambda, Pipeline, Monitor, Firewall, Network, Volume, CodeBlock, BinaryTree, Array, StepList, BigO, BarChart, Graph2D, CoordinateSystem, ProcessState, CallStack, Stack, H1/H2/H3, Text (paragraphs), Span (inline annotations), Concept, Arrow, DataFlow. Avoid generic Entity/Group — use dedicated types for rich visuals. Use Text for explanatory paragraphs and Span for short notes next to entities.
 
 Connection types: Arrow, DataFlow (animated dashes), BidirectArrow, DottedArrow. Use metadata.curved=true for curved arrows. Connections: use src (sourceEntityId) and tgt (targetEntityId).
 
