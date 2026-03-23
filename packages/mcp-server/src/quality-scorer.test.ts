@@ -716,7 +716,8 @@ describe('scoreVisualScript', () => {
     expect(dims).toContain('modalityAlignment');
     expect(dims).toContain('systematization');
     expect(dims).toContain('colorBudget');
-    expect(dims.length).toBe(14);
+    expect(dims).toContain('tierAlignment');
+    expect(dims.length).toBe(15);
   });
 });
 

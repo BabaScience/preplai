@@ -1274,7 +1274,7 @@ describe('Stage 2b — Deterministic Enrichment', () => {
     const h2 = result.script.frames[0].entities.find(e => e.id === '_auto-h2-f1');
     expect(h2).toBeDefined();
     expect(h2?.type).toBe('H2');
-    expect(h2?.position).toEqual({ x: 50, y: 6 });
+    expect(h2?.position).toEqual({ x: 50, y: 5 }); // snapped to 5-unit grid
   });
 
   it('does NOT add H2 when frame already has H1', () => {
@@ -1370,7 +1370,7 @@ describe('Stage 2b — Deterministic Enrichment', () => {
     const label = result.script.frames[0].entities.find(e => e.id === '_auto-label-f1');
     expect(label).toBeDefined();
     expect(label?.type).toBe('Label');
-    expect(label?.position).toEqual({ x: 50, y: 88 });
+    expect(label?.position).toEqual({ x: 50, y: 90 }); // snapped to 5-unit grid
   });
 
   it('does NOT add Label when non-connector count >= 4', () => {

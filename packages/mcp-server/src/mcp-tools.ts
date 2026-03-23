@@ -193,6 +193,13 @@ function generateQualityHints(report: QualityReport): string[] {
     );
   }
 
+  if (d.tierAlignment.score < QUALITY_THRESHOLD) {
+    hints.push(
+      `- Tier Alignment (${d.tierAlignment.score}/100): Entities in the same row have different Y coordinates, making arrows crooked. ` +
+      `All entities in the same tier MUST share the EXACT same Y coordinate. Use template positions from the layout guide.`
+    );
+  }
+
   if (d.systematization.score < QUALITY_THRESHOLD) {
     hints.push(
       `- Systematization (${d.systematization.score}/100): Visual inconsistency across frames. ` +
@@ -386,6 +393,7 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
             `persistence=${report.dimensions.entityPersistence.score} ` +
             `narration=${report.dimensions.narrationQuality.score} ` +
             `colors=${report.dimensions.colorBudget.score} ` +
+            `tierAlign=${report.dimensions.tierAlignment.score} ` +
             `connections=${report.dimensions.connectionCompleteness.score} ` +
             `frames=${report.frameCount} entities=${report.totalEntities}`,
           );

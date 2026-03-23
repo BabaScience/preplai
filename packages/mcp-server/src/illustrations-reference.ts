@@ -471,11 +471,26 @@ export function getIllustrationsReference(): IllustrationsReference {
     metadataHints: { ...METADATA_HINTS },
     universalMetadata: { ...UNIVERSAL_METADATA },
     diagramStyles: {
-      illustrative: 'Central hub + radial satellites. Use for: "How does X work?", "Explain X". Layout: main at [50,40], satellites around it.',
-      sequential: 'Left-to-right or top-to-bottom chain. Use for: "X flow", "X pipeline", "steps to X". Layout: entities at x=[15,35,55,75].',
-      structural: 'Hierarchical tree, top-down. Use for: "X architecture", "X stack", "layers". Layout: root at [50,15], children spread below.',
-      comparative: 'Side-by-side mirrored clusters. Use for: "X vs Y", "compare". Layout: left at x=20-35, right at x=65-80.',
-      temporal: 'Timeline with evolution. Use for: "X timeline", "history of X". Best with shape morphing across frames.',
+      // Engineers & SRE
+      'hub-spoke': 'center=[50,42], satellites=[20,25],[80,25],[20,62],[80,62]. For: "How does X work?"',
+      'pipeline': '4-step=[15,45],[38,45],[62,45],[85,45]. All same Y. For: "Show the flow", "CI/CD"',
+      'incident-timeline': 'Pipeline positions + multi-frame status morphing. For: "Walk through the outage"',
+      'before-after': 'left=[20,30-70], right=[80,30-70], center=[50,50]. For: "Compare before and after"',
+      'layered-stack': 'tier1=y20, tier2=y45, tier3=y70, 3 entities per tier. For: "Show the architecture layers"',
+      // Product Managers
+      'user-flow': '[12,45]→[30,45]→[50,45]→[70,45]→[88,45]. For: "Show the user journey"',
+      'metric-dashboard': 'header=[50,12], 2x2=[30,35],[70,35],[30,65],[70,65]. For: "Show KPIs"',
+      'feature-tree': 'root=[50,18], L2=[25,45],[50,45],[75,45], L3 spread. For: "Break down the feature"',
+      'roadmap': 'timeline=[50,22], milestones at y=55 spread across x. For: "Show the roadmap"',
+      // Consultants
+      'org-chart': 'root=[50,15], L2=3 nodes at y38, L3=6 nodes at y62. For: "Show the org structure"',
+      'quadrant': 'TL=[28,30], TR=[72,30], BL=[28,65], BR=[72,65]. For: "SWOT", "competitive landscape"',
+      'strategy-tree': 'Same as feature-tree. For: "OKR framework", "strategic goals"',
+      'process-flow': 'steps at y45 + Decision diamond for branching. For: "Walk through the process"',
+      // Finance & Legal
+      'fund-hierarchy': 'root=[50,18], L2=3 at y42, L3=5 at y65. Deep tree. For: "Fund structure"',
+      'decision-flow': 'start→parallel checks→Decision→pass/fail branches. For: "Compliance flow"',
+      'waterfall': 'tiers at y=[15,30,45,60], spreading wider each level. For: "Capital cascade"',
     },
     composableShapes: [...COMPOSABLE_SHAPES],
     composableIcons: { ...ICON_CATEGORIES },

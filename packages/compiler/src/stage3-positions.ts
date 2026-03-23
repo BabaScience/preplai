@@ -24,9 +24,17 @@ export function stage3ClampPositions(script: VisualScript): Stage3Result {
   const warnings: CompilerWarning[] = [];
 
   const frames = script.frames.map(frame => {
-    const entities = frame.entities.map(entity =>
+    // Step 1: Clamp positions to canvas bounds
+    let entities = frame.entities.map(entity =>
       clampEntityPosition(entity, frame.id, warnings)
     );
+
+    // Step 2: Snap to 5-unit grid for consistent alignment
+    entities = entities.map(entity => snapToGrid(entity));
+
+    // Step 3: Align tiers — entities within 5 units of same Y get aligned
+    entities = alignTiers(entities);
+
     return { ...frame, entities };
   });
 
@@ -34,6 +42,92 @@ export function stage3ClampPositions(script: VisualScript): Stage3Result {
     script: { ...script, frames },
     warnings,
   };
+}
+
+// ── Snap-to-grid ────────────────────────────────────────────────────
+
+const GRID_SIZE = 5; // 5-unit grid (20x20 on 0-100 space)
+
+/**
+ * Snap entity position to the nearest 5-unit grid point.
+ * Connections skip snapping (their position is determined by source/target).
+ */
+function snapToGrid(entity: VisualEntity): VisualEntity {
+  if (SKIP_CLAMP_TYPES.has(entity.type)) return entity;
+
+  const { x, y } = entity.position;
+  const snappedX = Math.round(x / GRID_SIZE) * GRID_SIZE;
+  const snappedY = Math.round(y / GRID_SIZE) * GRID_SIZE;
+
+  if (snappedX === x && snappedY === y) return entity;
+  return { ...entity, position: { x: snappedX, y: snappedY } };
+}
+
+// ── Tier alignment ──────────────────────────────────────────────────
+
+const TIER_THRESHOLD = 5; // entities within 5 units of same Y get aligned
+
+/**
+ * Align entities that are nearly on the same Y to the exact same Y.
+ * Groups entities into tiers (within TIER_THRESHOLD of each other),
+ * then sets all entities in a tier to the median Y of that tier.
+ *
+ * This ensures horizontal arrows between same-tier entities are perfectly straight.
+ */
+function alignTiers(entities: VisualEntity[]): VisualEntity[] {
+  // Separate connections (skip) from content entities
+  const content = entities.filter(e => !SKIP_CLAMP_TYPES.has(e.type));
+  const connections = entities.filter(e => SKIP_CLAMP_TYPES.has(e.type));
+
+  if (content.length < 2) return entities;
+
+  // Sort by Y position
+  const sorted = [...content].sort((a, b) => a.position.y - b.position.y);
+
+  // Group into tiers: consecutive entities within TIER_THRESHOLD of each other
+  const tiers: VisualEntity[][] = [];
+  let currentTier: VisualEntity[] = [sorted[0]];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const prevY = sorted[i - 1].position.y;
+    const currY = sorted[i].position.y;
+
+    if (currY - prevY <= TIER_THRESHOLD) {
+      currentTier.push(sorted[i]);
+    } else {
+      tiers.push(currentTier);
+      currentTier = [sorted[i]];
+    }
+  }
+  tiers.push(currentTier);
+
+  // For each tier with 2+ entities, align to median Y
+  const yOverrides = new Map<string, number>();
+  for (const tier of tiers) {
+    if (tier.length < 2) continue;
+
+    const ys = tier.map(e => e.position.y);
+    ys.sort((a, b) => a - b);
+    const medianY = ys[Math.floor(ys.length / 2)];
+
+    // Snap median to grid
+    const alignedY = Math.round(medianY / GRID_SIZE) * GRID_SIZE;
+
+    for (const entity of tier) {
+      yOverrides.set(entity.id, alignedY);
+    }
+  }
+
+  // Apply overrides
+  if (yOverrides.size === 0) return entities;
+
+  return entities.map(entity => {
+    const newY = yOverrides.get(entity.id);
+    if (newY != null && newY !== entity.position.y) {
+      return { ...entity, position: { x: entity.position.x, y: newY } };
+    }
+    return entity;
+  });
 }
 
 // ── Internal helpers ──────────────────────────────────────────────────
