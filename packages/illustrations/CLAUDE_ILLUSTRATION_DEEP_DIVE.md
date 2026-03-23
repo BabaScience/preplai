@@ -136,10 +136,43 @@ Add to `ENTITY_FIELD_DEFAULTS` and `METADATA_DEFAULTS` in `apps/website/src/page
 
 ---
 
-## 10. Checklist for New Component
+## 10. Color Cascade System
+
+Use `resolveColorCascade(color)` instead of manual `colorWithAlpha()` calls:
+
+```ts
+import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
+
+const cc = resolveColorCascade(color);
+applyShapeColors(rect, cc);           // fill + stroke in one call
+applyGlowColors(highlightEl, cc);     // glow effect for entity.highlight
+// Text: cc.textPrimary, cc.textSecondary
+// Custom: cc.base (raw color), cc.fill, cc.fillMedium, cc.stroke, cc.strokeSoft
+```
+
+All 21+ core components have been migrated to the color cascade.
+
+---
+
+## 11. Entity Overlays (Automatic)
+
+All entities automatically support universal metadata overlays (applied by `renderEntity()`):
+- `metadata.status`: `"healthy"` | `"warning"` | `"error"` | `"inactive"` | `"loading"`
+- `metadata.progress`: `0.0–1.0` (circular progress ring)
+- `metadata.emphasis`: `"low"` | `"normal"` | `"high"` | `"critical"`
+- `metadata.badge`: `{ text, color?, position? }`
+- `metadata.lottieAnimation`: `{ src, loop?, speed?, trigger? }`
+
+No component code needed — overlays are injected by `entity-overlays.ts`.
+
+---
+
+## 12. Checklist for New Component
 
 - [ ] `buildEntityGroup` + `applyEntranceAnimation`
 - [ ] All shapes in `innerG`
+- [ ] Use `resolveColorCascade(color)` for all color operations
+- [ ] Use `applyShapeColors()` / `applyGlowColors()` helpers
 - [ ] Design tokens (no hardcoded values)
 - [ ] `ENTITY_COLORS` in design-tokens if new type
 - [ ] Registered in `registry.ts` and `index.ts`
