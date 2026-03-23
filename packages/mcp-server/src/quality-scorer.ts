@@ -27,7 +27,7 @@ export interface DimensionScore {
 }
 
 export interface QualityReport {
-  overall: number; // 0-100 weighted average
+  overall: number; // 0-100 weighted average × bottleneck multiplier
   dimensions: {
     entityDensity: DimensionScore;
     layoutQuality: DimensionScore;
@@ -38,6 +38,16 @@ export interface QualityReport {
     narrationQuality: DimensionScore;
     narrativeArc: DimensionScore;
     connectionCompleteness: DimensionScore;
+    colorBudget: DimensionScore;
+    signalToNoise: DimensionScore;
+    visualHierarchy: DimensionScore;
+    modalityAlignment: DimensionScore;
+    systematization: DimensionScore;
+  };
+  /** Weakest dimension that constrains the overall score (Goldratt bottleneck) */
+  bottleneck: {
+    dimension: string;
+    score: number;
   };
   frameCount: number;
   totalEntities: number;
@@ -59,16 +69,20 @@ const OVERLAP_THRESHOLD = 8;
 
 /** Dimension weights for aggregate score (must sum to 1.0) */
 const WEIGHTS = {
-  entityDensity: 0.11,
-  layoutQuality: 0.11,
-  visualBalance: 0.09,
-  entityPersistence: 0.11,
-  narrationCoverage: 0.09,
-  formatCompliance: 0.04,
-  narrationQuality: 0.13,
-  narrativeArc: 0.13,
-  connectionCompleteness: 0.11,
-  colorBudget: 0.08,          // new: reward color restraint (2-3 categories per frame)
+  entityDensity: 0.07,
+  layoutQuality: 0.08,
+  visualBalance: 0.06,
+  entityPersistence: 0.08,
+  narrationCoverage: 0.05,
+  formatCompliance: 0.03,
+  narrationQuality: 0.08,
+  narrativeArc: 0.08,
+  connectionCompleteness: 0.07,
+  colorBudget: 0.06,
+  signalToNoise: 0.10,          // NEW: Tufte's data-ink ratio
+  visualHierarchy: 0.10,        // NEW: Gestalt visual focus
+  modalityAlignment: 0.08,      // NEW: Paivio's dual coding
+  systematization: 0.06,        // NEW: cross-frame consistency
 } as const;
 
 // ── Connection types that don't count toward density ─────────────────────
@@ -720,6 +734,252 @@ export function scoreConnectionCompleteness(frames: IllustrationFrame[]): Dimens
   };
 }
 
+// ── Signal-to-Noise Ratio (Tufte's Data-Ink Ratio) ──────────────────────
+
+/**
+ * Measures what proportion of entities carry semantic weight vs decorative noise.
+ * Noise = unlabeled unconnected entities, generic labels, overloaded frames.
+ *
+ * Based on Edward Tufte's Data-Ink Ratio: every element must justify its
+ * existence by conveying information.
+ */
+export function scoreSignalToNoise(frames: IllustrationFrame[]): DimensionScore {
+  if (frames.length === 0) return { score: 100, details: 'No frames' };
+
+  let totalNoise = 0;
+  let totalEntities = 0;
+  let overloadedFrames = 0;
+
+  for (const frame of frames) {
+    const content = getContentEntities(frame.entities);
+    const connections = frame.entities.filter(e => CONNECTION_TYPES.has(e.type));
+    totalEntities += content.length;
+
+    // Build connected entity IDs
+    const connectedIds = new Set<string>();
+    for (const conn of connections) {
+      if (conn.sourceEntityId) connectedIds.add(conn.sourceEntityId);
+      if (conn.targetEntityId) connectedIds.add(conn.targetEntityId);
+    }
+
+    for (const entity of content) {
+      // Noise: no label AND not connected to anything
+      if (!entity.label && !connectedIds.has(entity.id)) {
+        totalNoise++;
+        continue;
+      }
+      // Noise: generic/uninformative label
+      if (entity.label && GENERIC_LABEL_PATTERNS.some(p => p.test(entity.label!))) {
+        totalNoise += 0.5; // partial noise — at least it exists
+      }
+    }
+
+    // Overloaded frames (>10 content entities = cognitive overload)
+    if (content.length > 10) overloadedFrames++;
+  }
+
+  if (totalEntities === 0) return { score: 100, details: 'No content entities' };
+
+  const noiseRatio = totalNoise / totalEntities;
+  const overloadPenalty = overloadedFrames * 15;
+
+  const score = clamp(100 - noiseRatio * 80 - overloadPenalty, 0, 100);
+
+  return {
+    score: Math.round(score),
+    details: `${totalNoise.toFixed(1)}/${totalEntities} noise entities, ${overloadedFrames} overloaded frames`,
+  };
+}
+
+// ── Visual Hierarchy (Gestalt Principles) ────────────────────────────────
+
+/**
+ * Verifies the most important entity per frame (highlighted) is visually
+ * prominent — centrally positioned, with emphasis metadata, and singular focus.
+ *
+ * Based on Gestalt psychology: proximity, similarity, figure-ground separation.
+ */
+export function scoreVisualHierarchy(frames: IllustrationFrame[]): DimensionScore {
+  if (frames.length === 0) return { score: 100, details: 'No frames' };
+
+  const frameScores: number[] = [];
+  let framesWithGoodFocus = 0;
+
+  for (const frame of frames) {
+    const content = getContentEntities(frame.entities);
+    if (content.length === 0) { frameScores.push(50); continue; }
+
+    const highlighted = content.filter(e => e.highlight === true);
+    let score = 50; // baseline
+
+    if (highlighted.length === 1) {
+      // Perfect: exactly 1 highlight
+      score = 70;
+      const h = highlighted[0];
+      const pos = getPosition(h);
+
+      // Bonus: highlighted entity near center (within 30% of center)
+      const distFromCenter = distance(pos, { x: 50, y: 50 });
+      if (distFromCenter < 30) score += 15;
+
+      // Bonus: highlighted entity has emphasis metadata
+      const emphasis = (h.metadata as Record<string, unknown>)?.emphasis;
+      if (emphasis === 'high' || emphasis === 'critical') score += 15;
+
+      framesWithGoodFocus++;
+    } else if (highlighted.length === 0) {
+      // No highlight — acceptable for establishing frames but not ideal
+      score = 40;
+    } else {
+      // Multiple highlights — competing focus (bad)
+      score = 30;
+    }
+
+    frameScores.push(clamp(score, 0, 100));
+  }
+
+  const avg = frameScores.reduce((s, v) => s + v, 0) / frameScores.length;
+
+  return {
+    score: Math.round(clamp(avg, 0, 100)),
+    details: `${framesWithGoodFocus}/${frames.length} frames with clear visual focus`,
+  };
+}
+
+// ── Modality Alignment (Paivio's Dual Coding Theory) ────────────────────
+
+/**
+ * Checks that narration adds context beyond what entity labels show.
+ * Narration that just reads labels aloud is a Redundancy Principle violation.
+ *
+ * Based on Allan Paivio's Dual Coding Theory and Richard Mayer's
+ * Redundancy Principle.
+ */
+export function scoreModalityAlignment(frames: IllustrationFrame[]): DimensionScore {
+  if (frames.length === 0) return { score: 100, details: 'No frames' };
+
+  const frameScores: number[] = [];
+  let totalOverlap = 0;
+  let totalNarrationWords = 0;
+
+  for (const frame of frames) {
+    const narration = frame.narrationSegment ?? '';
+    if (!narration.trim()) { frameScores.push(30); continue; } // no narration = bad
+
+    // Collect all label words
+    const labelWords = new Set<string>();
+    for (const e of frame.entities) {
+      if (e.label) {
+        for (const w of e.label.toLowerCase().split(/\s+/)) {
+          if (w.length > 2) labelWords.add(w); // skip tiny words
+        }
+      }
+    }
+
+    // Count narration words that are just label text
+    const narrationWords = narration.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    totalNarrationWords += narrationWords.length;
+    let overlap = 0;
+    for (const w of narrationWords) {
+      if (labelWords.has(w)) overlap++;
+    }
+    totalOverlap += overlap;
+
+    const overlapRatio = narrationWords.length > 0 ? overlap / narrationWords.length : 0;
+
+    // Score: low overlap = narration adds context (good)
+    // High overlap = narration just reads labels (bad)
+    let score: number;
+    if (overlapRatio < 0.3) score = 100;      // narration adds lots of new context
+    else if (overlapRatio < 0.5) score = 80;  // decent amount of new info
+    else if (overlapRatio < 0.7) score = 60;  // borderline — too much label parroting
+    else score = 35;                           // mostly reading labels aloud
+
+    // Bonus: narration is substantive (>15 words)
+    if (narrationWords.length > 15) score = Math.min(100, score + 10);
+
+    frameScores.push(clamp(score, 0, 100));
+  }
+
+  const avg = frameScores.reduce((s, v) => s + v, 0) / frameScores.length;
+  const overallOverlap = totalNarrationWords > 0
+    ? ((totalOverlap / totalNarrationWords) * 100).toFixed(0)
+    : '0';
+
+  return {
+    score: Math.round(clamp(avg, 0, 100)),
+    details: `${overallOverlap}% narration-label overlap (lower = better, narration adds context)`,
+  };
+}
+
+// ── Cross-Frame Systematization (Design Consistency) ────────────────────
+
+/**
+ * Verifies visual consistency across frames:
+ * - Same entity type uses same color category
+ * - Heading usage is consistent
+ * - Connection types are consistent
+ *
+ * Based on the Principle of Least Astonishment from software engineering.
+ */
+export function scoreSystematization(frames: IllustrationFrame[]): DimensionScore {
+  if (frames.length <= 1) return { score: 100, details: 'Single frame — consistency N/A' };
+
+  let score = 100;
+  const issues: string[] = [];
+
+  // Check heading consistency: either all frames have H1 or none do
+  const framesWithH1 = frames.filter(f =>
+    f.entities.some(e => e.type === 'H1'),
+  ).length;
+  if (framesWithH1 > 0 && framesWithH1 < frames.length) {
+    const inconsistentPct = Math.abs(framesWithH1 - frames.length) / frames.length;
+    score -= inconsistentPct * 20;
+    issues.push(`H1 in ${framesWithH1}/${frames.length} frames`);
+  }
+
+  // Check connection type consistency: don't randomly mix Arrow and DataFlow
+  // for the same relationship across frames
+  const connectionTypesPerFrame = frames.map(f => {
+    const types = new Set(f.entities.filter(e => CONNECTION_TYPES.has(e.type)).map(e => e.type));
+    return types;
+  });
+  const allConnTypes = new Set<string>();
+  for (const set of connectionTypesPerFrame) {
+    for (const t of set) allConnTypes.add(t);
+  }
+  // More than 3 different connection types across frames = inconsistent
+  if (allConnTypes.size > 3) {
+    score -= 15;
+    issues.push(`${allConnTypes.size} connection types used`);
+  }
+
+  // Check entity color override consistency: if entity has custom color in one frame,
+  // same ID should have same color in other frames
+  const entityColors = new Map<string, Set<string>>();
+  for (const frame of frames) {
+    for (const e of frame.entities) {
+      if (e.color) {
+        if (!entityColors.has(e.id)) entityColors.set(e.id, new Set());
+        entityColors.get(e.id)!.add(e.color);
+      }
+    }
+  }
+  let colorInconsistencies = 0;
+  for (const [id, colors] of entityColors) {
+    if (colors.size > 1) colorInconsistencies++;
+  }
+  if (colorInconsistencies > 0) {
+    score -= colorInconsistencies * 10;
+    issues.push(`${colorInconsistencies} entities with inconsistent colors`);
+  }
+
+  return {
+    score: Math.round(clamp(score, 0, 100)),
+    details: issues.length > 0 ? issues.join(', ') : 'Consistent visual system across frames',
+  };
+}
+
 // ── Color Budget ─────────────────────────────────────────────────────────
 
 /**
@@ -818,10 +1078,14 @@ export function scoreVisualScript(script: VisualScript): QualityReport {
     narrativeArc: scoreNarrativeArc(frames),
     connectionCompleteness: scoreConnectionCompleteness(frames),
     colorBudget: scoreColorBudget(frames),
+    signalToNoise: scoreSignalToNoise(frames),
+    visualHierarchy: scoreVisualHierarchy(frames),
+    modalityAlignment: scoreModalityAlignment(frames),
+    systematization: scoreSystematization(frames),
   };
 
   // Weighted average
-  const overall = Math.round(
+  const weightedAvg =
     dimensions.entityDensity.score * WEIGHTS.entityDensity +
     dimensions.layoutQuality.score * WEIGHTS.layoutQuality +
     dimensions.visualBalance.score * WEIGHTS.visualBalance +
@@ -831,14 +1095,32 @@ export function scoreVisualScript(script: VisualScript): QualityReport {
     dimensions.narrationQuality.score * WEIGHTS.narrationQuality +
     dimensions.narrativeArc.score * WEIGHTS.narrativeArc +
     dimensions.connectionCompleteness.score * WEIGHTS.connectionCompleteness +
-    dimensions.colorBudget.score * WEIGHTS.colorBudget,
-  );
+    dimensions.colorBudget.score * WEIGHTS.colorBudget +
+    dimensions.signalToNoise.score * WEIGHTS.signalToNoise +
+    dimensions.visualHierarchy.score * WEIGHTS.visualHierarchy +
+    dimensions.modalityAlignment.score * WEIGHTS.modalityAlignment +
+    dimensions.systematization.score * WEIGHTS.systematization;
+
+  // Multiplicative bottleneck (Goldratt's Theory of Constraints)
+  // The weakest dimension constrains the overall score.
+  // Formula: overall = avg × (bottleneck/100)^0.3
+  const allScores = Object.values(dimensions).map(d => d.score);
+  const bottleneckScore = Math.min(...allScores);
+  const bottleneckDimension = Object.entries(dimensions)
+    .reduce((min, [k, v]) => v.score < min.score ? { name: k, score: v.score } : min,
+      { name: '', score: 101 });
+  const bottleneckMultiplier = Math.pow(bottleneckScore / 100, 0.3);
+  const overall = Math.round(weightedAvg * bottleneckMultiplier);
 
   const totalEntities = frames.reduce((s, f) => s + f.entities.length, 0);
 
   return {
     overall,
     dimensions,
+    bottleneck: {
+      dimension: bottleneckDimension.name,
+      score: bottleneckDimension.score,
+    },
     frameCount: frames.length,
     totalEntities,
     timestamp: new Date().toISOString(),

@@ -101,10 +101,9 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
 
   <div id="loading-state">
     <div class="loading-logo">
-      <svg width="48" height="48" viewBox="0 0 32 32">
-        <rect width="32" height="32" rx="6" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.3)" stroke-width="1"/>
-        <path d="M8 8h6a6 6 0 0 1 0 12H8z" fill="none" stroke="#C9A84C" stroke-width="2.5"/>
-        <circle cx="22" cy="22" r="3" fill="#C9A84C"/>
+      <svg width="48" height="48" viewBox="0 0 200 200">
+        <rect width="200" height="200" rx="20" fill="#C9A84C"/>
+        <path d="M 137.79,38.71 A 72,72 0 1,0 169.97,118.50 L 30.03,115.80" fill="none" stroke="#0b0c10" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
     <p class="loading-text">Preparing your presentation\u2026</p>
@@ -208,10 +207,9 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
   <div id="end-screen" class="end-screen">
     <div class="end-content">
       <div class="end-logo">
-        <svg width="40" height="40" viewBox="0 0 32 32">
-          <rect width="32" height="32" rx="6" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.3)" stroke-width="1"/>
-          <path d="M8 8h6a6 6 0 0 1 0 12H8z" fill="none" stroke="#C9A84C" stroke-width="2.5"/>
-          <circle cx="22" cy="22" r="3" fill="#C9A84C"/>
+        <svg width="40" height="40" viewBox="0 0 200 200">
+          <rect width="200" height="200" rx="20" fill="#C9A84C"/>
+          <path d="M 137.79,38.71 A 72,72 0 1,0 169.97,118.50 L 30.03,115.80" fill="none" stroke="#0b0c10" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
       <p class="end-title">Presentation complete</p>
