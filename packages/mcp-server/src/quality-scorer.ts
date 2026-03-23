@@ -43,6 +43,7 @@ export interface QualityReport {
     visualHierarchy: DimensionScore;
     modalityAlignment: DimensionScore;
     systematization: DimensionScore;
+    tierAlignment: DimensionScore;
   };
   /** Weakest dimension that constrains the overall score (Goldratt bottleneck) */
   bottleneck: {
@@ -79,10 +80,11 @@ const WEIGHTS = {
   narrativeArc: 0.08,
   connectionCompleteness: 0.07,
   colorBudget: 0.06,
-  signalToNoise: 0.10,          // NEW: Tufte's data-ink ratio
-  visualHierarchy: 0.10,        // NEW: Gestalt visual focus
-  modalityAlignment: 0.08,      // NEW: Paivio's dual coding
-  systematization: 0.06,        // NEW: cross-frame consistency
+  signalToNoise: 0.10,          // Tufte's data-ink ratio
+  visualHierarchy: 0.09,        // Gestalt visual focus
+  modalityAlignment: 0.07,      // Paivio's dual coding
+  systematization: 0.06,        // cross-frame consistency
+  tierAlignment: 0.06,          // NEW: Gestalt alignment (same tier = same Y)
 } as const;
 
 // ── Connection types that don't count toward density ─────────────────────
@@ -980,6 +982,78 @@ export function scoreSystematization(frames: IllustrationFrame[]): DimensionScor
   };
 }
 
+// ── Tier Alignment ───────────────────────────────────────────────────────
+
+/**
+ * Tier Alignment: measures how well entities in the same conceptual tier
+ * share the exact same Y coordinate.
+ *
+ * Based on Gestalt alignment principle: aligned elements are perceived as
+ * belonging together. Even 2% misalignment breaks the perception.
+ *
+ * Groups entities by proximity on Y axis, then measures Y variance within each tier.
+ */
+export function scoreTierAlignment(frames: IllustrationFrame[]): DimensionScore {
+  if (frames.length === 0) return { score: 100, details: 'No frames' };
+
+  const frameScores: number[] = [];
+  let totalTiers = 0;
+  let perfectTiers = 0;
+
+  for (const frame of frames) {
+    const content = getContentEntities(frame.entities);
+    if (content.length < 2) { frameScores.push(100); continue; }
+
+    // Group into tiers: entities within 8 units of same Y
+    const sorted = [...content].sort((a, b) => getPosition(a).y - getPosition(b).y);
+    const tiers: number[][] = [];
+    let currentTier: number[] = [getPosition(sorted[0]).y];
+
+    for (let i = 1; i < sorted.length; i++) {
+      const prevY = getPosition(sorted[i - 1]).y;
+      const currY = getPosition(sorted[i]).y;
+      if (currY - prevY <= 8) {
+        currentTier.push(currY);
+      } else {
+        tiers.push(currentTier);
+        currentTier = [currY];
+      }
+    }
+    tiers.push(currentTier);
+
+    // Score each tier: perfectly aligned = 100, variance > 0 = penalty
+    let tierScoreSum = 0;
+    let tiersWithMultiple = 0;
+    for (const tier of tiers) {
+      if (tier.length < 2) continue;
+      tiersWithMultiple++;
+      totalTiers++;
+
+      const yStdDev = stdDev(tier);
+      if (yStdDev < 0.5) {
+        tierScoreSum += 100; // perfect alignment
+        perfectTiers++;
+      } else if (yStdDev < 2) {
+        tierScoreSum += 80; // minor misalignment
+      } else if (yStdDev < 5) {
+        tierScoreSum += 50; // noticeable misalignment
+      } else {
+        tierScoreSum += 20; // severe — arrows will look crooked
+      }
+    }
+
+    const score = tiersWithMultiple > 0 ? tierScoreSum / tiersWithMultiple : 100;
+    frameScores.push(score);
+  }
+
+  const avg = frameScores.reduce((s, v) => s + v, 0) / frameScores.length;
+
+  return {
+    score: Math.round(clamp(avg, 0, 100)),
+    details: `${perfectTiers}/${totalTiers} tiers perfectly aligned (Y variance < 0.5)`,
+  };
+}
+
 // ── Color Budget ─────────────────────────────────────────────────────────
 
 /**
@@ -1082,6 +1156,7 @@ export function scoreVisualScript(script: VisualScript): QualityReport {
     visualHierarchy: scoreVisualHierarchy(frames),
     modalityAlignment: scoreModalityAlignment(frames),
     systematization: scoreSystematization(frames),
+    tierAlignment: scoreTierAlignment(frames),
   };
 
   // Weighted average
@@ -1099,7 +1174,8 @@ export function scoreVisualScript(script: VisualScript): QualityReport {
     dimensions.signalToNoise.score * WEIGHTS.signalToNoise +
     dimensions.visualHierarchy.score * WEIGHTS.visualHierarchy +
     dimensions.modalityAlignment.score * WEIGHTS.modalityAlignment +
-    dimensions.systematization.score * WEIGHTS.systematization;
+    dimensions.systematization.score * WEIGHTS.systematization +
+    dimensions.tierAlignment.score * WEIGHTS.tierAlignment;
 
   // Multiplicative bottleneck (Goldratt's Theory of Constraints)
   // The weakest dimension constrains the overall score.

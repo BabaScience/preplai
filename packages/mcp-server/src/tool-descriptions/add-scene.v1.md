@@ -93,50 +93,100 @@ m:{status:"error",badge:{text:"503"},emphasis:"critical"} — a critically faili
 m:{status:"loading",progress:0.7,badge:{text:"70%"}} — a migration in progress
 m:{status:"healthy",lottieAnimation:{src:"pulse"}} — a healthy monitoring system with heartbeat animation
 
-═══ DIAGRAM TAXONOMY — Choose Layout by Intent (critical) ═══
+═══ LAYOUT TEMPLATES — Pick a Template, Get Perfect Alignment (critical) ═══
 
-Before placing entities, CLASSIFY the user's request into a diagram style. The SAME topic produces completely different layouts depending on what was asked. This is the Strategy Pattern — route by intent, not subject.
+NEVER place entities at random coordinates. ALWAYS pick a layout template from below, then use its exact positions. Templates guarantee tier alignment (same Y = horizontal arrows), consistent spacing, and professional composition.
 
-DETECT THE STYLE from the user's phrasing:
+STEP 1: Identify the client type and what they're presenting.
+STEP 2: Pick the matching template from the catalog below.
+STEP 3: Use the exact coordinates provided. Adjust labels/types but KEEP the positions.
 
-ILLUSTRATIVE (default — "How does X work?", "Explain X", "What is X?"):
-- Layout: Central hub entity + radial satellites connected by arrows
-- Position pattern: main entity at [50,40], satellites at [20,25], [80,25], [20,65], [80,65]
-- Purpose: build a mental model, show relationships
-- Use: Concept/Server as central hub, Arrow to connect surrounding entities
-- Narration: explain each part and how it connects to the whole
+── ENGINEERS & SRE ──────────────────────────────────────────────────
 
-SEQUENTIAL ("X flow", "X pipeline", "steps to X", "process of X", "how to X"):
-- Layout: Left-to-right or top-to-bottom chain with DataFlow arrows
-- Position pattern: entities at x=[15,35,55,75] same y, or y=[20,40,60,80] same x
-- Purpose: show order, causation, temporal sequence
-- Use: Pipeline, PipelineStage, DataFlow connections, progress metadata
-- Narration: walk through steps in order, explain transitions
+1. HUB-SPOKE — "How does X work?", "Explain the architecture"
+   center=[50,42], satellites=[20,25],[80,25],[20,62],[80,62]
+   Hub: Server/Service/LoadBalancer. Satellites: services, databases, caches.
+   Arrows radiate from center to each satellite. Use animated+thick on primary flow.
 
-STRUCTURAL ("X architecture", "X stack", "layers of X", "X components"):
-- Layout: Hierarchical tree — top-down or nested containment
-- Position pattern: root at [50,15], children at [25,40],[50,40],[75,40], grandchildren at [15,65],...
-- Purpose: show hierarchy, containment, dependencies
-- Use: Stack (for layers), Group (for containment), Arrow (for dependencies)
-- Narration: describe from top-level down to implementation details
+2. PIPELINE — "Show the CI/CD flow", "Walk through the pipeline", "Steps to deploy"
+   4-step: [15,45],[38,45],[62,45],[85,45]
+   5-step: [12,45],[30,45],[50,45],[70,45],[88,45]
+   ALL entities at same Y=45. Use DataFlow arrows. Add status+progress metadata per step.
 
-COMPARATIVE ("X vs Y", "compare X and Y", "difference between X and Y"):
-- Layout: Two mirrored clusters side-by-side with shared elements in center
-- Position pattern: left cluster at x=20–35, right cluster at x=65–80, shared at x=45–55
-- Purpose: highlight similarities and differences
-- Use: matching entity types on both sides, DottedArrow for comparisons
-- Narration: contrast each pair, highlight what's shared vs different
+3. INCIDENT TIMELINE — "Walk through the outage", "Show the incident"
+   Use PIPELINE positions. Multi-frame with status morphing:
+   Frame 1: all status:"healthy". Frame 2: failing entity status:"error"+badge. Frame 3: status:"loading"+progress.
 
-TEMPORAL ("X timeline", "history of X", "evolution of X", "X over time"):
-- Layout: Horizontal timeline with events/milestones
-- Position pattern: Timeline entity at [50,30], events below at increasing x positions
-- Purpose: show chronological progression
-- Use: Timeline entity, or sequential Concept entities with dates as labels
-- Best with shape morphing: same entity id evolves type across frames (Concept→Server→Cloud)
-- Narration: narrate chronologically, frame by frame
+4. BEFORE/AFTER — "Compare before and after", "Show the migration"
+   left=[20,30],[20,50],[20,70], right=[80,30],[80,50],[80,70], center-label=[50,50]
+   Mirror entity types on both sides. Use DottedArrow between matching pairs.
 
-RULE: ALWAYS classify the user's request into one of these 5 styles BEFORE composing entities. If unclear, default to ILLUSTRATIVE. The layout pattern determines entity positions — don't place entities randomly.
-RULE: Use shape morphing (same id, different type across frames) for TEMPORAL diagrams to show evolution cinematically.
+5. LAYERED STACK — "Show the architecture layers", "Explain the tech stack"
+   tier1=[25,20],[50,20],[75,20], tier2=[25,45],[50,45],[75,45], tier3=[25,70],[50,70],[75,70]
+   Three horizontal bands. Arrow connections flow top-to-bottom between tiers.
+
+── PRODUCT MANAGERS ─────────────────────────────────────────────────
+
+6. USER FLOW — "Show the user journey", "Walk through the funnel"
+   steps=[12,45],[30,45],[50,45],[70,45],[88,45]
+   User→UserJourneyStep→...→Metric. Add conversion badges at each step.
+
+7. METRIC DASHBOARD — "Show the KPIs", "Display our metrics"
+   header=[50,12]
+   2x2: [30,35],[70,35],[30,65],[70,65]
+   3x2: [20,35],[50,35],[80,35],[20,65],[50,65],[80,65]
+   Dashboard header + Metric entities with badge values.
+
+8. FEATURE TREE — "Break down the feature", "Show product components"
+   root=[50,18], L2=[25,45],[50,45],[75,45], L3=[15,72],[35,72],[55,72],[75,72]
+   Concept→ComponentNode→Task. Arrows flow top-to-bottom.
+
+9. ROADMAP TIMELINE — "Show the roadmap", "Walk through the plan"
+   timeline=[50,22], milestones=[15,55],[35,55],[55,55],[75,55],[88,55]
+   Timeline entity at top, Concept/Task milestones below with date/quarter badges.
+
+── CONSULTANTS & STRATEGY ───────────────────────────────────────────
+
+10. ORG CHART — "Show the org structure", "Map the team"
+    root=[50,15], L2=[22,38],[50,38],[78,38], L3=[12,62],[28,62],[42,62],[58,62],[72,62],[88,62]
+    Wide tree with 1→3→6 branching. Composable with users icon.
+
+11. QUADRANT / MATRIX — "Map the competitive landscape", "Show the SWOT"
+    TL=[28,30], TR=[72,30], BL=[28,65], BR=[72,65]
+    Axis labels: top=[50,12], bottom=[50,82], left=[8,48], right=[92,48]
+    4-quadrant layout. Concept/Composable in each quadrant.
+
+12. STRATEGY TREE — "Present the OKR framework", "Show strategic goals"
+    Same as FEATURE TREE: root=[50,18], L2=[25,45],[50,45],[75,45], L3 spread below.
+    Concept as vision, Composable as objectives, StepList as key results.
+
+13. PROCESS FLOW — "Walk through the process", "Show the approval flow"
+    steps=[15,45],[32,45],[50,45],[68,45],[85,45]
+    Use Decision diamond at a middle position for branching.
+    Branch: yes→[68,28], no→[68,62]. Reconnect at final step.
+
+── FINANCE & LEGAL ──────────────────────────────────────────────────
+
+14. FUND HIERARCHY — "Show the fund structure", "Explain the portfolio"
+    root=[50,18], L2=[22,42],[50,42],[78,42], L3=[12,65],[30,65],[50,65],[68,65],[86,65]
+    Deep tree (1→3→5). Composable with shield/landmark icons. DataFlow arrows downward.
+
+15. DECISION FLOW — "Walk through compliance", "Show the approval process"
+    start=[12,45], checks=[30,30],[30,60], decision=[50,45], pass=[72,30], fail=[72,60], end=[88,45]
+    Composable→parallel checks→Decision diamond→approved/flagged branches.
+
+16. WATERFALL / CASCADE — "Show the capital cascade", "Explain fund flow"
+    tiers at y=[15,30,45,60,75], each centered at x=50 but spreading wider per tier.
+    tier1=[50,15], tier2=[35,30],[65,30], tier3=[22,45],[50,45],[78,45], tier4=[15,60],[38,60],[62,60],[85,60]
+    DataFlow arrows cascade downward. Capital/money flow visualization.
+
+── RULES ────────────────────────────────────────────────────────────
+
+RULE: ALWAYS pick a template BEFORE composing entities. If uncertain, default to HUB-SPOKE.
+RULE: Keep ALL entities in the same tier at the EXACT same Y coordinate. Even 2% difference makes arrows look crooked.
+RULE: Use the exact positions from the template. Adjust entity types and labels, but KEEP the coordinates.
+RULE: For multi-frame presentations, keep persistent entities (same id) at the same position across frames. Move entities only when the narration describes change.
+RULE: Use shape morphing (same id, different type across frames) for INCIDENT TIMELINE and temporal evolution stories.
 
 ═══ CONTENT & COMPOSITION ═══
 
