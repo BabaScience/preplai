@@ -170,6 +170,37 @@ function generateQualityHints(report: QualityReport): string[] {
     );
   }
 
+  if (d.signalToNoise.score < QUALITY_THRESHOLD) {
+    hints.push(
+      `- Signal-to-Noise (${d.signalToNoise.score}/100): Some entities are visual noise — unlabeled, unconnected, or using generic labels. ` +
+      `Every entity must carry semantic meaning. Remove decorative entities, add labels, or connect orphans.`
+    );
+  }
+
+  if (d.visualHierarchy.score < QUALITY_THRESHOLD) {
+    hints.push(
+      `- Visual Hierarchy (${d.visualHierarchy.score}/100): No clear visual focus per frame. ` +
+      `Use highlight:true on ONE entity per frame to create cinematic focus pull. ` +
+      `Add emphasis:"critical" on the highlighted entity and emphasis:"low" on supporting ones.`
+    );
+  }
+
+  if (d.modalityAlignment.score < QUALITY_THRESHOLD) {
+    hints.push(
+      `- Modality Alignment (${d.modalityAlignment.score}/100): Narration is just reading entity labels aloud. ` +
+      `Narration should ADD CONTEXT beyond what's visible — explain WHY, give examples, provide metrics. ` +
+      `Don't repeat label text; explain what the labels mean.`
+    );
+  }
+
+  if (d.systematization.score < QUALITY_THRESHOLD) {
+    hints.push(
+      `- Systematization (${d.systematization.score}/100): Visual inconsistency across frames. ` +
+      `Use H1 headings consistently (all frames or none). Don't randomly mix connection types. ` +
+      `Same entity ID should keep the same color across frames.`
+    );
+  }
+
   return hints;
 }
 
@@ -346,12 +377,15 @@ export function registerMcpTools(mcp: McpServer, deps: McpToolDeps): void {
 
           console.log(
             `[quality] session=${args.session_id} overall=${report.overall} ` +
+            `bottleneck=${report.bottleneck.dimension}(${report.bottleneck.score}) ` +
+            `signal=${report.dimensions.signalToNoise.score} ` +
+            `hierarchy=${report.dimensions.visualHierarchy.score} ` +
+            `modality=${report.dimensions.modalityAlignment.score} ` +
+            `system=${report.dimensions.systematization.score} ` +
             `density=${report.dimensions.entityDensity.score} ` +
-            `layout=${report.dimensions.layoutQuality.score} ` +
-            `balance=${report.dimensions.visualBalance.score} ` +
             `persistence=${report.dimensions.entityPersistence.score} ` +
-            `narration=${report.dimensions.narrationCoverage.score} ` +
-            `format=${report.dimensions.formatCompliance.score} ` +
+            `narration=${report.dimensions.narrationQuality.score} ` +
+            `colors=${report.dimensions.colorBudget.score} ` +
             `connections=${report.dimensions.connectionCompleteness.score} ` +
             `frames=${report.frameCount} entities=${report.totalEntities}`,
           );
