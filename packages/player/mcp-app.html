@@ -51,49 +51,32 @@
       <svg class="fs-enter-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
       <svg class="fs-exit-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
     </button>
-    <!-- Theme: dropdown above bar -->
-    <div class="hover-pill" id="theme-control" aria-label="Theme">
-      <button type="button" class="hover-pill-trigger" aria-label="Change theme" aria-haspopup="true" aria-expanded="false">
+    <!-- Theme toggle (compact: just two icon circles) -->
+    <div class="hover-pill" id="theme-control">
+      <button type="button" class="hover-pill-trigger" aria-label="Change theme">
         <svg class="theme-icon-cinema" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <svg class="theme-icon-light" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
-      <div class="hover-pill-options" role="menu">
-        <button type="button" role="menuitem" data-theme-value="cinema" title="Cinema (dark)" aria-label="Cinema theme">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          <span class="hover-pill-option-label">Cinema</span>
+      <div class="hover-pill-popup">
+        <button type="button" data-theme-value="cinema" title="Cinema" aria-label="Cinema theme">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
-        <button type="button" role="menuitem" data-theme-value="light" title="Light" aria-label="Light theme">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-          <span class="hover-pill-option-label">Light</span>
+        <button type="button" data-theme-value="light" title="Light" aria-label="Light theme">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         </button>
       </div>
     </div>
-    <!-- Palette: dropdown above bar -->
-    <div class="hover-pill" id="palette-control" aria-label="Color palette">
-      <button type="button" class="hover-pill-trigger palette-dot-trigger" aria-label="Change palette" aria-haspopup="true" aria-expanded="false">
+    <!-- Palette selector (compact: just colored dots) -->
+    <div class="hover-pill" id="palette-control">
+      <button type="button" class="hover-pill-trigger" aria-label="Change palette">
         <span class="palette-dot-indicator"></span>
       </button>
-      <div class="hover-pill-options" role="menu">
-        <button type="button" role="menuitem" class="palette-dot-btn" data-palette-value="default" title="Default" aria-label="Default palette">
-          <span class="palette-menu-swatch" aria-hidden="true"></span>
-          <span class="hover-pill-option-label">Default</span>
-        </button>
-        <button type="button" role="menuitem" class="palette-dot-btn" data-palette-value="ocean" title="Ocean" aria-label="Ocean palette">
-          <span class="palette-menu-swatch" aria-hidden="true"></span>
-          <span class="hover-pill-option-label">Ocean</span>
-        </button>
-        <button type="button" role="menuitem" class="palette-dot-btn" data-palette-value="sunset" title="Sunset" aria-label="Sunset palette">
-          <span class="palette-menu-swatch" aria-hidden="true"></span>
-          <span class="hover-pill-option-label">Sunset</span>
-        </button>
-        <button type="button" role="menuitem" class="palette-dot-btn" data-palette-value="forest" title="Forest" aria-label="Forest palette">
-          <span class="palette-menu-swatch" aria-hidden="true"></span>
-          <span class="hover-pill-option-label">Forest</span>
-        </button>
-        <button type="button" role="menuitem" class="palette-dot-btn" data-palette-value="mono" title="Mono" aria-label="Mono palette">
-          <span class="palette-menu-swatch" aria-hidden="true"></span>
-          <span class="hover-pill-option-label">Mono</span>
-        </button>
+      <div class="hover-pill-popup">
+        <button type="button" class="pdot" data-palette-value="default" title="Default" aria-label="Default"></button>
+        <button type="button" class="pdot" data-palette-value="ocean" title="Ocean" aria-label="Ocean"></button>
+        <button type="button" class="pdot" data-palette-value="sunset" title="Sunset" aria-label="Sunset"></button>
+        <button type="button" class="pdot" data-palette-value="forest" title="Forest" aria-label="Forest"></button>
+        <button type="button" class="pdot" data-palette-value="mono" title="Mono" aria-label="Mono"></button>
       </div>
     </div>
   </div>
