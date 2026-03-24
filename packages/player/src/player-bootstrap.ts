@@ -771,12 +771,25 @@ function main(): void {
     }
   }
 
+  /** Update URL query params without page reload */
+  function syncUrlParams(): void {
+    try {
+      const url = new URL(window.location.href);
+      const theme = document.body.getAttribute('data-theme') || 'cinema';
+      const palette = document.body.getAttribute('data-palette') || 'default';
+      url.searchParams.set('style', theme);
+      url.searchParams.set('palette', palette);
+      history.replaceState(null, '', url.toString());
+    } catch { /* ignore — some sandboxed iframes block replaceState */ }
+  }
+
   function applyThemeSetting(theme: 'cinema' | 'light'): void {
     document.body.setAttribute('data-theme', theme);
     setActiveTheme(theme);
     sceneController.seekToFrame(sceneController.currentFrameIdx);
     rebuildAmbientParticles();
     updateThemeUI(theme);
+    syncUrlParams();
     try { localStorage.setItem('preplai-theme', theme); } catch {}
   }
 
@@ -787,6 +800,7 @@ function main(): void {
     sceneController.seekToFrame(sceneController.currentFrameIdx);
     rebuildAmbientParticles();
     updatePaletteUI(palette);
+    syncUrlParams();
     try { localStorage.setItem('preplai-palette', palette); } catch {}
   }
 
