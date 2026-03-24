@@ -44,6 +44,7 @@ import { renderComparison } from './components/card-types.js';
 import { renderQuote } from './components/quote.js';
 import { renderH1, renderH2, renderH3 } from './components/heading.js';
 import { renderText, renderSpan } from './components/text.js';
+import { renderSmartLabel } from './components/smart-label.js';
 import { renderStack } from './components/stack.js';
 import { renderArray } from './components/array.js';
 import { renderArrayCell } from './components/arraycell.js';
@@ -248,7 +249,7 @@ export const registry: Record<string, (entity: VisualEntity, parentEl: SVGElemen
   // ── Universal
   Concept: renderConcept,
   Entity: renderEntityNode,
-  Label: renderConcept,       // Label uses Concept renderer (text bubble)
+  Label: renderSmartLabel,     // Smart: short text → concept bubble, long text → word-wrapped paragraph
   Group: renderGroup,
   H1: renderH1,
   H2: renderH2,
