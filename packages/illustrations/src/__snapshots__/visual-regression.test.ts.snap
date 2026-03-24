@@ -2494,6 +2494,22 @@ exports[`Visual Regression — SVG Snapshots > renders SortAnimation without cra
 }
 `;
 
+exports[`Visual Regression — SVG Snapshots > renders Span without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Span",
+  ],
+  "totalElements": 2,
+}
+`;
+
 exports[`Visual Regression — SVG Snapshots > renders Stack without crashing > produces valid SVG group with stable structure 1`] = `
 {
   "defsCount": 0,
@@ -2675,6 +2691,22 @@ exports[`Visual Regression — SVG Snapshots > renders Task without crashing > p
     "IN PROGRESS",
   ],
   "totalElements": 7,
+}
+`;
+
+exports[`Visual Regression — SVG Snapshots > renders Text without crashing > produces valid SVG group with stable structure 1`] = `
+{
+  "defsCount": 0,
+  "hasOuterG": true,
+  "rendered": true,
+  "tagCounts": {
+    "g": 1,
+    "text": 1,
+  },
+  "textLabels": [
+    "Text",
+  ],
+  "totalElements": 2,
 }
 `;
 

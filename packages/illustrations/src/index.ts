@@ -64,6 +64,10 @@ export {
   ensureGlassFilter,
 } from './visual-utils.js';
 
+// ── Bounding box registry (for arrow edge routing)
+export { getEntityBounds } from './bounds-registry.js';
+export type { EntityBounds } from './bounds-registry.js';
+
 // ── Registry & dispatcher
 export { registry, renderEntity } from './registry.js';
 

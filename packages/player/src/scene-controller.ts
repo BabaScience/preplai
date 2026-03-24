@@ -283,24 +283,33 @@ export class SceneController {
     }
 
     // ── Connections: always clear + re-render ──────────────────────
+    // Defer to next animation frame so entity getBBox() returns real values.
+    // On first render, entities are in the DOM but not yet laid out by the browser.
+    // requestAnimationFrame guarantees layout has been computed.
     this.connectionLayer.innerHTML = '';
 
-    // Connection delay: only stagger if we have new entities entering
-    const hasNewEntities = added.length > 0;
-    const connectionBaseDelay = hasNewEntities
-      ? added.length * INTER_ENTITY_STAGGER_MS + 150
-      : 80; // minimal delay for connection draw-on when no new entities
-    const connectionStagger = 80;
+    const renderConnections = () => {
+      // Connection delay: only stagger if we have new entities entering
+      const hasNewEntities = added.length > 0;
+      const connectionBaseDelay = hasNewEntities
+        ? added.length * INTER_ENTITY_STAGGER_MS + 150
+        : 80; // minimal delay for connection draw-on when no new entities
+      const connectionStagger = 80;
 
-    for (let ci = 0; ci < connections.length; ci++) {
-      const conn = connections[ci];
-      const defaulted = applyDefaults(conn);
-      defaulted.animation = {
-        ...(defaulted.animation ?? {}),
-        delay: connectionBaseDelay + ci * connectionStagger,
-      };
-      renderEntity(defaulted, this.connectionLayer, entities);
-    }
+      for (let ci = 0; ci < connections.length; ci++) {
+        const conn = connections[ci];
+        const defaulted = applyDefaults(conn);
+        defaulted.animation = {
+          ...(defaulted.animation ?? {}),
+          delay: connectionBaseDelay + ci * connectionStagger,
+        };
+        renderEntity(defaulted, this.connectionLayer, entities);
+      }
+    };
+
+    // Double-rAF: first rAF runs after the browser has computed layout for new
+    // entities; second rAF ensures getBBox() returns painted dimensions.
+    requestAnimationFrame(() => requestAnimationFrame(renderConnections));
 
     // ── ViewBox camera ─────────────────────────────────────────────
     this._animateViewBoxToEntities(nonConnections);
