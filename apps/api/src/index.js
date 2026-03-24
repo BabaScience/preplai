@@ -111,6 +111,16 @@ export function createApp() {
     }
   });
 
+  // ── Favicon (wavy E-mark on gold background) ──────────────────────────
+  const FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="20" fill="#C9A84C"/><defs><filter id="f" x="-18%" y="-18%" width="136%" height="136%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.018 0.022" numOctaves="4" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.8" xChannelSelector="R" yChannelSelector="G"/></filter></defs><path d="M 137.79,38.71 A 72,72 0 1,0 169.97,118.50 L 30.03,115.80" fill="none" stroke="#0b0c10" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" filter="url(#f)"/></svg>`;
+
+  app.get('/favicon.ico', (_req, res) => {
+    res.set('Content-Type', 'image/svg+xml').set('Cache-Control', 'public, max-age=86400').send(FAVICON_SVG);
+  });
+  app.get('/favicon.svg', (_req, res) => {
+    res.set('Content-Type', 'image/svg+xml').set('Cache-Control', 'public, max-age=86400').send(FAVICON_SVG);
+  });
+
   app.use(oauthRoutes);
   app.use('/api', oauthClientsRoutes);
   app.use('/api/auth', authRoutes);
