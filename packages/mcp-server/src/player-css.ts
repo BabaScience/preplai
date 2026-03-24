@@ -309,6 +309,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   -webkit-backdrop-filter: blur(12px);
   border-radius: 20px;
   padding: 8px 16px;
+  overflow: visible;
 }
 
 /* Auto-hide: slide down + fade out when idle */
@@ -1383,6 +1384,46 @@ body[data-theme="light"] {
 #fullscreen-toggle .fs-enter-icon { display: block; }
 #fullscreen-toggle.is-fullscreen .fs-enter-icon { display: none; }
 #fullscreen-toggle.is-fullscreen .fs-exit-icon { display: block; }
+
+/* ── Theme & palette dropdown (above bar, no widen) ───────────── */
+.hover-pill { position:relative; display:flex; align-items:center; height:32px; border-radius:16px; overflow:visible; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); transition:background 0.2s ease; z-index:1; }
+.hover-pill:hover, .hover-pill:focus-within { z-index:210; background:rgba(255,255,255,0.10); }
+.hover-pill-trigger { display:flex; align-items:center; justify-content:center; width:32px; height:32px; border:none; background:transparent; color:rgba(255,255,255,0.5); cursor:pointer; padding:0; flex-shrink:0; border-radius:50%; transition:color 0.15s ease; }
+.hover-pill-trigger:hover { color:rgba(255,255,255,0.85); }
+.hover-pill-options { position:absolute; left:50%; bottom:calc(100% + 10px); transform:translateX(-50%) translateY(6px); display:flex; flex-direction:column; align-items:stretch; gap:2px; min-width:152px; padding:6px; margin:0; background:linear-gradient(165deg, rgba(255,255,255,0.11) 0%, rgba(20,22,34,0.38) 45%, rgba(12,14,24,0.44) 100%); backdrop-filter:blur(22px) saturate(112%); -webkit-backdrop-filter:blur(22px) saturate(112%); border:1px solid rgba(255,255,255,0.16); border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.14); opacity:0; visibility:hidden; pointer-events:none; transition:opacity 0.2s ease, transform 0.24s cubic-bezier(0.16,1,0.3,1), visibility 0.24s; z-index:200; isolation:isolate; }
+#palette-control .hover-pill-options { min-width:176px; }
+.hover-pill:hover .hover-pill-options, .hover-pill:focus-within .hover-pill-options { opacity:1; visibility:visible; pointer-events:auto; transform:translateX(-50%) translateY(0); }
+.hover-pill-options button { box-sizing:border-box; display:grid; grid-template-columns:22px minmax(0,1fr); align-items:center; column-gap:10px; width:100%; min-height:36px; margin:0; padding:0 12px 0 10px; border:1px solid transparent; background:rgba(255,255,255,0.05); color:rgba(245,246,252,0.92); border-radius:10px; cursor:pointer; flex-shrink:0; font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; font-size:13px; font-weight:500; letter-spacing:0.01em; line-height:1; -webkit-font-smoothing:antialiased; text-align:left; transition:background 0.16s ease, color 0.16s ease, border-color 0.16s ease; }
+.hover-pill-options button:hover { background:rgba(255,255,255,0.11); color:#fff; }
+.hover-pill-options button:focus { outline:none; }
+.hover-pill-options button:focus-visible { border-color:rgba(201,168,76,0.65); background:rgba(255,255,255,0.09); }
+.hover-pill-options button.active { background:rgba(201,168,76,0.16); color:#fff; border-color:rgba(201,168,76,0.48); }
+.hover-pill-options button>svg { display:block; width:15px; height:15px; margin:0; flex-shrink:0; justify-self:center; align-self:center; }
+.hover-pill-option-label { margin:0; padding:0; min-width:0; font-weight:500; letter-spacing:0.01em; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+[data-theme="cinema"] .theme-icon-light { display:none; }
+[data-theme="cinema"] .theme-icon-cinema { display:block; }
+[data-theme="light"] .theme-icon-cinema { display:none; }
+[data-theme="light"] .theme-icon-light { display:block; }
+.palette-dot-indicator { display:block; width:12px; height:12px; border-radius:50%; background:#C9A84C; transition:background 0.2s ease; }
+.palette-menu-swatch { box-sizing:border-box; width:16px; height:16px; border-radius:50%; justify-self:center; align-self:center; box-shadow:inset 0 1px 1px rgba(255,255,255,0.22), 0 0 0 1px rgba(0,0,0,0.2); }
+.palette-dot-btn[data-palette-value="default"] .palette-menu-swatch { background:#c9a84c; }
+.palette-dot-btn[data-palette-value="ocean"] .palette-menu-swatch { background:#4ecdc4; }
+.palette-dot-btn[data-palette-value="sunset"] .palette-menu-swatch { background:#e67e22; }
+.palette-dot-btn[data-palette-value="forest"] .palette-menu-swatch { background:#27ae60; }
+.palette-dot-btn[data-palette-value="mono"] .palette-menu-swatch { background:#90a4ae; }
+.palette-dot-btn.active .palette-menu-swatch { box-shadow:inset 0 1px 1px rgba(255,255,255,0.28),0 0 0 1.5px rgba(255,255,255,0.4),0 0 0 2.5px rgba(0,0,0,0.25); }
+.palette-dot-btn:hover:not(.active) .palette-menu-swatch { box-shadow:inset 0 1px 1px rgba(255,255,255,0.2),0 0 0 1px rgba(255,255,255,0.22); }
+[data-theme="light"] .hover-pill { background:rgba(0,0,0,0.04); border-color:rgba(0,0,0,0.08); }
+[data-theme="light"] .hover-pill:hover, [data-theme="light"] .hover-pill:focus-within { background:rgba(0,0,0,0.07); }
+[data-theme="light"] .hover-pill-trigger { color:#5a5a6e; }
+[data-theme="light"] .hover-pill-trigger:hover { color:#1a1a2e; }
+[data-theme="light"] .hover-pill-options { background:linear-gradient(160deg, rgba(255,255,255,0.72) 0%, rgba(250,248,242,0.48) 100%); backdrop-filter:blur(26px) saturate(106%); -webkit-backdrop-filter:blur(26px) saturate(106%); border:1px solid rgba(255,255,255,0.7); box-shadow:0 10px 36px rgba(20,24,40,0.08), inset 0 1px 0 rgba(255,255,255,0.85); }
+[data-theme="light"] .hover-pill-options button { background:rgba(255,255,255,0.42); color:rgba(26,26,46,0.92); border-color:transparent; }
+[data-theme="light"] .hover-pill-options button:hover { background:rgba(255,255,255,0.62); color:#12121c; }
+[data-theme="light"] .hover-pill-options button:focus-visible { border-color:rgba(184,148,61,0.55); background:rgba(255,255,255,0.52); }
+[data-theme="light"] .hover-pill-options button.active { background:rgba(201,168,76,0.22); color:#12121c; border-color:rgba(184,148,61,0.42); }
+[data-theme="light"] .palette-dot-btn.active .palette-menu-swatch { box-shadow:0 0 0 2px rgba(0,0,0,0.22),0 0 0 3.5px rgba(255,255,255,0.9); }
+[data-theme="light"] .palette-dot-btn:hover:not(.active) .palette-menu-swatch { box-shadow:inset 0 0 0 1px rgba(0,0,0,0.12),0 0 0 1.5px rgba(0,0,0,0.15); }
 
 /* ── Rotate hint overlay (mobile portrait only) ────────────────── */
 
