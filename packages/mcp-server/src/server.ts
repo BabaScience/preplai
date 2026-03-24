@@ -388,7 +388,14 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
 
   await app.register(FastifyMcpServer, {
     createMcpServer: () => {
-      const mcp = new McpServer({ name: 'preplai', version: '0.1.0' }, { instructions: MCP_INSTRUCTIONS });
+      const mcp = new McpServer(
+        {
+          name: 'preplai',
+          version: '0.1.0',
+          icons: [{ src: `${cfg.baseUrl.replace(/\/$/, '')}/favicon.svg`, mimeType: 'image/svg+xml' }],
+        },
+        { instructions: MCP_INSTRUCTIONS },
+      );
       registerMcpTools(mcp, {
         store,
         sse,
