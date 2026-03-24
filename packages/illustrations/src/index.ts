@@ -108,6 +108,7 @@ export { renderDefinition } from './components/definition.js';
 export { renderCallout } from './components/callout.js';
 export { renderQuote } from './components/quote.js';
 export { renderText, renderSpan } from './components/text.js';
+export { renderSmartLabel } from './components/smart-label.js';
 export { renderAnalogy } from './components/analogy.js';
 export { renderAnnotation } from './components/annotation.js';
 export { createTextCardRenderer } from './components/text-card.js';
