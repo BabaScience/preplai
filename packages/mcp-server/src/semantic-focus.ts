@@ -9,6 +9,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import type { VisualEntity, FocusCue } from '@preplai/shared';
+import { CONNECTION_TYPES } from '@preplai/shared';
 import type { WordTimestamp } from './tts-provider.js';
 import { semanticFallbackTotal } from './metrics.js';
 
@@ -39,6 +40,7 @@ function buildPrompt(
   narration: string,
   entities: EntityInfo[],
   wordTimestamps: WordTimestamp[],
+  language?: string,
 ): string {
   const entityList = entities
     .map(e => `  - id:"${e.id}" type:${e.type} label:"${e.label}"`)
@@ -48,10 +50,14 @@ function buildPrompt(
     .map(wt => `[${wt.startTime.toFixed(2)}s] ${wt.word}`)
     .join(' ');
 
+  const langNote = language && language !== 'en'
+    ? `\nIMPORTANT: The narration is in ${language}. Entity labels may be in ${language} or English. Match narration words to entity labels across languages — e.g. if narration says "serveur" and entity label is "Server", they refer to the same entity. Consider translations, cognates, and transliterations.\n`
+    : '';
+
   return `You are a focus cue generator for a cinematic presentation engine.
 Given narration text with word-level timestamps and a list of visual entities on screen,
 determine which entities should be visually highlighted at each moment.
-
+${langNote}
 ENTITIES ON SCREEN:
 ${entityList}
 
@@ -94,6 +100,7 @@ export async function generateSemanticFocusCues(
   narration: string,
   entities: VisualEntity[],
   wordTimestamps: WordTimestamp[],
+  language?: string,
 ): Promise<FocusCue[] | null> {
   const client = getClient();
   if (!client) {
@@ -102,7 +109,6 @@ export async function generateSemanticFocusCues(
   }
 
   // Filter to non-connection entities with labels
-  const CONNECTION_TYPES = new Set(['Arrow', 'DataFlow', 'BidirectArrow', 'DottedArrow']);
   const entityInfos: EntityInfo[] = entities
     .filter(e => !CONNECTION_TYPES.has(e.type) && e.label)
     .map(e => ({ id: e.id, type: e.type, label: e.label! }));
@@ -110,7 +116,7 @@ export async function generateSemanticFocusCues(
   if (entityInfos.length === 0 || wordTimestamps.length === 0) return null;
 
   try {
-    const prompt = buildPrompt(narration, entityInfos, wordTimestamps);
+    const prompt = buildPrompt(narration, entityInfos, wordTimestamps, language);
 
     const response = await client.messages.create({
       model: MODEL,

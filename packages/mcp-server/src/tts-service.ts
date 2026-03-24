@@ -11,6 +11,7 @@
  */
 
 import type { IllustrationFrame, VisualEntity, FocusCue, FrameAudio } from '@preplai/shared';
+import { CONNECTION_TYPES } from '@preplai/shared';
 import type { TtsProvider, WordTimestamp } from './tts-provider.js';
 import { generateSemanticFocusCues } from './semantic-focus.js';
 import { VisualScriptFrame } from '@preplai/db';
@@ -118,6 +119,7 @@ export class TtsService {
           frame.entities,
           frame.focusCues, // agent-provided overrides
           narrationText,
+          lang,
         );
 
         // Attach narration segments to each cue using word timestamps
@@ -199,6 +201,7 @@ export async function generateFocusCues(
   entities: VisualEntity[],
   agentCues?: FocusCue[],
   narration?: string,
+  language?: string,
 ): Promise<FocusCue[]> {
   // Agent-provided cues take priority
   if (agentCues && agentCues.length > 0) {
@@ -210,7 +213,7 @@ export async function generateFocusCues(
   if (narration) {
     try {
       const llmStart = performance.now();
-      const semanticCues = await generateSemanticFocusCues(narration, entities, wordTimestamps);
+      const semanticCues = await generateSemanticFocusCues(narration, entities, wordTimestamps, language);
       const llmDurationSec = (performance.now() - llmStart) / 1000;
       semanticFocusLlmLatency.observe(llmDurationSec);
 
@@ -249,8 +252,23 @@ export function normalizeFocusCue(cue: FocusCue): FocusCue {
 }
 
 /**
+ * Normalize a word for focus cue matching. Unicode-aware: preserves letters
+ * and digits from any script (Latin, Cyrillic, CJK, Arabic, etc.).
+ * Strips Latin diacritics for fuzzy matching (café → cafe) while preserving
+ * non-Latin combining marks (e.g. Japanese dakuten: デ stays デ, not テ).
+ */
+function normalizeWord(word: string): string {
+  return word
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')         // strip Latin combining diacritical marks only
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\p{M}]/gu, '');   // keep letters, digits, and non-Latin marks
+}
+
+/**
  * String-matching focus cue generation (fallback strategy).
  * Matches narration words to entity labels via buildLabelMap.
+ * Unicode-aware: works with any language/script.
  */
 function generateStringMatchCues(
   wordTimestamps: WordTimestamp[],
@@ -263,7 +281,7 @@ function generateStringMatchCues(
   const lastCueTime = new Map<string, number>();
 
   for (const wt of wordTimestamps) {
-    const normalized = wt.word.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const normalized = normalizeWord(wt.word);
     if (normalized.length < MIN_WORD_LENGTH) continue;
 
     const entityId = labelMap.get(normalized);
@@ -288,18 +306,21 @@ function generateStringMatchCues(
 /**
  * Build a map from normalized label words to entity IDs.
  * Indexes both full labels and individual words within labels.
+ * Unicode-aware: works with any language/script.
  */
 export function buildLabelMap(entities: VisualEntity[]): Map<string, string> {
   const map = new Map<string, string>();
-
-  // Skip connection-type entities (arrows don't get focus)
-  const CONNECTION_TYPES = new Set(['Arrow', 'DataFlow', 'BidirectArrow', 'DottedArrow']);
 
   for (const entity of entities) {
     if (CONNECTION_TYPES.has(entity.type)) continue;
     if (!entity.label) continue;
 
-    const fullLabel = entity.label.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+    const fullLabel = entity.label
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')       // strip Latin combining diacritical marks
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\p{M}\s]/gu, '') // keep letters, digits, non-Latin marks, spaces
+      .trim();
 
     // Index the full label (e.g., "api server" → entityId)
     const fullNormalized = fullLabel.replace(/\s+/g, '');
