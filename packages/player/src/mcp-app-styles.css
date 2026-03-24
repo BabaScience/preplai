@@ -1448,6 +1448,17 @@ body[data-theme="light"] {
   z-index: 200;
 }
 
+/* Invisible bridge — fills the gap between trigger and popup so hover doesn't break */
+.hover-pill-popup::before {
+  content: '';
+  position: absolute;
+  bottom: -14px;
+  left: 0;
+  right: 0;
+  height: 16px;
+  background: transparent;
+}
+
 /* Arrow pointer */
 .hover-pill-popup::after {
   content: '';
