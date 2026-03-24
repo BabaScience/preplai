@@ -7,6 +7,10 @@
  */
 
 import type { VisualScript } from '@preplai/shared';
+import {
+  KNOWN_ENTITY_TYPES as SHARED_KNOWN_ENTITY_TYPES,
+  SKIP_CLAMP_TYPES as SHARED_SKIP_CLAMP_TYPES,
+} from '@preplai/shared';
 
 // ── Error & Warning Codes ─────────────────────────────────────────────
 
@@ -51,87 +55,9 @@ export type CompileResult =
   | { success: true; script: VisualScript; warnings: CompilerWarning[] }
   | { success: false; errors: CompilerError[] };
 
-// ── Known Entity Types ────────────────────────────────────────────────
+// ── Known Entity Types (re-exported from @preplai/shared) ────────────
 
-export const KNOWN_ENTITY_TYPES: ReadonlySet<string> = new Set([
-  // Infrastructure (15)
-  'User', 'Server', 'Database', 'Container', 'Pod',
-  'Cloud', 'Network', 'Device', 'Arrow', 'DataFlow',
-  'Process', 'Queue', 'Cache', 'LoadBalancer', 'Service',
-  // Extended Infrastructure (10)
-  'Firewall', 'API', 'APIGateway', 'Lambda', 'Subnet', 'Volume',
-  'Registry', 'Monitor', 'Pipeline', 'Decision', 'Cluster',
-  // Flow / Connection (2)
-  'BidirectArrow', 'DottedArrow',
-  // Abstract / Universal (12)
-  'Concept', 'Entity', 'Group', 'Label', 'Comparison',
-  'Timeline', 'Metric', 'Cycle', 'Stack',
-  'Badge', 'Quote',
-  // Headings (3)
-  'H1', 'H2', 'H3',
-  // Math & Science (6)
-  'Equation', 'Expression', 'Matrix', 'Graph2D',
-  'CoordinateSystem',
-  // Physics (6)
-  'FreeBodyDiagram', 'Circuit', 'Wave', 'Vector', 'Field',
-  // General Purpose (8)
-  'Table', 'Histogram', 'PieChart', 'FlowDiagram', 'VennDiagram',
-  'Annotation', 'BarChart', 'ScatterPlot',
-  // Pedagogical (6)
-  'StepList', 'CodeBlock', 'Definition', 'Callout', 'Proof', 'Analogy',
-  // Data Structures (7)
-  'Array', 'LinkedList', 'BinaryTree', 'HashTable', 'Heap', 'GraphDS', 'Trie',
-  // Algorithm Visualization (3)
-  'ArrayCell', 'RecursionTree',
-  // Automata & Theory (3)
-  'FSM', 'StateNode', 'Transition',
-  // Computer Architecture (5)
-  'CPU', 'Register', 'MemoryBlock', 'LogicGate', 'Bus',
-  // Operating Systems (3)
-  'ProcessBlock', 'MemoryMap', 'Thread',
-  // Networking (1)
-  'Packet',
-  // Machine Learning (1)
-  'NeuralNetwork',
-  // Phase 1: Core Architecture Diagrams (5)
-  'SequenceDiagram', 'EREntity', 'ClassNode', 'SystemBoundary', 'CircuitBreaker',
-  // Phase 2: Domain-Specific (8)
-  'ComponentNode', 'DataLake', 'DataWarehouse', 'MLModel',
-  'FeatureStore', 'MindMapNode', 'UserJourneyStep', 'DeploymentStrategy',
-  // Phase 3: Microservices & Patterns (6)
-  'Sidecar', 'DeadLetterQueue', 'RateLimiter', 'GPU', 'Bundle', 'SagaStep',
-  // Software Architecture: API & Web (6)
-  'APIEndpoint', 'HTTPRequest', 'HTTPResponse', 'WebSocket', 'GraphQLSchema', 'Webhook',
-  // Software Architecture: Auth & Security (4)
-  'AuthFlow', 'Token', 'Certificate', 'Secret',
-  // Software Architecture: Data & Messaging (4)
-  'Schema', 'Migration', 'Event', 'Stream',
-  // Software Architecture: CI/CD & DevOps (6)
-  'GitBranch', 'GitCommit', 'PullRequest', 'Build', 'Deployment', 'Rollback',
-  // Software Architecture: Cloud Infrastructure (3)
-  'CDN', 'StorageBucket', 'MessageBroker',
-  // Software Architecture: Observability (4)
-  'LogEntry', 'Alert', 'Trace', 'Dashboard',
-  // Software Architecture: Code & Architecture (6)
-  'Module', 'Interface', 'ErrorState', 'ConfigFile', 'Dependency', 'CronJob',
-  // Software Architecture: Collaboration (3)
-  'Notification', 'Task', 'File',
-  // Data Structures: Extended (5)
-  'BTree', 'Dict', 'List', 'Tuple', 'Set',
-  // Algorithm Visualization: Extended (2)
-  'SortAnimation', 'BigO',
-  // CS Concepts: Extended (7)
-  'CallStack', 'SymbolTable', 'TuringMachine', 'ProcessState',
-  'DeadlockGraph', 'GanttChart', 'Semaphore', 'Mutex',
-  // Computer Architecture: Extended (3)
-  'CacheHierarchy', 'PipelineStage', 'MemoryLayout',
-  // Extended Infrastructure (3)
-  'DNSResolver', 'Decorator', 'DockerImage', 'DockerRegistry',
-  // Machine Learning: Extended (1)
-  'ConfusionMatrix',
-  // Composable (Tier 2: Shape + Icon composition)
-  'Composable',
-]);
+export const KNOWN_ENTITY_TYPES: ReadonlySet<string> = SHARED_KNOWN_ENTITY_TYPES;
 
 // ── Type-specific Size Defaults (base pixel dimensions at size=1.0) ────
 // Used for clamping: half-width/height converted to % determines min margin.
@@ -191,8 +117,6 @@ export const BASE_ENTITY_SIZES: ReadonlyMap<string, { w: number; h: number }> = 
   ['SagaStep',        { w: 100, h: 60  }],
 ]);
 
-// ── Arrow-like types (skip position clamping) ─────────────────────────
+// ── Arrow-like types (skip position clamping — re-exported from shared) ──
 
-export const SKIP_CLAMP_TYPES: ReadonlySet<string> = new Set([
-  'Arrow', 'DataFlow', 'BidirectArrow', 'DottedArrow',
-]);
+export const SKIP_CLAMP_TYPES: ReadonlySet<string> = SHARED_SKIP_CLAMP_TYPES;

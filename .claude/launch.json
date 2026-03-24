@@ -19,7 +19,8 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["apps/api/src/index.js"],
       "port": 5001,
-      "autoPort": true
+      "env": { "PORT": "5001" },
+      "autoPort": false
     }
   ]
 }

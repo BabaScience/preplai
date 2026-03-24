@@ -4,9 +4,13 @@
  * API key validation against shared api_keys collection.
  * Keys are hashed with SHA-256 — only the hash is stored.
  */
-import { randomUUID, createHash, randomBytes } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { ApiKey, McpUsageLog, Session, UsageLog, User } from '@preplai/db';
 import { TIER_LIMITS as SHARED_TIER_LIMITS } from '@preplai/shared';
+import { generateApiKey, hashKey, KEY_PREFIX } from '@preplai/shared/node';
+
+// ── Re-export shared crypto for existing consumers ───────────────────
+export { generateApiKey, hashKey, KEY_PREFIX };
 
 // ── Tier limits ──────────────────────────────────────────────────────
 
@@ -18,21 +22,6 @@ export interface TierLimits {
 }
 
 export const TIER_LIMITS: Record<string, TierLimits> = SHARED_TIER_LIMITS as Record<string, TierLimits>;
-
-// ── Key format ───────────────────────────────────────────────────────
-const KEY_PREFIX = 'plai_';
-
-export function generateApiKey(): { key: string; keyHash: string; keyPrefix: string } {
-  const rawBytes = randomBytes(20);
-  const key = KEY_PREFIX + rawBytes.toString('hex');
-  const keyHash = hashKey(key);
-  const keyPrefix = key.substring(0, 12);
-  return { key, keyHash, keyPrefix };
-}
-
-export function hashKey(key: string): string {
-  return createHash('sha256').update(key).digest('hex');
-}
 
 // ── API key creation (quick start — writes to shared collection) ────────
 

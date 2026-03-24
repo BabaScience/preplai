@@ -10,24 +10,11 @@ import {
   INTER_ENTITY_STAGGER_MS,
   MAX_ENTITIES_PER_FRAME,
 } from './constants.js';
-
-// ── Arrow / Connection Type Sets ──────────────────────────────────────
-
-const ARROW_TYPES: ReadonlySet<string> = new Set([
-  'Arrow', 'DataFlow', 'BidirectArrow', 'DottedArrow',
-]);
-
-const CONNECTION_TYPES: ReadonlySet<string> = new Set([
-  ...ARROW_TYPES,
-  'Transition', 'Bus',
-]);
-
-const METADATA_REQUIRED_TYPES: ReadonlySet<string> = new Set([
-  'Graph2D', 'Equation', 'Matrix', 'Table', 'Circuit',
-  'FreeBodyDiagram', 'Comparison', 'Proof', 'Timeline',
-  'Stack', 'PieChart', 'Histogram', 'BarChart', 'ScatterPlot',
-  'VennDiagram', 'StepList', 'Definition',
-]);
+import {
+  ARROW_TYPES,
+  CONNECTION_TYPES,
+  METADATA_REQUIRED_TYPES,
+} from './entity-types.js';
 
 // ── Entity Guards ─────────────────────────────────────────────────────
 

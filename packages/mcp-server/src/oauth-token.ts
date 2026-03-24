@@ -7,6 +7,7 @@
 import jwt from 'jsonwebtoken';
 import { getOrCreateApiKeyForUser } from './auth.js';
 import type { ValidatedKey } from './auth.js';
+import { getMcpResource } from '@preplai/shared/node';
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
@@ -16,12 +17,6 @@ function getJwtSecret(): string {
     }
   }
   return secret ?? 'preplai-dev-secret-change-in-prod';
-}
-
-function getMcpResource(): string {
-  return process.env.NODE_ENV === 'production'
-    ? 'https://player.preplai.com'
-    : process.env.MCP_RESOURCE_URL ?? 'http://localhost:5005';
 }
 
 export interface OAuthPayload {

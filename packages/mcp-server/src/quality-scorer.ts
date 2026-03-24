@@ -18,6 +18,13 @@
  */
 
 import type { VisualScript, IllustrationFrame, VisualEntity } from '@preplai/shared';
+import {
+  CONNECTION_TYPES as SHARED_CONNECTION_TYPES,
+  HEADING_TYPES as SHARED_HEADING_TYPES,
+  clamp,
+  distance,
+  stdDev,
+} from '@preplai/shared';
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -87,13 +94,10 @@ const WEIGHTS = {
   tierAlignment: 0.06,          // NEW: Gestalt alignment (same tier = same Y)
 } as const;
 
-// ── Connection types that don't count toward density ─────────────────────
+// ── Use shared entity classification sets ────────────────────────────────
 
-const CONNECTION_TYPES = new Set([
-  'Arrow', 'DataFlow', 'BidirectArrow', 'DottedArrow', 'Transition',
-]);
-
-const HEADING_TYPES = new Set(['H1', 'H2', 'H3']);
+const CONNECTION_TYPES = SHARED_CONNECTION_TYPES;
+const HEADING_TYPES = SHARED_HEADING_TYPES;
 
 /** Labels considered generic/uninformative — penalized in quality scoring (Pillar III) */
 const GENERIC_LABEL_PATTERNS = [
@@ -104,10 +108,6 @@ const GENERIC_LABEL_PATTERNS = [
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
-}
 
 /** Get position from entity — handles both {x,y} and array [x,y] formats */
 function getPosition(entity: VisualEntity): { x: number; y: number } {
@@ -123,19 +123,6 @@ function getContentEntities(entities: VisualEntity[]): VisualEntity[] {
   return entities.filter(
     (e) => !CONNECTION_TYPES.has(e.type) && !HEADING_TYPES.has(e.type) && e.type !== 'Label',
   );
-}
-
-/** Euclidean distance between two points */
-function distance(a: { x: number; y: number }, b: { x: number; y: number }): number {
-  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
-}
-
-/** Standard deviation */
-function stdDev(values: number[]): number {
-  if (values.length < 2) return 0;
-  const mean = values.reduce((s, v) => s + v, 0) / values.length;
-  const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length;
-  return Math.sqrt(variance);
 }
 
 // ── Dimension Scorers ────────────────────────────────────────────────────

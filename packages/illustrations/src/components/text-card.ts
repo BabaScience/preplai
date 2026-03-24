@@ -13,7 +13,7 @@
  * 3. clipPath clips any content that might extend outside the card.
  */
 
-import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
+import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam, wrapBodyText } from '../utils.js';
 import { ensureDefs } from '../visual-utils.js';
 import { TYPOGRAPHY, SHAPES, getStrokeWidth, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
@@ -24,43 +24,13 @@ const CHAR_WIDTH_RATIO = 0.65;
 const MIN_FONT_SIZE = 8;
 const MAX_FONT_SIZE = 24;
 
+/** Wrap text into lines with truncation (delegates to canonical wrapBodyText). */
 function wrapText(
   text: string,
   maxCharsPerLine: number,
   maxLines: number,
 ): { lines: string[]; truncated: boolean } {
-  if (!text.trim()) return { lines: [], truncated: false };
-  const words = text.trim().split(/\s+/);
-  const lines: string[] = [];
-  let current = '';
-  let truncated = false;
-
-  for (const w of words) {
-    const next = current ? `${current} ${w}` : w;
-    if (next.length <= maxCharsPerLine) {
-      current = next;
-    } else {
-      if (current) {
-        lines.push(current);
-        if (lines.length >= maxLines) {
-          truncated = true;
-          break;
-        }
-      }
-      current = w.length <= maxCharsPerLine ? w : w.slice(0, maxCharsPerLine - 3) + '...';
-    }
-  }
-  if (current && lines.length < maxLines) lines.push(current);
-  if (truncated && lines.length > 0) {
-    const last = lines[lines.length - 1];
-    const suffix = '...';
-    if (last.length + suffix.length > maxCharsPerLine) {
-      lines[lines.length - 1] = last.slice(0, maxCharsPerLine - suffix.length) + suffix;
-    } else {
-      lines[lines.length - 1] = last + suffix;
-    }
-  }
-  return { lines, truncated };
+  return wrapBodyText(text, maxCharsPerLine, maxLines);
 }
 
 export type TextCardConfig = {

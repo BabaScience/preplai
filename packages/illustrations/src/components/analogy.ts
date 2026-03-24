@@ -5,7 +5,7 @@
  * Uses metadata.x + metadata.y, or parses " is like " / " like " from label.
  */
 
-import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
+import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam, wrapBodyText } from '../utils.js';
 import { getCategoryColor, TYPOGRAPHY, SHAPES, STROKE, colorWithAlpha, OPACITY } from '../design-tokens.js';
 import type { VisualEntity } from '@preplai/shared';
 
@@ -18,29 +18,9 @@ function parseAnalogy(label: string): { x: string; y: string } | null {
   return null;
 }
 
-/** Wrap text into lines by approximate chars per line. No truncation — long words break across lines. */
+/** Wrap text into lines (delegates to canonical wrapBodyText). */
 function wrapToLines(text: string, maxCharsPerLine: number): string[] {
-  if (!text.trim()) return [];
-  const words = text.trim().split(/\s+/);
-  const lines: string[] = [];
-  let current = '';
-  for (const w of words) {
-    const next = current ? `${current} ${w}` : w;
-    if (next.length <= maxCharsPerLine) {
-      current = next;
-    } else {
-      if (current) lines.push(current);
-      if (w.length <= maxCharsPerLine) {
-        current = w;
-      } else {
-        const chunks = w.match(new RegExp(`.{1,${maxCharsPerLine}}`, 'g')) ?? [w];
-        lines.push(...chunks.slice(0, -1));
-        current = chunks[chunks.length - 1];
-      }
-    }
-  }
-  if (current) lines.push(current);
-  return lines;
+  return wrapBodyText(text, maxCharsPerLine, 999).lines;
 }
 
 export function renderAnalogy(entity: VisualEntity, parentEl: SVGElement): SVGGElement {

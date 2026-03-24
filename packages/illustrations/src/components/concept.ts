@@ -14,7 +14,7 @@
  * @see ILLUSTRATIONS_AGENT_GUIDE.md
  */
 
-import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
+import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam, wrapBodyText } from '../utils.js';
 import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
 import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
@@ -25,39 +25,9 @@ const DESIGN_H = 44;
 const MAX_LINES_DEFAULT = 4;
 const CONCEPT_FONT = 8;  // design-space font size for legibility
 
-/** Wrap text into lines. No truncation — long words break across lines. */
+/** Wrap text into lines (delegates to canonical wrapBodyText). */
 function wrapToLines(text: string, maxCharsPerLine: number, maxLines: number): string[] {
-  if (!text.trim()) return [];
-  const words = text.trim().split(/\s+/);
-  const lines: string[] = [];
-  let current = '';
-  for (const w of words) {
-    const next = current ? `${current} ${w}` : w;
-    if (next.length <= maxCharsPerLine) {
-      current = next;
-    } else {
-      if (current) {
-        lines.push(current);
-        if (lines.length >= maxLines) return lines;
-        current = '';
-      }
-      if (w.length <= maxCharsPerLine) {
-        current = w;
-      } else {
-        const chunks = w.match(new RegExp(`.{1,${maxCharsPerLine}}`, 'g')) ?? [w];
-        for (let i = 0; i < chunks.length; i++) {
-          if (i < chunks.length - 1) {
-            lines.push(chunks[i]);
-            if (lines.length >= maxLines) return lines;
-          } else {
-            current = chunks[i];
-          }
-        }
-      }
-    }
-  }
-  if (current) lines.push(current);
-  return lines;
+  return wrapBodyText(text, maxCharsPerLine, maxLines).lines;
 }
 
 export function renderConcept(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
