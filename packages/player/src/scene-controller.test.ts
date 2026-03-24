@@ -13,6 +13,13 @@ import { SceneController } from './scene-controller.js';
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
+/** Wait for double-rAF (connections render asynchronously) */
+function waitForConnections(): Promise<void> {
+  return new Promise(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  });
+}
+
 function makeEntity(overrides: Partial<VisualEntity> = {}): VisualEntity {
   return {
     id: overrides.id ?? 'e1',
@@ -128,7 +135,7 @@ describe('SceneController — loadScript', () => {
     expect(entityLayer.children.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('should render arrows to the connection layer', () => {
+  it('should render arrows to the connection layer', async () => {
     const script = makeScript([
       makeFrame({
         entities: [
@@ -145,6 +152,7 @@ describe('SceneController — loadScript', () => {
       }),
     ]);
     controller.loadScript(script);
+    await waitForConnections();
 
     // Connection layer should have arrow element(s)
     expect(connectionLayer.children.length).toBeGreaterThanOrEqual(1);
@@ -239,7 +247,7 @@ describe('SceneController — seekToFrame', () => {
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('SceneController — frame rendering', () => {
-  it('should separate arrows from non-arrow entities (two-pass render)', () => {
+  it('should separate arrows from non-arrow entities (two-pass render)', async () => {
     const script = makeScript([
       makeFrame({
         entities: [
@@ -256,6 +264,7 @@ describe('SceneController — frame rendering', () => {
       }),
     ]);
     controller.loadScript(script);
+    await waitForConnections();
 
     // Non-arrow entities tracked
     expect(controller.renderedEntityIds.has('srv')).toBe(true);
@@ -319,7 +328,7 @@ describe('SceneController — frame rendering', () => {
     expect(controller.renderedEntityIds.size).toBe(0);
   });
 
-  it('should handle DataFlow type on connection layer like Arrow', () => {
+  it('should handle DataFlow type on connection layer like Arrow', async () => {
     const script = makeScript([
       makeFrame({
         entities: [
@@ -336,6 +345,7 @@ describe('SceneController — frame rendering', () => {
       }),
     ]);
     controller.loadScript(script);
+    await waitForConnections();
 
     // DataFlow rendered to connection layer
     expect(connectionLayer.children.length).toBeGreaterThanOrEqual(1);

@@ -8,9 +8,10 @@
  * Arrows connect at entity edges (not centers) for cleaner flow diagrams.
  */
 
-import { SVG_NS, getSizeParam } from '../utils.js';
+import { SVG_NS } from '../utils.js';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@preplai/shared';
 import { getCategoryColor, TYPOGRAPHY, getLabelFontSize, colorWithAlpha } from '../design-tokens.js';
+import { getEntityBounds } from '../bounds-registry.js';
 import type { VisualEntity } from '@preplai/shared';
 
 /**
@@ -33,6 +34,16 @@ interface Rect {
   bottom: number;
 }
 
+/** Expand a rect by `pad` pixels on all sides */
+function padRect(r: Rect, pad: number): Rect {
+  return {
+    left: r.left - pad,
+    right: r.right + pad,
+    top: r.top - pad,
+    bottom: r.bottom + pad,
+  };
+}
+
 /**
  * Get the bounding rect of an entity in SVG coordinates.
  * Uses DOM getBBox when the element exists; otherwise estimates from position + size.
@@ -41,24 +52,38 @@ function getEntityRect(entity: VisualEntity, svgRoot: SVGElement | null): Rect {
   const cx = (entity.position.x / 100) * CANVAS_WIDTH;
   const cy = (entity.position.y / 100) * CANVAS_HEIGHT;
 
+  // Try getBBox on the rendered DOM element — but validate the result.
+  // getBBox can return zero/tiny during entrance animations or before paint.
   const escapedId = typeof CSS !== 'undefined' && CSS.escape
     ? CSS.escape(entity.id)
     : entity.id.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
   const el = svgRoot?.querySelector(`#${escapedId}`);
   if (el && typeof (el as SVGGraphicsElement).getBBox === 'function') {
-    const bbox = (el as SVGGraphicsElement).getBBox();
-    return {
-      left: cx + bbox.x,
-      right: cx + bbox.x + bbox.width,
-      top: cy + bbox.y,
-      bottom: cy + bbox.y + bbox.height,
-    };
+    try {
+      const bbox = (el as SVGGraphicsElement).getBBox();
+      // Only trust getBBox if it returns a reasonable size (> 10px both dims).
+      // During entrance animations, getBBox often returns 0×0 or tiny values.
+      if (bbox.width > 10 && bbox.height > 10) {
+        // getBBox returns coordinates relative to the element's local coordinate system.
+        // The outerG has a translate(cx, cy) transform, so bbox coords are relative to
+        // the entity center. We add cx/cy to get canvas-space coords.
+        return {
+          left: cx + bbox.x,
+          right: cx + bbox.x + bbox.width,
+          top: cy + bbox.y,
+          bottom: cy + bbox.y + bbox.height,
+        };
+      }
+    } catch {
+      // getBBox can throw in some browsers if element isn't rendered yet
+    }
   }
 
-  // Fallback: estimate from size (entities are roughly 2×baseSize wide, 1.5×baseSize tall)
-  const base = getSizeParam(entity);
-  const halfW = base * 1.2;
-  const halfH = base * 0.9;
+  // Primary source of truth: declarative bounds registry.
+  // Provides accurate per-type dimensions without needing DOM rendering.
+  const bounds = getEntityBounds(entity);
+  const halfW = bounds.width / 2;
+  const halfH = bounds.height / 2;
   return {
     left: cx - halfW,
     right: cx + halfW,
@@ -270,13 +295,18 @@ export function renderArrow(
   const ty = (target.position.y / 100) * CANVAS_HEIGHT;
 
   const svgRoot = parentEl.ownerSVGElement ?? (parentEl as SVGElement);
-  const sourceRect = getEntityRect(source, svgRoot);
-  const targetRect = getEntityRect(target, svgRoot);
+  const sourceRectRaw = getEntityRect(source, svgRoot);
+  const targetRectRaw = getEntityRect(target, svgRoot);
+
+  // Expand rects by a small margin so arrows start/end outside the visual shape
+  const EDGE_PAD = 6;
+  const sourceRect = padRect(sourceRectRaw, EDGE_PAD);
+  const targetRect = padRect(targetRectRaw, EDGE_PAD);
 
   const sourceExit = lineRectIntersection(sx, sy, tx, ty, sourceRect, true);
   const targetEntry = lineRectIntersection(sx, sy, tx, ty, targetRect, false);
 
-  // Add gap so arrow doesn't touch entity edges
+  // Add gap so arrow stops before entity edges
   const GAP = 12;
   const dx0 = tx - sx;
   const dy0 = ty - sy;
@@ -518,8 +548,11 @@ export function renderDataFlow(
   const ty = (target.position.y / 100) * CANVAS_HEIGHT;
 
   const svgRoot = parentEl.ownerSVGElement ?? (parentEl as SVGElement);
-  const sourceRect = getEntityRect(source, svgRoot);
-  const targetRect = getEntityRect(target, svgRoot);
+  const sourceRectRawDF = getEntityRect(source, svgRoot);
+  const targetRectRawDF = getEntityRect(target, svgRoot);
+
+  const sourceRect = padRect(sourceRectRawDF, 6);
+  const targetRect = padRect(targetRectRawDF, 6);
 
   const sourceExit = lineRectIntersection(sx, sy, tx, ty, sourceRect, true);
   const targetEntry = lineRectIntersection(sx, sy, tx, ty, targetRect, false);
