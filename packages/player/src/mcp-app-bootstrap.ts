@@ -452,21 +452,10 @@ async function main(): Promise<void> {
     mono: PALETTES.mono.accent,
   };
 
-  /** Update URL query params without page reload (no-op in sandboxed iframes) */
-  function syncUrlParams(): void {
-    try {
-      const url = new URL(window.location.href);
-      const theme = document.body.getAttribute('data-theme') || 'cinema';
-      const palette = document.body.getAttribute('data-palette') || 'default';
-      url.searchParams.set('style', theme);
-      url.searchParams.set('palette', palette);
-      history.replaceState(null, '', url.toString());
-    } catch { /* sandboxed iframes block replaceState */ }
-  }
-
+  /** MCP App: apply theme/palette client-side (no reload — sandboxed iframe). */
   function applyTheme(theme: 'cinema' | 'light'): void {
     document.body.setAttribute('data-theme', theme);
-    setActiveTheme(theme); // also clears color ramp cache
+    setActiveTheme(theme);
     sceneController.seekToFrame(sceneController.currentFrameIdx);
     const ambientLayer = document.getElementById('ambient-layer');
     if (ambientLayer) {
@@ -474,7 +463,6 @@ async function main(): Promise<void> {
       setupAmbientParticles();
     }
     updateThemeUI(theme);
-    syncUrlParams();
     try { localStorage.setItem('preplai-theme', theme); } catch { /* ignore */ }
   }
 
@@ -489,7 +477,6 @@ async function main(): Promise<void> {
       setupAmbientParticles();
     }
     updatePaletteUI(palette);
-    syncUrlParams();
     try { localStorage.setItem('preplai-palette', palette); } catch { /* ignore */ }
   }
 

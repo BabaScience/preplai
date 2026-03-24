@@ -771,37 +771,24 @@ function main(): void {
     }
   }
 
-  /** Update URL query params without page reload */
-  function syncUrlParams(): void {
+  /** Navigate to the same page with updated style/palette query params (full reload). */
+  function reloadWithParams(theme: string, palette: string): void {
     try {
       const url = new URL(window.location.href);
-      const theme = document.body.getAttribute('data-theme') || 'cinema';
-      const palette = document.body.getAttribute('data-palette') || 'default';
       url.searchParams.set('style', theme);
       url.searchParams.set('palette', palette);
-      history.replaceState(null, '', url.toString());
-    } catch { /* ignore — some sandboxed iframes block replaceState */ }
+      window.location.href = url.toString();
+    } catch { /* fallback: just reload */ window.location.reload(); }
   }
 
   function applyThemeSetting(theme: 'cinema' | 'light'): void {
-    document.body.setAttribute('data-theme', theme);
-    setActiveTheme(theme);
-    sceneController.seekToFrame(sceneController.currentFrameIdx);
-    rebuildAmbientParticles();
-    updateThemeUI(theme);
-    syncUrlParams();
     try { localStorage.setItem('preplai-theme', theme); } catch {}
+    reloadWithParams(theme, document.body.getAttribute('data-palette') || 'default');
   }
 
   function applyPaletteSetting(palette: string): void {
-    document.body.setAttribute('data-palette', palette);
-    setActivePalette(palette);
-    clearColorRampCache();
-    sceneController.seekToFrame(sceneController.currentFrameIdx);
-    rebuildAmbientParticles();
-    updatePaletteUI(palette);
-    syncUrlParams();
     try { localStorage.setItem('preplai-palette', palette); } catch {}
+    reloadWithParams(document.body.getAttribute('data-theme') || 'cinema', palette);
   }
 
   function updateThemeUI(theme: string): void {
