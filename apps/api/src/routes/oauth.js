@@ -153,6 +153,7 @@ router.get('/.well-known/oauth-authorization-server', (req, res) => {
     code_challenge_methods_supported: ['S256'],
     token_endpoint_auth_methods_supported: ['client_secret_post', 'client_secret_basic'],
     revocation_endpoint_auth_methods_supported: ['client_secret_post', 'client_secret_basic'],
+    logo_uri: `${API_BASE}/favicon.svg`,
   });
 });
 
@@ -255,6 +256,7 @@ router.get('/oauth/authorize', optionalAuth, async (req, res) => {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <title>Authorize preplai</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 400px; margin: 60px auto; padding: 20px; }
