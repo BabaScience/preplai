@@ -96,11 +96,36 @@ function main(): void {
     }
   })();
 
+  // ── Playback speed ─────────────────────────────────────────────────
+  const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5, 2];
+  let currentSpeedIndex = (() => {
+    try {
+      const stored = localStorage.getItem('preplai-playback-speed');
+      if (stored) {
+        const idx = SPEED_OPTIONS.indexOf(parseFloat(stored));
+        if (idx >= 0) return idx;
+      }
+    } catch { /* ignore */ }
+    return 1; // default 1x
+  })();
+
+  function getPlaybackRate(): number {
+    return SPEED_OPTIONS[currentSpeedIndex];
+  }
+
+  function updateSpeedUI(): void {
+    const btn = document.getElementById('speed-toggle');
+    if (!btn) return;
+    const label = btn.querySelector('.speed-label');
+    if (label) label.textContent = `${SPEED_OPTIONS[currentSpeedIndex]}x`;
+    btn.title = `Playback speed: ${SPEED_OPTIONS[currentSpeedIndex]}x (S)`;
+  }
+
   function speakNarration(text: string): void {
     if (!synth || !ttsEnabled || !text?.trim()) return;
     synth.cancel();
     const u = new SpeechSynthesisUtterance(text.trim());
-    u.rate = 0.95;
+    u.rate = 0.95 * getPlaybackRate();
     u.pitch = 1;
     u.volume = 1;
     synth.speak(u);
@@ -307,11 +332,13 @@ function main(): void {
     const frame = currentScript.frames[frameIndex] as any;
     if (!frame?.entities) return;
 
+    const rate = getPlaybackRate();
+
     // Use frame-level focusCues if available (from script data)
     if (frame.focusCues?.length) {
       const scale = estimatedDuration / (frame.focusCues[frame.focusCues.length - 1].time || estimatedDuration);
       for (const cue of frame.focusCues) {
-        const delay = cue.time * scale * 1000;
+        const delay = (cue.time * scale * 1000) / rate;
         focusCueTimers.push(setTimeout(() => {
           const ids = cue.entityIds?.length ? cue.entityIds : cue.entityId ? [cue.entityId] : null;
           sceneController.shiftFocus(ids, cue.confidences);
@@ -328,7 +355,7 @@ function main(): void {
 
     if (highlightedIds.length === 0) return;
 
-    const interval = (estimatedDuration * 1000) / (highlightedIds.length + 1);
+    const interval = ((estimatedDuration * 1000) / (highlightedIds.length + 1)) / rate;
     for (let i = 0; i < highlightedIds.length; i++) {
       const delay = interval * (i + 1);
       const entityId = highlightedIds[i];
@@ -378,7 +405,7 @@ function main(): void {
 
     // Speak narration via Web Speech API
     const utterance = new SpeechSynthesisUtterance(narrationText);
-    utterance.rate = 0.95;
+    utterance.rate = 0.95 * getPlaybackRate();
     utterance.pitch = 1;
     utterance.volume = 1;
     webSpeechPlaying = true;
@@ -544,9 +571,9 @@ function main(): void {
         if (i === currentFrame && autoPlayEnabled) {
           const fill = document.createElement('div');
           fill.className = 'segment-fill';
-          // Estimate frame duration from script or default 5s
+          // Estimate frame duration from script or default 5s, adjusted for speed
           const frameDur = currentScript ? (currentScript.totalDuration || 5000) / total : 5000;
-          fill.style.animationDuration = `${frameDur}ms`;
+          fill.style.animationDuration = `${frameDur / getPlaybackRate()}ms`;
           seg.appendChild(fill);
         }
 
@@ -643,6 +670,29 @@ function main(): void {
         }
       }
     });
+  }
+
+  // ── Speed toggle ───────────────────────────────────────────────────
+  const speedToggle = document.getElementById('speed-toggle');
+  // Apply initial playback rate
+  audioEngine.setPlaybackRate(getPlaybackRate());
+  updateSpeedUI();
+
+  function cycleSpeed(): void {
+    currentSpeedIndex = (currentSpeedIndex + 1) % SPEED_OPTIONS.length;
+    const rate = SPEED_OPTIONS[currentSpeedIndex];
+    audioEngine.setPlaybackRate(rate);
+    try {
+      localStorage.setItem('preplai-playback-speed', String(rate));
+    } catch { /* ignore */ }
+    updateSpeedUI();
+    // Refresh progress bar to reflect new speed
+    updateFrameCounter();
+    trackPlayerEvent('speed_change', { speed: rate });
+  }
+
+  if (speedToggle) {
+    speedToggle.addEventListener('click', cycleSpeed);
   }
 
   // ── Play/Pause toggle ─────────────────────────────────────────────
@@ -810,6 +860,10 @@ function main(): void {
     if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey && !e.altKey) {
       e.preventDefault();
       toggleFullscreen();
+    }
+    if ((e.key === 's' || e.key === 'S') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      cycleSpeed();
     }
   });
 

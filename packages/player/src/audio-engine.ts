@@ -37,6 +37,7 @@ export class AudioEngine {
   private playing = false;
   private _loading = false;
   private preloadAudio: HTMLAudioElement | null = null;
+  private _playbackRate = 1;
 
   constructor(private readonly options: AudioEngineOptions) {
     this.audio = new Audio();
@@ -103,6 +104,7 @@ export class AudioEngine {
 
     if (this.enabled) {
       this.playing = true;
+      this.audio.playbackRate = this._playbackRate;
       this.audio.play().catch(() => {
         this.playing = false;
         this.setLoading(false);
@@ -182,5 +184,16 @@ export class AudioEngine {
   /** Whether audio is currently loading. */
   get isLoading(): boolean {
     return this._loading;
+  }
+
+  /** Set playback speed rate (e.g., 0.75, 1, 1.25, 1.5, 2). */
+  setPlaybackRate(rate: number): void {
+    this._playbackRate = rate;
+    this.audio.playbackRate = rate;
+  }
+
+  /** Current playback speed rate. */
+  get playbackRate(): number {
+    return this._playbackRate;
   }
 }

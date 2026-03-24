@@ -431,6 +431,21 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   opacity: 0.4;
 }
 
+/* ── Speed toggle ────────────────────────────────────────────────── */
+
+#speed-toggle {
+  min-width: 36px;
+  border-radius: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+#speed-toggle .speed-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
 /* ── TTS toggle ──────────────────────────────────────────────────── */
 
 #tts-toggle,

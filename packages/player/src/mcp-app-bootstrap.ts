@@ -134,6 +134,31 @@ async function main(): Promise<void> {
   let autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null;
   let ttsEnabled = true; // controlled by TTS toggle button
 
+  // ── Playback speed ─────────────────────────────────────────────────
+  const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5, 2];
+  let currentSpeedIndex = (() => {
+    try {
+      const stored = localStorage.getItem('preplai-playback-speed');
+      if (stored) {
+        const idx = SPEED_OPTIONS.indexOf(parseFloat(stored));
+        if (idx >= 0) return idx;
+      }
+    } catch { /* ignore */ }
+    return 1; // default 1x
+  })();
+
+  function getPlaybackRate(): number {
+    return SPEED_OPTIONS[currentSpeedIndex];
+  }
+
+  function updateSpeedUI(): void {
+    const btn = document.getElementById('speed-toggle');
+    if (!btn) return;
+    const label = btn.querySelector('.speed-label');
+    if (label) label.textContent = `${SPEED_OPTIONS[currentSpeedIndex]}x`;
+    btn.title = `Playback speed: ${SPEED_OPTIONS[currentSpeedIndex]}x (S)`;
+  }
+
   // Web Speech API fallback disabled — only HD audio (Inworld/ElevenLabs) is used.
   // When no HD audio is available, the player stays silent with text narration only.
   const synth = null as SpeechSynthesis | null;
@@ -216,7 +241,7 @@ async function main(): Promise<void> {
 
     if (synth) synth.cancel();
     const utterance = new SpeechSynthesisUtterance(narration);
-    utterance.rate = 0.95;
+    utterance.rate = 0.95 * getPlaybackRate();
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
     isSpeakingFallback = true;
@@ -381,6 +406,26 @@ async function main(): Promise<void> {
     });
   }
 
+  // ── Speed toggle ───────────────────────────────────────────────────
+  const speedToggle = document.getElementById('speed-toggle');
+  audioEngine.setPlaybackRate(getPlaybackRate());
+  updateSpeedUI();
+
+  function cycleSpeed(): void {
+    currentSpeedIndex = (currentSpeedIndex + 1) % SPEED_OPTIONS.length;
+    const rate = SPEED_OPTIONS[currentSpeedIndex];
+    audioEngine.setPlaybackRate(rate);
+    try {
+      localStorage.setItem('preplai-playback-speed', String(rate));
+    } catch { /* ignore */ }
+    updateSpeedUI();
+    updateFrameCounter();
+  }
+
+  if (speedToggle) {
+    speedToggle.addEventListener('click', cycleSpeed);
+  }
+
   // ── Narrator overlay toggle button ──────────────────────────────
   const narratorToggleBtn = document.getElementById('narrator-overlay-toggle');
   let narratorVisible = true;
@@ -417,6 +462,8 @@ async function main(): Promise<void> {
       ttsEnabled = !ttsEnabled;
       updateTtsUI();
       if (!ttsEnabled) stopSpeech();
+    } else if (e.key === 's' || e.key === 'S') {
+      cycleSpeed();
     }
   });
 
