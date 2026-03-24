@@ -5,7 +5,7 @@
  * Layout in design units; uniform scale transform so size changes scale the whole illustration.
  */
 
-import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
+import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam, wrapBodyText } from '../utils.js';
 import {
   getCategoryColor,
   getStrokeWidth,
@@ -27,31 +27,9 @@ const TITLE_FONT = 10;         // title above list
 const LINE_H = STEP_FONT * 1.45; // line height for wrapped text
 const MAX_CHARS = 26;          // max chars per line before wrap
 
-/** Wrap text into lines that fit within a max character width. */
+/** Wrap text into lines (delegates to canonical wrapBodyText, capped at 3 lines). */
 function wrapText(text: string, maxChars: number): string[] {
-  const trimmed = text.trim();
-  if (!trimmed) return [];
-  if (trimmed.length <= maxChars) return [trimmed];
-
-  const words = trimmed.split(/\s+/);
-  const lines: string[] = [];
-  let current = '';
-  for (const w of words) {
-    const candidate = current ? `${current} ${w}` : w;
-    if (candidate.length <= maxChars) {
-      current = candidate;
-    } else {
-      if (current) lines.push(current);
-      current = w;
-    }
-  }
-  if (current) lines.push(current);
-  // Cap at 3 lines
-  if (lines.length > 3) {
-    lines.length = 3;
-    lines[2] = lines[2].slice(0, maxChars - 1) + '\u2026';
-  }
-  return lines;
+  return wrapBodyText(text, maxChars, 3).lines;
 }
 
 export function renderStepList(entity: VisualEntity, parentEl: SVGElement): SVGGElement {

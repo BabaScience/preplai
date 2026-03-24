@@ -5,15 +5,24 @@ import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { OAuthClient } from '../db.js';
+import { hashSecret } from '@preplai/shared/node';
 
 const router = Router();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'preplai-dev-secret-change-in-prod';
-const CLIENT_ID_PREFIX = 'plai_oauth_';
+const DEFAULT_SECRET = 'preplai-dev-secret-change-in-prod';
 
-function hashSecret(secret) {
-  return crypto.createHash('sha256').update(secret).digest('hex');
+function getJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (process.env.NODE_ENV === 'production') {
+    if (!secret || secret === DEFAULT_SECRET) {
+      throw new Error('JWT_SECRET must be set to a secure value in production');
+    }
+  }
+  return secret || DEFAULT_SECRET;
 }
+
+const JWT_SECRET = getJwtSecret();
+const CLIENT_ID_PREFIX = 'plai_oauth_';
 
 function generateClientId() {
   return CLIENT_ID_PREFIX + crypto.randomBytes(16).toString('hex');

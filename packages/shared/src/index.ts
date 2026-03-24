@@ -95,3 +95,22 @@ export {
   validateVisualScript,
   resolveEntityRef,
 } from './guards.js';
+
+// Entity type classification sets
+export {
+  ARROW_TYPES,
+  CONNECTION_TYPES,
+  HEADING_TYPES,
+  METADATA_REQUIRED_TYPES,
+  SKIP_CLAMP_TYPES,
+  ALWAYS_VISIBLE_TYPES,
+  KNOWN_ENTITY_TYPES,
+} from './entity-types.js';
+
+// Math utilities
+export { clamp, distance, lerp, stdDev, mean } from './math.js';
+
+// Node-only utilities are exported from '@preplai/shared/node' subpath.
+// Do NOT export crypto.js or urls.js from here — they use node:crypto
+// and process.env which break browser bundlers (Vite/Rollup).
+// Import them via: import { ... } from '@preplai/shared/node';

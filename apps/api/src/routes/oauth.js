@@ -7,36 +7,23 @@ import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { OAuthClient, OAuthAuthCode, OAuthRefreshToken, User, ApiKey } from '../db.js';
+import { getApiBase, getWebsiteBase, getMcpResource, hashSecret } from '@preplai/shared/node';
 
 const router = Router();
 
 const DEFAULT_SECRET = 'preplai-dev-secret-change-in-prod';
-const JWT_SECRET = process.env.JWT_SECRET || DEFAULT_SECRET;
 
-function getApiBase() {
-  return (
-    process.env.API_BASE_URL ||
-    (process.env.NODE_ENV === 'production' ? 'https://api.preplai.com' : 'http://localhost:5000')
-  );
-}
-function getWebsiteBase() {
-  return (
-    process.env.WEBSITE_BASE_URL ||
-    (process.env.NODE_ENV === 'production' ? 'https://preplai.com' : 'http://localhost:5173')
-  );
-}
-function getMcpResource() {
-  return (
-    process.env.MCP_RESOURCE_URL ||
-    (process.env.NODE_ENV === 'production' ? 'https://player.preplai.com' : 'http://localhost:5005')
-  );
+function getJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (process.env.NODE_ENV === 'production') {
+    if (!secret || secret === DEFAULT_SECRET) {
+      throw new Error('JWT_SECRET must be set to a secure value in production');
+    }
+  }
+  return secret || DEFAULT_SECRET;
 }
 
-// ── Helpers ─────────────────────────────────────────────────────────────
-
-function hashSecret(secret) {
-  return crypto.createHash('sha256').update(secret).digest('hex');
-}
+const JWT_SECRET = getJwtSecret();
 
 function generateAuthCode() {
   return crypto.randomBytes(32).toString('hex');

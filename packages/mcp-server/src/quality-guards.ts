@@ -13,6 +13,7 @@
  */
 
 import type { VisualScript, VisualEntity } from '@preplai/shared';
+import { CONNECTION_TYPES, HEADING_TYPES } from '@preplai/shared';
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -23,12 +24,6 @@ export interface QualityWarning {
 }
 
 // ── Constants ────────────────────────────────────────────────────────────
-
-const CONNECTION_TYPES = new Set([
-  'Arrow', 'DataFlow', 'BidirectArrow', 'DottedArrow', 'Transition',
-]);
-
-const HEADING_TYPES = new Set(['H1', 'H2', 'H3']);
 
 /** Content entities above this threshold trigger overcrowded warning */
 const OVERCROWDED_THRESHOLD = 10;

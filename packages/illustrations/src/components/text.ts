@@ -16,31 +16,15 @@
  * Both use `textContent` or `label` for content. Color cascade for theming.
  */
 
-import { SVG_NS, buildEntityGroup, applyEntranceAnimation } from '../utils.js';
+import { SVG_NS, buildEntityGroup, applyEntranceAnimation, wrapBodyText } from '../utils.js';
 import { TYPOGRAPHY, SHAPES } from '../design-tokens.js';
 import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
-// ── Word wrap utility ──────────────────────────────────────────────
+// ── Word wrap utility (delegates to canonical wrapBodyText) ──────
 
 function wrapText(text: string, maxCharsPerLine: number): string[] {
-  const words = text.split(/\s+/);
-  const lines: string[] = [];
-  let currentLine = '';
-
-  for (const word of words) {
-    if (currentLine.length === 0) {
-      currentLine = word;
-    } else if (currentLine.length + 1 + word.length <= maxCharsPerLine) {
-      currentLine += ' ' + word;
-    } else {
-      lines.push(currentLine);
-      currentLine = word;
-    }
-  }
-  if (currentLine) lines.push(currentLine);
-
-  return lines;
+  return wrapBodyText(text, maxCharsPerLine, 999).lines;
 }
 
 // ── Shared text renderer ───────────────────────────────────────────

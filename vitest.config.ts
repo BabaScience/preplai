@@ -5,6 +5,7 @@ export default defineConfig({
   resolve: {
     alias: {
       // Resolve workspace packages to source (not dist) for testing
+      '@preplai/shared/node': path.resolve(__dirname, 'packages/shared/src/node.ts'),
       '@preplai/shared': path.resolve(__dirname, 'packages/shared/src/index.ts'),
       '@preplai/illustrations': path.resolve(__dirname, 'packages/illustrations/src/index.ts'),
       '@preplai/compiler': path.resolve(__dirname, 'packages/compiler/src/index.ts'),

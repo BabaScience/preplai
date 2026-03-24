@@ -1,10 +1,9 @@
 import { Router } from 'express';
-import crypto from 'crypto';
 import { ApiKey } from '../db.js';
 import { authenticate } from '../middleware/auth.js';
+import { generateApiKey } from '@preplai/shared/node';
 
 const router = Router();
-const KEY_PREFIX = 'plai_';
 
 router.use(authenticate);
 
@@ -50,9 +49,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Maximum of 10 access tokens allowed' });
     }
 
-    const rawKey = KEY_PREFIX + crypto.randomBytes(20).toString('hex');
-    const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
-    const keyPrefix = rawKey.substring(0, 12);
+    const { key: rawKey, keyHash, keyPrefix } = generateApiKey();
 
     const key = await ApiKey.create({
       userId: req.user.userId,
