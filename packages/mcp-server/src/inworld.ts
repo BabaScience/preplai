@@ -79,9 +79,31 @@ export class InworldTtsProvider implements TtsProvider {
       throw new Error('Inworld response missing audioContent');
     }
 
+    // Debug: log response keys to diagnose missing timestamps
+    const responseKeys = Object.keys(data);
+    const hasTimestamps = !!data.timestampInfo?.wordAlignment?.words?.length;
+    console.log(`[Inworld] Response keys: [${responseKeys.join(', ')}], hasTimestamps: ${hasTimestamps}`);
+    if (data.timestampInfo) {
+      const wa = data.timestampInfo.wordAlignment;
+      console.log(`[Inworld] wordAlignment: ${wa?.words?.length ?? 0} words`);
+    }
+
     const audioBuffer = Buffer.from(data.audioContent, 'base64');
-    const wordTimestamps = extractWordTimestamps(data.timestampInfo);
-    const duration = computeDuration(wordTimestamps);
+    let wordTimestamps = extractWordTimestamps(data.timestampInfo);
+
+    // Duration: prefer word timestamps, fall back to MP3 estimate
+    // MP3 at 128kbps: duration ≈ bufferBytes / (128000/8)
+    let duration = computeDuration(wordTimestamps);
+    if (duration <= 0 && audioBuffer.length > 0) {
+      duration = audioBuffer.length / (128000 / 8);
+    }
+
+    // If Inworld returned no timestamps, synthesize them from the text + duration.
+    // This gives the focus cue system words to match against entity labels.
+    if (wordTimestamps.length === 0 && duration > 0) {
+      wordTimestamps = synthesizeWordTimestamps(text, duration);
+      console.log(`[Inworld] Synthesized ${wordTimestamps.length} word timestamps from text (${duration.toFixed(1)}s)`);
+    }
 
     return { audioBuffer, duration, wordTimestamps };
   }
@@ -121,4 +143,44 @@ function extractWordTimestamps(
 function computeDuration(wordTimestamps: WordTimestamp[]): number {
   if (wordTimestamps.length === 0) return 0;
   return wordTimestamps[wordTimestamps.length - 1].endTime;
+}
+
+/**
+ * Synthesize word-level timestamps from narration text and estimated duration.
+ *
+ * When Inworld doesn't return timestamp data, we distribute words evenly
+ * across the audio timeline weighted by character length. This gives the
+ * focus cue system words to match against entity labels.
+ *
+ * Not as precise as real alignment, but sufficient for cinematic focus cues
+ * where ~0.5s precision is acceptable.
+ */
+function synthesizeWordTimestamps(text: string, duration: number): WordTimestamp[] {
+  const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+  if (words.length === 0 || duration <= 0) return [];
+
+  // Weight each word by character length (longer words take more time to speak)
+  const totalChars = words.reduce((sum, w) => sum + w.length, 0);
+  if (totalChars === 0) return [];
+
+  // Leave a small buffer at start (0.3s) and end (0.5s) for natural speech pacing
+  const startPad = Math.min(0.3, duration * 0.02);
+  const endPad = Math.min(0.5, duration * 0.03);
+  const speakDuration = duration - startPad - endPad;
+  if (speakDuration <= 0) return [];
+
+  const timestamps: WordTimestamp[] = [];
+  let cursor = startPad;
+
+  for (const word of words) {
+    const wordDuration = (word.length / totalChars) * speakDuration;
+    timestamps.push({
+      word,
+      startTime: cursor,
+      endTime: cursor + wordDuration,
+    });
+    cursor += wordDuration;
+  }
+
+  return timestamps;
 }
