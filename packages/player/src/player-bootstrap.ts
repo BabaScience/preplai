@@ -7,7 +7,8 @@
 import type { VisualScript, FrameAudio } from '@preplai/shared';
 import type { FocusInfo } from '@preplai/player';
 import { SceneController, NarratorController, AudioEngine, resolveSessionId, createSSEHandler } from '@preplai/player';
-import { setActivePalette, setActiveTheme, getParticleColors } from '@preplai/illustrations';
+import { setActivePalette, setActiveTheme, getParticleColors, clearColorRampCache } from '@preplai/illustrations';
+import { PALETTES } from '@preplai/shared';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const CW = 1920;
@@ -741,6 +742,85 @@ function main(): void {
   if (narratorOverlayToggle) {
     narratorOverlayToggle.addEventListener('click', () => setNarratorOverlayVisible(!narratorOverlayVisible));
   }
+
+  // ── Theme & palette hover-pill controls ─────────────────────────
+
+  const PALETTE_ACCENTS: Record<string, string> = {
+    default: PALETTES.default.accent,
+    ocean: PALETTES.ocean.accent,
+    sunset: PALETTES.sunset.accent,
+    forest: PALETTES.forest.accent,
+    mono: PALETTES.mono.accent,
+  };
+
+  function rebuildAmbientParticles(): void {
+    const al = document.getElementById('ambient-layer');
+    if (!al) return;
+    al.innerHTML = '';
+    const colors = getParticleColors();
+    for (let i = 0; i < 12; i++) {
+      const c = document.createElementNS(SVG_NS, 'circle');
+      c.setAttribute('cx', String(Math.random() * CW));
+      c.setAttribute('cy', String(Math.random() * CH));
+      c.setAttribute('r', String(2 + Math.random() * 4));
+      c.setAttribute('fill', colors[i % colors.length]);
+      c.setAttribute('opacity', String(0.03 + Math.random() * 0.04));
+      c.classList.add('ambient-particle');
+      c.style.animationDelay = Math.random() * 6 + 's';
+      al.appendChild(c);
+    }
+  }
+
+  /** Navigate to the same page with updated style/palette query params (full reload). */
+  function reloadWithParams(theme: string, palette: string): void {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('style', theme);
+      url.searchParams.set('palette', palette);
+      window.location.href = url.toString();
+    } catch { /* fallback: just reload */ window.location.reload(); }
+  }
+
+  function applyThemeSetting(theme: 'cinema' | 'light'): void {
+    try { localStorage.setItem('preplai-theme', theme); } catch {}
+    reloadWithParams(theme, document.body.getAttribute('data-palette') || 'default');
+  }
+
+  function applyPaletteSetting(palette: string): void {
+    try { localStorage.setItem('preplai-palette', palette); } catch {}
+    reloadWithParams(document.body.getAttribute('data-theme') || 'cinema', palette);
+  }
+
+  function updateThemeUI(theme: string): void {
+    document.querySelectorAll('#theme-control [data-theme-value]').forEach((btn) => {
+      btn.classList.toggle('active', btn.getAttribute('data-theme-value') === theme);
+    });
+  }
+
+  function updatePaletteUI(palette: string): void {
+    const indicator = document.querySelector('.palette-dot-indicator') as HTMLElement | null;
+    if (indicator) indicator.style.background = PALETTE_ACCENTS[palette] || PALETTE_ACCENTS.default;
+    document.querySelectorAll('#palette-control [data-palette-value]').forEach((btn) => {
+      btn.classList.toggle('active', btn.getAttribute('data-palette-value') === palette);
+    });
+  }
+
+  document.querySelectorAll('#theme-control [data-theme-value]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const t = btn.getAttribute('data-theme-value') as 'cinema' | 'light';
+      if (t) applyThemeSetting(t);
+    });
+  });
+
+  document.querySelectorAll('#palette-control [data-palette-value]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const p = btn.getAttribute('data-palette-value');
+      if (p) applyPaletteSetting(p);
+    });
+  });
+
+  updateThemeUI(themeName);
+  updatePaletteUI(paletteName);
 
   // ── Fullscreen + orientation lock ─────────────────────────────────
   const fullscreenBtn = document.getElementById('fullscreen-toggle');

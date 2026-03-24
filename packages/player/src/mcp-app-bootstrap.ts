@@ -11,7 +11,8 @@
 import { App } from '@modelcontextprotocol/ext-apps';
 import type { VisualScript, FrameAudio } from '@preplai/shared';
 import { SceneController, NarratorController, AudioEngine } from '@preplai/player';
-import { setActivePalette, setActiveTheme, getParticleColors } from '@preplai/illustrations';
+import { setActivePalette, setActiveTheme, getParticleColors, clearColorRampCache } from '@preplai/illustrations';
+import { PALETTES } from '@preplai/shared';
 
 // Import player CSS — Vite will inline this into the single-file HTML
 import './mcp-app-styles.css';
@@ -441,6 +442,83 @@ async function main(): Promise<void> {
     narratorToggleBtn.addEventListener('click', toggleNarratorOverlay);
   }
 
+  // ── Theme & palette hover-pill controls ─────────────────────────
+
+  const PALETTE_ACCENTS: Record<string, string> = {
+    default: PALETTES.default.accent,
+    ocean: PALETTES.ocean.accent,
+    sunset: PALETTES.sunset.accent,
+    forest: PALETTES.forest.accent,
+    mono: PALETTES.mono.accent,
+  };
+
+  /** MCP App: apply theme/palette client-side (no reload — sandboxed iframe). */
+  function applyTheme(theme: 'cinema' | 'light'): void {
+    document.body.setAttribute('data-theme', theme);
+    setActiveTheme(theme);
+    sceneController.seekToFrame(sceneController.currentFrameIdx);
+    const ambientLayer = document.getElementById('ambient-layer');
+    if (ambientLayer) {
+      ambientLayer.innerHTML = '';
+      setupAmbientParticles();
+    }
+    updateThemeUI(theme);
+    try { localStorage.setItem('preplai-theme', theme); } catch { /* ignore */ }
+  }
+
+  function applyPalette(palette: string): void {
+    document.body.setAttribute('data-palette', palette);
+    setActivePalette(palette);
+    clearColorRampCache();
+    sceneController.seekToFrame(sceneController.currentFrameIdx);
+    const ambientLayer = document.getElementById('ambient-layer');
+    if (ambientLayer) {
+      ambientLayer.innerHTML = '';
+      setupAmbientParticles();
+    }
+    updatePaletteUI(palette);
+    try { localStorage.setItem('preplai-palette', palette); } catch { /* ignore */ }
+  }
+
+  function updateThemeUI(theme: string): void {
+    // Mark active theme option
+    document.querySelectorAll('#theme-control [data-theme-value]').forEach((btn) => {
+      btn.classList.toggle('active', btn.getAttribute('data-theme-value') === theme);
+    });
+  }
+
+  function updatePaletteUI(palette: string): void {
+    // Update trigger dot color
+    const indicator = document.querySelector('.palette-dot-indicator') as HTMLElement | null;
+    if (indicator) {
+      indicator.style.background = PALETTE_ACCENTS[palette] || PALETTE_ACCENTS.default;
+    }
+    // Mark active palette option
+    document.querySelectorAll('#palette-control [data-palette-value]').forEach((btn) => {
+      btn.classList.toggle('active', btn.getAttribute('data-palette-value') === palette);
+    });
+  }
+
+  // Theme control click handlers
+  document.querySelectorAll('#theme-control [data-theme-value]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const theme = btn.getAttribute('data-theme-value') as 'cinema' | 'light';
+      if (theme) applyTheme(theme);
+    });
+  });
+
+  // Palette control click handlers
+  document.querySelectorAll('#palette-control [data-palette-value]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const palette = btn.getAttribute('data-palette-value');
+      if (palette) applyPalette(palette);
+    });
+  });
+
+  // Initialize UI state from current body attributes
+  updateThemeUI(document.body.getAttribute('data-theme') || 'cinema');
+  updatePaletteUI(document.body.getAttribute('data-palette') || 'default');
+
   // ── Keyboard navigation ─────────────────────────────────────────
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') {
@@ -518,15 +596,21 @@ async function main(): Promise<void> {
     const meta = result._meta as Record<string, unknown> | undefined;
     if (!meta) return;
 
-    // Apply theme
-    const theme = ((meta.theme as string) || 'cinema') as 'cinema' | 'light';
+    // Apply theme (respect localStorage override from user preference)
+    const savedTheme = (() => { try { return localStorage.getItem('preplai-theme'); } catch { return null; } })();
+    const theme = (savedTheme || (meta.theme as string) || 'cinema') as 'cinema' | 'light';
     document.body.setAttribute('data-theme', theme);
     setActiveTheme(theme);
 
-    // Apply palette
-    const palette = (meta.palette as string) || 'default';
+    // Apply palette (respect localStorage override from user preference)
+    const savedPalette = (() => { try { return localStorage.getItem('preplai-palette'); } catch { return null; } })();
+    const palette = savedPalette || (meta.palette as string) || 'default';
     document.body.setAttribute('data-palette', palette);
     setActivePalette(palette);
+
+    // Update hover-pill UI to reflect active theme/palette
+    updateThemeUI(theme);
+    updatePaletteUI(palette);
 
     // Re-init ambient particles with palette colors
     const ambientLayer = document.getElementById('ambient-layer');

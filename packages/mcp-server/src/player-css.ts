@@ -309,6 +309,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   -webkit-backdrop-filter: blur(12px);
   border-radius: 20px;
   padding: 8px 16px;
+  overflow: visible;
 }
 
 /* Auto-hide: slide down + fade out when idle */
@@ -1383,6 +1384,47 @@ body[data-theme="light"] {
 #fullscreen-toggle .fs-enter-icon { display: block; }
 #fullscreen-toggle.is-fullscreen .fs-enter-icon { display: none; }
 #fullscreen-toggle.is-fullscreen .fs-exit-icon { display: block; }
+
+/* ── Hover-pill: compact floating popup (icons/dots only) ─────── */
+.hover-pill { position:relative; display:flex; align-items:center; height:32px; border-radius:16px; overflow:visible; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.10); transition:background 0.2s ease, border-color 0.2s ease; z-index:1; }
+.hover-pill:hover, .hover-pill:focus-within { z-index:210; background:rgba(255,255,255,0.14); border-color:rgba(255,255,255,0.18); }
+.hover-pill-trigger { display:flex; align-items:center; justify-content:center; width:32px; height:32px; border:none; background:transparent; color:rgba(255,255,255,0.55); cursor:pointer; padding:0; flex-shrink:0; border-radius:50%; transition:color 0.15s ease; }
+.hover-pill-trigger:hover { color:rgba(255,255,255,0.9); }
+.hover-pill-popup { position:absolute; left:50%; bottom:calc(100% + 10px); transform:translateX(-50%) translateY(6px) scale(0.92); transform-origin:bottom center; display:flex; flex-direction:row; align-items:center; gap:6px; padding:6px 8px; background:linear-gradient(170deg, rgba(255,255,255,0.13) 0%, rgba(24,26,40,0.58) 100%); backdrop-filter:blur(28px) saturate(1.25); -webkit-backdrop-filter:blur(28px) saturate(1.25); border:1px solid rgba(255,255,255,0.16); border-radius:20px; box-shadow:0 8px 28px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.10); opacity:0; visibility:hidden; pointer-events:none; transition:opacity 0.16s ease, transform 0.2s cubic-bezier(0.16,1,0.3,1), visibility 0.2s; z-index:200; }
+.hover-pill-popup::before { content:''; position:absolute; bottom:-14px; left:0; right:0; height:16px; background:transparent; }
+.hover-pill-popup::after { content:''; position:absolute; bottom:-5px; left:50%; transform:translateX(-50%) rotate(45deg); width:9px; height:9px; background:rgba(24,26,40,0.58); border-right:1px solid rgba(255,255,255,0.16); border-bottom:1px solid rgba(255,255,255,0.16); }
+.hover-pill:hover .hover-pill-popup, .hover-pill:focus-within .hover-pill-popup { opacity:1; visibility:visible; pointer-events:auto; transform:translateX(-50%) translateY(0) scale(1); }
+.hover-pill-popup button { display:flex; align-items:center; justify-content:center; width:30px; height:30px; margin:0; padding:0; border:1.5px solid transparent; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.6); border-radius:50%; cursor:pointer; flex-shrink:0; transition:all 0.14s ease; }
+.hover-pill-popup button:hover { background:rgba(255,255,255,0.16); color:#fff; }
+.hover-pill-popup button:focus { outline:none; }
+.hover-pill-popup button:focus-visible { border-color:rgba(201,168,76,0.6); }
+.hover-pill-popup button.active { background:rgba(201,168,76,0.22); border-color:rgba(201,168,76,0.55); color:#fff; }
+.hover-pill-popup button>svg { width:14px; height:14px; display:block; }
+[data-theme="cinema"] .theme-icon-light { display:none; }
+[data-theme="cinema"] .theme-icon-cinema { display:block; }
+[data-theme="light"] .theme-icon-cinema { display:none; }
+[data-theme="light"] .theme-icon-light { display:block; }
+.palette-dot-indicator { display:block; width:13px; height:13px; border-radius:50%; background:#C9A84C; transition:background 0.25s ease; box-shadow:0 0 0 1.5px rgba(255,255,255,0.12); }
+.pdot { width:22px !important; height:22px !important; border:1.5px solid transparent !important; transition:all 0.14s ease, transform 0.14s ease !important; box-shadow:inset 0 1px 2px rgba(255,255,255,0.2); }
+.pdot[data-palette-value="default"] { background:#c9a84c !important; }
+.pdot[data-palette-value="ocean"] { background:#4ecdc4 !important; }
+.pdot[data-palette-value="sunset"] { background:#e67e22 !important; }
+.pdot[data-palette-value="forest"] { background:#27ae60 !important; }
+.pdot[data-palette-value="mono"] { background:#90a4ae !important; }
+.pdot.active { transform:scale(1.15); border-color:rgba(255,255,255,0.5) !important; box-shadow:inset 0 1px 2px rgba(255,255,255,0.3), 0 0 0 2px rgba(255,255,255,0.2) !important; }
+.pdot:hover:not(.active) { transform:scale(1.08); border-color:rgba(255,255,255,0.3) !important; }
+[data-theme="light"] .hover-pill { background:rgba(0,0,0,0.05); border-color:rgba(0,0,0,0.09); }
+[data-theme="light"] .hover-pill:hover, [data-theme="light"] .hover-pill:focus-within { background:rgba(0,0,0,0.08); border-color:rgba(0,0,0,0.12); }
+[data-theme="light"] .hover-pill-trigger { color:rgba(60,60,80,0.6); }
+[data-theme="light"] .hover-pill-trigger:hover { color:rgba(20,20,40,0.9); }
+[data-theme="light"] .hover-pill-popup { background:linear-gradient(165deg, rgba(255,255,255,0.82) 0%, rgba(248,246,240,0.7) 100%); backdrop-filter:blur(28px) saturate(1.1); -webkit-backdrop-filter:blur(28px) saturate(1.1); border-color:rgba(255,255,255,0.8); box-shadow:0 8px 28px rgba(20,24,40,0.09), inset 0 1px 0 rgba(255,255,255,0.9); }
+[data-theme="light"] .hover-pill-popup::after { background:rgba(248,246,240,0.7); border-right-color:rgba(255,255,255,0.8); border-bottom-color:rgba(255,255,255,0.8); }
+[data-theme="light"] .hover-pill-popup button { background:rgba(0,0,0,0.04); color:rgba(40,40,60,0.65); border-color:transparent; }
+[data-theme="light"] .hover-pill-popup button:hover { background:rgba(0,0,0,0.08); color:#1a1a2e; }
+[data-theme="light"] .hover-pill-popup button.active { background:rgba(201,168,76,0.18); border-color:rgba(184,148,61,0.45); color:#1a1a2e; }
+[data-theme="light"] .palette-dot-indicator { box-shadow:0 0 0 1.5px rgba(0,0,0,0.1); }
+[data-theme="light"] .pdot.active { border-color:rgba(0,0,0,0.25) !important; box-shadow:inset 0 1px 2px rgba(255,255,255,0.4), 0 0 0 2px rgba(0,0,0,0.1) !important; }
+[data-theme="light"] .pdot:hover:not(.active) { border-color:rgba(0,0,0,0.18) !important; }
 
 /* ── Rotate hint overlay (mobile portrait only) ────────────────── */
 
