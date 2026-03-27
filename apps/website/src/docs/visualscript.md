@@ -91,9 +91,9 @@ Each frame is a view with entities and narration. Frames play in sequence.
 
 Same entity `id` across frames = entity **stays in the DOM** (no rebuild). New IDs animate in, removed IDs slide out. This is the core feature for building narrative continuity — keep core entities (Server, Database, User) persistent across frames and add/remove detail entities around them.
 
-### Depth of Field
+### Depth of Field (Progressive Reveal)
 
-Set `"hl": true` (highlight) on the entity you're narrating about. The engine dims and blurs everything else (0.35 opacity, blur, 0.88× scale) and enlarges the focused entity (1.15×). Creates a cinematic focus pull effect. Use **one highlight per frame**, matching the narration.
+Set `"hl": true` (highlight) on the entity you're narrating about. The engine uses **progressive reveal** — once an entity is focused by narration, it stays visible (secondary focus) even when focus moves to the next entity. Only not-yet-mentioned entities are dimmed (0.35 opacity, blur, 0.88× scale). The focused entity is enlarged (1.15×). This builds the scene incrementally so viewers never lose context about previously introduced elements. Each frame starts fresh.
 
 ### Camera
 

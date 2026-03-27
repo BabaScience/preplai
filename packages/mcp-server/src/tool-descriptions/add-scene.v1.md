@@ -18,7 +18,7 @@ LANGUAGE & VOICE: Set lang at script level for the whole presentation, or per-fr
 
 ENTITY PERSISTENCE (critical — #1 quality signal): Same entity id across frames = entity STAYS in DOM (no rebuild). New ids animate in, removed ids slide out. RULES: (1) Keep at least 2–3 anchor entities (title, core server/concept) in EVERY frame with the same id. (2) Add only 1–3 new entities per frame transition. (3) NEVER rebuild the entire entity set from scratch between frames. For timelines/sequential topics: keep a persistent anchor (e.g. a central Pipeline, Server, or Concept) and swap detail entities around it.
 
-DEPTH OF FIELD: Set "highlight": true on the entity you're narrating about. The engine dims/blurs everything else (0.35 opacity, blur, 0.88x scale) and enlarges the focused entity (1.15x). Creates cinematic focus pull. Use ONE highlight per frame, matching narration.
+DEPTH OF FIELD (Progressive Reveal): Set "highlight": true on the entity you're narrating about. The engine uses progressive reveal — once an entity is focused by narration, it stays visible even when focus moves elsewhere. Only not-yet-mentioned entities are dimmed (0.35 opacity, blur, 0.88x scale). The focused entity is enlarged (1.15x). This builds the scene incrementally so viewers never lose context about previously introduced elements. Each frame starts fresh.
 
 CAMERA: ViewBox auto-pans/zooms to frame your entities. Control through positioning:
 - Cluster entities tightly → camera zooms in (detail shot)

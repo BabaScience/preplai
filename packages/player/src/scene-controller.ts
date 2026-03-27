@@ -147,6 +147,13 @@ export class SceneController {
   private _focusDecayTimer: ReturnType<typeof setTimeout> | null = null;
   /** Timestamp of last focus cue (for coalescing window) */
   private _lastCueTime: number = 0;
+  /**
+   * Progressive reveal: accumulates all entity IDs that have ever been
+   * focused during the current frame. Once revealed, an entity stays
+   * visible (secondary focus) even when active focus moves elsewhere.
+   * Cleared on frame change.
+   */
+  private _revealedIds: Set<string> = new Set();
 
   constructor(options: SceneControllerOptions) {
     this.entityLayer = options.entityLayer;
@@ -866,6 +873,7 @@ export class SceneController {
     if (entityIds === null) {
       this._activeFocusIds.clear();
       this._activeFocusConfidences.clear();
+      this._revealedIds.clear();
       if (this._focusDecayTimer) {
         clearTimeout(this._focusDecayTimer);
         this._focusDecayTimer = null;
@@ -897,9 +905,15 @@ export class SceneController {
       }
     }
 
+    // ── Progressive reveal: remember every entity that's been focused ──
+    for (const id of newIds) {
+      this._revealedIds.add(id);
+    }
+
     this._lastCueTime = now;
 
-    // ── Reset decay timer: clear focus after no new cues ──────────
+    // ── Reset decay timer: clear active focus after no new cues ───
+    // Note: revealed entities stay visible; only the active zoom/highlight clears.
     if (this._focusDecayTimer) {
       clearTimeout(this._focusDecayTimer);
     }
@@ -923,6 +937,7 @@ export class SceneController {
    */
   private _applyFocusToDOM(frame: IllustrationFrame): void {
     const hasFocus = this._activeFocusIds.size > 0;
+    const hasRevealed = this._revealedIds.size > 0;
     const nonConnections = frame.entities.filter(e => !isConnectionType(e.type));
 
     for (const entity of nonConnections) {
@@ -938,16 +953,20 @@ export class SceneController {
         } else {
           el.classList.add('dof-focus-secondary');
         }
-      } else if (hasFocus && ALWAYS_VISIBLE_TYPES.has(entity.type)) {
+      } else if ((hasFocus || hasRevealed) && this._revealedIds.has(entity.id)) {
+        // ── Progressive reveal: previously focused entity stays visible ──
+        el.classList.remove('dof-bg', 'dof-focus');
+        el.classList.add('dof-focus-secondary');
+      } else if ((hasFocus || hasRevealed) && ALWAYS_VISIBLE_TYPES.has(entity.type)) {
         // ── Always-visible type: never blur, use secondary focus ──
         el.classList.remove('dof-bg', 'dof-focus');
         el.classList.add('dof-focus-secondary');
-      } else if (hasFocus) {
-        // ── Background entity: dim and blur ──
+      } else if (hasFocus || hasRevealed) {
+        // ── Background entity: dim and blur (not yet revealed) ──
         el.classList.remove('dof-focus', 'dof-focus-secondary');
         el.classList.add('dof-bg');
       } else {
-        // ── No focus: clear all DoF, show everything normally ──
+        // ── No focus and nothing revealed: show everything normally ──
         el.classList.remove('dof-focus', 'dof-bg', 'dof-focus-secondary');
       }
     }
@@ -994,6 +1013,7 @@ export class SceneController {
     // Clear focus coalescing state
     this._activeFocusIds.clear();
     this._activeFocusConfidences.clear();
+    this._revealedIds.clear();
     if (this._focusDecayTimer) {
       clearTimeout(this._focusDecayTimer);
       this._focusDecayTimer = null;
