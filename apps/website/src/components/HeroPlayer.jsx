@@ -180,6 +180,10 @@ export default function HeroPlayer() {
         playFrameRef.current?.('hero', next);
       }, AUDIO_GAP_MS);
     },
+    onAudioError: () => {
+      // Browser blocked autoplay — fall back to timer-driven frames
+      startFixedTimer();
+    },
   });
   playFrameRef.current = audio.playFrame;
 

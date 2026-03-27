@@ -63,16 +63,19 @@ function preloadAllAudio() {
  * @param {object} options
  * @param {function} options.onFocusCue - Called with focus cue when audio timestamp is reached
  * @param {function} options.onAudioEnd - Called when audio finishes playing a frame
+ * @param {function} options.onAudioError - Called when audio playback fails (e.g., autoplay blocked)
  */
-export default function useShowcaseAudio({ onFocusCue, onAudioEnd } = {}) {
+export default function useShowcaseAudio({ onFocusCue, onAudioEnd, onAudioError } = {}) {
   const [enabled, setEnabled] = useState(false);
   const [playing, setPlaying] = useState(false);
   const engineRef = useRef(null);
   const enabledRef = useRef(false);
   const onFocusCueRef = useRef(onFocusCue);
   const onAudioEndRef = useRef(onAudioEnd);
+  const onAudioErrorRef = useRef(onAudioError);
   onFocusCueRef.current = onFocusCue;
   onAudioEndRef.current = onAudioEnd;
+  onAudioErrorRef.current = onAudioError;
 
   // Initialize AudioEngine once + trigger preload of all audio files
   useEffect(() => {
@@ -86,8 +89,9 @@ export default function useShowcaseAudio({ onFocusCue, onAudioEnd } = {}) {
           onAudioEndRef.current?.();
         }
       },
-      onAudioError: () => {
+      onAudioError: (error) => {
         setPlaying(false);
+        onAudioErrorRef.current?.(error);
       },
     });
 

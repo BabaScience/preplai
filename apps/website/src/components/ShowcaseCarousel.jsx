@@ -78,6 +78,7 @@ export default function ShowcaseCarousel({ items }) {
 
   const playFrameRef = useRef(null);
   const audioStopRef = useRef(null);
+  const startFrameTimerRef = useRef(null);
   const audio = useShowcaseAudio({
     onFocusCue: (cue) => {
       const ctrl = controllerRef.current;
@@ -91,6 +92,11 @@ export default function ShowcaseCarousel({ items }) {
         const next = advanceFrame();
         playFrameRef.current?.(audioKeyRef.current, next);
       }, AUDIO_GAP_MS);
+    },
+    onAudioError: () => {
+      // Browser blocked autoplay (e.g., slide auto-advanced without user gesture).
+      // Fall back to timer-driven frame advancement so the showcase doesn't freeze.
+      startFrameTimerRef.current?.();
     },
   });
   playFrameRef.current = audio.playFrame;
@@ -106,6 +112,7 @@ export default function ShowcaseCarousel({ items }) {
       focusTimerRef.current = setTimeout(applyFallbackFocus, 800);
     }, FRAME_INTERVAL_MS);
   }, [advanceFrame, applyFallbackFocus]);
+  startFrameTimerRef.current = startFrameTimer;
 
   const stopFrameTimer = useCallback(() => {
     if (frameTimerRef.current) {
