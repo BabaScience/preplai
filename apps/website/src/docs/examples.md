@@ -2,17 +2,17 @@
 
 Not sure what to ask? Here are real prompts you can copy and paste. Each one creates a multi-frame animated presentation.
 
-**Tip:** Start your prompt with **"Using Preplai,"** so your AI agent knows to create a visual presentation instead of responding with plain text.
+**Tip:** Start your prompt with **"Using Preplai,"** so your AI agent knows to create a visual presentation instead of dumping another text report.
 
 ---
 
 ## Engineers & SRE Teams
 
-Turn incident postmortems, architecture decisions, and system designs into visual walkthroughs your team can actually follow.
+Your AI agent writes a 20-page postmortem nobody reads. Turn incident reports, architecture decisions, and deploy summaries into visual walkthroughs your team actually watches.
 
 > **"Using Preplai, create a visual incident postmortem: our API gateway started returning 503s at 2 AM due to a database connection leak in the auth service. We rolled back the deploy and recovered in 20 minutes."**
 >
-> You'll get: An incident timeline with root cause analysis, cascade failure diagram, resolution steps, and action items.
+> You'll get: An incident timeline with root cause analysis, cascade failure diagram, resolution steps, and action items — watchable in 2 minutes, not readable in 20.
 
 > **"Show me a microservices architecture with API gateway, user service, payment service, and a message queue"**
 >
@@ -26,33 +26,63 @@ Turn incident postmortems, architecture decisions, and system designs into visua
 >
 > You'll get: A step-by-step flow showing the user, app, auth server, and API — with arrows showing each redirect and token exchange.
 
+> **"Create a visual summary of last night's on-call alerts — 47 alerts across 3 services, group by severity and show the triage decision tree"**
+>
+> You'll get: Alert clusters grouped by service and severity, with a decision flow showing how each was triaged and resolved.
+
 ---
 
-## Product Managers
+## Founders & Business Owners
 
-Explain features, present roadmaps, and align stakeholders — without turning AI output into slides.
+Your agents run overnight — researching competitors, tracking metrics, analyzing customers. You wake up to 6,000 words of text reports. Turn agent output into a 90-second visual brief you can actually act on.
 
-> **"Explain how our recommendation engine works — show the data signals, scoring pipeline, and business impact. This is for an executive review."**
+> **"Using Preplai, create a visual morning brief: show yesterday's revenue ($47K, up 12%), active users (12,841), system uptime (99.97%), and flag anything that needs my attention"**
 >
-> You'll get: A visual walkthrough from data inputs through ML scoring to business metrics — conversion rate, AOV, revenue lift.
+> You'll get: A dashboard-style visual brief with key metrics, overnight events, trends, and recommended actions — watchable over coffee.
 
-> **"Create a presentation comparing our current checkout flow (5 steps) vs the proposed redesign (3 steps). Show conversion data."**
+> **"Have my research agent present its competitor analysis visually — 5 competitors, their pricing, features, and gaps. Show where our opportunity is."**
+>
+> You'll get: A competitor matrix with pricing charts, feature comparisons, customer sentiment, and a strategic recommendation.
+
+> **"Summarize this week's business performance — revenue trend, top customers, churn risk, and pipeline. Make it shareable with my co-founder."**
+>
+> You'll get: An animated business review with revenue charts, customer highlights, risk flags, and a priority list — link ready to share.
+
+> **"Create a visual investor update: Q1 revenue $420K (up 34%), 1,200 active users, 3 key milestones hit, and next quarter priorities"**
+>
+> You'll get: A polished visual update with growth charts, milestone cards, and forward-looking priorities — skip the 10-page PDF.
+
+---
+
+## Product & Growth Teams
+
+Your analytics agent compiled the weekly digest — funnel metrics, experiment results, feature adoption. But it's a 1,500-word text dump nobody finishes reading. Turn it into a visual report the whole team watches in 90 seconds.
+
+> **"Using Preplai, create a weekly growth digest: WAU 34,200 (up 8%), signups 1,847, activation rate 62%. Show the acquisition funnel and where users drop off."**
+>
+> You'll get: A visual funnel with conversion rates at each stage, drop-off highlights, and trend charts — the whole growth picture in one walkthrough.
+
+> **"Present this week's A/B test results: new onboarding flow +15% activation (97% confidence), pricing page +3% conversion (68% confidence, inconclusive)"**
+>
+> You'll get: Experiment cards with results, confidence levels, and clear ship/keep-testing recommendations.
+
+> **"Show feature adoption rates for the last month — dashboard (45%), collaboration (38%), API (24%), export (12%). Flag underperformers."**
+>
+> You'll get: Feature usage bars with trend indicators, highlighting which features need attention.
+
+> **"Compare our current checkout flow (5 steps) vs the proposed redesign (3 steps). Show conversion data at each step."**
 >
 > You'll get: Side-by-side flow comparison with conversion metrics at each step, highlighting where users drop off.
 
-> **"Present our Q3 product roadmap — 4 features, their dependencies, and expected impact on key metrics"**
+> **"Summarize the competitive analysis your agent just ran — compare our top 5 competitors on pricing, features, and market position"**
 >
-> You'll get: A timeline with feature blocks, dependency arrows, and metric projections for each milestone.
-
-> **"Show how user data flows through our system — from signup to personalized homepage. Make it non-technical."**
->
-> You'll get: A simplified data flow with friendly labels, showing what happens at each stage without exposing infrastructure details.
+> You'll get: A competitor matrix with visual comparison cards, feature grids, and a positioning map — share it with the whole team.
 
 ---
 
-## Consultants & Strategists
+## Consultants & Agencies
 
-Turn AI research into client-ready visual presentations — market analysis, competitive landscapes, and strategic recommendations.
+Your AI agent researched the market, sized the opportunity, and mapped competitors — but it's a draft, not a deliverable. Clients don't watch text dumps. Turn agent output into client-ready visual presentations automatically.
 
 > **"Present a market analysis of the European EV charging market — market size, major players and their market share, competitive gaps, and entry strategy"**
 >
@@ -62,35 +92,39 @@ Turn AI research into client-ready visual presentations — market analysis, com
 >
 > You'll get: Four-quadrant layout with strengths, weaknesses, opportunities, and threats — each with supporting data points.
 
-> **"Compare three cloud migration strategies — lift-and-shift, re-platform, and re-architect — with cost and timeline for each"**
+> **"Turn this AI research into a client presentation: the agent analyzed 50 industry reports and found 3 key market trends with revenue projections"**
 >
-> You'll get: Side-by-side comparison with cost bars, timeline charts, risk ratings, and a recommendation frame.
+> You'll get: Three trend cards with data visualizations, supporting metrics, and a summary recommendation frame — client-ready in 90 seconds.
 
 > **"Present a digital transformation roadmap for a retail client — current state, target state, and 3 implementation phases"**
 >
 > You'll get: Before/after architecture diagrams with a phased migration plan, milestones, and expected outcomes.
 
+> **"Compare three cloud migration strategies — lift-and-shift, re-platform, and re-architect — with cost and timeline for each"**
+>
+> You'll get: Side-by-side comparison with cost bars, timeline charts, risk ratings, and a recommendation frame.
+
 ---
 
-## Financial Advisors & Legal
+## Agent-Automated Reports
 
-Walk clients through portfolio reviews, risk analysis, and compliance topics — visually, without jargon.
+These prompts are designed for AI agents that run on a schedule — daily reports, weekly summaries, recurring analysis. Set it up once, your agent produces a visual report every time.
 
-> **"Walk my client through their Q1 portfolio review: 42% US equities, 18% international, 25% fixed income, 10% alternatives, 5% cash. YTD return 8.3%. Recommend rebalancing to reduce concentration risk."**
+> **"Every morning, summarize overnight monitoring alerts into a visual triage report — group by severity, show affected services, and highlight unresolved items"**
 >
-> You'll get: Allocation pie chart, performance bar chart, risk metrics, and a rebalancing plan with specific proposed trades.
+> You'll get: A daily visual report your on-call team watches in 90 seconds instead of scrolling through alert logs.
 
-> **"Explain how a Roth IRA conversion ladder works over 5 years — show the tax implications at each step"**
+> **"After each sprint, create a visual sprint summary — completed stories, velocity trend, blockers, and next sprint priorities"**
 >
-> You'll get: Year-by-year timeline with conversion amounts, tax brackets, and cumulative savings visualized.
+> You'll get: An animated sprint recap with burndown charts, completed vs carried items, and the team's velocity trend over time.
 
-> **"Present the structure of a multi-entity holding company — parent corp, 3 subsidiaries, and the flow of funds between them"**
+> **"When my research agent finishes analyzing a company, produce a visual investment memo — company overview, financials, competitive position, and risk factors"**
 >
-> You'll get: Organizational hierarchy with entity nodes, ownership percentages, and fund flow arrows.
+> You'll get: A structured visual memo that walks the reader through the thesis — no more 15-page text memos that sit unread.
 
-> **"Compare traditional vs Roth 401(k) contributions for a client earning $180K — show 20-year projections"**
+> **"After each client meeting, have my agent create a visual meeting summary — key decisions, action items, owners, and deadlines"**
 >
-> You'll get: Side-by-side comparison with contribution limits, tax treatment, and projected growth charts.
+> You'll get: An animated recap with decision cards, action items with assignees, and a timeline of next steps — shareable link dropped in Slack.
 
 ---
 
@@ -120,5 +154,6 @@ Works for any topic — education, onboarding, training, or just explaining some
 - **Name the entities** — "PostgreSQL" is better than "a database". "S&P 500 index fund" is better than "stocks".
 - **Ask for comparisons** — "Compare X vs Y" creates side-by-side frames.
 - **Set the audience** — "This is for the board" or "Make it non-technical" shapes the narration tone.
+- **Think recurring** — If your agent runs daily or weekly, the same prompt creates a fresh visual report each time. Set it up once.
 
 Want to customize the look? See [Tips →](/docs/tips)

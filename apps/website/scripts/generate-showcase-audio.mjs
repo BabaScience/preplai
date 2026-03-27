@@ -39,33 +39,33 @@ const NARRATIONS = {
   'hero/3': 'The result: a cinematic walkthrough anyone can watch — your team, your client, your board. No slides, no jargon.',
   'hero/4': "From idea to impact — in 2 minutes. Don't read it. Just watch it.",
 
-  // Engineer script (5 frames)
-  'engineer/0': 'At 2:14 AM, the API Gateway starts returning 503 errors. Latency spikes from 45ms to 12 seconds. PagerDuty fires.',
-  'engineer/1': 'Root cause: a deploy at 2:12 AM introduced a database connection leak. The connection pool exhausted within 2 minutes.',
-  'engineer/2': 'The connection leak cascaded downstream. Auth failures caused the gateway to retry, amplifying load 4x across all services.',
-  'engineer/3': 'Resolution: team rolled back the deploy at 2:31 AM. Connection pool recovered. Full service restored by 2:34 AM.',
-  'engineer/4': 'Action items: add circuit breakers, connection pool alerts at 80%, and mandatory canary deploys. Total downtime: 20 minutes.',
+  // Main script (5 frames) — Why Preplai exists (brand story)
+  'morning/0': 'AI agents have taken over. In the last few months, they went from experiments to running real work — researching, monitoring, analyzing, and reporting — around the clock, for millions of teams.',
+  'morning/1': 'But here\'s the problem: every agent dumps its results as a wall of text. Markdown reports, JSON blobs, Slack messages. Your agent does 45 minutes of brilliant work — then you skim the output for 5 seconds and forget it.',
+  'morning/2': 'Preplai is the visual layer for AI agents. Instead of text, your agents report to you visually — animated, narrated, cinematic walkthroughs you can actually watch. We retain 95% from visuals. Only 10% from text.',
+  'morning/3': 'This is what it looks like. Your agent ran overnight — tracked revenue, flagged issues, spotted trends. Instead of reading a 6-page report, you watch this 90-second visual walkthrough over coffee.',
+  'morning/4': 'Preplai — the visual layer for AI agents. Your agents do the work. You watch the results. Don\'t read it. Just watch it.',
 
-  // PM script (5 frames)
-  'pm/0': 'The executive team wants to understand how our new recommendation engine works. Instead of slides, let\'s walk through it visually.',
-  'pm/1': 'Three data signals feed the engine: browsing history, purchase patterns, and items similar customers liked. Each signal has a weight.',
-  'pm/2': 'The engine scores every product and ranks them. The top 12 populate the "For You" section. Scores refresh every 4 hours.',
-  'pm/3': 'Impact so far: conversion rate up 23%, average order value up 18%. The engine pays for itself within the first month.',
-  'pm/4': 'Next quarter: real-time scoring, cross-sell in checkout, and email personalization. Share this walkthrough with the board.',
+  // Engineer script (5 frames) — Agent-generated incident report
+  'engineer/0': 'Your monitoring agent detected a production outage at 2:14 AM and auto-generated this incident report. API Gateway returning 503s, latency spiked to 12 seconds.',
+  'engineer/1': 'The agent traced the root cause: a deploy at 2:12 AM introduced a database connection leak in the auth service. Connection pool exhausted in 2 minutes.',
+  'engineer/2': 'The agent mapped the cascade: auth failures caused the gateway to retry, amplifying load 4x across all downstream services. No circuit breaker in place.',
+  'engineer/3': 'Resolution: team rolled back the deploy at 2:31 AM. Connection pool recovered. Full service restored by 2:34 AM. Total downtime: 20 minutes.',
+  'engineer/4': 'The agent recommends four follow-ups: circuit breakers, pool alerts, canary deploys, and an ORM review. Share this link — skip the 20-page postmortem doc.',
 
-  // Consultant script (5 frames)
-  'consultant/0': 'The EV charging market is projected to reach $190 billion by 2030. Here\'s the competitive landscape your client needs to understand.',
-  'consultant/1': 'Three dominant players control 68% of the market. ChargePoint leads with 31%, followed by Tesla Supercharger at 22% and EVgo at 15%.',
-  'consultant/2': 'Our recommended strategy: target underserved suburban corridors where existing coverage is sparse and demand is growing 40% year over year.',
-  'consultant/3': 'Revenue projections based on 200 stations: $48M Year 1, scaling to $120M by Year 3 as utilization increases from 15% to 40%.',
-  'consultant/4': 'Key risks to monitor: regulatory changes in three states, potential grid capacity constraints, and competitive response from Tesla\'s expansion plan.',
+  // Founder script (5 frames) — Competitor research agent report
+  'founder/0': 'Your research agent analyzed 5 competitors overnight — pricing, features, market position, and customer reviews. Here\'s the visual report.',
+  'founder/1': 'The agent mapped each competitor\'s strengths and gaps. Two clear patterns: everyone has strong onboarding, but nobody solves the reporting problem. That\'s your opening.',
+  'founder/2': 'Pricing analysis: the market clusters around two price points. There\'s white space at the mid-tier — higher value than the free tools, lower friction than the enterprise ones.',
+  'founder/3': 'The agent parsed 2,400 customer reviews. Top complaint across all competitors: outputs are static and hard to share. Users want visual, shareable results — exactly your thesis.',
+  'founder/4': 'The agent\'s recommendation: enter at $25/month, lead with the visual output moat, target teams already using AI agents. Full report — watched in 90 seconds, not read in 40 pages.',
 
-  // Finance script (5 frames)
-  'finance/0': 'Portfolio Review for Q1 2026. Total portfolio value: $2.4M across equities, fixed income, alternatives, and cash.',
-  'finance/1': 'Current allocation: US equities 42%, international 18%, fixed income 25%, alternatives 10%, cash 5%. Benchmark-aligned with slight US overweight.',
-  'finance/2': 'Performance by asset class: US equities drove most of the gains, but international markets underperformed. Fixed income provided stability.',
-  'finance/3': 'Risk analysis: Sharpe ratio at 1.2, above benchmark. Maximum drawdown contained to negative 12%. Volatility within target range.',
-  'finance/4': 'Rebalancing plan: trim US equities by 7%, add to fixed income and international. This reduces drawdown risk while maintaining growth exposure.',
+  // Product script (5 frames) — Weekly growth digest
+  'product/0': 'Your analytics agent compiled this week\'s growth digest. Key metrics, experiment results, and user behavior patterns — all in one visual report.',
+  'product/1': 'Acquisition funnel this week: 8,200 visitors, 1,847 signups, 1,145 activated. The drop-off between signup and activation is the biggest leak — 38% lost.',
+  'product/2': 'Two experiments completed this week. The new onboarding flow increased activation by 15%. The pricing page test was inconclusive — not enough traffic yet.',
+  'product/3': 'Feature adoption: the new dashboard launched 2 weeks ago and is already used by 45% of active users. Export feature underperforming at 12% — worth investigating.',
+  'product/4': 'The agent\'s growth recommendations: ship the new onboarding, investigate export adoption, and plan an enterprise push based on dashboard traction. Shared in 90 seconds.',
 };
 
 // ── ElevenLabs API Call ───────────────────────────────────────────────
@@ -159,30 +159,30 @@ const ENTITY_MAP = {
   'hero/2': { pipe1: 'Preplai Engine', pie1: 'Market Share', bar1: 'Performance', metric1: 'Impact', timeline1: 'Milestones' },
   'hero/3': { user1: 'Your Team', user2: 'Your Client', user3: 'Your Board', monitor1: 'Preplai Player', metric1: 'Retention', metric2: 'Time Saved' },
   'hero/4': { idea: 'Idea', pipe1: 'From Idea to Impact', monitor1: 'Watch It' },
+  // Main (Why Preplai Exists)
+  'morning/0': { bot1: 'Research Agent', bot2: 'Monitoring Agent', bot3: 'Analytics Agent', bot4: 'Support Agent', metric1: 'Agent Market', metric2: 'MCP Downloads', metric3: 'Enterprise Adoption' },
+  'morning/1': { bot1: 'Agent', doc1: 'Text Report', user1: 'You', metric1: 'Agent Work', metric2: 'Attention', metric3: 'Retention' },
+  'morning/2': { bot1: 'Agent', preplai: 'Preplai', user1: 'You', metric1: 'Visual Retention', metric2: 'Text Retention' },
+  'morning/3': { metric1: 'Revenue', metric2: 'Users', metric3: 'Uptime', bar1: 'Revenue Trend', step1: 'Action Items' },
+  'morning/4': { h2: 'Watch', bot1: 'Research', bot2: 'Monitoring', bot3: 'Analytics', bot4: 'Support' },
   // Engineer
-  'engineer/0': { h1: 'Incident Postmortem', gw: 'API Gateway', alert1: '503 Errors', metric1: 'Latency', timeline1: 'Incident Timeline' },
+  'engineer/0': { h1: 'Incident Report', gw: 'API Gateway', alert1: '503 Errors', metric1: 'Latency', timeline1: 'Incident Timeline' },
   'engineer/1': { h1: 'Root Cause', deploy1: 'Deploy', db1: 'Users DB', metric1: 'Pool', svc1: 'Auth Service' },
   'engineer/2': { gw: 'Gateway', svc1: 'Auth', svc2: 'Orders', svc3: 'Payments', cb1: 'Circuit Breaker' },
   'engineer/3': { rb1: 'Rollback', svc1: 'Auth Service', db1: 'Users DB', metric1: 'MTTR' },
-  'engineer/4': { step1: 'Follow-ups', metric1: 'Downtime', metric2: 'Users Affected' },
-  // PM
-  'pm/0': { user1: 'Customer', nn1: 'Rec Engine', svc1: 'Product Catalog' },
-  'pm/1': { db1: 'Browse History', db2: 'Purchase Data', db3: 'Similar Users', nn1: 'Rec Engine' },
-  'pm/2': { nn1: 'Rec Engine', pipe1: 'Ranking Pipeline', metric1: 'Refresh Rate', metric2: 'Products Scored' },
-  'pm/3': { metric1: 'Conversion Rate', metric2: 'Avg Order Value', metric3: 'Revenue Lift', bar1: 'Monthly Revenue' },
-  'pm/4': { step1: 'Upcoming Features', metric1: 'Target CVR', metric2: 'Target AOV' },
-  // Consultant
-  'consultant/0': { pie1: 'Market Share', metric1: 'Market Size', metric2: 'CAGR' },
-  'consultant/1': { tbl1: 'Competitor Matrix' },
-  'consultant/2': { pipe1: 'Go-to-Market Phases', step1: 'Phase 1', step2: 'Phase 2' },
-  'consultant/3': { bar1: 'Revenue Forecast', metric1: 'Breakeven', metric2: 'IRR', metric3: 'Stations Needed' },
-  'consultant/4': { tbl1: 'Risk Matrix' },
-  // Finance
-  'finance/0': { pie1: 'Current Allocation', metric1: 'Total Value', metric2: 'YTD Return' },
-  'finance/1': { bar1: 'YTD Returns by Class' },
-  'finance/2': { metric1: 'Sharpe Ratio', metric2: 'Max Drawdown', metric3: 'Volatility', tbl1: 'Current vs Target' },
-  'finance/3': { step1: 'Proposed Trades', metric1: 'New Sharpe', metric2: 'New Drawdown' },
-  'finance/4': { metric1: 'Portfolio Value', metric2: 'Projected Return', metric3: 'Risk Score', pie1: 'New Allocation' },
+  'engineer/4': { step1: 'Recommendations', metric1: 'Downtime', metric2: 'Users Affected' },
+  // Founder
+  'founder/0': { metric1: 'Competitors', metric2: 'Sources Analyzed', metric3: 'Reviews Parsed', pie1: 'Market Share' },
+  'founder/1': { tbl1: 'Feature Comparison' },
+  'founder/2': { bar1: 'Monthly Pricing', metric1: 'Avg Price' },
+  'founder/3': { tbl1: 'Top Complaints' },
+  'founder/4': { step1: 'Strategic Moves', metric1: 'TAM', metric2: 'Entry Window' },
+  // Product
+  'product/0': { metric1: 'WAU', metric2: 'Signups', metric3: 'Activation', metric4: 'Churn', bar1: 'Weekly Active Users' },
+  'product/1': { pipe1: 'Funnel', metric1: 'Visit Signup', metric2: 'Signup Active' },
+  'product/2': { tbl1: 'Tests This Week' },
+  'product/3': { bar1: 'Feature Usage', metric1: 'Dashboard', metric2: 'Export' },
+  'product/4': { step1: 'Priorities', metric1: 'Projected WAU', metric2: 'Target Activation' },
 };
 
 function generateStringMatchCues(wordTimestamps, entityMap) {

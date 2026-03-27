@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Cpu, Film, Briefcase, Scale } from 'lucide-react';
+import { Cpu, Rocket, BarChart3, Briefcase } from 'lucide-react';
 import LandingLayout from '../layouts/LandingLayout';
 import Logo from '../components/Logo';
 import HeroPlayer from '../components/HeroPlayer';
@@ -27,7 +27,7 @@ export default function Landing() {
               <span className="hero-line-payoff">Just watch it.</span>
             </h1>
             <p className="hero-cinema-sub hero-fade-in hero-fade-in-delay-2">
-              Your AI gives you walls of text. Preplai turns every answer into an animated, narrated visual you can watch.
+              Your AI agents produce walls of text nobody reads. Preplai turns every answer into an animated, narrated visual anyone can watch and share.
             </p>
             <div className="hero-ctas hero-fade-in hero-fade-in-delay-3">
               <Link to="/signup" className="btn btn-primary btn-lg">Get started</Link>
@@ -57,17 +57,17 @@ export default function Landing() {
       {/* 2. Problem Statement */}
       <section className="problem-section">
         <div className="section-block" style={{ borderTop: 'none' }}>
-          <h2 className="problem-headline">AI is brilliant.<br />Its output is unreadable.</h2>
-          <p className="problem-stat">We retain <strong>95%</strong> from visual — but only <strong>10%</strong> from text.</p>
-          <p className="problem-kicker">Preplai turns every AI answer into something you can actually watch.</p>
+          <h2 className="problem-headline">AI agents are brilliant.<br />Their output is unreadable.</h2>
+          <p className="problem-stat">Agents do 45 minutes of work, then dump a 2,000-word report you skim for <strong>5 seconds</strong>. We retain <strong>95%</strong> from visuals — but only <strong>10%</strong> from text.</p>
+          <p className="problem-kicker">The bottleneck isn&rsquo;t intelligence. It&rsquo;s the last mile: output format. Preplai solves the last mile.</p>
         </div>
       </section>
 
       {/* 3. Live Demos */}
       <section id="showcases" className="section-block showcase-section" style={{ borderTop: 'none' }}>
         <div className="section-label">See It In Action</div>
-        <h2>From explanation to presentation</h2>
-        <p className="section-desc">Every demo below is a live Preplai presentation. The same engine your AI will use.</p>
+        <h2>From AI output to visual report</h2>
+        <p className="section-desc">Every demo below is a live Preplai presentation — the same engine your AI agents use to turn their output into something people actually watch.</p>
         <PalettePicker />
         <ShowcaseCarousel items={SHOWCASE_ITEMS} />
       </section>
@@ -75,54 +75,58 @@ export default function Landing() {
       {/* 4. Who It's For — Persona bento cards */}
       <section className="section-block" style={{ borderTop: '1px solid var(--color-divider)' }}>
         <div className="section-label">Who It&rsquo;s For</div>
-        <h2>Built for professionals who use AI every day</h2>
+        <h2>Built for teams that run on AI agents</h2>
         <div className="bento-grid" style={{ marginTop: 'var(--space-10)' }}>
           <div className="bento-card persona-card" style={{ borderTopColor: '#4ECDC4' }}>
             <div className="bento-icon"><Cpu size={20} /></div>
-            <h3>Engineers &amp; SRE Teams</h3>
+            <h3>Software Engineers &amp; Dev Teams</h3>
             <p>
-              Your system went down at 2 AM. Instead of writing a 20-page postmortem, ask your AI to create a visual incident walkthrough — root cause, cascade, resolution, action items — narrated and shareable with the whole team.
+              Your coding agent refactored the auth module. Your monitoring agent caught a 3 AM outage. Your CI agent ran 215 tests. Great — but their reports are walls of text and JSON logs. With Preplai, every agent output becomes a visual walkthrough the whole team can watch.
             </p>
             <div className="persona-tags">
-              <span className="persona-tag">Incident postmortems</span>
-              <span className="persona-tag">Architecture reviews</span>
-              <span className="persona-tag">Deploy walkthroughs</span>
-            </div>
-          </div>
-          <div className="bento-card persona-card" style={{ borderTopColor: '#9B59B6' }}>
-            <div className="bento-icon"><Film size={20} /></div>
-            <h3>Product Managers</h3>
-            <p>
-              The board wants to understand the recommendation engine. You get 1,500 words from AI. With Preplai, share an animated walkthrough instead — data signals, business impact, roadmap — 30 seconds to full alignment.
-            </p>
-            <div className="persona-tags">
-              <span className="persona-tag">Feature explanations</span>
-              <span className="persona-tag">Executive reviews</span>
-              <span className="persona-tag">Roadmap presentations</span>
+              <span className="persona-tag">Incident reports</span>
+              <span className="persona-tag">PR summaries</span>
+              <span className="persona-tag">Architecture walkthroughs</span>
+              <span className="persona-tag">Deploy reviews</span>
             </div>
           </div>
           <div className="bento-card persona-card" style={{ borderTopColor: '#C9A84C' }}>
-            <div className="bento-icon"><Briefcase size={20} /></div>
-            <h3>Consultants &amp; Strategists</h3>
+            <div className="bento-icon"><Rocket size={20} /></div>
+            <h3>Founders &amp; Business Owners</h3>
             <p>
-              Your AI researched the market, sized the opportunity, and mapped the competitive landscape. Now turn that analysis into a client-ready visual presentation — market data, strategy, projections — automatically.
+              Your agents run overnight — monitoring competitors, analyzing customers, tracking revenue. You wake up to 3 text reports totaling 6,000 words. With Preplai, get a 90-second visual morning brief instead. Full picture, zero reading.
             </p>
             <div className="persona-tags">
-              <span className="persona-tag">Market analysis</span>
-              <span className="persona-tag">Strategy decks</span>
-              <span className="persona-tag">Client deliverables</span>
+              <span className="persona-tag">Morning briefs</span>
+              <span className="persona-tag">Competitor research</span>
+              <span className="persona-tag">Business intelligence</span>
+              <span className="persona-tag">Investor updates</span>
+            </div>
+          </div>
+          <div className="bento-card persona-card" style={{ borderTopColor: '#9B59B6' }}>
+            <div className="bento-icon"><BarChart3 size={20} /></div>
+            <h3>Product &amp; Growth Teams</h3>
+            <p>
+              Your analytics agent compiled the weekly growth digest — funnel metrics, A/B test results, feature adoption. But it&rsquo;s a 1,500-word text dump. With Preplai, the whole team watches it in 90 seconds. Experiments, trends, and next steps — animated and narrated.
+            </p>
+            <div className="persona-tags">
+              <span className="persona-tag">Growth digests</span>
+              <span className="persona-tag">Experiment results</span>
+              <span className="persona-tag">User research</span>
+              <span className="persona-tag">Funnel analysis</span>
             </div>
           </div>
           <div className="bento-card persona-card" style={{ borderTopColor: '#2ECC71' }}>
-            <div className="bento-icon"><Scale size={20} /></div>
-            <h3>Financial Advisors &amp; Legal</h3>
+            <div className="bento-icon"><Briefcase size={20} /></div>
+            <h3>Consultants &amp; Agencies</h3>
             <p>
-              Walk your client through their portfolio — allocation, performance, risk, and rebalancing plan. They see the full picture in 2 minutes. No jargon, no spreadsheets, no finance degree required.
+              Your AI agent researched the market, sized the opportunity, and mapped competitors. Thorough work — but it&rsquo;s a draft, not a deliverable. With Preplai, turn agent output into client-ready visual presentations automatically. No more converting text into slides.
             </p>
             <div className="persona-tags">
-              <span className="persona-tag">Portfolio reviews</span>
-              <span className="persona-tag">Risk analysis</span>
-              <span className="persona-tag">Rebalancing plans</span>
+              <span className="persona-tag">Client deliverables</span>
+              <span className="persona-tag">Market analysis</span>
+              <span className="persona-tag">Strategy presentations</span>
+              <span className="persona-tag">Research reports</span>
             </div>
           </div>
         </div>
@@ -140,8 +144,8 @@ export default function Landing() {
           </div>
           <div className="step-item" data-step="2">
             <div className="step-number">2</div>
-            <h3>Ask your AI to present</h3>
-            <p>Tell your AI: &ldquo;Explain this visually&rdquo; or &ldquo;Create a presentation.&rdquo; It generates animated, narrated visual walkthroughs automatically.</p>
+            <h3>Ask your AI to show it</h3>
+            <p>Tell your AI: &ldquo;Show this visually using Preplai&rdquo; — or let your agents call Preplai automatically. Either way, animated narrated walkthroughs, not text walls.</p>
           </div>
           <div className="step-item" data-step="3">
             <div className="step-number">3</div>
@@ -289,7 +293,7 @@ export default function Landing() {
             Start watching.
           </h2>
           <p className="hero-cinema-sub" style={{ maxWidth: '540px', margin: '0 auto var(--space-8)' }}>
-            Every AI answer, now in cinema. Set up in 2 minutes. Free to start.
+            Every AI agent gets a visual voice. Set up in 2 minutes. Free to start.
           </p>
           <div className="hero-ctas">
             <Link to="/signup" className="btn btn-primary btn-lg">Get started</Link>

@@ -2,21 +2,101 @@
  * showcase-scripts.js — Demo VisualScripts for the four persona showcases.
  *
  * Each script has 5 frames x 5s = ~25s loop.
- * One script per persona: Engineers, PMs, Consultants, Financial/Legal.
+ * Personas: Universal (Morning Brief), Engineers, Founders, Product & Growth.
  *
  * Entity positions are clustered per frame (~40-60% canvas width) to enable
  * cinematic camera pans/zooms between frames via SceneController viewBox animation.
  * No hardcoded colors — entities inherit from the active palette.
  */
 
-// ── 1. Engineers & SRE: Incident Postmortem ──────────────────────────
+// ── 1. Main: Why Preplai Exists ──────────────────────────────────────
+// The brand story showcase — tells the origin of Preplai in 5 frames.
+// Arc: agents took over → output is broken → Preplai is the visual layer → demo → payoff
+export const MAIN_SCRIPT = {
+  frames: [
+    {
+      // Frame 1: The agent revolution
+      narrationSegment: 'AI agents have taken over. In the last few months, they went from experiments to running real work — researching, monitoring, analyzing, and reporting — around the clock, for millions of teams.',
+      entities: [
+        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'The Agent Revolution', size: 2 },
+        { id: 'bot1', type: 'Composable', position: { x: 22, y: 35 }, label: 'Research Agent', size: 2.2, metadata: { shape: 'hexagon', icon: 'search' } },
+        { id: 'bot2', type: 'Composable', position: { x: 40, y: 35 }, label: 'Monitoring Agent', size: 2.2, metadata: { shape: 'hexagon', icon: 'activity' } },
+        { id: 'bot3', type: 'Composable', position: { x: 58, y: 35 }, label: 'Analytics Agent', size: 2.2, metadata: { shape: 'hexagon', icon: 'bar-chart' } },
+        { id: 'bot4', type: 'Composable', position: { x: 76, y: 35 }, label: 'Support Agent', size: 2.2, metadata: { shape: 'hexagon', icon: 'message-circle' } },
+        { id: 'metric1', type: 'Metric', position: { x: 30, y: 62 }, label: 'AI Agent Market', size: 2.5, highlight: true, metadata: { value: '$10.9B', trend: 'up' } },
+        { id: 'metric2', type: 'Metric', position: { x: 55, y: 62 }, label: 'MCP Downloads', size: 2.5, metadata: { value: '97M/mo', trend: 'up' } },
+        { id: 'metric3', type: 'Metric', position: { x: 78, y: 62 }, label: 'Enterprise Adoption', size: 2.5, metadata: { value: '72%', trend: 'up' } },
+      ],
+    },
+    {
+      // Frame 2: The output problem
+      narrationSegment: 'But here\'s the problem: every agent dumps its results as a wall of text. Markdown reports, JSON blobs, Slack messages. Your agent does 45 minutes of brilliant work — then you skim the output for 5 seconds and forget it.',
+      entities: [
+        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'The Output Problem', size: 2 },
+        { id: 'bot1', type: 'Composable', position: { x: 25, y: 38 }, label: 'AI Agent', size: 2.5, highlight: true, metadata: { shape: 'hexagon', icon: 'bot' } },
+        { id: 'a1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'bot1', targetEntityId: 'doc1', label: '2,000 words' },
+        { id: 'doc1', type: 'Composable', position: { x: 50, y: 38 }, label: 'Text Report', size: 2.5, metadata: { shape: 'rectangle', icon: 'file-text' } },
+        { id: 'a2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'doc1', targetEntityId: 'user1', label: '5 sec skim', style: 'dashed' },
+        { id: 'user1', type: 'User', position: { x: 75, y: 38 }, label: 'You', size: 2.5 },
+        { id: 'metric1', type: 'Metric', position: { x: 30, y: 65 }, label: 'Agent Work', size: 2, metadata: { value: '45 min', trend: 'up' } },
+        { id: 'metric2', type: 'Metric', position: { x: 50, y: 65 }, label: 'Your Attention', size: 2, metadata: { value: '5 sec', trend: 'down' } },
+        { id: 'metric3', type: 'Metric', position: { x: 70, y: 65 }, label: 'Text Retention', size: 2, metadata: { value: '10%', trend: 'down' } },
+        { id: 'callout1', type: 'Callout', position: { x: 50, y: 82 }, label: 'The bottleneck isn\'t intelligence — it\'s the output format.', size: 1.5 },
+      ],
+    },
+    {
+      // Frame 3: Preplai is the visual layer
+      narrationSegment: 'Preplai is the visual layer for AI agents. Instead of text, your agents report to you visually — animated, narrated, cinematic walkthroughs you can actually watch. We retain 95% from visuals. Only 10% from text.',
+      entities: [
+        { id: 'h1', type: 'H2', position: { x: 50, y: 10 }, label: 'The Visual Layer for AI Agents', size: 2 },
+        { id: 'bot1', type: 'Composable', position: { x: 20, y: 38 }, label: 'AI Agent', size: 2.5, metadata: { shape: 'hexagon', icon: 'bot' } },
+        { id: 'a1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'bot1', targetEntityId: 'preplai', label: 'MCP' },
+        { id: 'preplai', type: 'Composable', position: { x: 48, y: 38 }, label: 'Preplai', size: 3, highlight: true, metadata: { shape: 'diamond', icon: 'play' } },
+        { id: 'a2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'preplai', targetEntityId: 'user1', label: 'visual report' },
+        { id: 'user1', type: 'User', position: { x: 78, y: 38 }, label: 'You', size: 2.5 },
+        { id: 'metric1', type: 'Metric', position: { x: 35, y: 65 }, label: 'Visual Retention', size: 2.5, metadata: { value: '95%', trend: 'up' } },
+        { id: 'metric2', type: 'Metric', position: { x: 65, y: 65 }, label: 'Text Retention', size: 2.5, metadata: { value: '10%', trend: 'down' } },
+        { id: 'label1', type: 'Label', position: { x: 50, y: 82 }, label: 'Your agents do the work. You watch the results.' },
+      ],
+    },
+    {
+      // Frame 4: What this looks like — real agent visual report
+      narrationSegment: 'This is what it looks like. Your agent ran overnight — tracked revenue, flagged issues, spotted trends. Instead of reading a 6-page report, you watch this 90-second visual walkthrough over coffee.',
+      entities: [
+        { id: 'h1', type: 'H2', position: { x: 50, y: 10 }, label: 'Your Agent\'s Visual Report', size: 2 },
+        { id: 'metric1', type: 'Metric', position: { x: 25, y: 30 }, label: 'Revenue', size: 2.5, highlight: true, metadata: { value: '$47.2K', trend: 'up' } },
+        { id: 'metric2', type: 'Metric', position: { x: 50, y: 30 }, label: 'Users', size: 2.5, metadata: { value: '12,841', trend: 'up' } },
+        { id: 'metric3', type: 'Metric', position: { x: 75, y: 30 }, label: 'Uptime', size: 2.5, metadata: { value: '99.97%', trend: 'stable' } },
+        { id: 'bar1', type: 'BarChart', position: { x: 35, y: 55 }, label: 'Revenue Trend', size: 2.5, metadata: { bars: [{ label: 'Mon', value: 38 }, { label: 'Tue', value: 41 }, { label: 'Wed', value: 44 }, { label: 'Thu', value: 39 }, { label: 'Fri', value: 52 }, { label: 'Sat', value: 45 }, { label: 'Sun', value: 47 }] } },
+        { id: 'step1', type: 'StepList', position: { x: 70, y: 55 }, label: 'Action Items', size: 2.2, metadata: { steps: ['Fix enterprise churn', 'Expand mobile test', 'Review competitor report'] } },
+        { id: 'callout1', type: 'Callout', position: { x: 50, y: 80 }, label: '90 seconds over coffee. Full picture. Zero reading.', size: 1.3 },
+      ],
+    },
+    {
+      // Frame 5: The payoff — don't read it, watch it
+      narrationSegment: 'Preplai — the visual layer for AI agents. Your agents do the work. You watch the results. Don\'t read it. Just watch it.',
+      entities: [
+        { id: 'h1', type: 'H1', position: { x: 50, y: 20 }, label: 'Don\'t read it.', size: 2.5 },
+        { id: 'h2', type: 'H1', position: { x: 50, y: 38 }, label: 'Just watch it.', size: 3, highlight: true },
+        { id: 'bot1', type: 'Composable', position: { x: 25, y: 62 }, label: 'Research', size: 1.8, metadata: { shape: 'hexagon', icon: 'search' } },
+        { id: 'bot2', type: 'Composable', position: { x: 40, y: 62 }, label: 'Monitoring', size: 1.8, metadata: { shape: 'hexagon', icon: 'activity' } },
+        { id: 'bot3', type: 'Composable', position: { x: 55, y: 62 }, label: 'Analytics', size: 1.8, metadata: { shape: 'hexagon', icon: 'bar-chart' } },
+        { id: 'bot4', type: 'Composable', position: { x: 70, y: 62 }, label: 'Support', size: 1.8, metadata: { shape: 'hexagon', icon: 'message-circle' } },
+        { id: 'label1', type: 'Label', position: { x: 48, y: 80 }, label: 'The visual layer for AI agents — preplai.com' },
+      ],
+    },
+  ],
+};
+
+// ── 2. Software Engineers: Incident Postmortem ────────────────────────
+// Agent-generated incident report — the agent analyzed the outage, not you.
 export const ENGINEER_SCRIPT = {
   frames: [
     {
       // Frame 1: Center cluster — zoom into the incident
-      narrationSegment: 'At 2:14 AM, the API Gateway starts returning 503 errors. Latency spikes from 45ms to 12 seconds. PagerDuty fires.',
+      narrationSegment: 'Your monitoring agent detected a production outage at 2:14 AM and auto-generated this incident report. API Gateway returning 503s, latency spiked to 12 seconds.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'Incident Postmortem', size: 2 },
+        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'Incident Report — Auto-generated', size: 2 },
         { id: 'gw', type: 'APIGateway', position: { x: 50, y: 38 }, label: 'API Gateway', size: 2.5, highlight: true },
         { id: 'alert1', type: 'Alert', position: { x: 70, y: 32 }, label: '503 Errors', size: 2 },
         { id: 'metric1', type: 'Metric', position: { x: 30, y: 32 }, label: 'Latency', size: 2, metadata: { value: '12.3s', trend: 'up' } },
@@ -25,7 +105,7 @@ export const ENGINEER_SCRIPT = {
     },
     {
       // Frame 2: Right cluster — pan to root cause
-      narrationSegment: 'Root cause: a deploy at 2:12 AM introduced a database connection leak. The connection pool exhausted within 2 minutes.',
+      narrationSegment: 'The agent traced the root cause: a deploy at 2:12 AM introduced a database connection leak in the auth service. Connection pool exhausted in 2 minutes.',
       entities: [
         { id: 'h1', type: 'H2', position: { x: 55, y: 12 }, label: 'Root Cause Analysis', size: 2 },
         { id: 'deploy1', type: 'Deployment', position: { x: 35, y: 38 }, label: 'Deploy v2.4.1', size: 2 },
@@ -39,7 +119,7 @@ export const ENGINEER_SCRIPT = {
     },
     {
       // Frame 3: Left cluster — cascade failure
-      narrationSegment: 'The connection leak cascaded downstream. Auth failures caused the gateway to retry, amplifying load 4x across all services.',
+      narrationSegment: 'The agent mapped the cascade: auth failures caused the gateway to retry, amplifying load 4x across all downstream services. No circuit breaker in place.',
       entities: [
         { id: 'h1', type: 'H2', position: { x: 45, y: 12 }, label: 'Cascade Failure', size: 2 },
         { id: 'gw', type: 'APIGateway', position: { x: 28, y: 40 }, label: 'Gateway', size: 2 },
@@ -54,7 +134,7 @@ export const ENGINEER_SCRIPT = {
     },
     {
       // Frame 4: Center-right — resolution
-      narrationSegment: 'Resolution: team rolled back the deploy at 2:31 AM. Connection pool recovered. Full service restored by 2:34 AM.',
+      narrationSegment: 'Resolution: team rolled back the deploy at 2:31 AM. Connection pool recovered. Full service restored by 2:34 AM. Total downtime: 20 minutes.',
       entities: [
         { id: 'h1', type: 'H2', position: { x: 52, y: 12 }, label: 'Resolution', size: 2 },
         { id: 'rb1', type: 'Rollback', position: { x: 35, y: 38 }, label: 'Rollback v2.4.0', size: 2, highlight: true },
@@ -68,224 +148,159 @@ export const ENGINEER_SCRIPT = {
     },
     {
       // Frame 5: Left cluster — action items
-      narrationSegment: 'Action items: add circuit breakers, connection pool alerts at 80%, and mandatory canary deploys. Total downtime: 20 minutes.',
+      narrationSegment: 'The agent recommends four follow-ups: circuit breakers, pool alerts, canary deploys, and an ORM review. Share this link — skip the 20-page postmortem doc.',
       entities: [
         { id: 'h1', type: 'H2', position: { x: 45, y: 12 }, label: 'Action Items', size: 2 },
-        { id: 'step1', type: 'StepList', position: { x: 38, y: 42 }, label: 'Follow-ups', size: 3, highlight: true, metadata: { steps: ['Add circuit breakers to gateway', 'Alert on pool usage > 80%', 'Canary deploys for all services', 'ORM upgrade review process'] } },
+        { id: 'step1', type: 'StepList', position: { x: 38, y: 42 }, label: 'Agent Recommendations', size: 3, highlight: true, metadata: { steps: ['Add circuit breakers to gateway', 'Alert on pool usage > 80%', 'Canary deploys for all services', 'ORM upgrade review process'] } },
         { id: 'metric1', type: 'Metric', position: { x: 68, y: 30 }, label: 'Downtime', size: 2, metadata: { value: '20 min', trend: 'down' } },
         { id: 'metric2', type: 'Metric', position: { x: 68, y: 52 }, label: 'Users Affected', size: 2, metadata: { value: '2,847', trend: 'down' } },
-        { id: 'callout1', type: 'Callout', position: { x: 55, y: 72 }, label: 'Share this walkthrough — skip the 20-page doc.', size: 1.5 },
+        { id: 'callout1', type: 'Callout', position: { x: 55, y: 72 }, label: 'Agent-generated. 2 minutes to watch. Skip the 20-page doc.', size: 1.5 },
       ],
     },
   ],
 };
 
-// ── 2. Product Managers: Feature Explanation ─────────────────────────
-export const PM_SCRIPT = {
+// ── 3. Founders & Business Owners: Competitor Research ────────────────
+// AI research agent finished analyzing the market — visual report for the founder.
+export const FOUNDER_SCRIPT = {
   frames: [
     {
-      // Frame 1: Center — introduce the engine
-      narrationSegment: 'The executive team wants to understand how our new recommendation engine works. Instead of slides, let\'s walk through it visually.',
+      // Frame 1: Center — agent completed research
+      narrationSegment: 'Your research agent analyzed 5 competitors overnight — pricing, features, market position, and customer reviews. Here\'s the visual report.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'Recommendation Engine', size: 2 },
-        { id: 'user1', type: 'User', position: { x: 32, y: 42 }, label: 'Customer', size: 2.5 },
-        { id: 'nn1', type: 'NeuralNetwork', position: { x: 52, y: 42 }, label: 'Rec Engine', size: 3, highlight: true },
-        { id: 'svc1', type: 'Server', position: { x: 72, y: 42 }, label: 'Product Catalog', size: 2 },
-        { id: 'a1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'user1', targetEntityId: 'nn1', label: 'browses' },
-        { id: 'a2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'nn1', targetEntityId: 'svc1', label: 'matches' },
-        { id: 'label1', type: 'Label', position: { x: 52, y: 68 }, label: 'Our AI analyzes browsing patterns to surface the right products at the right time.' },
-      ],
-    },
-    {
-      // Frame 2: Left cluster — data signals
-      narrationSegment: 'Three data signals feed the engine: browsing history, purchase patterns, and items similar customers liked. Each signal has a weight.',
-      entities: [
-        { id: 'h1', type: 'H2', position: { x: 45, y: 12 }, label: 'Data Signals', size: 2 },
-        { id: 'db1', type: 'Database', position: { x: 28, y: 30 }, label: 'Browse History', size: 2 },
-        { id: 'db2', type: 'Database', position: { x: 28, y: 48 }, label: 'Purchase Data', size: 2 },
-        { id: 'db3', type: 'Database', position: { x: 28, y: 66 }, label: 'Similar Users', size: 2 },
-        { id: 'nn1', type: 'NeuralNetwork', position: { x: 55, y: 45 }, label: 'Rec Engine', size: 3, highlight: true },
-        { id: 'a1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'db1', targetEntityId: 'nn1', label: '40%' },
-        { id: 'a2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'db2', targetEntityId: 'nn1', label: '35%' },
-        { id: 'a3', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'db3', targetEntityId: 'nn1', label: '25%' },
-        { id: 'callout1', type: 'Callout', position: { x: 70, y: 45 }, label: 'Weights adjust automatically based on conversion data', size: 1.5 },
-      ],
-    },
-    {
-      // Frame 3: Right cluster — scoring pipeline
-      narrationSegment: 'The engine scores every product and ranks them. The top 12 populate the "For You" section. Scores refresh every 4 hours.',
-      entities: [
-        { id: 'h1', type: 'H2', position: { x: 55, y: 12 }, label: 'Scoring & Ranking', size: 2 },
-        { id: 'nn1', type: 'NeuralNetwork', position: { x: 35, y: 42 }, label: 'Rec Engine', size: 2 },
-        { id: 'pipe1', type: 'Pipeline', position: { x: 58, y: 35 }, label: 'Ranking Pipeline', size: 3, highlight: true, metadata: { stages: ['Score', 'Rank', 'Filter', 'Serve'] } },
-        { id: 'a1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'nn1', targetEntityId: 'pipe1', label: 'candidates' },
-        { id: 'metric1', type: 'Metric', position: { x: 50, y: 62 }, label: 'Refresh Rate', size: 2, metadata: { value: '4 hrs', trend: 'stable' } },
-        { id: 'metric2', type: 'Metric', position: { x: 70, y: 62 }, label: 'Products Scored', size: 2, metadata: { value: '50K', trend: 'up' } },
-      ],
-    },
-    {
-      // Frame 4: Center — business impact metrics
-      narrationSegment: 'Impact so far: conversion rate up 23%, average order value up 18%. The engine pays for itself within the first month.',
-      entities: [
-        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'Business Impact', size: 2 },
-        { id: 'metric1', type: 'Metric', position: { x: 32, y: 32 }, label: 'Conversion Rate', size: 2.5, highlight: true, metadata: { value: '+23%', trend: 'up' } },
-        { id: 'metric2', type: 'Metric', position: { x: 52, y: 32 }, label: 'Avg Order Value', size: 2.5, metadata: { value: '+18%', trend: 'up' } },
-        { id: 'metric3', type: 'Metric', position: { x: 72, y: 32 }, label: 'Revenue Lift', size: 2.5, metadata: { value: '$1.2M', trend: 'up' } },
-        { id: 'bar1', type: 'BarChart', position: { x: 50, y: 58 }, label: 'Monthly Revenue', size: 3, metadata: { bars: [{ label: 'Jan', value: 80 }, { label: 'Feb', value: 92 }, { label: 'Mar', value: 110 }, { label: 'Apr', value: 135 }, { label: 'May', value: 148 }] } },
-      ],
-    },
-    {
-      // Frame 5: Left cluster — roadmap
-      narrationSegment: 'Next quarter: real-time scoring, cross-sell in checkout, and email personalization. Share this walkthrough with the board.',
-      entities: [
-        { id: 'h1', type: 'H2', position: { x: 45, y: 12 }, label: 'Q3 Roadmap', size: 2 },
-        { id: 'step1', type: 'StepList', position: { x: 38, y: 42 }, label: 'Upcoming Features', size: 3, highlight: true, metadata: { steps: ['Real-time scoring (sub-second)', 'Cross-sell in checkout flow', 'Email personalization engine', 'A/B testing framework'] } },
-        { id: 'metric1', type: 'Metric', position: { x: 68, y: 30 }, label: 'Target CVR', size: 2, metadata: { value: '+35%', trend: 'up' } },
-        { id: 'metric2', type: 'Metric', position: { x: 68, y: 52 }, label: 'Target AOV', size: 2, metadata: { value: '+25%', trend: 'up' } },
-        { id: 'callout1', type: 'Callout', position: { x: 55, y: 72 }, label: '30 seconds to align the board — not 30 minutes.', size: 1.5 },
-      ],
-    },
-  ],
-};
-
-// ── 3. Consultants & Strategists: Market Analysis ───────────────────
-export const CONSULTANT_SCRIPT = {
-  frames: [
-    {
-      // Frame 1: Center-left — market overview
-      narrationSegment: 'Your client wants to enter the European EV charging market. AI researched the landscape — here\'s the visual walkthrough.',
-      entities: [
-        { id: 'h1', type: 'H2', position: { x: 48, y: 12 }, label: 'EV Charging Market Entry', size: 2 },
-        { id: 'pie1', type: 'PieChart', position: { x: 38, y: 42 }, label: 'Market Share', size: 3, highlight: true, metadata: { slices: [{ label: 'ChargePoint', value: 28 }, { label: 'Tesla', value: 22 }, { label: 'ABB', value: 18 }, { label: 'Others', value: 32 }] } },
-        { id: 'metric1', type: 'Metric', position: { x: 68, y: 30 }, label: 'Market Size', size: 2.5, metadata: { value: '$18.2B', trend: 'up' } },
-        { id: 'metric2', type: 'Metric', position: { x: 68, y: 52 }, label: 'CAGR', size: 2.5, metadata: { value: '29.1%', trend: 'up' } },
-        { id: 'label1', type: 'Label', position: { x: 50, y: 72 }, label: 'Fragmented market with 32% held by smaller players — significant entry opportunity.' },
+        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'Competitor Research — Agent Report', size: 2 },
+        { id: 'metric1', type: 'Metric', position: { x: 28, y: 32 }, label: 'Competitors', size: 2.5, metadata: { value: '5', trend: 'stable' } },
+        { id: 'metric2', type: 'Metric', position: { x: 50, y: 32 }, label: 'Sources Analyzed', size: 2.5, highlight: true, metadata: { value: '127', trend: 'up' } },
+        { id: 'metric3', type: 'Metric', position: { x: 72, y: 32 }, label: 'Reviews Parsed', size: 2.5, metadata: { value: '2,400+', trend: 'up' } },
+        { id: 'pie1', type: 'PieChart', position: { x: 40, y: 58 }, label: 'Market Share', size: 2.8, metadata: { slices: [{ label: 'Leader A', value: 32 }, { label: 'Leader B', value: 24 }, { label: 'Growing C', value: 18 }, { label: 'Others', value: 26 }] } },
+        { id: 'label1', type: 'Label', position: { x: 68, y: 58 }, label: '26% of market held by fragmented players — entry window is open.' },
       ],
     },
     {
       // Frame 2: Center — competitive matrix
-      narrationSegment: 'Competitive landscape: three tiers of players. Tier 1 has brand but slow expansion. Tier 2 has tech but no distribution. The gap is in urban fast-charging.',
+      narrationSegment: 'The agent mapped each competitor\'s strengths and gaps. Two clear patterns: everyone has strong onboarding, but nobody solves the reporting problem. That\'s your opening.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'Competitive Landscape', size: 2 },
-        { id: 'tbl1', type: 'Table', position: { x: 50, y: 40 }, label: 'Competitor Matrix', size: 3.5, highlight: true, metadata: { headers: ['Player', 'Strengths', 'Gap'], rows: [['ChargePoint', 'Network size', 'Speed'], ['Tesla', 'Brand loyalty', 'Non-Tesla access'], ['ABB', 'Hardware', 'Software UX']] } },
-        { id: 'callout1', type: 'Callout', position: { x: 50, y: 70 }, label: 'Opportunity: urban fast-charging with superior UX', size: 1.5 },
+        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'Competitive Matrix', size: 2 },
+        { id: 'tbl1', type: 'Table', position: { x: 50, y: 40 }, label: 'Feature Comparison', size: 3.5, highlight: true, metadata: { headers: ['Competitor', 'Strength', 'Weakness'], rows: [['Leader A', 'Market reach', 'Slow innovation'], ['Leader B', 'UX & design', 'Enterprise gaps'], ['Growing C', 'AI features', 'Small team'], ['Niche D', 'Pricing', 'Limited features'], ['Startup E', 'Speed', 'No brand']] } },
+        { id: 'callout1', type: 'Callout', position: { x: 50, y: 72 }, label: 'Gap: none solve reporting and visual output — your differentiator', size: 1.5 },
       ],
     },
     {
-      // Frame 3: Right cluster — strategy
-      narrationSegment: 'Recommended strategy: partner with urban real estate, deploy 150kW fast chargers, and differentiate on app experience and wait-time prediction.',
+      // Frame 3: Right cluster — pricing landscape
+      narrationSegment: 'Pricing analysis: the market clusters around two price points. There\'s white space at the mid-tier — higher value than the free tools, lower friction than the enterprise ones.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 52, y: 12 }, label: 'Recommended Strategy', size: 2 },
-        { id: 'pipe1', type: 'Pipeline', position: { x: 52, y: 28 }, label: 'Go-to-Market Phases', size: 3, highlight: true, metadata: { stages: ['Partner', 'Deploy', 'Differentiate', 'Scale'] } },
-        { id: 'step1', type: 'StepList', position: { x: 35, y: 58 }, label: 'Phase 1: Partner', size: 2.5, metadata: { steps: ['Urban RE partnerships', 'Mall & garage deals', '3 pilot cities'] } },
-        { id: 'step2', type: 'StepList', position: { x: 68, y: 58 }, label: 'Phase 2: Deploy', size: 2.5, metadata: { steps: ['150kW fast chargers', 'Mobile-first UX', 'Wait-time prediction'] } },
+        { id: 'h1', type: 'H2', position: { x: 55, y: 12 }, label: 'Pricing Landscape', size: 2 },
+        { id: 'bar1', type: 'BarChart', position: { x: 48, y: 40 }, label: 'Monthly Pricing ($)', size: 3.5, highlight: true, metadata: { bars: [{ label: 'Free tier', value: 0 }, { label: 'Leader A', value: 49 }, { label: 'Leader B', value: 29 }, { label: 'Growing C', value: 19 }, { label: 'Niche D', value: 12 }] } },
+        { id: 'callout1', type: 'Callout', position: { x: 50, y: 68 }, label: 'White space: $20–35/mo mid-tier with AI-native features', size: 1.5 },
+        { id: 'metric1', type: 'Metric', position: { x: 75, y: 40 }, label: 'Avg Price', size: 2, metadata: { value: '$27/mo', trend: 'stable' } },
       ],
     },
     {
-      // Frame 4: Left cluster — financials
-      narrationSegment: 'Financial projections: breakeven in 18 months with 200 stations. Year 3 revenue projected at 42 million euros.',
+      // Frame 4: Left cluster — customer sentiment
+      narrationSegment: 'The agent parsed 2,400 customer reviews. Top complaint across all competitors: outputs are static and hard to share. Users want visual, shareable results — exactly your thesis.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 45, y: 12 }, label: 'Financial Projections', size: 2 },
-        { id: 'bar1', type: 'BarChart', position: { x: 40, y: 42 }, label: 'Revenue Forecast (€M)', size: 3.5, highlight: true, metadata: { bars: [{ label: 'Y1', value: 8 }, { label: 'Y2', value: 22 }, { label: 'Y3', value: 42 }, { label: 'Y4', value: 68 }, { label: 'Y5', value: 95 }] } },
-        { id: 'metric1', type: 'Metric', position: { x: 70, y: 28 }, label: 'Breakeven', size: 2, metadata: { value: '18 mo', trend: 'down' } },
-        { id: 'metric2', type: 'Metric', position: { x: 70, y: 48 }, label: 'IRR', size: 2, metadata: { value: '34%', trend: 'up' } },
-        { id: 'metric3', type: 'Metric', position: { x: 70, y: 68 }, label: 'Stations Needed', size: 2, metadata: { value: '200', trend: 'stable' } },
+        { id: 'h1', type: 'H2', position: { x: 45, y: 12 }, label: 'Customer Sentiment', size: 2 },
+        { id: 'tbl1', type: 'Table', position: { x: 45, y: 38 }, label: 'Top Complaints (All Competitors)', size: 3.5, highlight: true, metadata: { headers: ['Complaint', 'Mentions', 'Severity'], rows: [['Static output', '480+', 'High'], ['Hard to share', '320+', 'High'], ['No narration', '210+', 'Medium'], ['Slow rendering', '190+', 'Medium']] } },
+        { id: 'callout1', type: 'Callout', position: { x: 50, y: 70 }, label: 'Validates the thesis: users want visual, shareable, narrated output', size: 1.5 },
       ],
     },
     {
-      // Frame 5: Center — risks
-      narrationSegment: 'Key risks: regulatory fragmentation, grid capacity, and competition from automaker networks. Mitigations mapped to each.',
+      // Frame 5: Center — agent's strategic recommendation
+      narrationSegment: 'The agent\'s recommendation: enter at $25/month, lead with the visual output moat, target teams already using AI agents. Full report — watched in 90 seconds, not read in 40 pages.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'Risks & Mitigations', size: 2 },
-        { id: 'tbl1', type: 'Table', position: { x: 50, y: 38 }, label: 'Risk Matrix', size: 3.5, highlight: true, metadata: { headers: ['Risk', 'Impact', 'Mitigation'], rows: [['Regulatory', 'High', 'Multi-country legal team'], ['Grid capacity', 'Medium', 'Battery buffer systems'], ['Competition', 'Medium', 'UX moat + speed']] } },
-        { id: 'callout1', type: 'Callout', position: { x: 50, y: 70 }, label: 'Share this analysis — your client watches a 2-minute walkthrough, not a 40-page deck.', size: 1.5 },
+        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'Agent Recommendation', size: 2 },
+        { id: 'step1', type: 'StepList', position: { x: 38, y: 40 }, label: 'Strategic Moves', size: 3, highlight: true, metadata: { steps: ['Enter at $25/mo — mid-tier white space', 'Lead with visual + narration moat', 'Target AI-heavy teams first (dev, product)', 'Build MCP integration for agent distribution'] } },
+        { id: 'metric1', type: 'Metric', position: { x: 68, y: 28 }, label: 'TAM', size: 2, metadata: { value: '$4.5B', trend: 'up' } },
+        { id: 'metric2', type: 'Metric', position: { x: 68, y: 48 }, label: 'Entry Window', size: 2, metadata: { value: '12-18 mo', trend: 'down' } },
+        { id: 'callout1', type: 'Callout', position: { x: 55, y: 70 }, label: 'Your agent did the research. You watched the results. Share this link with your co-founder.', size: 1.3 },
       ],
     },
   ],
 };
 
-// ── 4. Financial Advisors & Legal: Portfolio Review ──────────────────
-export const FINANCE_SCRIPT = {
+// ── 4. Product & Growth: Weekly Growth Digest ────────────────────────
+// Analytics agent's weekly report on metrics, experiments, and user behavior.
+export const PRODUCT_SCRIPT = {
   frames: [
     {
-      // Frame 1: Center-left — portfolio overview
-      narrationSegment: 'Your client wants to understand their current portfolio allocation. Instead of a spreadsheet, walk them through it visually.',
+      // Frame 1: Center — weekly metrics overview
+      narrationSegment: 'Your analytics agent compiled this week\'s growth digest. Key metrics, experiment results, and user behavior patterns — all in one visual report.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 48, y: 12 }, label: 'Portfolio Review — Q1 2026', size: 2 },
-        { id: 'pie1', type: 'PieChart', position: { x: 38, y: 42 }, label: 'Current Allocation', size: 3.5, highlight: true, metadata: { slices: [{ label: 'US Equities', value: 42 }, { label: 'Int\'l Equities', value: 18 }, { label: 'Fixed Income', value: 25 }, { label: 'Alternatives', value: 10 }, { label: 'Cash', value: 5 }] } },
-        { id: 'metric1', type: 'Metric', position: { x: 68, y: 30 }, label: 'Total Value', size: 2.5, metadata: { value: '$2.4M', trend: 'up' } },
-        { id: 'metric2', type: 'Metric', position: { x: 68, y: 52 }, label: 'YTD Return', size: 2.5, metadata: { value: '+8.3%', trend: 'up' } },
-        { id: 'label1', type: 'Label', position: { x: 50, y: 72 }, label: 'Portfolio is equity-heavy at 60% — above target allocation of 55%.' },
+        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'Weekly Growth Digest', size: 2 },
+        { id: 'metric1', type: 'Metric', position: { x: 25, y: 32 }, label: 'WAU', size: 2.5, highlight: true, metadata: { value: '34,200', trend: 'up' } },
+        { id: 'metric2', type: 'Metric', position: { x: 43, y: 32 }, label: 'Signups', size: 2.5, metadata: { value: '1,847', trend: 'up' } },
+        { id: 'metric3', type: 'Metric', position: { x: 60, y: 32 }, label: 'Activation', size: 2.5, metadata: { value: '62%', trend: 'up' } },
+        { id: 'metric4', type: 'Metric', position: { x: 77, y: 32 }, label: 'Churn', size: 2.5, metadata: { value: '3.1%', trend: 'down' } },
+        { id: 'bar1', type: 'BarChart', position: { x: 50, y: 58 }, label: 'Weekly Active Users (8 weeks)', size: 3, metadata: { bars: [{ label: 'W1', value: 24 }, { label: 'W2', value: 26 }, { label: 'W3', value: 27 }, { label: 'W4', value: 29 }, { label: 'W5', value: 28 }, { label: 'W6', value: 31 }, { label: 'W7', value: 32 }, { label: 'W8', value: 34 }] } },
       ],
     },
     {
-      // Frame 2: Center — performance chart
-      narrationSegment: 'Performance by asset class: US equities drove most of the gains, but international markets underperformed. Fixed income provided stability.',
+      // Frame 2: Right cluster — acquisition funnel
+      narrationSegment: 'Acquisition funnel this week: 8,200 visitors, 1,847 signups, 1,145 activated. The drop-off between signup and activation is the biggest leak — 38% lost.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'Performance Breakdown', size: 2 },
-        { id: 'bar1', type: 'BarChart', position: { x: 50, y: 40 }, label: 'YTD Returns by Class', size: 3.5, highlight: true, metadata: { bars: [{ label: 'US Eq', value: 14 }, { label: 'Int\'l Eq', value: 3 }, { label: 'Fixed Inc', value: 5 }, { label: 'Alts', value: 9 }, { label: 'Cash', value: 2 }] } },
-        { id: 'callout1', type: 'Callout', position: { x: 50, y: 68 }, label: 'US equities up 14% — but concentration risk is growing', size: 1.5 },
+        { id: 'h1', type: 'H2', position: { x: 55, y: 12 }, label: 'Acquisition Funnel', size: 2 },
+        { id: 'pipe1', type: 'Pipeline', position: { x: 52, y: 30 }, label: 'This Week\'s Funnel', size: 3, highlight: true, metadata: { stages: ['Visit (8,200)', 'Signup (1,847)', 'Activate (1,145)', 'Retain (987)'] } },
+        { id: 'metric1', type: 'Metric', position: { x: 35, y: 58 }, label: 'Visit → Signup', size: 2, metadata: { value: '22.5%', trend: 'up' } },
+        { id: 'metric2', type: 'Metric', position: { x: 55, y: 58 }, label: 'Signup → Active', size: 2, metadata: { value: '62%', trend: 'stable' } },
+        { id: 'callout1', type: 'Callout', position: { x: 55, y: 75 }, label: 'Biggest leak: 38% drop between signup and activation', size: 1.5 },
       ],
     },
     {
-      // Frame 3: Wide — risk metrics + table
-      narrationSegment: 'Risk analysis: the portfolio\'s Sharpe ratio is 1.2, but drawdown risk is elevated. We recommend rebalancing toward the target mix.',
+      // Frame 3: Left cluster — experiment results
+      narrationSegment: 'Two experiments completed this week. The new onboarding flow increased activation by 15%. The pricing page test was inconclusive — not enough traffic yet.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'Risk Analysis', size: 2 },
-        { id: 'metric1', type: 'Metric', position: { x: 30, y: 32 }, label: 'Sharpe Ratio', size: 2.5, highlight: true, metadata: { value: '1.2', trend: 'stable' } },
-        { id: 'metric2', type: 'Metric', position: { x: 50, y: 32 }, label: 'Max Drawdown', size: 2.5, metadata: { value: '-12%', trend: 'down' } },
-        { id: 'metric3', type: 'Metric', position: { x: 70, y: 32 }, label: 'Volatility', size: 2.5, metadata: { value: '14.2%', trend: 'up' } },
-        { id: 'tbl1', type: 'Table', position: { x: 50, y: 58 }, label: 'Current vs Target', size: 3, metadata: { headers: ['Class', 'Current', 'Target'], rows: [['US Equities', '42%', '35%'], ['Int\'l Equities', '18%', '20%'], ['Fixed Income', '25%', '30%'], ['Alternatives', '10%', '10%']] } },
+        { id: 'h1', type: 'H2', position: { x: 45, y: 12 }, label: 'Experiment Results', size: 2 },
+        { id: 'tbl1', type: 'Table', position: { x: 45, y: 38 }, label: 'A/B Tests This Week', size: 3.5, highlight: true, metadata: { headers: ['Experiment', 'Result', 'Confidence'], rows: [['New onboarding flow', '+15% activation', '97%'], ['Pricing page layout', '+3% conversion', '68%'], ['Email sequence v2', '+22% open rate', '95%']] } },
+        { id: 'callout1', type: 'Callout', position: { x: 50, y: 68 }, label: 'Ship the onboarding flow. Keep running the pricing test.', size: 1.5 },
       ],
     },
     {
-      // Frame 4: Left cluster — rebalancing plan
-      narrationSegment: 'Rebalancing plan: trim US equities by 7%, add to fixed income and international. This reduces drawdown risk while maintaining growth exposure.',
+      // Frame 4: Center — feature adoption
+      narrationSegment: 'Feature adoption: the new dashboard launched 2 weeks ago and is already used by 45% of active users. Export feature underperforming at 12% — worth investigating.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 45, y: 12 }, label: 'Rebalancing Plan', size: 2 },
-        { id: 'step1', type: 'StepList', position: { x: 38, y: 42 }, label: 'Proposed Trades', size: 3, highlight: true, metadata: { steps: ['Sell $168K US equities (42% → 35%)', 'Buy $48K international equities (18% → 20%)', 'Buy $120K investment-grade bonds (25% → 30%)', 'Maintain alternatives at 10%'] } },
-        { id: 'metric1', type: 'Metric', position: { x: 68, y: 30 }, label: 'New Sharpe', size: 2, metadata: { value: '1.35', trend: 'up' } },
-        { id: 'metric2', type: 'Metric', position: { x: 68, y: 52 }, label: 'New Drawdown', size: 2, metadata: { value: '-8%', trend: 'up' } },
-        { id: 'callout1', type: 'Callout', position: { x: 55, y: 72 }, label: 'Better risk-adjusted returns with lower max drawdown', size: 1.3 },
+        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'Feature Adoption', size: 2 },
+        { id: 'bar1', type: 'BarChart', position: { x: 50, y: 40 }, label: 'Feature Usage (% of Active Users)', size: 3.5, highlight: true, metadata: { bars: [{ label: 'Search', value: 82 }, { label: 'Dashboard', value: 45 }, { label: 'Collab', value: 38 }, { label: 'API', value: 24 }, { label: 'Export', value: 12 }] } },
+        { id: 'metric1', type: 'Metric', position: { x: 30, y: 68 }, label: 'Dashboard (new)', size: 2, metadata: { value: '45%', trend: 'up' } },
+        { id: 'metric2', type: 'Metric', position: { x: 70, y: 68 }, label: 'Export', size: 2, metadata: { value: '12%', trend: 'down' } },
       ],
     },
     {
-      // Frame 5: Center — client summary
-      narrationSegment: 'Your client sees the full picture in 2 minutes — allocation, performance, risk, and next steps. No jargon, no spreadsheets.',
+      // Frame 5: Center — agent's growth recommendations
+      narrationSegment: 'The agent\'s growth recommendations: ship the new onboarding, investigate export adoption, and plan an enterprise push based on dashboard traction. Shared in 90 seconds.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 48, y: 12 }, label: 'Client-Ready Summary', size: 2 },
-        { id: 'pie1', type: 'PieChart', position: { x: 35, y: 42 }, label: 'New Allocation', size: 3, metadata: { slices: [{ label: 'US Equities', value: 35 }, { label: 'Int\'l Equities', value: 20 }, { label: 'Fixed Income', value: 30 }, { label: 'Alternatives', value: 10 }, { label: 'Cash', value: 5 }] } },
-        { id: 'metric1', type: 'Metric', position: { x: 62, y: 28 }, label: 'Portfolio Value', size: 2, highlight: true, metadata: { value: '$2.4M', trend: 'up' } },
-        { id: 'metric2', type: 'Metric', position: { x: 62, y: 46 }, label: 'Projected Return', size: 2, metadata: { value: '+9.1%', trend: 'up' } },
-        { id: 'metric3', type: 'Metric', position: { x: 62, y: 64 }, label: 'Risk Score', size: 2, metadata: { value: 'Moderate', trend: 'stable' } },
-        { id: 'callout1', type: 'Callout', position: { x: 48, y: 80 }, label: 'Your clients watch and understand — no finance degree required.', size: 1.3 },
+        { id: 'h1', type: 'H2', position: { x: 48, y: 12 }, label: 'Growth Recommendations', size: 2 },
+        { id: 'step1', type: 'StepList', position: { x: 38, y: 42 }, label: 'This Week\'s Priorities', size: 3, highlight: true, metadata: { steps: ['Ship new onboarding flow (+15% activation, 97% confidence)', 'Investigate export feature — 12% adoption is below target', 'Plan enterprise push — dashboard adoption signals demand', 'Continue pricing page test — need 2 more weeks of traffic'] } },
+        { id: 'metric1', type: 'Metric', position: { x: 68, y: 30 }, label: 'Projected WAU', size: 2, metadata: { value: '38K', trend: 'up' } },
+        { id: 'metric2', type: 'Metric', position: { x: 68, y: 52 }, label: 'Target Activation', size: 2, metadata: { value: '70%', trend: 'up' } },
+        { id: 'callout1', type: 'Callout', position: { x: 55, y: 72 }, label: 'Agent-generated. Your whole growth team watches this in 90 seconds.', size: 1.3 },
       ],
     },
   ],
 };
 
 /**
- * Showcase items config — one per persona, matching the "Who It's For" section.
+ * Showcase items config — ordered for maximum impact.
+ * First item is the universal hook that every AI user relates to.
  */
 export const SHOWCASE_ITEMS = [
   {
+    script: MAIN_SCRIPT,
+    label: 'Why Preplai Exists',
+    description: 'AI agents have taken over — but their output is unreadable. Preplai is the visual layer: your agents report to you visually, not in walls of text. Watch, don\'t read.',
+  },
+  {
     script: ENGINEER_SCRIPT,
-    label: 'Engineers & SRE',
-    description: 'Your system went down at 2 AM. Instead of a 20-page postmortem doc, watch a 2-minute visual walkthrough of the incident — root cause, cascade, resolution, and action items.',
+    label: 'Software Engineers',
+    description: 'Your monitoring agent detected and analyzed a production outage. Instead of writing a 20-page postmortem, it generated a visual incident report — root cause, cascade, resolution.',
   },
   {
-    script: PM_SCRIPT,
-    label: 'Product Managers',
-    description: 'The board wants to understand the recommendation engine. Instead of 1,500 words and a slide deck, share an animated walkthrough — 30 seconds to full alignment.',
+    script: FOUNDER_SCRIPT,
+    label: 'Founders & Operators',
+    description: 'Your research agent analyzed 5 competitors and 2,400 reviews overnight. Instead of a 40-page text dump, get a visual report — market gaps, pricing, and a strategic recommendation.',
   },
   {
-    script: CONSULTANT_SCRIPT,
-    label: 'Consultants & Strategists',
-    description: 'Your AI researched the EV charging market. Now turn that analysis into a client-ready visual presentation — market sizing, competitive landscape, and financial projections.',
-  },
-  {
-    script: FINANCE_SCRIPT,
-    label: 'Financial Advisors & Legal',
-    description: 'Walk your client through their portfolio — allocation, performance, risk, and rebalancing plan. They see the full picture in 2 minutes, no spreadsheets needed.',
+    script: PRODUCT_SCRIPT,
+    label: 'Product & Growth',
+    description: 'Your analytics agent compiled this week\'s growth digest — funnel metrics, experiment results, feature adoption. The whole team watches it in 90 seconds, not reads it in 30 minutes.',
   },
 ];

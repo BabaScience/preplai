@@ -21,7 +21,7 @@ const FRAMES_PER_SCRIPT = 5;
 const AUTO_ADVANCE_MS = FRAME_INTERVAL_MS * FRAMES_PER_SCRIPT;
 const AUDIO_GAP_MS = 800;
 
-const SCRIPT_AUDIO_KEYS = ['engineer', 'pm', 'consultant', 'finance'];
+const SCRIPT_AUDIO_KEYS = ['morning', 'engineer', 'founder', 'product'];
 
 const SC_THEME = {
   dark: { bgGrad: ['#14151f', '#08090e'], dotFill: 'rgba(255,255,255,0.03)' },
