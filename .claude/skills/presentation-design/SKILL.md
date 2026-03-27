@@ -398,7 +398,7 @@ Every frame in a Preplai presentation is a **single design decision** evaluated 
 
 ### Pillar I Applied: Perceptual Clarity in Frames
 
-**One focal point per frame.** Use `highlight: true` on exactly one entity — the one the narration is about. The engine dims everything else (0.35 opacity, blur, 0.88x scale), creating instant figure/ground separation. This is depth-of-field cinematography applied to information design.
+**One focal point per frame.** Use `highlight: true` on exactly one entity — the one the narration is about. The engine uses **progressive reveal** — previously focused entities stay visible while not-yet-mentioned ones are dimmed (0.35 opacity, blur, 0.88x scale). The scene builds incrementally, so viewers never lose context about what was already introduced. This is depth-of-field cinematography meets progressive disclosure.
 
 **Title as anchor.** Every frame needs an H1 at `[50, 6]` — the unmistakable starting point. The viewer's eye lands here first (greatest mass), then drops to the highlighted entity (color contrast), then traces connections (continuity).
 

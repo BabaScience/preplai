@@ -143,12 +143,14 @@ Agent instructions include 16 diagram templates organized by client avatar:
 ### Quality Scorer (14 dimensions)
 Every `add_scene` call is scored 0-100 across 14 dimensions including cognitive science metrics (signal-to-noise, visual hierarchy, cognitive load, modality alignment, temporal coherence, systematization). Uses multiplicative bottleneck scoring — weakest dimension constrains overall score.
 
-### Focus System (Cinematic Depth-of-Field)
+### Focus System — Progressive Reveal (Cinematic Depth-of-Field)
 Narration-synced focus with three-tier generation (LLM semantic → string matching → agent hints). Features:
+- **Progressive reveal:** Once narration focuses an entity, it stays visible (secondary focus) permanently within the frame. The scene builds up incrementally — previously introduced entities never blur back out. Only not-yet-mentioned entities are dimmed.
 - **Cue coalescing:** Rapid successive cues (within 800ms) merge into multi-entity focus
-- **Focus decay:** After 4s with no cues, all entities return to normal (no perpetual blur)
+- **Focus decay:** After 4s with no cues, active zoom/highlight clears but revealed entities remain visible
 - **Always-visible types:** H1, H2, H3, Label, StepList, Badge, Quote, Definition, Callout, Annotation, Table never get background blur
 - **Three DoF levels:** Primary (1.15×, full opacity), Secondary (1.05×, 85% opacity), Background (0.88×, 35% opacity)
+- **Frame reset:** The revealed set clears on frame change — each new frame starts fresh
 
 ---
 

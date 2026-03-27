@@ -71,10 +71,12 @@ Universal metadata: `status`, `progress`, `emphasis`, `badge`, `lottieAnimation`
 ### Layout Templates (16 templates)
 In `add-scene.v1.md` tool description. Hub-spoke, pipeline, incident-timeline, before-after, layered-stack, user-flow, metric-dashboard, feature-tree, roadmap, org-chart, quadrant, strategy-tree, process-flow, fund-hierarchy, decision-flow, waterfall.
 
-### Focus System Improvements (`scene-controller.ts`)
+### Focus System — Progressive Reveal (`scene-controller.ts`)
+- **Progressive reveal:** Once an entity is focused by narration, it stays visible (secondary focus) even when active focus moves elsewhere. Entities are discovered incrementally — the scene builds up as the narration introduces them. Only entities not yet mentioned are dimmed/blurred.
 - **Cue coalescing:** Cues within 800ms merge into multi-entity focus (no rapid blinking)
-- **Focus decay:** After 4s without cues, all entities return to normal state (no perpetual blur)
+- **Focus decay:** After 4s without cues, active focus (zoom/highlight) clears, but previously revealed entities remain visible
 - **Always-visible types:** H1, H2, H3, Label, StepList, Badge, Quote, Definition, Callout, Annotation, Table never blur
+- **Frame reset:** Revealed set clears on frame change — each frame starts fresh
 
 ---
 
