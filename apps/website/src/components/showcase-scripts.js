@@ -15,74 +15,77 @@
 export const MAIN_SCRIPT = {
   frames: [
     {
-      // Frame 1: The agent revolution
-      narrationSegment: 'AI agents have taken over. In the last few months, they went from experiments to running real work — researching, monitoring, analyzing, and reporting — around the clock, for millions of teams.',
+      // Frame 1: Your agents are already running — set the scene
+      narrationSegment: 'Your AI agents already run your work. They research, monitor, analyze, and report — around the clock, while you sleep. They went from experiments to real workflows for millions of teams.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'The Agent Revolution', size: 2 },
-        { id: 'bot1', type: 'Composable', position: { x: 22, y: 35 }, label: 'Research Agent', size: 2.2, metadata: { shape: 'hexagon', icon: 'search' } },
-        { id: 'bot2', type: 'Composable', position: { x: 40, y: 35 }, label: 'Monitoring Agent', size: 2.2, metadata: { shape: 'hexagon', icon: 'activity' } },
-        { id: 'bot3', type: 'Composable', position: { x: 58, y: 35 }, label: 'Analytics Agent', size: 2.2, metadata: { shape: 'hexagon', icon: 'bar-chart' } },
-        { id: 'bot4', type: 'Composable', position: { x: 76, y: 35 }, label: 'Support Agent', size: 2.2, metadata: { shape: 'hexagon', icon: 'message-circle' } },
-        { id: 'metric1', type: 'Metric', position: { x: 30, y: 62 }, label: 'AI Agent Market', size: 2.5, highlight: true, metadata: { value: '$10.9B', trend: 'up' } },
-        { id: 'metric2', type: 'Metric', position: { x: 55, y: 62 }, label: 'MCP Downloads', size: 2.5, metadata: { value: '97M/mo', trend: 'up' } },
-        { id: 'metric3', type: 'Metric', position: { x: 78, y: 62 }, label: 'Enterprise Adoption', size: 2.5, metadata: { value: '72%', trend: 'up' } },
+        { id: 'h1', type: 'H2', position: { x: 50, y: 8 }, label: 'Your Agents Are Already Running', size: 2.5 },
+        { id: 'nn1', type: 'NeuralNetwork', position: { x: 50, y: 32 }, label: 'AI Infrastructure', size: 3.5, metadata: { layers: [4, 6, 6, 4], layerLabels: ['Input', 'Process', 'Analyze', 'Output'], showWeights: false } },
+        { id: 'bot1', type: 'Composable', position: { x: 15, y: 60 }, label: 'Research Agent', size: 2.8, metadata: { shape: 'circle', icon: 'bot' } },
+        { id: 'bot2', type: 'Composable', position: { x: 38, y: 60 }, label: 'Monitoring Agent', size: 2.8, metadata: { shape: 'circle', icon: 'bot' } },
+        { id: 'bot3', type: 'Composable', position: { x: 62, y: 60 }, label: 'Analytics Agent', size: 2.8, metadata: { shape: 'circle', icon: 'bot' } },
+        { id: 'bot4', type: 'Composable', position: { x: 85, y: 60 }, label: 'Support Agent', size: 2.8, metadata: { shape: 'circle', icon: 'bot' } },
+        { id: 'callout1', type: 'Callout', position: { x: 50, y: 85 }, label: 'They never stop working. But there\'s a problem with how they deliver results.', size: 1.8 },
       ],
     },
     {
-      // Frame 2: The output problem
-      narrationSegment: 'But here\'s the problem: every agent dumps its results as a wall of text. Markdown reports, JSON blobs, Slack messages. Your agent does 45 minutes of brilliant work — then you skim the output for 5 seconds and forget it.',
+      // Frame 2: The output problem — from the agent's perspective
+      narrationSegment: 'But here\'s the problem: every time they finish a job, they hand you a wall of text. Two thousand words. Markdown reports, JSON blobs. They do 45 minutes of brilliant work — and you skim it for 5 seconds and forget it.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 50, y: 12 }, label: 'The Output Problem', size: 2 },
-        { id: 'bot1', type: 'Composable', position: { x: 25, y: 38 }, label: 'AI Agent', size: 2.5, highlight: true, metadata: { shape: 'hexagon', icon: 'bot' } },
-        { id: 'a1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'bot1', targetEntityId: 'doc1', label: '2,000 words' },
-        { id: 'doc1', type: 'Composable', position: { x: 50, y: 38 }, label: 'Text Report', size: 2.5, metadata: { shape: 'rectangle', icon: 'file-text' } },
+        { id: 'h1', type: 'H2', position: { x: 50, y: 8 }, label: 'The Output Problem', size: 2.5 },
+        { id: 'bot1', type: 'Composable', position: { x: 18, y: 40 }, label: 'Your Agent', size: 3, highlight: true, metadata: { shape: 'circle', icon: 'bot' } },
+        { id: 'a1', type: 'DataFlow', position: { x: 0, y: 0 }, sourceEntityId: 'bot1', targetEntityId: 'doc1', label: '2,000 words' },
+        { id: 'doc1', type: 'CodeBlock', position: { x: 48, y: 35 }, label: 'Text Report', size: 3, metadata: { code: '# Agent Report\n\n## Summary\nThe analysis of 127 data sources\nrevealed 14 key findings across\n3 market segments...\n\n## Details\n[2,000 more words...]', language: 'markdown' } },
         { id: 'a2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'doc1', targetEntityId: 'user1', label: '5 sec skim', style: 'dashed' },
-        { id: 'user1', type: 'User', position: { x: 75, y: 38 }, label: 'You', size: 2.5 },
-        { id: 'metric1', type: 'Metric', position: { x: 30, y: 65 }, label: 'Agent Work', size: 2, metadata: { value: '45 min', trend: 'up' } },
-        { id: 'metric2', type: 'Metric', position: { x: 50, y: 65 }, label: 'Your Attention', size: 2, metadata: { value: '5 sec', trend: 'down' } },
-        { id: 'metric3', type: 'Metric', position: { x: 70, y: 65 }, label: 'Text Retention', size: 2, metadata: { value: '10%', trend: 'down' } },
-        { id: 'callout1', type: 'Callout', position: { x: 50, y: 82 }, label: 'The bottleneck isn\'t intelligence — it\'s the output format.', size: 1.5 },
+        { id: 'user1', type: 'User', position: { x: 82, y: 40 }, label: 'You', size: 3 },
+        { id: 'metric1', type: 'Metric', position: { x: 22, y: 72 }, label: 'Agent Work', size: 2.5, metadata: { value: '45 min', trend: 'up' } },
+        { id: 'metric2', type: 'Metric', position: { x: 50, y: 72 }, label: 'Your Attention', size: 2.5, metadata: { value: '5 sec', trend: 'down' } },
+        { id: 'metric3', type: 'Metric', position: { x: 78, y: 72 }, label: 'Text Retention', size: 2.5, metadata: { value: '10%', trend: 'down' } },
       ],
     },
     {
-      // Frame 3: Preplai is the visual layer
-      narrationSegment: 'Preplai is the visual layer for AI agents. Instead of text, your agents report to you visually — animated, narrated, cinematic walkthroughs you can actually watch. We retain 95% from visuals. Only 10% from text.',
+      // Frame 3: Preplai changes everything — agent explains the solution
+      narrationSegment: 'Preplai changes that. Now your agents report to you visually — animated, narrated walkthroughs you can actually watch. You retain 95% of what you see. Only 10% of what you read. This is how they were meant to communicate.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 50, y: 10 }, label: 'The Visual Layer for AI Agents', size: 2 },
-        { id: 'bot1', type: 'Composable', position: { x: 20, y: 38 }, label: 'AI Agent', size: 2.5, metadata: { shape: 'hexagon', icon: 'bot' } },
-        { id: 'a1', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'bot1', targetEntityId: 'preplai', label: 'MCP' },
-        { id: 'preplai', type: 'Composable', position: { x: 48, y: 38 }, label: 'Preplai', size: 3, highlight: true, metadata: { shape: 'diamond', icon: 'play' } },
-        { id: 'a2', type: 'Arrow', position: { x: 0, y: 0 }, sourceEntityId: 'preplai', targetEntityId: 'user1', label: 'visual report' },
-        { id: 'user1', type: 'User', position: { x: 78, y: 38 }, label: 'You', size: 2.5 },
-        { id: 'metric1', type: 'Metric', position: { x: 35, y: 65 }, label: 'Visual Retention', size: 2.5, metadata: { value: '95%', trend: 'up' } },
-        { id: 'metric2', type: 'Metric', position: { x: 65, y: 65 }, label: 'Text Retention', size: 2.5, metadata: { value: '10%', trend: 'down' } },
-        { id: 'label1', type: 'Label', position: { x: 50, y: 82 }, label: 'Your agents do the work. You watch the results.' },
+        { id: 'h1', type: 'H2', position: { x: 50, y: 6 }, label: 'Now We Report Visually', size: 2.5 },
+        { id: 'bot1', type: 'Composable', position: { x: 15, y: 35 }, label: 'Your Agent', size: 3, metadata: { shape: 'circle', icon: 'bot' } },
+        { id: 'a1', type: 'DataFlow', position: { x: 0, y: 0 }, sourceEntityId: 'bot1', targetEntityId: 'preplai', label: 'MCP' },
+        { id: 'preplai', type: 'Composable', position: { x: 50, y: 35 }, label: 'Preplai', size: 4, highlight: true, metadata: { shape: 'diamond', icon: 'play' } },
+        { id: 'a2', type: 'DataFlow', position: { x: 0, y: 0 }, sourceEntityId: 'preplai', targetEntityId: 'user1', label: 'Visual Report' },
+        { id: 'user1', type: 'User', position: { x: 85, y: 35 }, label: 'You', size: 3 },
+        { id: 'metric1', type: 'Metric', position: { x: 30, y: 62 }, label: 'Visual Retention', size: 3, highlight: true, metadata: { value: '95%', trend: 'up' } },
+        { id: 'metric2', type: 'Metric', position: { x: 70, y: 62 }, label: 'Text Retention', size: 3, metadata: { value: '10%', trend: 'down' } },
+        { id: 'label1', type: 'Callout', position: { x: 50, y: 82 }, label: 'This is how they were meant to communicate.', size: 1.8 },
       ],
     },
     {
-      // Frame 4: What this looks like — real agent visual report
-      narrationSegment: 'This is what it looks like. Your agent ran overnight — tracked revenue, flagged issues, spotted trends. Instead of reading a 6-page report, you watch this 90-second visual walkthrough over coffee.',
+      // Frame 4: The agent shows a real visual report
+      narrationSegment: 'Here\'s your morning brief. Your agent tracked revenue overnight — up 12%. Flagged a churn spike in enterprise. Spotted three trends. Instead of a 6-page report, you watch this 90-second walkthrough over coffee.',
       entities: [
-        { id: 'h1', type: 'H2', position: { x: 50, y: 10 }, label: 'Your Agent\'s Visual Report', size: 2 },
-        { id: 'metric1', type: 'Metric', position: { x: 25, y: 30 }, label: 'Revenue', size: 2.5, highlight: true, metadata: { value: '$47.2K', trend: 'up' } },
-        { id: 'metric2', type: 'Metric', position: { x: 50, y: 30 }, label: 'Users', size: 2.5, metadata: { value: '12,841', trend: 'up' } },
-        { id: 'metric3', type: 'Metric', position: { x: 75, y: 30 }, label: 'Uptime', size: 2.5, metadata: { value: '99.97%', trend: 'stable' } },
-        { id: 'bar1', type: 'BarChart', position: { x: 35, y: 55 }, label: 'Revenue Trend', size: 2.5, metadata: { bars: [{ label: 'Mon', value: 38 }, { label: 'Tue', value: 41 }, { label: 'Wed', value: 44 }, { label: 'Thu', value: 39 }, { label: 'Fri', value: 52 }, { label: 'Sat', value: 45 }, { label: 'Sun', value: 47 }] } },
-        { id: 'step1', type: 'StepList', position: { x: 70, y: 55 }, label: 'Action Items', size: 2.2, metadata: { steps: ['Fix enterprise churn', 'Expand mobile test', 'Review competitor report'] } },
-        { id: 'callout1', type: 'Callout', position: { x: 50, y: 80 }, label: '90 seconds over coffee. Full picture. Zero reading.', size: 1.3 },
+        { id: 'h1', type: 'H2', position: { x: 50, y: 6 }, label: 'Your Morning Brief', size: 2.5 },
+        { id: 'metric1', type: 'Metric', position: { x: 18, y: 25 }, label: 'Revenue', size: 2.8, highlight: true, metadata: { value: '$47.2K', trend: 'up', trendValue: '12%' } },
+        { id: 'metric2', type: 'Metric', position: { x: 50, y: 25 }, label: 'Active Users', size: 2.8, metadata: { value: '12,841', trend: 'up', trendValue: '8%' } },
+        { id: 'metric3', type: 'Metric', position: { x: 82, y: 25 }, label: 'Uptime', size: 2.8, metadata: { value: '99.97%', trend: 'stable' } },
+        { id: 'bar1', type: 'BarChart', position: { x: 30, y: 52 }, label: 'Revenue Trend (7 days)', size: 3, metadata: { bars: [{ label: 'Mon', value: 38 }, { label: 'Tue', value: 41 }, { label: 'Wed', value: 44 }, { label: 'Thu', value: 39 }, { label: 'Fri', value: 52 }, { label: 'Sat', value: 45 }, { label: 'Sun', value: 47 }] } },
+        { id: 'step1', type: 'StepList', position: { x: 75, y: 52 }, label: 'Action Items', size: 2.5, metadata: { steps: ['Fix enterprise churn spike', 'Expand mobile A/B test', 'Review competitor report', 'Schedule board update'] } },
+        { id: 'alert1', type: 'Alert', position: { x: 75, y: 80 }, label: 'Churn spike: 3 enterprise accounts', size: 1.8 },
       ],
     },
     {
-      // Frame 5: The payoff — don't read it, watch it
-      narrationSegment: 'Preplai — the visual layer for AI agents. Your agents do the work. You watch the results. Don\'t read it. Just watch it.',
+      // Frame 5: The payoff — agent's closing statement
+      narrationSegment: 'Your agents do the work. You watch the results. Preplai — the visual layer for AI agents. Don\'t read it. Just watch it.',
       entities: [
-        { id: 'h1', type: 'H1', position: { x: 50, y: 20 }, label: 'Don\'t read it.', size: 2.5 },
-        { id: 'h2', type: 'H1', position: { x: 50, y: 38 }, label: 'Just watch it.', size: 3, highlight: true },
-        { id: 'bot1', type: 'Composable', position: { x: 25, y: 62 }, label: 'Research', size: 1.8, metadata: { shape: 'hexagon', icon: 'search' } },
-        { id: 'bot2', type: 'Composable', position: { x: 40, y: 62 }, label: 'Monitoring', size: 1.8, metadata: { shape: 'hexagon', icon: 'activity' } },
-        { id: 'bot3', type: 'Composable', position: { x: 55, y: 62 }, label: 'Analytics', size: 1.8, metadata: { shape: 'hexagon', icon: 'bar-chart' } },
-        { id: 'bot4', type: 'Composable', position: { x: 70, y: 62 }, label: 'Support', size: 1.8, metadata: { shape: 'hexagon', icon: 'message-circle' } },
-        { id: 'label1', type: 'Label', position: { x: 48, y: 80 }, label: 'The visual layer for AI agents — preplai.com' },
+        { id: 'h1', type: 'H1', position: { x: 50, y: 15 }, label: 'Don\'t read it.', size: 3 },
+        { id: 'h2', type: 'H1', position: { x: 50, y: 35 }, label: 'Just watch it.', size: 3.5, highlight: true },
+        { id: 'bot1', type: 'Composable', position: { x: 15, y: 62 }, label: 'Research', size: 2.2, metadata: { shape: 'circle', icon: 'bot' } },
+        { id: 'a1', type: 'DataFlow', position: { x: 0, y: 0 }, sourceEntityId: 'bot1', targetEntityId: 'monitor1' },
+        { id: 'bot2', type: 'Composable', position: { x: 35, y: 62 }, label: 'Monitoring', size: 2.2, metadata: { shape: 'circle', icon: 'bot' } },
+        { id: 'a2', type: 'DataFlow', position: { x: 0, y: 0 }, sourceEntityId: 'bot2', targetEntityId: 'monitor1' },
+        { id: 'bot3', type: 'Composable', position: { x: 65, y: 62 }, label: 'Analytics', size: 2.2, metadata: { shape: 'circle', icon: 'bot' } },
+        { id: 'a3', type: 'DataFlow', position: { x: 0, y: 0 }, sourceEntityId: 'bot3', targetEntityId: 'monitor1' },
+        { id: 'bot4', type: 'Composable', position: { x: 85, y: 62 }, label: 'Support', size: 2.2, metadata: { shape: 'circle', icon: 'bot' } },
+        { id: 'a4', type: 'DataFlow', position: { x: 0, y: 0 }, sourceEntityId: 'bot4', targetEntityId: 'monitor1' },
+        { id: 'monitor1', type: 'Monitor', position: { x: 50, y: 80 }, label: 'preplai.com', size: 3 },
+        { id: 'label1', type: 'Label', position: { x: 50, y: 95 }, label: 'The visual layer for AI agents' },
       ],
     },
   ],
@@ -279,28 +282,42 @@ export const PRODUCT_SCRIPT = {
 };
 
 /**
- * Showcase items config — ordered for maximum impact.
- * First item is the universal hook that every AI user relates to.
+ * Hero showcase — single "Why Preplai Exists" presentation.
+ * Plays alone in the hero section, no carousel navigation needed.
  */
-export const SHOWCASE_ITEMS = [
+export const HERO_SHOWCASE_ITEMS = [
   {
     script: MAIN_SCRIPT,
+    audioKey: 'morning',
     label: 'Why Preplai Exists',
-    description: 'AI agents have taken over — but their output is unreadable. Preplai is the visual layer: your agents report to you visually, not in walls of text. Watch, don\'t read.',
+    description: 'Your agents do the work. You watch the results. Preplai is the visual layer for AI agents.',
   },
+];
+
+/**
+ * Persona showcases — 3 use-case presentations for the "See It In Action" section.
+ * Each shows a real agent-generated report for a specific audience.
+ */
+export const PERSONA_SHOWCASE_ITEMS = [
   {
     script: ENGINEER_SCRIPT,
+    audioKey: 'engineer',
     label: 'Software Engineers',
     description: 'Your monitoring agent detected and analyzed a production outage. Instead of writing a 20-page postmortem, it generated a visual incident report — root cause, cascade, resolution.',
   },
   {
     script: FOUNDER_SCRIPT,
+    audioKey: 'founder',
     label: 'Founders & Operators',
     description: 'Your research agent analyzed 5 competitors and 2,400 reviews overnight. Instead of a 40-page text dump, get a visual report — market gaps, pricing, and a strategic recommendation.',
   },
   {
     script: PRODUCT_SCRIPT,
+    audioKey: 'product',
     label: 'Product & Growth',
     description: 'Your analytics agent compiled this week\'s growth digest — funnel metrics, experiment results, feature adoption. The whole team watches it in 90 seconds, not reads it in 30 minutes.',
   },
 ];
+
+/** All showcase items combined (kept for backward compatibility). */
+export const SHOWCASE_ITEMS = [...HERO_SHOWCASE_ITEMS, ...PERSONA_SHOWCASE_ITEMS];

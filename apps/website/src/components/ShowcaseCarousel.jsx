@@ -21,7 +21,7 @@ const FRAMES_PER_SCRIPT = 5;
 const AUTO_ADVANCE_MS = FRAME_INTERVAL_MS * FRAMES_PER_SCRIPT;
 const AUDIO_GAP_MS = 800;
 
-const SCRIPT_AUDIO_KEYS = ['morning', 'engineer', 'founder', 'product'];
+// Audio keys are now defined per item via item.audioKey
 
 const SC_THEME = {
   dark: { bgGrad: ['#14151f', '#08090e'], dotFill: 'rgba(255,255,255,0.03)' },
@@ -46,7 +46,7 @@ export default function ShowcaseCarousel({ items }) {
   const narratorRef = useRef(null);
 
   const currentItem = items[activeIndex];
-  const audioKey = SCRIPT_AUDIO_KEYS[activeIndex] || SCRIPT_AUDIO_KEYS[0];
+  const audioKey = currentItem.audioKey || 'morning';
   const audioKeyRef = useRef(audioKey);
   audioKeyRef.current = audioKey;
 
@@ -282,12 +282,16 @@ export default function ShowcaseCarousel({ items }) {
           {audio.enabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
         </button>
 
-        <button className="showcase-carousel-arrow showcase-carousel-arrow-left" onClick={goPrev} aria-label="Previous use case">
-          <ChevronLeft size={20} />
-        </button>
-        <button className="showcase-carousel-arrow showcase-carousel-arrow-right" onClick={goNext} aria-label="Next use case">
-          <ChevronRight size={20} />
-        </button>
+        {items.length > 1 && (
+          <>
+            <button className="showcase-carousel-arrow showcase-carousel-arrow-left" onClick={goPrev} aria-label="Previous use case">
+              <ChevronLeft size={20} />
+            </button>
+            <button className="showcase-carousel-arrow showcase-carousel-arrow-right" onClick={goNext} aria-label="Next use case">
+              <ChevronRight size={20} />
+            </button>
+          </>
+        )}
       </div>
 
       <div className="showcase-carousel-footer">
@@ -296,18 +300,20 @@ export default function ShowcaseCarousel({ items }) {
           <p className="showcase-carousel-desc">{currentItem.description}</p>
         </div>
 
-        <div className="showcase-carousel-dots">
-          {items.map((item, i) => (
-            <button
-              key={i}
-              className={`showcase-carousel-dot ${i === activeIndex ? 'active' : ''}`}
-              onClick={() => goTo(i)}
-              aria-label={`Show ${item.label}`}
-            >
-              <span className="showcase-carousel-dot-label">{item.label}</span>
-            </button>
-          ))}
-        </div>
+        {items.length > 1 && (
+          <div className="showcase-carousel-dots">
+            {items.map((item, i) => (
+              <button
+                key={i}
+                className={`showcase-carousel-dot ${i === activeIndex ? 'active' : ''}`}
+                onClick={() => goTo(i)}
+                aria-label={`Show ${item.label}`}
+              >
+                <span className="showcase-carousel-dot-label">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -3,10 +3,9 @@ import { Link } from 'react-router-dom';
 import { Cpu, Rocket, BarChart3, Briefcase } from 'lucide-react';
 import LandingLayout from '../layouts/LandingLayout';
 import Logo from '../components/Logo';
-import HeroPlayer from '../components/HeroPlayer';
 import ShowcaseCarousel from '../components/ShowcaseCarousel';
 import PalettePicker from '../components/PalettePicker';
-import { SHOWCASE_ITEMS } from '../components/showcase-scripts';
+import { SHOWCASE_ITEMS, HERO_SHOWCASE_ITEMS, PERSONA_SHOWCASE_ITEMS } from '../components/showcase-scripts';
 
 export default function Landing() {
   const [setupTab, setSetupTab] = useState('oauth');
@@ -37,7 +36,7 @@ export default function Landing() {
         </div>
 
         <div className="hero-fade-in hero-fade-in-delay-4">
-          <HeroPlayer />
+          <ShowcaseCarousel items={HERO_SHOWCASE_ITEMS} />
         </div>
 
         <div className="trust-section hero-fade-in hero-fade-in-delay-4">
@@ -69,7 +68,7 @@ export default function Landing() {
         <h2>From AI output to visual report</h2>
         <p className="section-desc">Every demo below is a live Preplai presentation — the same engine your AI agents use to turn their output into something people actually watch.</p>
         <PalettePicker />
-        <ShowcaseCarousel items={SHOWCASE_ITEMS} />
+        <ShowcaseCarousel items={PERSONA_SHOWCASE_ITEMS} />
       </section>
 
       {/* 4. Who It's For — Persona bento cards */}

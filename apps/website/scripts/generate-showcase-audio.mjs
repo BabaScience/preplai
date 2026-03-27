@@ -39,33 +39,33 @@ const NARRATIONS = {
   'hero/3': 'The result: a cinematic walkthrough anyone can watch — your team, your client, your board. No slides, no jargon.',
   'hero/4': "From idea to impact — in 2 minutes. Don't read it. Just watch it.",
 
-  // Main script (5 frames) — Why Preplai exists (brand story)
-  'morning/0': 'AI agents have taken over. In the last few months, they went from experiments to running real work — researching, monitoring, analyzing, and reporting — around the clock, for millions of teams.',
-  'morning/1': 'But here\'s the problem: every agent dumps its results as a wall of text. Markdown reports, JSON blobs, Slack messages. Your agent does 45 minutes of brilliant work — then you skim the output for 5 seconds and forget it.',
-  'morning/2': 'Preplai is the visual layer for AI agents. Instead of text, your agents report to you visually — animated, narrated, cinematic walkthroughs you can actually watch. We retain 95% from visuals. Only 10% from text.',
-  'morning/3': 'This is what it looks like. Your agent ran overnight — tracked revenue, flagged issues, spotted trends. Instead of reading a 6-page report, you watch this 90-second visual walkthrough over coffee.',
-  'morning/4': 'Preplai — the visual layer for AI agents. Your agents do the work. You watch the results. Don\'t read it. Just watch it.',
+  // Main script (5 frames) — Why Preplai exists (told from the agent's perspective)
+  'morning/0': 'Your AI agents already run your work. They research, monitor, analyze, and report — around the clock, while you sleep. They went from experiments to real workflows for millions of teams.',
+  'morning/1': 'But here\'s the problem: every time they finish a job, they hand you a wall of text. Two thousand words. Markdown reports, JSON blobs. They do 45 minutes of brilliant work — and you skim it for 5 seconds and forget it.',
+  'morning/2': 'Preplai changes that. Now your agents report to you visually — animated, narrated walkthroughs you can actually watch. You retain 95% of what you see. Only 10% of what you read. This is how they were meant to communicate.',
+  'morning/3': 'Here\'s your morning brief. Your agent tracked revenue overnight — up 12%. Flagged a churn spike in enterprise. Spotted three trends. Instead of a 6-page report, you watch this 90-second walkthrough over coffee.',
+  'morning/4': 'Your agents do the work. You watch the results. Preplai — the visual layer for AI agents. Don\'t read it. Just watch it.',
 
-  // Engineer script (5 frames) — Agent-generated incident report
-  'engineer/0': 'Your monitoring agent detected a production outage at 2:14 AM and auto-generated this incident report. API Gateway returning 503s, latency spiked to 12 seconds.',
-  'engineer/1': 'The agent traced the root cause: a deploy at 2:12 AM introduced a database connection leak in the auth service. Connection pool exhausted in 2 minutes.',
-  'engineer/2': 'The agent mapped the cascade: auth failures caused the gateway to retry, amplifying load 4x across all downstream services. No circuit breaker in place.',
-  'engineer/3': 'Resolution: team rolled back the deploy at 2:31 AM. Connection pool recovered. Full service restored by 2:34 AM. Total downtime: 20 minutes.',
-  'engineer/4': 'The agent recommends four follow-ups: circuit breakers, pool alerts, canary deploys, and an ORM review. Share this link — skip the 20-page postmortem doc.',
+  // Engineer script (5 frames) — Agent-generated incident report (agent's perspective)
+  'engineer/0': 'I detected a production outage at 2:14 AM and generated this incident report. Your API Gateway started returning 503 errors. Latency spiked to 12 seconds. Here\'s what happened.',
+  'engineer/1': 'I traced the root cause: a deploy at 2:12 AM introduced a database connection leak in the auth service. The connection pool was exhausted in just 2 minutes.',
+  'engineer/2': 'I mapped the cascade: auth failures caused the gateway to retry, amplifying load 4 times across all downstream services. There was no circuit breaker in place.',
+  'engineer/3': 'Your team rolled back the deploy at 2:31 AM. Connection pool recovered. Full service restored by 2:34 AM. Total downtime: 20 minutes.',
+  'engineer/4': 'I recommend four follow-ups: add circuit breakers, set pool usage alerts, enable canary deploys, and review the ORM upgrade. Share this link — skip the 20-page postmortem.',
 
-  // Founder script (5 frames) — Competitor research agent report
-  'founder/0': 'Your research agent analyzed 5 competitors overnight — pricing, features, market position, and customer reviews. Here\'s the visual report.',
-  'founder/1': 'The agent mapped each competitor\'s strengths and gaps. Two clear patterns: everyone has strong onboarding, but nobody solves the reporting problem. That\'s your opening.',
-  'founder/2': 'Pricing analysis: the market clusters around two price points. There\'s white space at the mid-tier — higher value than the free tools, lower friction than the enterprise ones.',
-  'founder/3': 'The agent parsed 2,400 customer reviews. Top complaint across all competitors: outputs are static and hard to share. Users want visual, shareable results — exactly your thesis.',
-  'founder/4': 'The agent\'s recommendation: enter at $25/month, lead with the visual output moat, target teams already using AI agents. Full report — watched in 90 seconds, not read in 40 pages.',
+  // Founder script (5 frames) — Competitor research agent report (agent's perspective)
+  'founder/0': 'I analyzed 5 competitors overnight — their pricing, features, market position, and 2,400 customer reviews. Here\'s your visual report.',
+  'founder/1': 'I mapped each competitor\'s strengths and gaps. Two clear patterns: everyone has strong onboarding, but nobody solves the reporting problem. That\'s your opening.',
+  'founder/2': 'Pricing analysis: the market clusters around two price points. There\'s white space at the mid-tier — higher value than free tools, lower friction than enterprise.',
+  'founder/3': 'I parsed 2,400 customer reviews. Top complaint across all competitors: outputs are static and hard to share. Users want visual, shareable results — exactly your thesis.',
+  'founder/4': 'My recommendation: enter at $25 per month, lead with the visual output moat, target teams already using AI agents. Full report — watched in 90 seconds, not read in 40 pages.',
 
-  // Product script (5 frames) — Weekly growth digest
-  'product/0': 'Your analytics agent compiled this week\'s growth digest. Key metrics, experiment results, and user behavior patterns — all in one visual report.',
-  'product/1': 'Acquisition funnel this week: 8,200 visitors, 1,847 signups, 1,145 activated. The drop-off between signup and activation is the biggest leak — 38% lost.',
-  'product/2': 'Two experiments completed this week. The new onboarding flow increased activation by 15%. The pricing page test was inconclusive — not enough traffic yet.',
-  'product/3': 'Feature adoption: the new dashboard launched 2 weeks ago and is already used by 45% of active users. Export feature underperforming at 12% — worth investigating.',
-  'product/4': 'The agent\'s growth recommendations: ship the new onboarding, investigate export adoption, and plan an enterprise push based on dashboard traction. Shared in 90 seconds.',
+  // Product script (5 frames) — Weekly growth digest (agent's perspective)
+  'product/0': 'I compiled this week\'s growth digest. Key metrics, experiment results, and user behavior patterns — all in one visual report for the team.',
+  'product/1': 'This week\'s acquisition funnel: 8,200 visitors, 1,847 signups, 1,145 activated. The drop-off between signup and activation is your biggest leak — 38% lost.',
+  'product/2': 'Two experiments completed this week. The new onboarding flow increased activation by 15% with 97% confidence. The pricing page test was inconclusive — not enough traffic yet.',
+  'product/3': 'Feature adoption update: the new dashboard launched 2 weeks ago and is already used by 45% of active users. Export feature is underperforming at 12% — worth investigating.',
+  'product/4': 'My growth recommendations: ship the new onboarding, investigate export adoption, and plan an enterprise push based on dashboard traction. Your whole team watches this in 90 seconds.',
 };
 
 // ── ElevenLabs API Call ───────────────────────────────────────────────
@@ -159,30 +159,30 @@ const ENTITY_MAP = {
   'hero/2': { pipe1: 'Preplai Engine', pie1: 'Market Share', bar1: 'Performance', metric1: 'Impact', timeline1: 'Milestones' },
   'hero/3': { user1: 'Your Team', user2: 'Your Client', user3: 'Your Board', monitor1: 'Preplai Player', metric1: 'Retention', metric2: 'Time Saved' },
   'hero/4': { idea: 'Idea', pipe1: 'From Idea to Impact', monitor1: 'Watch It' },
-  // Main (Why Preplai Exists)
-  'morning/0': { bot1: 'Research Agent', bot2: 'Monitoring Agent', bot3: 'Analytics Agent', bot4: 'Support Agent', metric1: 'Agent Market', metric2: 'MCP Downloads', metric3: 'Enterprise Adoption' },
-  'morning/1': { bot1: 'Agent', doc1: 'Text Report', user1: 'You', metric1: 'Agent Work', metric2: 'Attention', metric3: 'Retention' },
-  'morning/2': { bot1: 'Agent', preplai: 'Preplai', user1: 'You', metric1: 'Visual Retention', metric2: 'Text Retention' },
-  'morning/3': { metric1: 'Revenue', metric2: 'Users', metric3: 'Uptime', bar1: 'Revenue Trend', step1: 'Action Items' },
-  'morning/4': { h2: 'Watch', bot1: 'Research', bot2: 'Monitoring', bot3: 'Analytics', bot4: 'Support' },
-  // Engineer
-  'engineer/0': { h1: 'Incident Report', gw: 'API Gateway', alert1: '503 Errors', metric1: 'Latency', timeline1: 'Incident Timeline' },
-  'engineer/1': { h1: 'Root Cause', deploy1: 'Deploy', db1: 'Users DB', metric1: 'Pool', svc1: 'Auth Service' },
-  'engineer/2': { gw: 'Gateway', svc1: 'Auth', svc2: 'Orders', svc3: 'Payments', cb1: 'Circuit Breaker' },
-  'engineer/3': { rb1: 'Rollback', svc1: 'Auth Service', db1: 'Users DB', metric1: 'MTTR' },
-  'engineer/4': { step1: 'Recommendations', metric1: 'Downtime', metric2: 'Users Affected' },
-  // Founder
-  'founder/0': { metric1: 'Competitors', metric2: 'Sources Analyzed', metric3: 'Reviews Parsed', pie1: 'Market Share' },
-  'founder/1': { tbl1: 'Feature Comparison' },
-  'founder/2': { bar1: 'Monthly Pricing', metric1: 'Avg Price' },
-  'founder/3': { tbl1: 'Top Complaints' },
-  'founder/4': { step1: 'Strategic Moves', metric1: 'TAM', metric2: 'Entry Window' },
-  // Product
-  'product/0': { metric1: 'WAU', metric2: 'Signups', metric3: 'Activation', metric4: 'Churn', bar1: 'Weekly Active Users' },
-  'product/1': { pipe1: 'Funnel', metric1: 'Visit Signup', metric2: 'Signup Active' },
-  'product/2': { tbl1: 'Tests This Week' },
-  'product/3': { bar1: 'Feature Usage', metric1: 'Dashboard', metric2: 'Export' },
-  'product/4': { step1: 'Priorities', metric1: 'Projected WAU', metric2: 'Target Activation' },
+  // Main (Why Preplai Exists) — trigger words match narration text
+  'morning/0': { nn1: 'Agents AI', bot1: 'Research', bot2: 'Monitor', bot3: 'Analyze', bot4: 'Report' },
+  'morning/1': { bot1: 'Brilliant Agent', doc1: 'Text Wall Words', user1: 'Skim You', metric1: 'Minutes Work', metric2: 'Seconds Attention', metric3: 'Forget Retention' },
+  'morning/2': { bot1: 'Agents', preplai: 'Preplai Visually', user1: 'Watch You', metric1: 'Retain Visual See', metric2: 'Read Text' },
+  'morning/3': { metric1: 'Revenue Tracked', metric2: 'Users', metric3: 'Uptime', bar1: 'Trends Overnight', step1: 'Action Items Report', alert1: 'Churn Spike' },
+  'morning/4': { h2: 'Watch Results', bot1: 'Agents', bot2: 'Work', bot3: 'Visual', bot4: 'Layer', monitor1: 'Preplai' },
+  // Engineer — trigger words match agent-perspective narration
+  'engineer/0': { h1: 'Incident Report', gw: 'API Gateway', alert1: '503 Errors', metric1: 'Latency Spiked', timeline1: 'Outage Timeline' },
+  'engineer/1': { h1: 'Root Cause', deploy1: 'Deploy', db1: 'Database Connection', metric1: 'Pool Exhausted', svc1: 'Auth Service' },
+  'engineer/2': { gw: 'Gateway Retry', svc1: 'Auth Failures', svc2: 'Orders Downstream', svc3: 'Payments Services', cb1: 'Circuit Breaker' },
+  'engineer/3': { rb1: 'Rollback Rolled', svc1: 'Auth Service', db1: 'Connection Pool', metric1: 'Downtime Minutes' },
+  'engineer/4': { step1: 'Recommend Follow', metric1: 'Circuit Breakers', metric2: 'Canary Deploys' },
+  // Founder — trigger words match agent-perspective narration
+  'founder/0': { metric1: 'Competitors Analyzed', metric2: 'Pricing Features', metric3: 'Reviews Customer', pie1: 'Market Position' },
+  'founder/1': { tbl1: 'Strengths Gaps Onboarding Reporting' },
+  'founder/2': { bar1: 'Pricing Price Points', metric1: 'White Space Mid' },
+  'founder/3': { tbl1: 'Complaints Static Share Visual' },
+  'founder/4': { step1: 'Recommendation Enter Lead Target', metric1: 'Month Dollar', metric2: 'Teams Agents' },
+  // Product — trigger words match agent-perspective narration
+  'product/0': { metric1: 'WAU Metrics', metric2: 'Signups', metric3: 'Activation', metric4: 'Churn', bar1: 'Weekly Active Users' },
+  'product/1': { pipe1: 'Funnel Acquisition', metric1: 'Visitors Signup', metric2: 'Activation Drop' },
+  'product/2': { tbl1: 'Experiments Onboarding Pricing Test' },
+  'product/3': { bar1: 'Feature Adoption Usage', metric1: 'Dashboard', metric2: 'Export Underperforming' },
+  'product/4': { step1: 'Recommendations Ship Investigate Enterprise', metric1: 'Onboarding', metric2: 'Traction' },
 };
 
 function generateStringMatchCues(wordTimestamps, entityMap) {
@@ -190,14 +190,25 @@ function generateStringMatchCues(wordTimestamps, entityMap) {
 
   // Build lookup: normalized label word → entity ID
   const wordToId = new Map();
+  // Also build prefix lookup for stem matching (first 4+ chars)
+  const prefixToId = new Map();
+
   for (const [id, label] of Object.entries(entityMap)) {
     const normalized = label.toLowerCase().replace(/[^a-z0-9\s]/g, '');
     // Add full label → id
     wordToId.set(normalized, id);
-    // Add individual words (3+ chars) → id
+    // Add individual words (3+ chars) → id, plus prefix stems (4+ chars)
     for (const word of normalized.split(/\s+/)) {
       if (word.length >= 3) {
         wordToId.set(word, id);
+      }
+      // Add prefix stem (first 4 chars) for fuzzy matching
+      // e.g., "monitor" and "monitoring" both have prefix "moni"
+      if (word.length >= 4) {
+        const prefix = word.slice(0, Math.min(word.length, 5));
+        if (!prefixToId.has(prefix)) {
+          prefixToId.set(prefix, id);
+        }
       }
     }
   }
@@ -209,7 +220,12 @@ function generateStringMatchCues(wordTimestamps, entityMap) {
     const normalized = wt.word.toLowerCase().replace(/[^a-z0-9]/g, '');
     if (normalized.length < 3) continue;
 
-    const matchedId = wordToId.get(normalized);
+    // Try exact match first, then prefix match
+    let matchedId = wordToId.get(normalized);
+    if (!matchedId && normalized.length >= 4) {
+      const prefix = normalized.slice(0, Math.min(normalized.length, 5));
+      matchedId = prefixToId.get(prefix);
+    }
     if (!matchedId) continue;
 
     // Minimum 2s gap between same entity cues
