@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
 
     const [user, keys] = await Promise.all([
       User.findById(userId).select('playerTheme playerPalette').lean(),
-      ApiKey.find({ userId, revoked: false }).select('_id').lean(),
+      ApiKey.find({ userId }).select('_id').lean(),
     ]);
 
     const keyIds = keys.map((k) => k._id.toString());
@@ -73,7 +73,7 @@ router.delete('/:id', async (req, res) => {
     const userId = toObjectId(req.user.userId);
     const sessionId = req.params.id;
 
-    const keys = await ApiKey.find({ userId, revoked: false }).select('_id').lean();
+    const keys = await ApiKey.find({ userId }).select('_id').lean();
     const keyIds = keys.map((k) => k._id.toString());
 
     const session = await Session.findOne({ id: sessionId }).lean();
