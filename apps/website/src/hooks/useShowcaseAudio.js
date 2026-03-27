@@ -25,7 +25,9 @@ function loadMetadata() {
   if (metadataCache) return Promise.resolve(metadataCache);
   if (metadataPromise) return metadataPromise;
 
-  metadataPromise = fetch('/audio/showcase/metadata.json')
+  // Cache-bust with build timestamp so stale browser caches don't serve old metadata
+  const bust = typeof __VITE_BUILD_TIME__ !== 'undefined' ? __VITE_BUILD_TIME__ : Date.now();
+  metadataPromise = fetch(`/audio/showcase/metadata.json?v=${bust}`)
     .then((r) => r.json())
     .then((data) => {
       metadataCache = data;
