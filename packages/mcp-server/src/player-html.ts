@@ -69,9 +69,24 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
       <svg class="tts-icon-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
       <svg class="tts-icon-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
     </button>
-    <button id="speed-toggle" type="button" aria-label="Playback speed" title="Playback speed (S)">
-      <span class="speed-label">1x</span>
-    </button>
+    <div class="hover-pill" id="speed-control">
+      <button type="button" class="hover-pill-trigger" id="speed-toggle" aria-label="Playback speed" title="Playback speed (S)">
+        <span class="speed-label">1x</span>
+      </button>
+      <div class="hover-pill-popup speed-popup">
+        <div class="speed-presets">
+          <button type="button" class="speed-preset" data-speed="0.75">0.75x</button>
+          <button type="button" class="speed-preset active" data-speed="1">1x</button>
+          <button type="button" class="speed-preset" data-speed="1.25">1.25x</button>
+          <button type="button" class="speed-preset" data-speed="1.5">1.5x</button>
+          <button type="button" class="speed-preset" data-speed="2">2x</button>
+        </div>
+        <div class="speed-slider-wrap">
+          <input type="range" id="speed-slider" min="0.5" max="2" step="0.05" value="1" aria-label="Playback speed slider" />
+          <span class="speed-slider-value">1x</span>
+        </div>
+      </div>
+    </div>
     <span id="frame-counter">1 / 1</span>
     <button id="narrator-overlay-toggle" type="button" aria-label="Toggle narrator overlay" title="Toggle narrator text (N)">
       <svg class="narrator-toggle-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -294,7 +309,7 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
   <!-- Player bootstrap -->
   <script src="/player.js"></script>
 
-  <div id="keyboard-hint" class="keyboard-hint">← → navigate · Space play/pause · N narrator</div>
+  <div id="keyboard-hint" class="keyboard-hint">← → navigate · Space play/pause · S speed · N narrator · F fullscreen</div>
 </body>
 </html>`;
 

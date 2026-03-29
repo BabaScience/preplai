@@ -466,19 +466,71 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   opacity: 0.4;
 }
 
-/* ── Speed toggle ────────────────────────────────────────────────── */
+/* ── Speed control (hover-pill with slider popup) ────────────────── */
 
-#speed-toggle {
-  min-width: 36px;
-  border-radius: 12px;
-  font-variant-numeric: tabular-nums;
-}
+#speed-control { min-width: 36px; }
+#speed-control .hover-pill-trigger { width: auto; min-width: 36px; padding: 0 8px; border-radius: 12px; }
 
 #speed-toggle .speed-label {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.speed-popup { width: 200px !important; flex-direction: column !important; gap: 8px !important; padding: 10px 12px !important; }
+.speed-presets { display: flex; gap: 4px; justify-content: center; width: 100%; }
+.speed-preset { width: auto !important; min-width: 32px; height: 26px !important; padding: 0 6px !important; border-radius: 6px !important; font-family: 'JetBrains Mono', monospace; font-size: 10px !important; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+.speed-slider-wrap { display: flex; align-items: center; gap: 8px; width: 100%; padding: 2px 0; }
+.speed-slider-value { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.5); min-width: 28px; text-align: right; font-variant-numeric: tabular-nums; }
+
+#speed-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 4px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+#speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #C9A84C;
+  border: 2px solid rgba(0,0,0,0.2);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  cursor: grab;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+#speed-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 2px 8px rgba(201,168,76,0.4);
+}
+
+#speed-slider::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.1); }
+
+#speed-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #C9A84C;
+  border: 2px solid rgba(0,0,0,0.2);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  cursor: grab;
+}
+
+#speed-slider::-moz-range-track {
+  height: 4px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 2px;
+  border: none;
 }
 
 /* ── TTS toggle ──────────────────────────────────────────────────── */

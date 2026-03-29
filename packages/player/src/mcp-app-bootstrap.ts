@@ -137,27 +137,42 @@ async function main(): Promise<void> {
 
   // ── Playback speed ─────────────────────────────────────────────────
   const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5, 2];
+  let _currentPlaybackRate = 1;
   let currentSpeedIndex = (() => {
     try {
       const stored = localStorage.getItem('preplai-playback-speed');
       if (stored) {
-        const idx = SPEED_OPTIONS.indexOf(parseFloat(stored));
-        if (idx >= 0) return idx;
+        const parsed = parseFloat(stored);
+        if (parsed >= 0.5 && parsed <= 2) {
+          _currentPlaybackRate = parsed;
+          const idx = SPEED_OPTIONS.indexOf(parsed);
+          return idx >= 0 ? idx : 1;
+        }
       }
     } catch { /* ignore */ }
     return 1; // default 1x
   })();
 
   function getPlaybackRate(): number {
-    return SPEED_OPTIONS[currentSpeedIndex];
+    return _currentPlaybackRate;
   }
 
   function updateSpeedUI(): void {
+    const rate = getPlaybackRate();
     const btn = document.getElementById('speed-toggle');
-    if (!btn) return;
-    const label = btn.querySelector('.speed-label');
-    if (label) label.textContent = `${SPEED_OPTIONS[currentSpeedIndex]}x`;
-    btn.title = `Playback speed: ${SPEED_OPTIONS[currentSpeedIndex]}x (S)`;
+    if (btn) {
+      const label = btn.querySelector('.speed-label');
+      if (label) label.textContent = `${rate}x`;
+      btn.title = `Playback speed: ${rate}x (S)`;
+    }
+    const slider = document.getElementById('speed-slider') as HTMLInputElement | null;
+    if (slider) slider.value = String(rate);
+    const sliderVal = document.querySelector('.speed-slider-value');
+    if (sliderVal) sliderVal.textContent = `${rate}x`;
+    document.querySelectorAll('.speed-preset').forEach((el) => {
+      const s = parseFloat(el.getAttribute('data-speed') || '0');
+      el.classList.toggle('active', s === rate);
+    });
   }
 
   // Web Speech API fallback disabled — only HD audio (Inworld/ElevenLabs) is used.
@@ -407,14 +422,16 @@ async function main(): Promise<void> {
     });
   }
 
-  // ── Speed toggle ───────────────────────────────────────────────────
-  const speedToggle = document.getElementById('speed-toggle');
+  // ── Speed control (presets + slider) ────────────────────────────────
   audioEngine.setPlaybackRate(getPlaybackRate());
   updateSpeedUI();
 
-  function cycleSpeed(): void {
-    currentSpeedIndex = (currentSpeedIndex + 1) % SPEED_OPTIONS.length;
-    const rate = SPEED_OPTIONS[currentSpeedIndex];
+  function applySpeed(rate: number): void {
+    rate = Math.round(Math.max(0.5, Math.min(2, rate)) * 100) / 100;
+    _currentPlaybackRate = rate;
+    const nearestIdx = SPEED_OPTIONS.reduce((best, val, idx) =>
+      Math.abs(val - rate) < Math.abs(SPEED_OPTIONS[best] - rate) ? idx : best, 0);
+    currentSpeedIndex = nearestIdx;
     audioEngine.setPlaybackRate(rate);
     try {
       localStorage.setItem('preplai-playback-speed', String(rate));
@@ -423,8 +440,24 @@ async function main(): Promise<void> {
     updateFrameCounter();
   }
 
-  if (speedToggle) {
-    speedToggle.addEventListener('click', cycleSpeed);
+  function cycleSpeed(): void {
+    currentSpeedIndex = (currentSpeedIndex + 1) % SPEED_OPTIONS.length;
+    applySpeed(SPEED_OPTIONS[currentSpeedIndex]);
+  }
+
+  document.querySelectorAll('.speed-preset').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const s = parseFloat(btn.getAttribute('data-speed') || '1');
+      applySpeed(s);
+    });
+  });
+
+  const speedSlider = document.getElementById('speed-slider') as HTMLInputElement | null;
+  if (speedSlider) {
+    speedSlider.addEventListener('input', () => {
+      applySpeed(parseFloat(speedSlider.value));
+    });
   }
 
   // ── Narrator overlay toggle button ──────────────────────────────

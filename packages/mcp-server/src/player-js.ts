@@ -2939,6 +2939,116 @@ export const PLAYER_JS = `(function() {
     });
   }
 
+  // ═══════════════════════════════════════════════════════════════════
+  // Playback Speed Control
+  // ═══════════════════════════════════════════════════════════════════
+  var SPEED_OPTIONS = [0.75, 1, 1.25, 1.5, 2];
+  var _currentPlaybackRate = 1;
+  var currentSpeedIndex = (function() {
+    try {
+      var stored = localStorage.getItem('preplai-speed');
+      if (stored !== null) {
+        var val = parseFloat(stored);
+        if (val >= 0.5 && val <= 2) {
+          _currentPlaybackRate = val;
+          var idx = SPEED_OPTIONS.indexOf(val);
+          return idx >= 0 ? idx : 1;
+        }
+      }
+    } catch (e) {}
+    return 1; // default: 1x
+  })();
+
+  function getSpeedLabel(rate) {
+    return rate === 1 ? '1x' : rate + 'x';
+  }
+
+  function applySpeed(rate) {
+    rate = Math.round(Math.max(0.5, Math.min(2, rate)) * 100) / 100;
+    _currentPlaybackRate = rate;
+    var nearestIdx = 1;
+    for (var i = 0; i < SPEED_OPTIONS.length; i++) {
+      if (Math.abs(SPEED_OPTIONS[i] - rate) < Math.abs(SPEED_OPTIONS[nearestIdx] - rate)) nearestIdx = i;
+    }
+    currentSpeedIndex = nearestIdx;
+    try { localStorage.setItem('preplai-speed', String(rate)); } catch (e) {}
+  }
+
+  function updateSpeedUI() {
+    var rate = _currentPlaybackRate;
+    var btn = document.getElementById('speed-toggle');
+    if (btn) {
+      var label = btn.querySelector('.speed-label');
+      if (label) label.textContent = getSpeedLabel(rate);
+      btn.setAttribute('title', 'Playback speed: ' + getSpeedLabel(rate) + ' (S)');
+      btn.setAttribute('aria-label', 'Playback speed ' + getSpeedLabel(rate));
+    }
+    // Sync slider
+    var slider = document.getElementById('speed-slider');
+    if (slider) slider.value = String(rate);
+    var sliderVal = document.querySelector('.speed-slider-value');
+    if (sliderVal) sliderVal.textContent = getSpeedLabel(rate);
+    // Sync preset buttons
+    var presets = document.querySelectorAll('.speed-preset');
+    for (var i = 0; i < presets.length; i++) {
+      var s = parseFloat(presets[i].getAttribute('data-speed') || '0');
+      presets[i].classList.toggle('active', s === rate);
+    }
+  }
+
+  function cycleSpeed() {
+    currentSpeedIndex = (currentSpeedIndex + 1) % SPEED_OPTIONS.length;
+    applySpeed(SPEED_OPTIONS[currentSpeedIndex]);
+    updateSpeedUI();
+  }
+
+  function setSpeed(rate) {
+    var idx = SPEED_OPTIONS.indexOf(rate);
+    if (idx >= 0) {
+      currentSpeedIndex = idx;
+      applySpeed(rate);
+      updateSpeedUI();
+    }
+  }
+
+  // Speed presets + slider (hover-pill popup defined in HTML template)
+  var speedPresets = document.querySelectorAll('.speed-preset');
+  for (var si = 0; si < speedPresets.length; si++) {
+    speedPresets[si].addEventListener('click', (function(btn) {
+      return function(e) {
+        e.stopPropagation();
+        var s = parseFloat(btn.getAttribute('data-speed') || '1');
+        applySpeed(s);
+        updateSpeedUI();
+      };
+    })(speedPresets[si]));
+  }
+
+  var speedSlider = document.getElementById('speed-slider');
+  if (speedSlider) {
+    speedSlider.addEventListener('input', function() {
+      applySpeed(parseFloat(speedSlider.value));
+      updateSpeedUI();
+    });
+  }
+
+  applySpeed(_currentPlaybackRate);
+  updateSpeedUI();
+
+  // Override speakNarration to use current speed
+  var _origSpeakNarration = speakNarration;
+  speakNarration = function(text) {
+    if (!synth || !ttsEnabled || !text || !text.trim()) return;
+    synth.cancel();
+    var u = new SpeechSynthesisUtterance(text.trim());
+    var rate = SPEED_OPTIONS[currentSpeedIndex];
+    // Map speed: 0.75x→0.7, 1x→0.95, 1.25x→1.15, 1.5x→1.35, 2x→1.8
+    u.rate = rate * 0.95;
+    u.pitch = 1;
+    u.volume = 1;
+    synth.speak(u);
+  };
+
   // Narrator overlay visibility toggle
   var narratorOverlay = document.getElementById('narrator-overlay');
   var narratorOverlayToggle = document.getElementById('narrator-overlay-toggle');
