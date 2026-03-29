@@ -2,20 +2,7 @@ import jwt from 'jsonwebtoken';
 import { User } from '../db.js';
 import { toObjectId } from '../utils/helpers.js';
 import { apiAuthFailuresTotal } from '../metrics.js';
-
-const DEFAULT_SECRET = 'preplai-dev-secret-change-in-prod';
-
-function getJwtSecret() {
-  const secret = process.env.JWT_SECRET;
-  if (process.env.NODE_ENV === 'production') {
-    if (!secret || secret === DEFAULT_SECRET) {
-      throw new Error('JWT_SECRET must be set to a secure value in production');
-    }
-  }
-  return secret || DEFAULT_SECRET;
-}
-
-const JWT_SECRET = getJwtSecret();
+import { JWT_SECRET } from '../utils/jwt-secret.js';
 
 /**
  * Require admin role. Accepts Bearer token or preplai_session cookie.

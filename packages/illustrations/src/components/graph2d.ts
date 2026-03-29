@@ -21,27 +21,120 @@ import {
 import type { VisualEntity } from '@preplai/shared';
 
 /**
- * Safe math expression evaluator — no eval/new Function.
- * Supports: +, -, *, /, ^, %, parentheses, numbers, Math functions, and a single variable.
+ * Safe math expression evaluator — recursive descent parser.
+ * Supports: +, -, *, /, ^, %, parentheses, numbers, and common Math functions/constants.
+ * No eval, no new Function — fully sandboxed.
  */
-function safeMathEval(expr: string, varName: string, varValue: number, extraVars?: Record<string, unknown>): number {
-  // Strip the variable name and Math references, then check remainder
-  let sanitized = expr.replace(new RegExp(`\\b${varName}\\b`, 'g'), '0');
-  sanitized = sanitized.replace(/Math\.\w+/g, '0');
-  // Remove known safe function/constant names
-  sanitized = sanitized.replace(/\b(PI|E|abs|sin|cos|tan|sqrt|log|exp|pow|min|max|ceil|floor|round|atan2|asin|acos)\b/g, '0');
-  // After substitutions, only numbers/operators/parens should remain
-  if (!/^[\d\s+\-*/().,%^eE]*$/.test(sanitized)) {
-    return NaN;
+
+const MATH_FUNCS: Record<string, (...args: number[]) => number> = {
+  abs: Math.abs, sin: Math.sin, cos: Math.cos, tan: Math.tan,
+  asin: Math.asin, acos: Math.acos, atan: Math.atan, atan2: Math.atan2,
+  sqrt: Math.sqrt, log: Math.log, exp: Math.exp, pow: Math.pow,
+  min: Math.min, max: Math.max, ceil: Math.ceil, floor: Math.floor, round: Math.round,
+};
+const MATH_CONSTS: Record<string, number> = { PI: Math.PI, E: Math.E };
+
+function safeMathEval(expr: string, varName: string, varValue: number, _extraVars?: Record<string, unknown>): number {
+  let pos = 0;
+  const s = expr.replace(/\s+/g, '');
+
+  function peek(): string { return s[pos] ?? ''; }
+  function consume(ch?: string): string {
+    if (ch !== undefined && s[pos] !== ch) throw new Error('unexpected');
+    return s[pos++];
   }
-  // Block dangerous patterns: assignment, property access beyond Math, brackets
-  if (/[[\]{}]|=>|\.(?![\d])|import|require|process|global|window|document|fetch|eval|Function/.test(expr)) {
-    return NaN;
+
+  // expr = term (('+' | '-') term)*
+  function parseExpr(): number {
+    let val = parseTerm();
+    while (peek() === '+' || peek() === '-') {
+      const op = consume();
+      const right = parseTerm();
+      val = op === '+' ? val + right : val - right;
+    }
+    return val;
   }
+
+  // term = power (('*' | '/' | '%') power)*
+  function parseTerm(): number {
+    let val = parsePower();
+    while (peek() === '*' || peek() === '/' || peek() === '%') {
+      const op = consume();
+      const right = parsePower();
+      if (op === '*') val *= right;
+      else if (op === '/') val /= right;
+      else val %= right;
+    }
+    return val;
+  }
+
+  // power = unary ('^' unary)*  (right-assoc)
+  function parsePower(): number {
+    let val = parseUnary();
+    if (peek() === '^') {
+      consume();
+      val = Math.pow(val, parsePower());
+    }
+    return val;
+  }
+
+  // unary = '-' unary | '+' unary | atom
+  function parseUnary(): number {
+    if (peek() === '-') { consume(); return -parseUnary(); }
+    if (peek() === '+') { consume(); return parseUnary(); }
+    return parseAtom();
+  }
+
+  // atom = number | variable | 'Math.' func '(' args ')' | func '(' args ')' | const | '(' expr ')'
+  function parseAtom(): number {
+    // Parenthesized expression
+    if (peek() === '(') {
+      consume('(');
+      const val = parseExpr();
+      consume(')');
+      return val;
+    }
+    // Number literal
+    if (/[\d.]/.test(peek())) {
+      let num = '';
+      while (/[\d.]/.test(peek())) num += consume();
+      if (peek() === 'e' || peek() === 'E') {
+        num += consume();
+        if (peek() === '+' || peek() === '-') num += consume();
+        while (/\d/.test(peek())) num += consume();
+      }
+      return parseFloat(num);
+    }
+    // Identifier: variable, function, constant, or Math.xxx
+    if (/[a-zA-Z_]/.test(peek())) {
+      let id = '';
+      while (/[a-zA-Z_\d]/.test(peek())) id += consume();
+      // Strip optional 'Math.' prefix
+      if (id === 'Math' && peek() === '.') {
+        consume('.');
+        id = '';
+        while (/[a-zA-Z_\d]/.test(peek())) id += consume();
+      }
+      // Variable
+      if (id === varName) return varValue;
+      // Constant
+      if (id in MATH_CONSTS) return MATH_CONSTS[id];
+      // Function call
+      if (id in MATH_FUNCS) {
+        consume('(');
+        const args: number[] = [parseExpr()];
+        while (peek() === ',') { consume(); args.push(parseExpr()); }
+        consume(')');
+        return MATH_FUNCS[id](...args);
+      }
+      throw new Error(`unknown identifier: ${id}`);
+    }
+    throw new Error('unexpected character');
+  }
+
   try {
-    const fn = new Function(varName, ...Object.keys(extraVars ?? {}),
-      `"use strict"; return (${expr});`);
-    const result = fn(varValue, ...Object.values(extraVars ?? {})) as number;
+    const result = parseExpr();
+    if (pos < s.length) return NaN; // unconsumed input
     return typeof result === 'number' ? result : NaN;
   } catch {
     return NaN;

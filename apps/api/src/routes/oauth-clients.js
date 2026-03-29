@@ -6,22 +6,9 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { OAuthClient } from '../db.js';
 import { hashSecret } from '@preplai/shared/node';
+import { JWT_SECRET } from '../utils/jwt-secret.js';
 
 const router = Router();
-
-const DEFAULT_SECRET = 'preplai-dev-secret-change-in-prod';
-
-function getJwtSecret() {
-  const secret = process.env.JWT_SECRET;
-  if (process.env.NODE_ENV === 'production') {
-    if (!secret || secret === DEFAULT_SECRET) {
-      throw new Error('JWT_SECRET must be set to a secure value in production');
-    }
-  }
-  return secret || DEFAULT_SECRET;
-}
-
-const JWT_SECRET = getJwtSecret();
 const CLIENT_ID_PREFIX = 'plai_oauth_';
 
 function generateClientId() {
