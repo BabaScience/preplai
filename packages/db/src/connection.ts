@@ -10,7 +10,11 @@ export async function connectDb(uri?: string): Promise<typeof mongoose> {
   if (connected) {
     return mongoose;
   }
-  await mongoose.connect(mongoUri);
+  await mongoose.connect(mongoUri, {
+    maxPoolSize: 50,
+    minPoolSize: 10,
+    maxIdleTimeMS: 45000,
+  });
   connected = true;
   return mongoose;
 }
