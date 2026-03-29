@@ -1,8 +1,9 @@
 /**
- * @preplai/mcp-server — Audio Store (GridFS + Memory Cache)
+ * @preplai/mcp-server — Audio Store (GridFS + LRU Memory Cache)
  *
  * Persists audio buffers to MongoDB GridFS for durability across restarts.
- * Uses an in-memory Map as a read-through cache for low-latency serving.
+ * Uses an in-memory LRU cache (bounded by maxBytes) for low-latency serving.
+ * When the cache exceeds maxBytes, least-recently-used entries are evicted.
  *
  * Graceful fallback: if init() is never called (e.g. in tests),
  * operates as a pure in-memory store.
@@ -14,6 +15,9 @@ import { Session as SessionModel } from '@preplai/db';
 
 const BUCKET_NAME = 'audio';
 
+/** Default max cache size: 500 MB */
+const DEFAULT_MAX_BYTES = 500 * 1024 * 1024;
+
 // Use mongoose.mongo.GridFSBucket to avoid BSON version mismatch between
 // separately-installed mongodb driver and the one bundled with mongoose.
 type GridFSBucket = InstanceType<typeof mongoose.mongo.GridFSBucket>;
@@ -21,6 +25,12 @@ type GridFSBucket = InstanceType<typeof mongoose.mongo.GridFSBucket>;
 export class AudioStore {
   private readonly cache = new Map<string, Buffer>();
   private bucket: GridFSBucket | null = null;
+  private _totalBytes = 0;
+  readonly maxBytes: number;
+
+  constructor(maxBytes: number = DEFAULT_MAX_BYTES) {
+    this.maxBytes = maxBytes;
+  }
 
   private key(sessionId: string, frameIndex: number): string {
     return `${sessionId}/${frameIndex}`;
@@ -28,6 +38,27 @@ export class AudioStore {
 
   private filename(sessionId: string, frameIndex: number): string {
     return `${sessionId}/${frameIndex}.mp3`;
+  }
+
+  /** Promote a key to most-recently-used position. */
+  private touch(k: string): void {
+    const buf = this.cache.get(k);
+    if (buf) {
+      this.cache.delete(k);
+      this.cache.set(k, buf);
+    }
+  }
+
+  /** Evict least-recently-used entries until totalBytes <= maxBytes. */
+  private evict(): void {
+    const iter = this.cache.entries();
+    while (this._totalBytes > this.maxBytes && this.cache.size > 0) {
+      const next = iter.next();
+      if (next.done) break;
+      const [evictKey, evictBuf] = next.value;
+      this._totalBytes -= evictBuf.byteLength;
+      this.cache.delete(evictKey);
+    }
   }
 
   /**
@@ -47,7 +78,20 @@ export class AudioStore {
   /** Store an audio buffer for a specific frame. */
   async set(sessionId: string, frameIndex: number, audio: Buffer): Promise<void> {
     const k = this.key(sessionId, frameIndex);
+
+    // Remove old entry bytes if overwriting
+    const existing = this.cache.get(k);
+    if (existing) {
+      this._totalBytes -= existing.byteLength;
+      this.cache.delete(k);
+    }
+
+    // Insert as most-recently-used
     this.cache.set(k, audio);
+    this._totalBytes += audio.byteLength;
+
+    // Evict LRU entries if over budget
+    this.evict();
 
     if (!this.bucket) return;
 
@@ -55,8 +99,8 @@ export class AudioStore {
 
     try {
       // Delete existing file if any (upsert semantics)
-      const existing = await this.bucket.find({ filename: fname }).toArray();
-      for (const file of existing) {
+      const existingFiles = await this.bucket.find({ filename: fname }).toArray();
+      for (const file of existingFiles) {
         await this.bucket.delete(file._id);
       }
 
@@ -80,9 +124,12 @@ export class AudioStore {
   async get(sessionId: string, frameIndex: number): Promise<Buffer | null> {
     const k = this.key(sessionId, frameIndex);
 
-    // Fast path: memory cache
+    // Fast path: memory cache (promote to MRU)
     const cached = this.cache.get(k);
-    if (cached) return cached;
+    if (cached) {
+      this.touch(k);
+      return cached;
+    }
 
     // Slow path: GridFS
     if (!this.bucket) return null;
@@ -101,8 +148,11 @@ export class AudioStore {
         downloadStream.on('error', reject);
       });
 
-      // Populate cache for next time
+      // Populate cache (as MRU) and evict if needed
       this.cache.set(k, buffer);
+      this._totalBytes += buffer.byteLength;
+      this.evict();
+
       return buffer;
     } catch (err) {
       console.error(`[AudioStore] GridFS read failed for ${fname}:`, err);
@@ -123,6 +173,8 @@ export class AudioStore {
     // Clear memory cache
     for (const key of this.cache.keys()) {
       if (key.startsWith(prefix)) {
+        const buf = this.cache.get(key)!;
+        this._totalBytes -= buf.byteLength;
         this.cache.delete(key);
         deleted++;
       }
@@ -191,6 +243,8 @@ export class AudioStore {
           const prefix = `${sid}/`;
           for (const key of this.cache.keys()) {
             if (key.startsWith(prefix)) {
+              const buf = this.cache.get(key)!;
+              this._totalBytes -= buf.byteLength;
               this.cache.delete(key);
             }
           }
@@ -211,10 +265,6 @@ export class AudioStore {
 
   /** Get approximate total memory usage in bytes. */
   get memoryUsage(): number {
-    let total = 0;
-    for (const buffer of this.cache.values()) {
-      total += buffer.byteLength;
-    }
-    return total;
+    return this._totalBytes;
   }
 }
