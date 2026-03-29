@@ -5,6 +5,7 @@
   "description": "Cinema-quality visual presentations as an agent-native API.",
   "workspaces": [
     "apps/api",
+    "apps/interview",
     "apps/website",
     "packages/shared",
     "packages/illustrations",

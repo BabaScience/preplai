@@ -1,0 +1,44 @@
+name: CI — Interview App
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/interview/**"
+  pull_request:
+    paths:
+      - "apps/interview/**"
+
+concurrency:
+  group: ci-interview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-typecheck-test-build:
+    name: Lint → Typecheck → Test → Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm --filter @preplai/interview run lint
+
+      - name: Typecheck
+        run: pnpm --filter @preplai/interview run typecheck
+
+      - name: Test
+        run: pnpm --filter @preplai/interview run test
+
+      - name: Build
+        run: pnpm --filter @preplai/interview run build
