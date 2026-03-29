@@ -152,6 +152,8 @@ export const feedback = pgTable("feedback", {
   strengths: jsonb("strengths").$type<string[]>(),
   improvements: jsonb("improvements").$type<string[]>(),
   sampleAnswerSnippet: text("sample_answer_snippet"),
+  feedbackText: text("feedback_text"),
+  tokensUsed: integer("tokens_used"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 });
 
