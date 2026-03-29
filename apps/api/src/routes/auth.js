@@ -3,11 +3,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../db.js';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../services/email.js';
+import { JWT_SECRET } from '../utils/jwt-secret.js';
 
 const router = Router();
-
-const DEFAULT_SECRET = 'preplai-dev-secret-change-in-prod';
-const JWT_SECRET = process.env.JWT_SECRET || DEFAULT_SECRET;
 
 // ── Per-IP rate limiting for auth endpoints ──────────────────────────
 const authAttempts = new Map(); // ip → { count, resetAt }
