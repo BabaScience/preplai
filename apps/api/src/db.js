@@ -18,6 +18,8 @@ import {
   IllustrationDemand,
   FeedbackReport,
   ContactSubmission,
+  SessionRating,
+  BetaSurvey,
 } from '@preplai/db';
 
 export {
@@ -37,4 +39,6 @@ export {
   IllustrationDemand,
   FeedbackReport,
   ContactSubmission,
+  SessionRating,
+  BetaSurvey,
 };

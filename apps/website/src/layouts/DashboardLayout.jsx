@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Key, BarChart3, Film, Settings, LogOut, Menu, Plug, Palette, MessageCircle } from 'lucide-react';
 import Logo from '../components/Logo';
 import FeedbackWidget from '../components/FeedbackWidget';
+import BetaSurveyModal from '../components/BetaSurveyModal';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 import { apiGetSettings } from '../lib/api';
@@ -103,6 +104,7 @@ export default function DashboardLayout({ children, title }) {
       </main>
 
       <FeedbackWidget />
+      <BetaSurveyModal />
     </div>
   );
 }

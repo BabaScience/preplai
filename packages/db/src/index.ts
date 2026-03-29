@@ -17,3 +17,5 @@ export { OAuthRefreshToken } from './models/OAuthRefreshToken.js';
 export { IllustrationDemand } from './models/IllustrationDemand.js';
 export { FeedbackReport } from './models/FeedbackReport.js';
 export { ContactSubmission } from './models/ContactSubmission.js';
+export { SessionRating } from './models/SessionRating.js';
+export { BetaSurvey } from './models/BetaSurvey.js';

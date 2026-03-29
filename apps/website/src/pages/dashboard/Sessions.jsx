@@ -4,6 +4,7 @@ import DashboardLayout from '../../layouts/DashboardLayout';
 import EmptyState from '../../components/EmptyState';
 import Modal from '../../components/Modal';
 import Alert from '../../components/Alert';
+import SessionRatingWidget from '../../components/SessionRatingWidget';
 import { apiGetSessions, apiDeleteSession } from '../../lib/api';
 import { formatDate } from '../../utils/format';
 
@@ -243,6 +244,7 @@ export default function Sessions() {
                   <tr>
                     <th>Title</th>
                     <th>Frames</th>
+                    <th>Rating</th>
                     <th>Created</th>
                     <th></th>
                   </tr>
@@ -252,6 +254,9 @@ export default function Sessions() {
                     <tr key={s.id}>
                       <td className="ses-title-cell">{s.title}</td>
                       <td className="ses-frames-cell">{s.frame_count ?? 0}</td>
+                      <td>
+                        <SessionRatingWidget sessionId={s.id} />
+                      </td>
                       <td className="ses-date-cell">
                         {formatDate(s.created_at)}
                       </td>

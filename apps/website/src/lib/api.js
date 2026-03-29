@@ -198,6 +198,33 @@ export async function apiUpdateContactStatus(id, status) {
   return data;
 }
 
+// Session Ratings
+export async function apiRateSession(sessionId, rating, comment) {
+  const { data } = await client.put(`ratings/${sessionId}`, { rating, comment });
+  return data;
+}
+
+export async function apiGetSessionRating(sessionId) {
+  const { data } = await client.get(`ratings/${sessionId}`);
+  return data;
+}
+
+export async function apiDeleteSessionRating(sessionId) {
+  const { data } = await client.delete(`ratings/${sessionId}`);
+  return data;
+}
+
+// Beta Survey
+export async function apiGetSurveyStatus() {
+  const { data } = await client.get('survey/status');
+  return data;
+}
+
+export async function apiSubmitSurvey(answers) {
+  const { data } = await client.post('survey', answers);
+  return data;
+}
+
 // Settings
 export async function apiGetSettings() {
   const { data } = await client.get('settings');

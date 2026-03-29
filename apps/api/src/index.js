@@ -32,6 +32,8 @@ import sessionsRoutes from './routes/sessions.js';
 import oauthRoutes from './routes/oauth.js';
 import oauthClientsRoutes from './routes/oauth-clients.js';
 import supportRoutes from './routes/support.js';
+import ratingsRoutes from './routes/ratings.js';
+import surveyRoutes from './routes/survey.js';
 
 const PORT = process.env.PORT || 5000;
 
@@ -129,6 +131,8 @@ export function createApp() {
   app.use('/api/settings', settingsRoutes);
   app.use('/api/sessions', sessionsRoutes);
   app.use('/api/support', supportRoutes);
+  app.use('/api/ratings', ratingsRoutes);
+  app.use('/api/survey', surveyRoutes);
 
   if (process.env.SENTRY_DSN) {
     app.use(Sentry.Handlers.errorHandler());
