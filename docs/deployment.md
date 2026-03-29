@@ -22,7 +22,7 @@ preplai can run as a hosted service so presentation URLs are shareable across th
 | `MONGODB_URI` | `mongodb://localhost:27017/preplai` | MongoDB connection string (shared by apps/api and mcp-server) |
 | `ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:5005` | CORS allowed origins (comma-separated for multiple) |
 | `LOG_LEVEL` | `info` | Fastify log level (`debug`, `info`, `warn`, `error`) |
-| `RATE_LIMIT_MAX` | `200` | Max requests per IP per time window |
+| `RATE_LIMIT_MAX` | `2000` | Max requests per IP per time window |
 | `RATE_LIMIT_WINDOW` | `1 minute` | Rate limit time window |
 
 ## Local Development

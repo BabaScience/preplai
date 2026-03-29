@@ -212,7 +212,7 @@ services:
       API_KEY_SALT:      ${API_KEY_SALT}
       CORS_ORIGIN:       ${CORS_ORIGIN}
       LOG_LEVEL:         ${LOG_LEVEL:-info}
-      RATE_LIMIT_MAX:    ${RATE_LIMIT_MAX:-100}
+      RATE_LIMIT_MAX:    ${RATE_LIMIT_MAX:-2000}
       RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-60000}
       APP_BASE_URL:      ${APP_BASE_URL}
       # SSE keep-alive interval in ms (prevents proxy timeouts)
@@ -808,7 +808,7 @@ LOG_LEVEL=info
 
 # ── Rate Limiting (Fastify plugin, applied in addition to Nginx) ─────────────
 # Max requests per window per IP
-RATE_LIMIT_MAX=100
+RATE_LIMIT_MAX=2000
 
 # Window in milliseconds
 RATE_LIMIT_WINDOW=60000

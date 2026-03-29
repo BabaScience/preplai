@@ -277,9 +277,9 @@ export async function buildServer(config: Partial<ServerConfig> = {}): Promise<S
     allowedHeaders: ['Content-Type', 'Authorization', 'Mcp-Session-Id', 'X-Preplai-API-Key'],
   });
 
-  // ── Rate limiting (global: 200 req/min per IP) ────────────────────
+  // ── Rate limiting (global: 2000 req/min per IP) ────────────────────
   await app.register(FastifyRateLimit, {
-    max: cfg.rateLimitMax ?? Number(process.env.RATE_LIMIT_MAX ?? 200),
+    max: cfg.rateLimitMax ?? Number(process.env.RATE_LIMIT_MAX ?? 2000),
     timeWindow: cfg.rateLimitWindow ?? process.env.RATE_LIMIT_WINDOW ?? '1 minute',
   });
 
