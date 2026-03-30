@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Zap, MessageSquare, Bot, Lightbulb, BookOpen } from 'lucide-react';
+import { Zap, MessageSquare, Bot, Lightbulb, BookOpen, Wrench, Code2 } from 'lucide-react';
 import SiteNav from '../components/SiteNav';
 
 const NAV_LINKS = [
@@ -14,6 +14,8 @@ const GET_STARTED = [
   { slug: 'connect-chatgpt', label: 'Connect ChatGPT', icon: Bot },
   { slug: 'examples', label: 'Examples', icon: BookOpen },
   { slug: 'tips', label: 'Tips & Tricks', icon: Lightbulb },
+  { slug: 'mcp-tools', label: 'MCP Tools Reference', icon: Wrench },
+  { slug: 'visualscript', label: 'VisualScript Schema', icon: Code2 },
 ];
 
 export default function DocsLayout({ children }) {

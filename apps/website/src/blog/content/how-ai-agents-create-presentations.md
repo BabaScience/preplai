@@ -19,7 +19,7 @@ Unlike traditional slide decks, AI-generated presentations are built **live** as
 1. **User asks** — "Create a presentation about binary search tree insertion"
 2. **Agent calls MCP tools** — `create_session` → `add_scene` (repeat) → `get_session_url`
 3. **preplai renders** — Scenes are rendered as animated SVG on a 1920×1080 dark canvas
-4. **User gets a URL** — `https://play.preplai.com/abc123` — shareable, no downloads
+4. **User gets a URL** — `https://player.preplai.com/player/abc123` — shareable, no downloads
 
 The agent doesn't export slides. It pushes [VisualScript](/docs/visualscript) JSON — a schema that defines entities (Server, Database, BinaryTree, etc.), frames, and timing. preplai compiles that into cinema-quality visuals.
 
