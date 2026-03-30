@@ -13,12 +13,16 @@ import connectClaudeMd from '../docs/connect-claude.md?raw';
 import connectChatgptMd from '../docs/connect-chatgpt.md?raw';
 import examplesMd from '../docs/examples.md?raw';
 import tipsMd from '../docs/tips.md?raw';
+import mcpToolsMd from '../docs/mcp-tools.md?raw';
+import visualscriptMd from '../docs/visualscript.md?raw';
 const DOC_SLUGS = [
   'quick-start',
   'connect-claude',
   'connect-chatgpt',
   'examples',
   'tips',
+  'mcp-tools',
+  'visualscript',
 ];
 const DOC_CONTENT = {
   'quick-start': quickStartMd,
@@ -26,6 +30,8 @@ const DOC_CONTENT = {
   'connect-chatgpt': connectChatgptMd,
   examples: examplesMd,
   tips: tipsMd,
+  'mcp-tools': mcpToolsMd,
+  visualscript: visualscriptMd,
 };
 
 /* Redirect old slugs to new ones */
@@ -206,6 +212,8 @@ function DocsIndex() {
     { slug: 'connect-chatgpt', title: 'Connect ChatGPT', desc: 'Set up ChatGPT Web, Desktop, or mobile.' },
     { slug: 'examples', title: 'Examples', desc: 'Prompts you can copy and paste right now.' },
     { slug: 'tips', title: 'Tips & Tricks', desc: 'Themes, palettes, and better prompts.' },
+    { slug: 'mcp-tools', title: 'MCP Tools Reference', desc: 'Full reference for all MCP tools and parameters.' },
+    { slug: 'visualscript', title: 'VisualScript Schema', desc: 'JSON schema for scenes, entities, frames, and animations.' },
   ];
 
   return (
