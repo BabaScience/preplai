@@ -43,6 +43,20 @@ export const DOC_META = {
     schemaType: 'TechArticle',
     section: 'get-started',
   },
+  'mcp-tools': {
+    title: 'MCP Tools Reference — preplai',
+    description: 'Full reference for all preplai MCP tools: create_session, add_scene, get_session_url, manage_sessions, and more.',
+    keywords: ['preplai', 'MCP', 'tools', 'API reference', 'create_session', 'add_scene', 'get_session_url'],
+    schemaType: 'TechArticle',
+    section: 'reference',
+  },
+  visualscript: {
+    title: 'VisualScript Schema — preplai',
+    description: 'JSON schema for preplai VisualScript: scenes, entities, frames, animations, and the compact format for AI agents.',
+    keywords: ['preplai', 'VisualScript', 'schema', 'JSON', 'entities', 'frames', 'animations'],
+    schemaType: 'TechArticle',
+    section: 'reference',
+  },
 };
 
 export function getDocSchema(slug, meta) {

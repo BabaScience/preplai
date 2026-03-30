@@ -183,7 +183,7 @@ export default function Pricing() {
           <div className="footer-columns">
             <div className="footer-col">
               <h4>Product</h4>
-              <a href="https://docs.preplai.com" target="_blank" rel="noopener noreferrer">Docs</a>
+              <Link to="/docs">Docs</Link>
               <Link to="/pricing">Pricing</Link>
               <Link to="/dashboard/overview">Dashboard</Link>
             </div>
