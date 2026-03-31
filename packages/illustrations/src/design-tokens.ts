@@ -104,9 +104,9 @@ export function generateColorRamp(hex: string, theme?: 'cinema' | 'light'): Colo
     const darkBase = mixColors(base, black, 0.35); // darken base for text readability
 
     ramp = {
-      50: applyAlphaOnBg(base, 0.15, bg),          // very light fill
-      100: applyAlphaOnBg(base, 0.25, bg),          // medium fill
-      300: applyAlphaOnBg(base, 0.40, bg),          // heavy fill
+      50: applyAlphaOnBg(base, 0.30, bg),          // very light fill
+      100: applyAlphaOnBg(base, 0.42, bg),          // medium fill
+      300: applyAlphaOnBg(base, 0.55, bg),          // heavy fill
       500: rgbToHex(...mixColors(base, black, 0.20)), // darkened base for strokes
       600: rgbToHex(...mixColors(base, black, 0.30)), // darker for emphasis
       800: rgbToHex(...darkBase),                    // dark text
@@ -117,9 +117,9 @@ export function generateColorRamp(hex: string, theme?: 'cinema' | 'light'): Colo
     const bg: [number, number, number] = [12, 13, 20]; // #0c0d14 (dark bg)
 
     ramp = {
-      50: applyAlphaOnBg(base, 0.12, bg),          // subtle fill
-      100: applyAlphaOnBg(base, 0.20, bg),          // medium fill
-      300: applyAlphaOnBg(base, 0.35, bg),          // heavy fill
+      50: applyAlphaOnBg(base, 0.25, bg),          // subtle fill
+      100: applyAlphaOnBg(base, 0.35, bg),          // medium fill
+      300: applyAlphaOnBg(base, 0.50, bg),          // heavy fill
       500: hex,                                      // full base (bright on dark)
       600: hex,                                      // same (already bright enough)
       800: hex,                                      // text is full color on dark
@@ -163,9 +163,9 @@ export const EMPHASIS_SCALES: Record<EntityEmphasis, { scale: number; opacity: n
 // Light theme uses boosted fill opacities for contrast on warm beige background.
 
 const _OPACITY_CINEMA = {
-  fillLight: '15',
-  fillMedium: '25',
-  fillHeavy: '40',
+  fillLight: '38',   // 22% — cinema fills boosted from 8% for visual distinctiveness
+  fillMedium: '47',  // 28% — medium emphasis shapes clearly visible on dark bg
+  fillHeavy: '66',   // 40% — heavy emphasis shapes prominent
   strokeMuted: '40',
   strokeSoft: '60',
   strokeFull: 'ff',
