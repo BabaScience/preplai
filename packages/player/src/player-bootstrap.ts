@@ -98,7 +98,7 @@ function main(): void {
   })();
 
   // ── Playback speed ─────────────────────────────────────────────────
-  const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5, 2];
+  const SPEED_OPTIONS = [0.75, 1, 1.5, 2];
   let currentSpeedIndex = (() => {
     try {
       const stored = localStorage.getItem('preplai-playback-speed');
@@ -120,6 +120,11 @@ function main(): void {
     const label = btn.querySelector('.speed-label');
     if (label) label.textContent = `${SPEED_OPTIONS[currentSpeedIndex]}x`;
     btn.title = `Playback speed: ${SPEED_OPTIONS[currentSpeedIndex]}x (S)`;
+    // Sync active state in popover
+    document.querySelectorAll('.speed-option').forEach((opt) => {
+      const speed = parseFloat((opt as HTMLElement).dataset.speed || '1');
+      opt.classList.toggle('active', speed === SPEED_OPTIONS[currentSpeedIndex]);
+    });
   }
 
   function speakNarration(text: string): void {
@@ -674,27 +679,36 @@ function main(): void {
   }
 
   // ── Speed toggle ───────────────────────────────────────────────────
-  const speedToggle = document.getElementById('speed-toggle');
   // Apply initial playback rate
   audioEngine.setPlaybackRate(getPlaybackRate());
   updateSpeedUI();
 
-  function cycleSpeed(): void {
-    currentSpeedIndex = (currentSpeedIndex + 1) % SPEED_OPTIONS.length;
-    const rate = SPEED_OPTIONS[currentSpeedIndex];
+  function setSpeed(rate: number): void {
+    const idx = SPEED_OPTIONS.indexOf(rate);
+    if (idx < 0) return;
+    currentSpeedIndex = idx;
     audioEngine.setPlaybackRate(rate);
     try {
       localStorage.setItem('preplai-playback-speed', String(rate));
     } catch { /* ignore */ }
     updateSpeedUI();
-    // Refresh progress bar to reflect new speed
     updateFrameCounter();
     trackPlayerEvent('speed_change', { speed: rate });
   }
 
-  if (speedToggle) {
-    speedToggle.addEventListener('click', cycleSpeed);
+  function cycleSpeed(): void {
+    const nextRate = SPEED_OPTIONS[(currentSpeedIndex + 1) % SPEED_OPTIONS.length];
+    setSpeed(nextRate);
   }
+
+  // Speed options in popover — click to set speed and close
+  document.querySelectorAll('.speed-option').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const rate = parseFloat((btn as HTMLElement).dataset.speed || '1');
+      setSpeed(rate);
+      (btn as HTMLElement).blur();
+    });
+  });
 
   // ── Play/Pause toggle ─────────────────────────────────────────────
   const playPauseBtn = document.getElementById('play-pause-toggle');
@@ -880,6 +894,33 @@ function main(): void {
   if (rotateFullscreenBtn) rotateFullscreenBtn.addEventListener('click', enterFullscreen);
   document.addEventListener('fullscreenchange', updateFullscreenUI);
   document.addEventListener('webkitfullscreenchange', updateFullscreenUI);
+
+  // ── Share button ──────────────────────────────────────────────────
+  const shareBtn = document.getElementById('share-btn');
+  if (shareBtn) {
+    const shareBtnOriginalHTML = shareBtn.innerHTML;
+    shareBtn.addEventListener('click', () => {
+      const shareUrl = window.location.href;
+      const showCopied = (): void => {
+        shareBtn.innerHTML = '<span style="font-size:10px;font-family:Inter,sans-serif;white-space:nowrap;padding:0 2px">Copied!</span>';
+        setTimeout(() => { shareBtn.innerHTML = shareBtnOriginalHTML; }, 2000);
+      };
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(showCopied).catch(() => {
+          const tmp = document.createElement('input');
+          tmp.value = shareUrl; document.body.appendChild(tmp);
+          tmp.select(); document.execCommand('copy'); document.body.removeChild(tmp);
+          showCopied();
+        });
+      } else {
+        const tmp = document.createElement('input');
+        tmp.value = shareUrl; document.body.appendChild(tmp);
+        tmp.select(); document.execCommand('copy'); document.body.removeChild(tmp);
+        showCopied();
+      }
+      trackPlayerEvent('share', { method: 'copy_link' });
+    });
+  }
 
   // ── Touch swipe navigation ────────────────────────────────────────
   let touchStartX = 0;
