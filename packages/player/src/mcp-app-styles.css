@@ -662,8 +662,8 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 }
 
 .frame-segment.current {
-  background: rgba(201, 168, 76, 0.3);
-  box-shadow: 0 0 8px rgba(201, 168, 76, 0.4);
+  background: #C9A84C;
+  box-shadow: 0 0 8px rgba(201, 168, 76, 0.5), 0 0 16px rgba(201, 168, 76, 0.25);
   transform: scaleY(1.5);
   overflow: hidden;
   position: relative;
