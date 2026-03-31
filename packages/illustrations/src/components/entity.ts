@@ -64,6 +64,10 @@ export function renderEntityNode(entity: VisualEntity, parentEl: SVGElement): SV
   text.setAttribute('font-size', String(fontSize));
   text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
   text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
+  // textLength enforces interior label stays within shape bounds (single-label rule)
+  const maxLabelWidth = Math.max(20, w - 12);
+  text.setAttribute('textLength', String(Math.min(maxLabelWidth, displayText.length * fontSize * 0.6)));
+  text.setAttribute('lengthAdjust', 'spacingAndGlyphs');
   text.textContent = displayText;
   scaleGroup.appendChild(text);
 

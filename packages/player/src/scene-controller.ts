@@ -225,8 +225,14 @@ export class SceneController {
     }
 
     // Separate connections from non-connection entities
-    const connections = entities.filter((e: VisualEntity) => isConnectionType(e.type));
+    const allConnections = entities.filter((e: VisualEntity) => isConnectionType(e.type));
     const nonConnections = entities.filter((e: VisualEntity) => !isConnectionType(e.type));
+    // Only render connections where both endpoints exist in the current frame
+    const frameEntityIds = new Set(nonConnections.map(e => e.id));
+    const connections = allConnections.filter(e =>
+      (!e.sourceEntityId || frameEntityIds.has(e.sourceEntityId)) &&
+      (!e.targetEntityId || frameEntityIds.has(e.targetEntityId))
+    );
 
     // ── Diff entities ──────────────────────────────────────────────
     const prevIds = new Set(this.prevNonConnections.map(e => e.id));

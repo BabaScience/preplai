@@ -232,7 +232,7 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
 
 #narrator-text {
   max-width: 800px;
-  max-height: calc(5.5em + 48px);
+  max-height: calc(8em + 48px);
   overflow-y: auto;
   scrollbar-gutter: stable;
   padding: 20px 36px;
@@ -312,10 +312,10 @@ svg rect, svg circle, svg ellipse, svg polygon, svg path {
   overflow: visible;
 }
 
-/* Auto-hide: slide down + fade out when idle */
+/* Auto-hide: never drops below 0.4 opacity — users always know controls exist */
 #frame-nav.auto-hidden {
-  opacity: 0;
-  transform: translateX(-50%) translateY(20px);
+  opacity: 0.4;
+  transform: translateX(-50%) translateY(8px);
   pointer-events: none;
 }
 
@@ -1995,5 +1995,36 @@ body[data-theme="light"] {
 
 [data-emphasis="critical"] > .animate-element {
   transform: scale(1.15);
+}
+
+/* ── Reduced-motion support ───────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  #frame-nav,
+  #frame-nav.auto-hidden {
+    opacity: 1 !important;
+    transform: translateX(-50%) translateY(0) !important;
+    transition: none !important;
+  }
+
+  #narrator-text,
+  #narrator-text.visible,
+  #narrator-text.narrator-visible {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  #loading-state {
+    transition: none !important;
+  }
 }
 `;
