@@ -52,54 +52,100 @@ export const PLAYER_HTML_TEMPLATE = `<!DOCTYPE html>
     <div id="progress-fill" class="progress-fill"></div>
   </div>
 
-  <!-- Frame navigation (keyboard + click) -->
+  <!-- Frame navigation — three-group glassmorphic floating pill -->
   <div id="frame-nav">
-    <button id="prev-frame" aria-label="Previous frame" title="Previous frame (←)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <div id="frame-dots" role="tablist" aria-label="Scene navigation"></div>
-    <button id="next-frame" aria-label="Next frame" title="Next frame (→)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
-    <button id="play-pause-toggle" type="button" aria-label="Play/Pause" title="Play/Pause (Space)" class="play-state">
-      <svg class="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      <svg class="pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-    </button>
-    <button id="tts-toggle" type="button" role="switch" aria-label="Toggle voice narration" aria-pressed="true" title="Voice narration on (click to mute)" class="tts-on">
-      <svg class="tts-icon-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-      <svg class="tts-icon-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-    </button>
-    <button id="speed-toggle" type="button" aria-label="Playback speed" title="Playback speed (S)">
-      <span class="speed-label">1x</span>
-    </button>
-    <span id="frame-counter">1 / 1</span>
-    <button id="narrator-overlay-toggle" type="button" aria-label="Toggle narrator overlay" title="Toggle narrator text (N)">
-      <svg class="narrator-toggle-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <svg class="narrator-toggle-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
-    </button>
-    <button id="fullscreen-toggle" type="button" aria-label="Toggle fullscreen" title="Fullscreen (F)">
-      <svg class="fs-enter-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-      <svg class="fs-exit-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-    </button>
-    <div class="hover-pill" id="theme-control">
-      <button type="button" class="hover-pill-trigger" aria-label="Change theme">
-        <svg class="theme-icon-cinema" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        <svg class="theme-icon-light" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+
+    <!-- Left group: Playback controls -->
+    <div class="nav-group nav-group-left">
+      <button id="prev-frame" aria-label="Previous frame" title="Previous (←)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <div class="hover-pill-popup">
-        <button type="button" data-theme-value="cinema" title="Cinema"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
-        <button type="button" data-theme-value="light" title="Light"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
-      </div>
+      <button id="play-pause-toggle" type="button" aria-label="Play/Pause" title="Play/Pause (Space)" class="play-state">
+        <svg class="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <svg class="pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      </button>
+      <button id="next-frame" aria-label="Next frame" title="Next (→)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </div>
-    <div class="hover-pill" id="palette-control">
-      <button type="button" class="hover-pill-trigger" aria-label="Change palette"><span class="palette-dot-indicator"></span></button>
-      <div class="hover-pill-popup">
-        <button type="button" class="pdot" data-palette-value="default" title="Default"></button>
-        <button type="button" class="pdot" data-palette-value="ocean" title="Ocean"></button>
-        <button type="button" class="pdot" data-palette-value="sunset" title="Sunset"></button>
-        <button type="button" class="pdot" data-palette-value="forest" title="Forest"></button>
-        <button type="button" class="pdot" data-palette-value="mono" title="Mono"></button>
+
+    <!-- Center group: Progress scrubber + counter -->
+    <div class="nav-group nav-group-center">
+      <div id="frame-dots" role="tablist" aria-label="Scene navigation"></div>
+      <span id="frame-counter" aria-label="Current frame">1 / 1</span>
+    </div>
+
+    <!-- Right group: Utility controls -->
+    <div class="nav-group nav-group-right">
+
+      <!-- Volume -->
+      <button id="tts-toggle" type="button" role="switch" aria-label="Toggle voice narration" aria-pressed="true" title="Volume (click to mute)" class="tts-on">
+        <svg class="tts-icon-on" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        <svg class="tts-icon-off" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+      </button>
+
+      <!-- Speed (hover/click popover) -->
+      <div class="nav-popover" id="speed-control">
+        <button id="speed-toggle" type="button" aria-label="Playback speed" title="Playback speed (S)">
+          <span class="speed-label">1x</span>
+        </button>
+        <div class="nav-popover-popup" id="speed-popup" role="listbox" aria-label="Playback speed">
+          <button type="button" class="speed-option" data-speed="0.75" role="option">0.75x</button>
+          <button type="button" class="speed-option" data-speed="1" role="option">1x</button>
+          <button type="button" class="speed-option" data-speed="1.5" role="option">1.5x</button>
+          <button type="button" class="speed-option" data-speed="2" role="option">2x</button>
+        </div>
       </div>
+
+      <!-- Narrator overlay toggle -->
+      <button id="narrator-overlay-toggle" type="button" aria-label="Toggle narrator overlay" title="Narrator text (N)">
+        <svg class="narrator-toggle-on" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <svg class="narrator-toggle-off" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+      </button>
+
+      <!-- Share -->
+      <button id="share-btn" type="button" aria-label="Copy link to share" title="Share" class="share-btn-accent">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+      </button>
+
+      <!-- Fullscreen -->
+      <button id="fullscreen-toggle" type="button" aria-label="Toggle fullscreen" title="Fullscreen (F)">
+        <svg class="fs-enter-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        <svg class="fs-exit-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      </button>
+
+      <!-- ⋯ Overflow: theme + palette -->
+      <div class="nav-overflow" id="overflow-control">
+        <button type="button" class="overflow-trigger" aria-label="Theme and palette options" title="Theme &amp; palette">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+        </button>
+        <div class="overflow-popup">
+          <div id="theme-control">
+            <div class="overflow-section-label">Theme</div>
+            <div class="overflow-section-btns">
+              <button type="button" data-theme-value="cinema" title="Cinema" aria-label="Cinema theme">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <span>Cinema</span>
+              </button>
+              <button type="button" data-theme-value="light" title="Light" aria-label="Light theme">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                <span>Light</span>
+              </button>
+            </div>
+          </div>
+          <div id="palette-control">
+            <div class="overflow-section-label">Palette</div>
+            <div class="overflow-section-btns">
+              <button type="button" class="pdot" data-palette-value="default" title="Default" aria-label="Default"></button>
+              <button type="button" class="pdot" data-palette-value="ocean" title="Ocean" aria-label="Ocean"></button>
+              <button type="button" class="pdot" data-palette-value="sunset" title="Sunset" aria-label="Sunset"></button>
+              <button type="button" class="pdot" data-palette-value="forest" title="Forest" aria-label="Forest"></button>
+              <button type="button" class="pdot" data-palette-value="mono" title="Mono" aria-label="Mono"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
