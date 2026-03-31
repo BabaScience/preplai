@@ -6,15 +6,19 @@ exports[`Visual Regression — SVG Snapshots > renders APIEndpoint without crash
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
+    "circle": 3,
     "g": 1,
-    "rect": 1,
-    "text": 2,
+    "line": 2,
+    "rect": 4,
+    "text": 4,
   },
   "textLabels": [
-    "API",
+    "GET",
+    "/api/users",
+    "200",
     "APIEndpoint",
   ],
-  "totalElements": 4,
+  "totalElements": 14,
 }
 `;
 
@@ -342,17 +346,17 @@ exports[`Visual Regression — SVG Snapshots > renders Cache without crashing > 
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "ellipse": 2,
+    "ellipse": 4,
     "g": 1,
     "line": 2,
-    "path": 1,
+    "path": 2,
     "rect": 1,
     "text": 1,
   },
   "textLabels": [
     "Cache",
   ],
-  "totalElements": 8,
+  "totalElements": 11,
 }
 `;
 
@@ -1674,15 +1678,16 @@ exports[`Visual Regression — SVG Snapshots > renders LoadBalancer without cras
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
+    "circle": 3,
     "g": 1,
-    "line": 3,
-    "polygon": 1,
+    "line": 4,
+    "polygon": 2,
     "text": 1,
   },
   "textLabels": [
     "LoadBalancer",
   ],
-  "totalElements": 6,
+  "totalElements": 11,
 }
 `;
 
