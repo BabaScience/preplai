@@ -11,12 +11,10 @@ import { getMcpResource } from '@preplai/shared/node';
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
-  if (process.env.NODE_ENV === 'production') {
-    if (!secret || secret === 'preplai-dev-secret-change-in-prod') {
-      throw new Error('JWT_SECRET must be set to a secure value in production');
-    }
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable must be set. Generate with: openssl rand -hex 32');
   }
-  return secret ?? 'preplai-dev-secret-change-in-prod';
+  return secret;
 }
 
 export interface OAuthPayload {

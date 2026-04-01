@@ -11,19 +11,10 @@ import { getApiBase, getWebsiteBase, getMcpResource, hashSecret } from '@preplai
 
 const router = Router();
 
-const DEFAULT_SECRET = 'preplai-dev-secret-change-in-prod';
-
-function getJwtSecret() {
-  const secret = process.env.JWT_SECRET;
-  if (process.env.NODE_ENV === 'production') {
-    if (!secret || secret === DEFAULT_SECRET) {
-      throw new Error('JWT_SECRET must be set to a secure value in production');
-    }
-  }
-  return secret || DEFAULT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable must be set. Generate with: openssl rand -hex 32');
 }
-
-const JWT_SECRET = getJwtSecret();
 
 function generateAuthCode() {
   return crypto.randomBytes(32).toString('hex');

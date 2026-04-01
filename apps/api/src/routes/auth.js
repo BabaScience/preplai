@@ -6,8 +6,10 @@ import { sendVerificationEmail, sendPasswordResetEmail } from '../services/email
 
 const router = Router();
 
-const DEFAULT_SECRET = 'preplai-dev-secret-change-in-prod';
-const JWT_SECRET = process.env.JWT_SECRET || DEFAULT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable must be set. Generate with: openssl rand -hex 32');
+}
 
 // ── Per-IP rate limiting for auth endpoints ──────────────────────────
 const authAttempts = new Map(); // ip → { count, resetAt }
@@ -37,14 +39,6 @@ setInterval(() => {
     if (entry.resetAt <= now) authAttempts.delete(ip);
   }
 }, 5 * 60 * 1000);
-
-if (process.env.NODE_ENV === 'production') {
-  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === DEFAULT_SECRET) {
-    throw new Error(
-      'JWT_SECRET must be set to a secure value in production. Generate with: openssl rand -hex 32'
-    );
-  }
-}
 
 // POST /api/auth/signup
 router.post('/signup', authRateLimit, async (req, res) => {
