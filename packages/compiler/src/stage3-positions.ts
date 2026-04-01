@@ -15,6 +15,104 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, ENTITY_DEFAULTS } from '@preplai/shared';
 import type { CompilerWarning } from './types.js';
 import { BASE_ENTITY_SIZES, SKIP_CLAMP_TYPES } from './types.js';
 
+// ── AABB Overlap Resolver ────────────────────────────────────────────
+
+const MAX_OVERLAP_ITERATIONS = 8;
+
+/**
+ * Resolve entity overlaps using AABB collision detection and MTV (minimum
+ * translation vector) resolution. Iterates up to MAX_OVERLAP_ITERATIONS
+ * times, exiting early when no overlaps remain.
+ *
+ * Connection types (Arrow, DataFlow, etc.) are excluded — their position
+ * is determined by source/target, not the position property.
+ */
+export function resolveEntityOverlaps(entities: VisualEntity[]): VisualEntity[] {
+  const content = entities.filter(e => !SKIP_CLAMP_TYPES.has(e.type));
+  if (content.length < 2) return entities;
+
+  // Pre-compute half-extents and clamp bounds per entity
+  interface EntityState {
+    id: string;
+    x: number;
+    y: number;
+    halfW: number; // overlap detection half-extent (includes 1.5% margin)
+    halfH: number;
+    minX: number;  // canvas clamp bounds (without margin)
+    maxX: number;
+    minY: number;
+    maxY: number;
+  }
+
+  const states: EntityState[] = content.map(e => {
+    const base = BASE_ENTITY_SIZES.get(e.type) ?? BASE_ENTITY_SIZES.get('_default')!;
+    const mult = e.size ?? ENTITY_DEFAULTS.size;
+    const hwPct = (base.w * mult / CANVAS_WIDTH) * 100 / 2;
+    const hhPct = (base.h * mult / CANVAS_HEIGHT) * 100 / 2;
+    return {
+      id: e.id,
+      x: e.position.x,
+      y: e.position.y,
+      halfW: hwPct + 1.5,
+      halfH: hhPct + 1.5,
+      minX: hwPct,
+      maxX: 100 - hwPct,
+      minY: hhPct,
+      maxY: 100 - hhPct,
+    };
+  });
+
+  for (let iter = 0; iter < MAX_OVERLAP_ITERATIONS; iter++) {
+    let anyOverlap = false;
+
+    for (let i = 0; i < states.length; i++) {
+      for (let j = i + 1; j < states.length; j++) {
+        const a = states[i];
+        const b = states[j];
+
+        const overlapX = (a.halfW + b.halfW) - Math.abs(a.x - b.x);
+        const overlapY = (a.halfH + b.halfH) - Math.abs(a.y - b.y);
+
+        if (overlapX > 0 && overlapY > 0) {
+          anyOverlap = true;
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+
+          if (overlapX < overlapY) {
+            // Push apart horizontally
+            const push = overlapX / 2 + 0.5;
+            if (dx >= 0) { a.x -= push; b.x += push; }
+            else         { a.x += push; b.x -= push; }
+          } else {
+            // Push apart vertically
+            const push = overlapY / 2 + 0.5;
+            if (dy >= 0) { a.y -= push; b.y += push; }
+            else         { a.y += push; b.y -= push; }
+          }
+
+          // Re-clamp both entities to canvas bounds
+          a.x = Math.max(a.minX, Math.min(a.maxX, a.x));
+          a.y = Math.max(a.minY, Math.min(a.maxY, a.y));
+          b.x = Math.max(b.minX, Math.min(b.maxX, b.x));
+          b.y = Math.max(b.minY, Math.min(b.maxY, b.y));
+        }
+      }
+    }
+
+    if (!anyOverlap) break;
+  }
+
+  // Apply resolved positions back — only update entities that actually moved
+  const posMap = new Map(states.map(s => [s.id, { x: s.x, y: s.y }]));
+  return entities.map(e => {
+    const np = posMap.get(e.id);
+    if (np && (Math.abs(np.x - e.position.x) > 0.001 || Math.abs(np.y - e.position.y) > 0.001)) {
+      return { ...e, position: { x: np.x, y: np.y } };
+    }
+    return e;
+  });
+}
+
 export interface Stage3Result {
   script: VisualScript;
   warnings: CompilerWarning[];
@@ -34,6 +132,9 @@ export function stage3ClampPositions(script: VisualScript): Stage3Result {
 
     // Step 3: Align tiers — entities within 5 units of same Y get aligned
     entities = alignTiers(entities);
+
+    // Step 4: Resolve any remaining AABB overlaps
+    entities = resolveEntityOverlaps(entities);
 
     return { ...frame, entities };
   });

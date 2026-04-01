@@ -42,6 +42,14 @@ CINEMATIC PRINCIPLES:
 - DENSITY: 5–7 entities per frame. Each frame should feel complete.
 - QUALITY: Match chat-level richness. Specific labels ("PostgreSQL" not "DB"). Substantive narration (2–4 sentences with context and examples).
 
+SPATIAL RULES (prevent overlap):
+- Minimum horizontal gap between adjacent entities: 15 units
+- Minimum vertical gap between adjacent entities: 20 units
+- Recommended anchor grid: x ∈ {10, 25, 40, 55, 70, 85}, y ∈ {20, 35, 50, 65, 80}
+- For left→right flows: step x by 20+ units; keep y identical per tier
+- For top→down flows: step y by 20+ units; keep x identical per column
+- Never place more than 3 entities at the same Y coordinate
+
 ARCHITECTURE COMPOSITIONS:
 - MULTI-TIER: Position left→right (User [15,50] → LB [30,50] → Service [50,50] → DB [70,50]) or top→down. Use Arrow for sync calls, DataFlow for async/streaming.
 - Arrow = sync request. DataFlow = async/streaming (animated dashes). DottedArrow = optional/fallback. BidirectArrow = bidirectional.
