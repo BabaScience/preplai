@@ -188,6 +188,14 @@ RULE: Use the exact positions from the template. Adjust entity types and labels,
 RULE: For multi-frame presentations, keep persistent entities (same id) at the same position across frames. Move entities only when the narration describes change.
 RULE: Use shape morphing (same id, different type across frames) for INCIDENT TIMELINE and temporal evolution stories.
 
+SPATIAL RULES (prevent overlap):
+- Minimum horizontal gap between adjacent entities: 15 units
+- Minimum vertical gap between adjacent entities: 20 units
+- Recommended anchor grid: x ∈ {10, 25, 40, 55, 70, 85}, y ∈ {20, 35, 50, 65, 80}
+- For left→right flows: step x by 20+ units; keep y identical per tier
+- For top→down flows: step y by 20+ units; keep x identical per column
+- Never place more than 3 entities at the same Y coordinate
+
 ═══ CONTENT & COMPOSITION ═══
 
 CONNECTIONS (critical): Every content entity (Server, Database, User, etc.) MUST be connected to at least one other entity via Arrow or DataFlow. Orphan entities (floating boxes with no connections) make poor diagrams. Always show relationships — data flows, API calls, dependencies — between entities.

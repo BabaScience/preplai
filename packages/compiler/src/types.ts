@@ -271,6 +271,9 @@ export const BASE_ENTITY_SIZES: ReadonlyMap<string, { w: number; h: number }> = 
   // Text types
   ['Text',            { w: 160, h: 50  }],
   ['Span',            { w: 120, h: 40  }],
+  // Connection types (not in SKIP_CLAMP_TYPES but are visual connectors)
+  ['Transition',      { w: 100, h: 20  }],
+  ['Bus',             { w: 120, h: 20  }],
 ]);
 
 // ── Arrow-like types (skip position clamping — re-exported from shared) ──
