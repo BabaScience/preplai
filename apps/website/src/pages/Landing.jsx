@@ -40,7 +40,7 @@ export default function Landing() {
         </div>
 
         <div className="trust-section hero-fade-in hero-fade-in-delay-4">
-          <p className="trust-subtitle">The Visual Layer For Your AI</p>
+          <h2 className="trust-subtitle" style={{ fontSize: 'inherit', fontWeight: 'inherit', margin: 0 }}>Works With Every AI Agent</h2>
           <div className="trust-strip">
             <span className="trust-dot" style={{ background: '#D4A574' }} /> <span className="trust-name">Claude</span>
             <span className="trust-dot" style={{ background: '#6B9E78' }} /> <span className="trust-name">ChatGPT</span>
@@ -206,7 +206,10 @@ export default function Landing() {
 
       {/* 6. Features grid */}
       <section id="features" className="section-block" style={{ borderTop: '1px solid var(--color-divider)' }}>
-        <div className="bento-grid">
+        <div className="section-label">Features</div>
+        <h2>MCP-Native Visual Output for AI Agents</h2>
+        <p className="section-desc">Every feature is built for one purpose: turning AI output into something people actually watch.</p>
+        <div className="bento-grid" style={{ marginTop: 'var(--space-10)' }}>
           <div className="bento-card">
             <div className="bento-icon">
               <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">

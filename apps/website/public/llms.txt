@@ -1,0 +1,62 @@
+# Preplai
+
+> The MCP-native visual output layer for AI agents. Turn any AI answer into an animated, narrated visual presentation anyone can watch and share.
+
+## What Preplai Does
+
+Preplai is a Model Context Protocol (MCP) server that gives AI agents the ability to produce cinematic, animated visual presentations instead of walls of text. Any AI — Claude, ChatGPT, Cursor, Gemini, or any MCP-compatible agent — can call Preplai tools to create a visual session, add scenes with animated diagrams and narration, and return a shareable link the user can watch in their browser.
+
+Instead of reading a 2,000-word text dump, users watch a 90-second narrated visual walkthrough. Preplai handles the rendering, animation, voice narration, and hosting.
+
+## MCP Tools
+
+Preplai exposes the following MCP tools:
+
+### create_session
+Creates a new visual presentation session. Returns a session ID and the illustration reference (all available entity types, metadata schemas, and layout templates). Call this first before adding scenes.
+
+### add_scene
+Adds one or more frames to an existing session. Each frame contains entities (visual components like servers, databases, charts, flow diagrams), arrows connecting them, and narration text. The engine animates the scene, applies depth-of-field focus, and syncs narration.
+
+### add_narration
+Adds or updates the narration text for a specific frame within a session.
+
+### get_session_url
+Returns the public URL for a session so users can watch the presentation in their browser.
+
+### manage_sessions
+Lists, inspects, or deletes sessions. Can also remove individual frames from a session.
+
+## Use Cases
+
+- **Incident postmortems**: Animated timeline of what failed, why, and what was fixed — shareable with the whole team
+- **Architecture walkthroughs**: Visual system diagrams with narrated explanation of each component and data flow
+- **AI agent reports**: Instead of a text summary, an agent delivers a visual walkthrough of what it did and why
+- **PR summaries**: Animated before/after diagram of code changes with narrated explanation
+- **Business intelligence**: Charts, funnels, and metrics animated and narrated for stakeholder review
+- **Client deliverables**: Consultants turn AI research output into client-ready visual presentations automatically
+- **Educational explanations**: CS concepts, algorithms, and data structures visualized step by step
+
+## Entity Types (Visual Components)
+
+Preplai supports 150+ visual entity types including: Server, Database, Service, Cache, Queue, Pipeline, Container, BinaryTree, Array, Stack, Queue, Graph2D, BarChart, LineChart, Timeline, StepList, CodeBlock, and Composable (custom shapes + icons for any domain).
+
+## Setup
+
+MCP endpoint: `https://player.preplai.com/mcp`
+
+Connect via OAuth (Claude Web, ChatGPT) or API token (Claude Desktop, Cursor, Windsurf).
+
+## Documentation
+
+Full docs: https://preplai.com/docs
+Quick start: https://preplai.com/docs/quick-start
+MCP tools reference: https://preplai.com/docs/mcp-tools
+Connect Claude: https://preplai.com/docs/connect-claude
+Connect ChatGPT: https://preplai.com/docs/connect-chatgpt
+
+## Company
+
+Website: https://preplai.com
+Blog: https://preplai.com/blog
+Contact: https://preplai.com/contact
