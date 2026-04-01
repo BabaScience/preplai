@@ -1,3 +1,6 @@
+# Block credentials before they're committed
+sh scripts/hooks/pre-commit
+
 # Same checks as CI: lint, typecheck, test
 pnpm run lint
 pnpm run typecheck

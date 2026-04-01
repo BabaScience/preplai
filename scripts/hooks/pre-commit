@@ -1,0 +1,61 @@
+#!/bin/sh
+# Pre-commit hook: block credential patterns from being committed.
+# Checks staged files for common API key and secret formats.
+
+set -e
+
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Patterns that indicate real credentials
+PATTERNS=(
+  'sk-ant-api[0-9]+-[A-Za-z0-9_-]{80,}'   # Anthropic API key
+  'sk-proj-[A-Za-z0-9_-]{80,}'              # OpenAI project key
+  'sk-[A-Za-z0-9]{48}'                      # OpenAI legacy key
+  'sk_[a-f0-9]{48}'                         # ElevenLabs API key
+  're_[A-Za-z0-9_-]{32,}'                   # Resend API key
+  'mongodb\+srv://[^:]+:[^@]+@'             # MongoDB Atlas URI with credentials
+  'INWORLD_API_KEY=[A-Za-z0-9+/=]{60,}'    # Inworld base64 API key
+  'ANTHROPIC_API_KEY=sk-'                   # Anthropic key in .env
+  'OPENAI_API_KEY=sk-'                      # OpenAI key in .env
+  'ELEVENLABS_API_KEY=sk_'                  # ElevenLabs key in .env
+  'RESEND_API_KEY=re_'                      # Resend key in .env
+)
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null)
+
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+
+FOUND=0
+
+for pattern in "${PATTERNS[@]}"; do
+  MATCHES=$(git diff --cached -U0 2>/dev/null | grep '^+' | grep -v '^+++' | grep -E "$pattern" || true)
+  if [ -n "$MATCHES" ]; then
+    if [ "$FOUND" -eq 0 ]; then
+      echo ""
+      printf "${RED}BLOCKED: Potential credentials detected in staged changes${NC}\n"
+      echo "────────────────────────────────────────────────────────"
+    fi
+    printf "${YELLOW}Pattern matched:${NC} $pattern\n"
+    echo "$MATCHES" | head -3
+    FOUND=1
+  fi
+done
+
+if [ "$FOUND" -ne 0 ]; then
+  echo ""
+  echo "To fix:"
+  echo "  1. Remove credentials from the staged files"
+  echo "  2. Add them to .env (which is gitignored)"
+  echo "  3. Rotate any exposed keys immediately"
+  echo ""
+  echo "To bypass (ONLY if you are certain this is a false positive):"
+  echo "  git commit --no-verify"
+  echo ""
+  exit 1
+fi
+
+exit 0
