@@ -10,7 +10,7 @@
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha } from '../design-tokens.js';
 import { resolveColorCascade } from '../color-cascade.js';
-import { ensureDefs } from '../visual-utils.js';
+import { ensureDefs, ensureGlowFilter } from '../visual-utils.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderAPIEndpoint(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -29,6 +29,32 @@ export function renderAPIEndpoint(entity: VisualEntity, parentEl: SVGElement): S
   const rx = SHAPES.borderRadius;
 
   const defs = ensureDefs(parentEl);
+
+  // ── Radial depth halo (atmospheric glow behind entity) ───────────────
+  const haloId = `api-halo-${entityId}`;
+  if (!defs.querySelector(`#${haloId}`)) {
+    const grad = document.createElementNS(SVG_NS, 'radialGradient');
+    grad.setAttribute('id', haloId);
+    grad.setAttribute('cx', '50%'); grad.setAttribute('cy', '50%');
+    grad.setAttribute('r', '50%');
+    const hs1 = document.createElementNS(SVG_NS, 'stop');
+    hs1.setAttribute('offset', '0%');
+    hs1.setAttribute('stop-color', color);
+    hs1.setAttribute('stop-opacity', '0.13');
+    const hs2 = document.createElementNS(SVG_NS, 'stop');
+    hs2.setAttribute('offset', '100%');
+    hs2.setAttribute('stop-color', color);
+    hs2.setAttribute('stop-opacity', '0');
+    grad.appendChild(hs1); grad.appendChild(hs2);
+    defs.appendChild(grad);
+  }
+  const halo = document.createElementNS(SVG_NS, 'ellipse');
+  halo.setAttribute('cx', '0');
+  halo.setAttribute('cy', '0');
+  halo.setAttribute('rx', String(hw * 1.6));
+  halo.setAttribute('ry', String(hh * 1.6));
+  halo.setAttribute('fill', `url(#${haloId})`);
+  innerG.appendChild(halo);
 
   // ── Gradient IDs (unique per instance) ──────────────────────────────
   const bgGradId = `api-bg-${entityId}`;
@@ -99,6 +125,7 @@ export function renderAPIEndpoint(entity: VisualEntity, parentEl: SVGElement): S
   }
 
   // ── Card body (glass panel) ──────────────────────────────────────────
+  const glowUrl = ensureGlowFilter(parentEl, color);
   const card = document.createElementNS(SVG_NS, 'rect');
   card.setAttribute('x', String(-hw));
   card.setAttribute('y', String(-hh));
@@ -108,6 +135,7 @@ export function renderAPIEndpoint(entity: VisualEntity, parentEl: SVGElement): S
   card.setAttribute('fill', `url(#${bgGradId})`);
   card.setAttribute('stroke', `url(#${borderGradId})`);
   card.setAttribute('stroke-width', String(STROKE.default));
+  card.setAttribute('filter', glowUrl);
   innerG.appendChild(card);
 
   // ── Header bar (dark terminal title bar) ─────────────────────────────
@@ -235,6 +263,21 @@ export function renderAPIEndpoint(entity: VisualEntity, parentEl: SVGElement): S
   statusTxt.textContent = statusCode;
   innerG.appendChild(statusTxt);
 
+  // ── Response preview lines below status badge ─────────────────────────
+  const responseLines = [1.0, 0.7, 0.5];
+  responseLines.forEach((op, i) => {
+    const lineW = w * (0.72 - i * 0.15);
+    const resp = document.createElementNS(SVG_NS, 'rect');
+    resp.setAttribute('x', String(padX));
+    resp.setAttribute('y', String(row2Y + badgeH / 2 + 5 + i * 7));
+    resp.setAttribute('width', String(lineW));
+    resp.setAttribute('height', '3');
+    resp.setAttribute('rx', '1.5');
+    resp.setAttribute('fill', color);
+    resp.setAttribute('opacity', String(op * 0.2));
+    innerG.appendChild(resp);
+  });
+
   // Top-edge white highlight glint
   const glint = document.createElementNS(SVG_NS, 'line');
   glint.setAttribute('x1', String(-hw + rx));
@@ -254,7 +297,7 @@ export function renderAPIEndpoint(entity: VisualEntity, parentEl: SVGElement): S
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
-    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightTitle));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;
     innerG.appendChild(text);

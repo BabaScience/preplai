@@ -38,10 +38,8 @@ const activeLottieInstances = new Map<string, any>();
  * Agents reference them by name: metadata.lottieAnimation.src = "gear-spin"
  */
 const BUILTIN_ANIMATIONS: Record<string, string> = {
-  'gear-spin': 'https://lottie.host/embed/e5a1c47a-a85b-4e78-ab39-d1c6e6b0f081/KaLqGnK4Te.json',
-  'loading-spinner': 'https://lottie.host/embed/ccb4e4ff-aa03-432d-86ce-b1b9f2e56bc7/kmlBjGmmDJ.json',
-  'check-success': 'https://lottie.host/embed/0ec85e33-e18b-4abe-b0b3-4a6bd2c8d7e7/QprSFMNqZe.json',
-  'pulse': 'https://lottie.host/embed/4b3b7e3a-4476-4e49-96be-f9034e1b0e83/3XqHrJfvX9.json',
+  // Built-in catalog removed — lottie.host URLs returned 403 Forbidden.
+  // Agents can still use custom Lottie URLs via metadata.lottieAnimation.src.
 };
 
 // ── Core functions ──────────────────────────────────────────────────

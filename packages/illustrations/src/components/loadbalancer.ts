@@ -27,6 +27,32 @@ export function renderLoadBalancer(entity: VisualEntity, parentEl: SVGElement): 
 
   const defs = ensureDefs(parentEl);
 
+  // ── Radial depth halo ────────────────────────────────────────────────
+  const haloId = `lb-halo-${entityId}`;
+  if (!defs.querySelector(`#${haloId}`)) {
+    const haloGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    haloGrad.setAttribute('id', haloId);
+    haloGrad.setAttribute('cx', '50%'); haloGrad.setAttribute('cy', '50%');
+    haloGrad.setAttribute('r', '50%');
+    const hhs1 = document.createElementNS(SVG_NS, 'stop');
+    hhs1.setAttribute('offset', '0%');
+    hhs1.setAttribute('stop-color', color);
+    hhs1.setAttribute('stop-opacity', '0.13');
+    const hhs2 = document.createElementNS(SVG_NS, 'stop');
+    hhs2.setAttribute('offset', '100%');
+    hhs2.setAttribute('stop-color', color);
+    hhs2.setAttribute('stop-opacity', '0');
+    haloGrad.appendChild(hhs1); haloGrad.appendChild(hhs2);
+    defs.appendChild(haloGrad);
+  }
+  const halo = document.createElementNS(SVG_NS, 'ellipse');
+  halo.setAttribute('cx', '0');
+  halo.setAttribute('cy', '0');
+  halo.setAttribute('rx', String(r * 1.8));
+  halo.setAttribute('ry', String(r * 1.8));
+  halo.setAttribute('fill', `url(#${haloId})`);
+  innerG.appendChild(halo);
+
   // ── Gradient IDs (unique per instance) ──────────────────────────────
   const hexFillGradId = `lb-fill-${entityId}`;
   const hexBorderGradId = `lb-border-${entityId}`;
@@ -42,11 +68,11 @@ export function renderLoadBalancer(entity: VisualEntity, parentEl: SVGElement): 
     const s1 = document.createElementNS(SVG_NS, 'stop');
     s1.setAttribute('offset', '0%');
     s1.setAttribute('stop-color', color);
-    s1.setAttribute('stop-opacity', '0.25');
+    s1.setAttribute('stop-opacity', '0.45');
     const s2 = document.createElementNS(SVG_NS, 'stop');
     s2.setAttribute('offset', '100%');
     s2.setAttribute('stop-color', color);
-    s2.setAttribute('stop-opacity', '0.06');
+    s2.setAttribute('stop-opacity', '0.15');
     grad.appendChild(s1); grad.appendChild(s2);
     defs.appendChild(grad);
   }
@@ -123,6 +149,7 @@ export function renderLoadBalancer(entity: VisualEntity, parentEl: SVGElement): 
   hexFill.setAttribute('points', hexPts(r));
   hexFill.setAttribute('fill', `url(#${hexFillGradId})`);
   hexFill.setAttribute('stroke', 'none');
+  hexFill.setAttribute('filter', `url(#${glowFilterId})`);
   innerG.appendChild(hexFill);
 
   // ── Hexagon border (gradient stroke — luminous edge) ─────────────────
@@ -230,7 +257,7 @@ export function renderLoadBalancer(entity: VisualEntity, parentEl: SVGElement): 
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
-    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightTitle));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;
     innerG.appendChild(text);

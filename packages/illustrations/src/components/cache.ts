@@ -31,6 +31,32 @@ export function renderCache(entity: VisualEntity, parentEl: SVGElement): SVGGEle
 
   const defs = ensureDefs(parentEl);
 
+  // ── Radial depth halo ────────────────────────────────────────────────
+  const haloId = `cache-halo-${entityId}`;
+  if (!defs.querySelector(`#${haloId}`)) {
+    const haloGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    haloGrad.setAttribute('id', haloId);
+    haloGrad.setAttribute('cx', '50%'); haloGrad.setAttribute('cy', '50%');
+    haloGrad.setAttribute('r', '50%');
+    const hhs1 = document.createElementNS(SVG_NS, 'stop');
+    hhs1.setAttribute('offset', '0%');
+    hhs1.setAttribute('stop-color', color);
+    hhs1.setAttribute('stop-opacity', '0.13');
+    const hhs2 = document.createElementNS(SVG_NS, 'stop');
+    hhs2.setAttribute('offset', '100%');
+    hhs2.setAttribute('stop-color', color);
+    hhs2.setAttribute('stop-opacity', '0');
+    haloGrad.appendChild(hhs1); haloGrad.appendChild(hhs2);
+    defs.appendChild(haloGrad);
+  }
+  const halo = document.createElementNS(SVG_NS, 'ellipse');
+  halo.setAttribute('cx', '0');
+  halo.setAttribute('cy', '0');
+  halo.setAttribute('rx', String(rx * 2));
+  halo.setAttribute('ry', String(rx * 1.4));
+  halo.setAttribute('fill', `url(#${haloId})`);
+  innerG.appendChild(halo);
+
   // ── Gradient IDs (unique per instance) ──────────────────────────────
   const capGradId = `cache-cap-${entityId}`;
   const bodyGradId = `cache-body-${entityId}`;
@@ -220,6 +246,30 @@ export function renderCache(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   bolt.setAttribute('fill', `url(#${boltGradId})`);
   innerG.appendChild(bolt);
 
+  // ── Luminous center glow dot on cap ──────────────────────────────────
+  const glowDotId = `cacheDot_${entityId}`;
+  if (!defs.querySelector(`#${glowDotId}`)) {
+    const glowDotGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    glowDotGrad.setAttribute('id', glowDotId);
+    [['0%', '#ffffff', '0.95'], ['60%', color, '0.7'], ['100%', color, '0']].forEach(([off, col, op]) => {
+      const st = document.createElementNS(SVG_NS, 'stop');
+      st.setAttribute('offset', off);
+      st.setAttribute('stop-color', col);
+      st.setAttribute('stop-opacity', op);
+      glowDotGrad.appendChild(st);
+    });
+    defs.appendChild(glowDotGrad);
+  }
+
+  const glowDot = document.createElementNS(SVG_NS, 'ellipse');
+  glowDot.setAttribute('cx', '0');
+  glowDot.setAttribute('cy', String(topY));
+  glowDot.setAttribute('rx', String(rx * 0.18));
+  glowDot.setAttribute('ry', String(ry * 0.55));
+  glowDot.setAttribute('fill', `url(#${glowDotId})`);
+  glowDot.setAttribute('filter', `url(#${glowFilterId})`);
+  innerG.appendChild(glowDot);
+
   // ── Label below ──────────────────────────────────────────────────────
   if (entity.label) {
     const text = document.createElementNS(SVG_NS, 'text');
@@ -228,7 +278,7 @@ export function renderCache(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     text.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
     text.setAttribute('fill', cc.textPrimary);
     text.setAttribute('font-size', String(TYPOGRAPHY.fontSizeLabel));
-    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
+    text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightTitle));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     text.textContent = entity.label;
     innerG.appendChild(text);

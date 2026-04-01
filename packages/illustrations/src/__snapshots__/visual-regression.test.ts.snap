@@ -7,9 +7,10 @@ exports[`Visual Regression — SVG Snapshots > renders APIEndpoint without crash
   "rendered": true,
   "tagCounts": {
     "circle": 3,
+    "ellipse": 1,
     "g": 1,
     "line": 2,
-    "rect": 4,
+    "rect": 7,
     "text": 4,
   },
   "textLabels": [
@@ -18,7 +19,7 @@ exports[`Visual Regression — SVG Snapshots > renders APIEndpoint without crash
     "200",
     "APIEndpoint",
   ],
-  "totalElements": 14,
+  "totalElements": 18,
 }
 `;
 
@@ -346,7 +347,7 @@ exports[`Visual Regression — SVG Snapshots > renders Cache without crashing > 
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "ellipse": 4,
+    "ellipse": 6,
     "g": 1,
     "line": 2,
     "path": 2,
@@ -356,7 +357,7 @@ exports[`Visual Regression — SVG Snapshots > renders Cache without crashing > 
   "textLabels": [
     "Cache",
   ],
-  "totalElements": 11,
+  "totalElements": 13,
 }
 `;
 
@@ -480,14 +481,14 @@ exports[`Visual Regression — SVG Snapshots > renders Cloud without crashing > 
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "ellipse": 4,
+    "ellipse": 6,
     "g": 1,
     "text": 1,
   },
   "textLabels": [
     "Cloud",
   ],
-  "totalElements": 6,
+  "totalElements": 8,
 }
 `;
 
@@ -657,14 +658,15 @@ exports[`Visual Regression — SVG Snapshots > renders Container without crashin
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
+    "ellipse": 1,
     "g": 1,
-    "rect": 1,
+    "rect": 6,
     "text": 1,
   },
   "textLabels": [
     "Container",
   ],
-  "totalElements": 3,
+  "totalElements": 9,
 }
 `;
 
@@ -810,16 +812,17 @@ exports[`Visual Regression — SVG Snapshots > renders Database without crashing
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "ellipse": 2,
+    "circle": 3,
+    "ellipse": 3,
     "g": 1,
     "line": 2,
-    "rect": 1,
+    "rect": 2,
     "text": 1,
   },
   "textLabels": [
     "Database",
   ],
-  "totalElements": 7,
+  "totalElements": 12,
 }
 `;
 
@@ -1679,6 +1682,7 @@ exports[`Visual Regression — SVG Snapshots > renders LoadBalancer without cras
   "rendered": true,
   "tagCounts": {
     "circle": 3,
+    "ellipse": 1,
     "g": 1,
     "line": 4,
     "polygon": 2,
@@ -1687,7 +1691,7 @@ exports[`Visual Regression — SVG Snapshots > renders LoadBalancer without cras
   "textLabels": [
     "LoadBalancer",
   ],
-  "totalElements": 11,
+  "totalElements": 12,
 }
 `;
 
@@ -2175,6 +2179,7 @@ exports[`Visual Regression — SVG Snapshots > renders Queue without crashing > 
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
+    "ellipse": 1,
     "g": 1,
     "rect": 3,
     "text": 4,
@@ -2185,7 +2190,7 @@ exports[`Visual Regression — SVG Snapshots > renders Queue without crashing > 
     "3",
     "Queue",
   ],
-  "totalElements": 8,
+  "totalElements": 9,
 }
 `;
 
@@ -2401,15 +2406,16 @@ exports[`Visual Regression — SVG Snapshots > renders Server without crashing >
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
+    "circle": 3,
+    "ellipse": 1,
     "g": 1,
-    "line": 3,
-    "rect": 1,
+    "rect": 4,
     "text": 1,
   },
   "textLabels": [
     "Server",
   ],
-  "totalElements": 6,
+  "totalElements": 10,
 }
 `;
 
@@ -2419,16 +2425,17 @@ exports[`Visual Regression — SVG Snapshots > renders Service without crashing 
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 1,
+    "circle": 2,
+    "ellipse": 1,
     "g": 1,
-    "line": 4,
     "polygon": 1,
+    "rect": 4,
     "text": 1,
   },
   "textLabels": [
     "Auth Service",
   ],
-  "totalElements": 8,
+  "totalElements": 10,
 }
 `;
 
@@ -2842,7 +2849,8 @@ exports[`Visual Regression — SVG Snapshots > renders User without crashing > p
   "hasOuterG": true,
   "rendered": true,
   "tagCounts": {
-    "circle": 2,
+    "circle": 4,
+    "ellipse": 1,
     "g": 1,
     "path": 1,
     "text": 1,
@@ -2850,7 +2858,7 @@ exports[`Visual Regression — SVG Snapshots > renders User without crashing > p
   "textLabels": [
     "User",
   ],
-  "totalElements": 5,
+  "totalElements": 8,
 }
 `;
 

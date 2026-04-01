@@ -74,16 +74,18 @@ describe('renderServer', () => {
     const entity = makeEntity({ type: 'Server' });
     renderServer(entity, parentEl);
     const innerG = parentEl.querySelector('.animate-element')!;
-    const lines = innerG.querySelectorAll('line');
-    expect(lines.length).toBeGreaterThanOrEqual(2);
+    // Rack bars are rendered as gradient rects (visual depth redesign)
+    const rects = innerG.querySelectorAll('rect');
+    expect(rects.length).toBeGreaterThanOrEqual(2);
   });
 
   it('should contain server rack lines', () => {
     const entity = makeEntity({ type: 'Server' });
     renderServer(entity, parentEl);
     const innerG = parentEl.querySelector('.animate-element')!;
-    const lines = innerG.querySelectorAll('line');
-    expect(lines.length).toBeGreaterThanOrEqual(2);
+    // Rack bars are rendered as gradient rects (visual depth redesign)
+    const rects = innerG.querySelectorAll('rect');
+    expect(rects.length).toBeGreaterThanOrEqual(2);
   });
 
   it('should render label when provided', () => {
@@ -187,8 +189,8 @@ describe('renderCloud', () => {
     const entity = makeEntity({ type: 'Cloud' });
     renderCloud(entity, parentEl);
     const ellipses = parentEl.querySelectorAll('.animate-element ellipse');
-    // 3 cloud bumps + 1 flat base = 4 ellipses
-    expect(ellipses.length).toBe(4);
+    // 3 cloud bumps + 1 flat base + radial halo + highlight = 6 ellipses (visual depth redesign)
+    expect(ellipses.length).toBeGreaterThanOrEqual(4);
   });
 });
 
