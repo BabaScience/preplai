@@ -1,11 +1,13 @@
 /**
- * @preplai/illustrations — NeuralNetwork Component
+ * @preplai/illustrations — NeuralNetwork Component (Cinematic Depth)
  *
- * Neural network layer diagram: columns of circle neurons per layer (input, hidden×N, output)
- * with weighted edge lines between layers. Uses metadata.layers (neuron counts per layer).
+ * Neural network layer diagram: columns of circle neurons per layer (input, hidden, output)
+ * with weighted edge lines between layers.
+ * 5 Cinematic Pillars: directional lighting, ground shadow,
+ * ambient occlusion, specular highlight, micro-life animations.
  *
  * Metadata:
- *   layers: number[] — neuron count per layer, e.g. [3, 4, 3, 2] (input 3, hidden 4, hidden 3, output 2)
+ *   layers: number[] — neuron count per layer, e.g. [3, 4, 3, 2]
  *   layerLabels?: string[] — optional labels for each layer
  *   showWeights?: boolean — show weight indicators on connections (default: false)
  *   highlightNeuron?: { layer: number, index: number } — highlight a specific neuron
@@ -13,7 +15,6 @@
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import {
-  getCategoryColor,
   getStrokeWidth,
   getLabelFontSize,
   colorWithAlpha,
@@ -21,6 +22,8 @@ import {
   TYPOGRAPHY,
   LABEL_DEFAULTS,
 } from '../design-tokens.js';
+import { resolveColorCascade } from '../color-cascade.js';
+import { ensureDefs } from '../visual-utils.js';
 import type { VisualEntity } from '@preplai/shared';
 
 function parseLayers(meta: Record<string, unknown>): number[] {
@@ -35,13 +38,14 @@ function parseLayers(meta: Record<string, unknown>): number[] {
 
 export function renderNeuralNetwork(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
-
   const s = getSizeParam(entity);
   const scale = s / 50;
   const strokeWidth = getStrokeWidth('thin', scale);
   const strokeEmphasized = getStrokeWidth('default', scale);
   const labelFontSize = getLabelFontSize('inline', scale);
-  const color = entity.color ?? getCategoryColor('NeuralNetwork');
+  const cc = resolveColorCascade(entity);
+  const color = cc.base;
+  const entityId = (entity.id ?? Math.random().toString(36).slice(2)).replace(/[^a-zA-Z0-9]/g, '').slice(0, 8);
 
   const meta = entity.metadata ?? {};
   const layers = parseLayers(meta);
@@ -50,7 +54,6 @@ export function renderNeuralNetwork(entity: VisualEntity, parentEl: SVGElement):
   const highlightNeuron = meta.highlightNeuron as { layer: number; index: number } | undefined;
 
   const numLayers = layers.length;
-  const _maxNeurons = Math.max(...layers, 1);
   const sizeScale = 1.5;
   const neuronRadius = Math.min(s * 0.08 * sizeScale, 8 * scale);
   const layerSpacing = s * 0.5 * sizeScale;
@@ -58,7 +61,7 @@ export function renderNeuralNetwork(entity: VisualEntity, parentEl: SVGElement):
   const totalWidth = (numLayers - 1) * layerSpacing;
   const startX = -totalWidth / 2;
 
-  // Build neuron positions: layerIdx -> [ { x, y } ]
+  // Build neuron positions
   const positions: { x: number; y: number }[][] = [];
   for (let l = 0; l < numLayers; l++) {
     const count = layers[l];
@@ -72,7 +75,78 @@ export function renderNeuralNetwork(entity: VisualEntity, parentEl: SVGElement):
     positions.push(pts);
   }
 
-  // Draw connections (behind neurons)
+  const maxY = Math.max(...positions.flat().map((p) => p.y));
+  const minY = Math.min(...positions.flat().map((p) => p.y));
+  const netH = maxY - minY + neuronRadius * 4;
+
+  const defs = ensureDefs(parentEl);
+
+  // ── Pillar 1: Directional Lighting ─────────────────────────────────
+  const haloId = `neural-halo-${entityId}`;
+  if (!defs.querySelector(`#${haloId}`)) {
+    const haloGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    haloGrad.setAttribute('id', haloId);
+    haloGrad.setAttribute('cx', '38%'); haloGrad.setAttribute('cy', '38%');
+    haloGrad.setAttribute('r', '50%');
+    const s1 = document.createElementNS(SVG_NS, 'stop');
+    s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', color); s1.setAttribute('stop-opacity', '0.13');
+    const s2 = document.createElementNS(SVG_NS, 'stop');
+    s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', color); s2.setAttribute('stop-opacity', '0');
+    haloGrad.appendChild(s1); haloGrad.appendChild(s2);
+    defs.appendChild(haloGrad);
+  }
+  const halo = document.createElementNS(SVG_NS, 'ellipse');
+  halo.setAttribute('cx', String(-totalWidth * 0.08));
+  halo.setAttribute('cy', String(minY));
+  halo.setAttribute('rx', String(totalWidth * 0.65));
+  halo.setAttribute('ry', String(netH * 0.55));
+  halo.setAttribute('fill', `url(#${haloId})`);
+  innerG.appendChild(halo);
+
+  // ── Pillar 2: Ground Shadow ────────────────────────────────────────
+  const gsId = `neural-gshadow-${entityId}`;
+  if (!defs.querySelector(`#${gsId}`)) {
+    const gsg = document.createElementNS(SVG_NS, 'radialGradient');
+    gsg.setAttribute('id', gsId);
+    gsg.setAttribute('cx', '50%'); gsg.setAttribute('cy', '50%'); gsg.setAttribute('r', '50%');
+    const gs1 = document.createElementNS(SVG_NS, 'stop');
+    gs1.setAttribute('offset', '0%'); gs1.setAttribute('stop-color', '#000000'); gs1.setAttribute('stop-opacity', '0.18');
+    const gs2 = document.createElementNS(SVG_NS, 'stop');
+    gs2.setAttribute('offset', '100%'); gs2.setAttribute('stop-color', '#000000'); gs2.setAttribute('stop-opacity', '0');
+    gsg.appendChild(gs1); gsg.appendChild(gs2);
+    defs.appendChild(gsg);
+  }
+  const groundShadow = document.createElementNS(SVG_NS, 'ellipse');
+  groundShadow.setAttribute('cx', '0');
+  groundShadow.setAttribute('cy', String(maxY + neuronRadius + 8 * scale));
+  groundShadow.setAttribute('rx', String(totalWidth * 0.4));
+  groundShadow.setAttribute('ry', String(5 * scale));
+  groundShadow.setAttribute('fill', `url(#${gsId})`);
+  innerG.appendChild(groundShadow);
+
+  // ── Pillar 3: Ambient Occlusion ────────────────────────────────────
+  const aoId = `neural-ao-${entityId}`;
+  if (!defs.querySelector(`#${aoId}`)) {
+    const aoGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    aoGrad.setAttribute('id', aoId);
+    aoGrad.setAttribute('cx', '70%'); aoGrad.setAttribute('cy', '75%'); aoGrad.setAttribute('r', '55%');
+    const ao1 = document.createElementNS(SVG_NS, 'stop');
+    ao1.setAttribute('offset', '0%'); ao1.setAttribute('stop-color', '#000000'); ao1.setAttribute('stop-opacity', '0.10');
+    const ao2 = document.createElementNS(SVG_NS, 'stop');
+    ao2.setAttribute('offset', '100%'); ao2.setAttribute('stop-color', '#000000'); ao2.setAttribute('stop-opacity', '0');
+    aoGrad.appendChild(ao1); aoGrad.appendChild(ao2);
+    defs.appendChild(aoGrad);
+  }
+  const aoRect = document.createElementNS(SVG_NS, 'rect');
+  aoRect.setAttribute('x', String(startX - neuronRadius));
+  aoRect.setAttribute('y', String(minY - neuronRadius));
+  aoRect.setAttribute('width', String(totalWidth + neuronRadius * 2));
+  aoRect.setAttribute('height', String(netH));
+  aoRect.setAttribute('fill', `url(#${aoId})`);
+  aoRect.setAttribute('pointer-events', 'none');
+  innerG.appendChild(aoRect);
+
+  // ── Draw connections (behind neurons) ──────────────────────────────
   const connOpacity = colorWithAlpha(color, OPACITY.strokeSoft);
   for (let l = 0; l < numLayers - 1; l++) {
     const fromLayer = positions[l];
@@ -104,7 +178,7 @@ export function renderNeuralNetwork(entity: VisualEntity, parentEl: SVGElement):
     }
   }
 
-  // Draw neurons (circles)
+  // ── Draw neurons (circles) ─────────────────────────────────────────
   for (let l = 0; l < numLayers; l++) {
     for (let i = 0; i < positions[l].length; i++) {
       const { x, y } = positions[l][i];
@@ -114,24 +188,24 @@ export function renderNeuralNetwork(entity: VisualEntity, parentEl: SVGElement):
       circle.setAttribute('cx', String(x));
       circle.setAttribute('cy', String(y));
       circle.setAttribute('r', String(neuronRadius));
-      circle.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
-      circle.setAttribute('stroke', isHighlighted ? color : colorWithAlpha(color, OPACITY.strokeSoft));
-      circle.setAttribute('stroke-width', String(isHighlighted ? strokeEmphasized : strokeWidth));
+      circle.setAttribute('fill', cc.fill);
+      circle.setAttribute('stroke', isHighlighted ? cc.stroke : cc.strokeSoft);
+      circle.setAttribute('stroke-width', String(isHighlighted ? strokeEmphasized : 2.5));
       innerG.appendChild(circle);
     }
   }
 
-  // Layer labels below each column
+  // ── Layer labels below each column ─────────────────────────────────
   for (let l = 0; l < numLayers; l++) {
     const label = layerLabels[l] ?? (l === 0 ? 'Input' : l === numLayers - 1 ? 'Output' : `H${l}`);
     const x = positions[l][0]?.x ?? startX + l * layerSpacing;
-    const maxY = positions[l].length > 0 ? Math.max(...positions[l].map((p) => p.y)) : 0;
-    const labelY = maxY + neuronRadius + 4 * scale;
+    const layerMaxY = positions[l].length > 0 ? Math.max(...positions[l].map((p) => p.y)) : 0;
+    const labelY = layerMaxY + neuronRadius + 4 * scale;
     const text = document.createElementNS(SVG_NS, 'text');
     text.setAttribute('x', String(x));
     text.setAttribute('y', String(labelY));
     text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', colorWithAlpha(color, OPACITY.strokeSoft));
+    text.setAttribute('fill', cc.textSecondary);
     text.setAttribute('font-size', String(labelFontSize));
     text.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     text.setAttribute('font-family', TYPOGRAPHY.fontLabel);
@@ -139,13 +213,62 @@ export function renderNeuralNetwork(entity: VisualEntity, parentEl: SVGElement):
     innerG.appendChild(text);
   }
 
+  // ── Pillar 4: Specular Highlight ───────────────────────────────────
+  const specId = `neural-spec-${entityId}`;
+  if (!defs.querySelector(`#${specId}`)) {
+    const specGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    specGrad.setAttribute('id', specId);
+    specGrad.setAttribute('cx', '35%'); specGrad.setAttribute('cy', '25%'); specGrad.setAttribute('r', '40%');
+    const sp1 = document.createElementNS(SVG_NS, 'stop');
+    sp1.setAttribute('offset', '0%'); sp1.setAttribute('stop-color', '#ffffff'); sp1.setAttribute('stop-opacity', '0.18');
+    const sp2 = document.createElementNS(SVG_NS, 'stop');
+    sp2.setAttribute('offset', '100%'); sp2.setAttribute('stop-color', '#ffffff'); sp2.setAttribute('stop-opacity', '0');
+    specGrad.appendChild(sp1); specGrad.appendChild(sp2);
+    defs.appendChild(specGrad);
+  }
+  const specular = document.createElementNS(SVG_NS, 'ellipse');
+  specular.setAttribute('cx', String(startX + totalWidth * 0.25));
+  specular.setAttribute('cy', String(minY - neuronRadius));
+  specular.setAttribute('rx', String(totalWidth * 0.3));
+  specular.setAttribute('ry', String(netH * 0.15));
+  specular.setAttribute('fill', `url(#${specId})`);
+  specular.setAttribute('pointer-events', 'none');
+  innerG.appendChild(specular);
+
+  // ── Pillar 5: Micro-Life Animations ────────────────────────────────
+  const styleId = `neural-style-${entityId}`;
+  const svg = parentEl.ownerSVGElement ?? (parentEl as SVGSVGElement);
+  if (!svg.querySelector(`#${styleId}`)) {
+    const styleEl = document.createElementNS(SVG_NS, 'style');
+    styleEl.setAttribute('id', styleId);
+    styleEl.textContent = `
+      @keyframes neuralFloat_${entityId} {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-2px); }
+      }
+      @keyframes neuralPulse_${entityId} {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+      }
+      .neural-float-${entityId} {
+        animation: neuralFloat_${entityId} 3.5s ease-in-out infinite;
+      }
+      .neural-pulse-${entityId} {
+        animation: neuralPulse_${entityId} 2.8s ease-in-out infinite;
+      }
+    `;
+    svg.insertBefore(styleEl, svg.firstChild);
+  }
+  innerG.classList.add(`neural-float-${entityId}`);
+
+  // ── Entity label ───────────────────────────────────────────────────
   if (entity.label) {
-    const bottomY = Math.max(...positions.flat().map((p) => p.y)) + neuronRadius + 12 * scale;
+    const bottomY = maxY + neuronRadius + 12 * scale;
     const labelEl = document.createElementNS(SVG_NS, 'text');
     labelEl.setAttribute('x', '0');
     labelEl.setAttribute('y', String(bottomY + LABEL_DEFAULTS.offsetBelow));
     labelEl.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    labelEl.setAttribute('fill', color);
+    labelEl.setAttribute('fill', cc.textPrimary);
     labelEl.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     labelEl.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     labelEl.setAttribute('font-family', TYPOGRAPHY.fontLabel);

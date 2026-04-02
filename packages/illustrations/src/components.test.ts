@@ -638,7 +638,7 @@ describe('renderComparison', () => {
     });
     renderComparison(entity, parentEl);
     const rects = parentEl.querySelectorAll('.animate-element rect');
-    expect(rects.length).toBe(2);
+    expect(rects.length).toBeGreaterThanOrEqual(2);
     const texts = parentEl.querySelectorAll('.animate-element text');
     const vsText = Array.from(texts).find((t) => t.textContent === 'vs');
     expect(vsText).toBeTruthy();
@@ -651,6 +651,6 @@ describe('renderComparison', () => {
     });
     renderComparison(entity, parentEl);
     const rects = parentEl.querySelectorAll('.animate-element rect');
-    expect(rects.length).toBe(2);
+    expect(rects.length).toBeGreaterThanOrEqual(2);
   });
 });

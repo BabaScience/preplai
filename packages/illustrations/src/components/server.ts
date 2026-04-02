@@ -131,8 +131,36 @@ export function renderServer(entity: VisualEntity, parentEl: SVGElement): SVGGEl
     led.setAttribute('r', '2.5');
     led.setAttribute('fill', color);
     led.setAttribute('filter', `url(#${ledGlowId})`);
+    led.setAttribute('class', `srvLed_${entityId}`);
+    led.style.animationDelay = `${i * 0.4}s`;
     innerG.appendChild(led);
   }
+
+  // ── Micro-Life — LED staggered blink + subtle body float ────────────
+  const svg = parentEl.ownerSVGElement ?? (parentEl as unknown as SVGSVGElement);
+  const styleId = `srv-style-${entityId}`;
+  if (!svg.querySelector(`#${styleId}`)) {
+    const style = document.createElementNS(SVG_NS, 'style');
+    style.setAttribute('id', styleId);
+    style.textContent = `
+      @keyframes srvLedBlink_${entityId} {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.3; transform: scale(0.6); }
+      }
+      @keyframes srvFloat_${entityId} {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-2px); }
+      }
+      .srvLed_${entityId} {
+        animation: srvLedBlink_${entityId} 2s ease-in-out infinite;
+      }
+      #srvBody_${entityId} {
+        animation: srvFloat_${entityId} 4s ease-in-out infinite;
+      }
+    `;
+    svg.prepend(style);
+  }
+  body.setAttribute('id', `srvBody_${entityId}`);
 
   // Label below
   if (entity.label) {

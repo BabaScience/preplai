@@ -1,8 +1,8 @@
 /**
- * @preplai/illustrations — SortAnimation Component
+ * @preplai/illustrations — SortAnimation Component (Cinematic Depth)
  *
  * Renders an array with sort-algorithm metadata (compare, swap, done states).
- * Delegates to renderArray with SortAnimation category color.
+ * Delegates to renderArray which already has full cinematic depth treatment.
  * Uses same metadata as Array: values, compareIndexes, swapIndexes, doneIndexes, pointerLabels.
  */
 

@@ -8,9 +8,8 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
-import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
-import { ensureDefs, ensureGlowFilter } from '../visual-utils.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';import { resolveColorCascade, applyShapeColors, applyGlowColors } from '../color-cascade.js';
+import { ensureDefs, ensureGlowFilter, ensureGlassFilter } from '../visual-utils.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -30,7 +29,7 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
   if (!defs.querySelector(`#${haloId}`)) {
     const grad = document.createElementNS(SVG_NS, 'radialGradient');
     grad.setAttribute('id', haloId);
-    grad.setAttribute('cx', '50%'); grad.setAttribute('cy', '50%');
+    grad.setAttribute('cx', '38%'); grad.setAttribute('cy', '38%');
     grad.setAttribute('r', '50%');
     const hs1 = document.createElementNS(SVG_NS, 'stop');
     hs1.setAttribute('offset', '0%');
@@ -44,12 +43,48 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
     defs.appendChild(grad);
   }
   const halo = document.createElementNS(SVG_NS, 'ellipse');
-  halo.setAttribute('cx', '0');
-  halo.setAttribute('cy', '0');
+  halo.setAttribute('cx', String(-r * 0.12));
+  halo.setAttribute('cy', String(-r * 0.08));
   halo.setAttribute('rx', String(r * 1.8));
   halo.setAttribute('ry', String(r * 1.8));
   halo.setAttribute('fill', `url(#${haloId})`);
   innerG.appendChild(halo);
+
+  // ── Ground contact shadow ───────────────────────────────────────────
+  const groundShadowId = `svc-gshadow-${entityId}`;
+  if (!defs.querySelector(`#${groundShadowId}`)) {
+    const gsg = document.createElementNS(SVG_NS, 'radialGradient');
+    gsg.setAttribute('id', groundShadowId);
+    gsg.setAttribute('cx', '50%'); gsg.setAttribute('cy', '50%'); gsg.setAttribute('r', '50%');
+    const gs1 = document.createElementNS(SVG_NS, 'stop');
+    gs1.setAttribute('offset', '0%'); gs1.setAttribute('stop-color', '#000000'); gs1.setAttribute('stop-opacity', '0.18');
+    const gs2 = document.createElementNS(SVG_NS, 'stop');
+    gs2.setAttribute('offset', '100%'); gs2.setAttribute('stop-color', '#000000'); gs2.setAttribute('stop-opacity', '0');
+    gsg.appendChild(gs1); gsg.appendChild(gs2);
+    defs.appendChild(gsg);
+  }
+  const groundShadow = document.createElementNS(SVG_NS, 'ellipse');
+  groundShadow.setAttribute('cx', '0');
+  groundShadow.setAttribute('cy', String(r * 1.05));
+  groundShadow.setAttribute('rx', String(r * 0.85));
+  groundShadow.setAttribute('ry', String(r * 0.16));
+  groundShadow.setAttribute('fill', `url(#${groundShadowId})`);
+  innerG.appendChild(groundShadow);
+
+  // ── Ambient occlusion ───────────────────────────────────────────────
+  const aoId = `svc-ao-${entityId}`;
+  if (!defs.querySelector(`#${aoId}`)) {
+    const aoGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    aoGrad.setAttribute('id', aoId);
+    aoGrad.setAttribute('cx', '70%'); aoGrad.setAttribute('cy', '75%'); aoGrad.setAttribute('r', '60%');
+    const ao1 = document.createElementNS(SVG_NS, 'stop');
+    ao1.setAttribute('offset', '0%'); ao1.setAttribute('stop-color', '#000000'); ao1.setAttribute('stop-opacity', '0.12');
+    const ao2 = document.createElementNS(SVG_NS, 'stop');
+    ao2.setAttribute('offset', '100%'); ao2.setAttribute('stop-color', '#000000'); ao2.setAttribute('stop-opacity', '0');
+    aoGrad.appendChild(ao1); aoGrad.appendChild(ao2);
+    defs.appendChild(aoGrad);
+  }
+  // AO polygon deferred until after hexagon shape is drawn
 
   // Highlight glow
   if (entity.highlight) {
@@ -68,8 +103,9 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
     innerG.appendChild(glow);
   }
 
-  // Hexagon shape with outer glow
+  // Hexagon shape with outer glow + glass filter
   const glowUrl = ensureGlowFilter(parentEl, color);
+  const glassUrl = ensureGlassFilter(parentEl);
   const hexPoints = [0, 1, 2, 3, 4, 5]
     .map(i => {
       const angle = (Math.PI / 3) * i - Math.PI / 6;
@@ -83,14 +119,50 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
   polygon.setAttribute('stroke-linejoin', 'round');
   polygon.setAttribute('filter', glowUrl);
   polygon.setAttribute('data-morph-target', 'true');
+  polygon.setAttribute('id', `svcBody_${entityId}`);
   applyShapeColors(polygon, cc);
   innerG.appendChild(polygon);
+
+  // Glass overlay on hexagon
+  const glassHex = document.createElementNS(SVG_NS, 'polygon');
+  glassHex.setAttribute('points', hexPoints);
+  glassHex.setAttribute('fill', 'none');
+  glassHex.setAttribute('filter', glassUrl);
+  glassHex.setAttribute('pointer-events', 'none');
+  innerG.appendChild(glassHex);
+
+  // ── Ambient occlusion (deferred from above) ─────────────────────────
+  const aoHex = document.createElementNS(SVG_NS, 'polygon');
+  aoHex.setAttribute('points', hexPoints);
+  aoHex.setAttribute('fill', `url(#${aoId})`);
+  aoHex.setAttribute('pointer-events', 'none');
+  innerG.appendChild(aoHex);
+
+  // ── Material texture: 4 scan lines ──────────────────────────────────
+  const scanLineOpacity = '0.04';
+  for (let i = 0; i < 4; i++) {
+    const ly = -r * 0.5 + (r / 2.5) * i;
+    const scanLine = document.createElementNS(SVG_NS, 'line');
+    scanLine.setAttribute('x1', String(-r * 0.6));
+    scanLine.setAttribute('y1', String(ly));
+    scanLine.setAttribute('x2', String(r * 0.6));
+    scanLine.setAttribute('y2', String(ly));
+    scanLine.setAttribute('stroke', '#ffffff');
+    scanLine.setAttribute('stroke-width', '0.5');
+    scanLine.setAttribute('stroke-opacity', scanLineOpacity);
+    scanLine.setAttribute('pointer-events', 'none');
+    innerG.appendChild(scanLine);
+  }
 
   // ── Enhanced gear: ring + glowing center + block ticks ──────────────
   const gearR = r * 0.22;
   const gearCenterR = gearR * 0.65;
   const tickLen = gearR * 0.55;
   const tickW = Math.max(3, gearR * 0.22);
+
+  // Wrap gear ring + ticks in a <g> for rotation animation
+  const gearG = document.createElementNS(SVG_NS, 'g');
+  innerG.appendChild(gearG);
 
   // Gear ring (hollow)
   const gearRing = document.createElementNS(SVG_NS, 'circle');
@@ -100,7 +172,7 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
   gearRing.setAttribute('fill', 'none');
   gearRing.setAttribute('stroke', cc.strokeSoft);
   gearRing.setAttribute('stroke-width', '1.5');
-  innerG.appendChild(gearRing);
+  gearG.appendChild(gearRing);
 
   // Glowing center dot
   const centerGradId = `msCenter_${entityId}`;
@@ -155,8 +227,52 @@ export function renderService(entity: VisualEntity, parentEl: SVGElement): SVGGE
     tick.setAttribute('height', String(isVertical ? tickLen : tickW));
     tick.setAttribute('rx', '1.5');
     tick.setAttribute('fill', cc.stroke);
-    innerG.appendChild(tick);
+    gearG.appendChild(tick);
   });
+
+  // ── Gear rotation animation (12s spin) ──────────────────────────────
+  const svg = parentEl.ownerSVGElement ?? (parentEl as unknown as SVGSVGElement);
+  const styleId = `svc-style-${entityId}`;
+  if (!svg.querySelector(`#${styleId}`)) {
+    const style = document.createElementNS(SVG_NS, 'style');
+    style.setAttribute('id', styleId);
+    style.textContent = `
+      @keyframes svcGearSpin_${entityId} {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      @keyframes svcGlow_${entityId} {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 1; }
+      }
+      #svcGear_${entityId} { animation: svcGearSpin_${entityId} 6s linear infinite; transform-origin: 0 0; }
+      #svcBody_${entityId} { animation: svcGlow_${entityId} 3s ease-in-out infinite; }
+    `;
+    svg.prepend(style);
+  }
+  gearG.setAttribute('id', `svcGear_${entityId}`);
+
+  // ── Specular highlight ──────────────────────────────────────────────
+  const specId = `svc-spec-${entityId}`;
+  if (!defs.querySelector(`#${specId}`)) {
+    const specGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    specGrad.setAttribute('id', specId);
+    specGrad.setAttribute('cx', '35%'); specGrad.setAttribute('cy', '25%'); specGrad.setAttribute('r', '40%');
+    const sp1 = document.createElementNS(SVG_NS, 'stop');
+    sp1.setAttribute('offset', '0%'); sp1.setAttribute('stop-color', '#ffffff'); sp1.setAttribute('stop-opacity', '0.15');
+    const sp2 = document.createElementNS(SVG_NS, 'stop');
+    sp2.setAttribute('offset', '100%'); sp2.setAttribute('stop-color', '#ffffff'); sp2.setAttribute('stop-opacity', '0');
+    specGrad.appendChild(sp1); specGrad.appendChild(sp2);
+    defs.appendChild(specGrad);
+  }
+  const spec = document.createElementNS(SVG_NS, 'ellipse');
+  spec.setAttribute('cx', String(-r * 0.18));
+  spec.setAttribute('cy', String(-r * 0.28));
+  spec.setAttribute('rx', String(r * 0.4));
+  spec.setAttribute('ry', String(r * 0.25));
+  spec.setAttribute('fill', `url(#${specId})`);
+  spec.setAttribute('pointer-events', 'none');
+  innerG.appendChild(spec);
 
   // Label below
   if (entity.label) {

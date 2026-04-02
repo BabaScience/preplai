@@ -10,10 +10,8 @@
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';
-import { resolveColorCascade, applyGlowColors } from '../color-cascade.js';
-import { ensureDefs } from '../visual-utils.js';
-import { getCylinderLabelY } from '../cylinder-utils.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS } from '../design-tokens.js';import { resolveColorCascade, applyGlowColors } from '../color-cascade.js';
+import { ensureDefs } from '../visual-utils.js';import { getCylinderLabelY } from '../cylinder-utils.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderCache(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -36,7 +34,7 @@ export function renderCache(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   if (!defs.querySelector(`#${haloId}`)) {
     const haloGrad = document.createElementNS(SVG_NS, 'radialGradient');
     haloGrad.setAttribute('id', haloId);
-    haloGrad.setAttribute('cx', '50%'); haloGrad.setAttribute('cy', '50%');
+    haloGrad.setAttribute('cx', '38%'); haloGrad.setAttribute('cy', '38%');
     haloGrad.setAttribute('r', '50%');
     const hhs1 = document.createElementNS(SVG_NS, 'stop');
     hhs1.setAttribute('offset', '0%');
@@ -50,12 +48,55 @@ export function renderCache(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     defs.appendChild(haloGrad);
   }
   const halo = document.createElementNS(SVG_NS, 'ellipse');
-  halo.setAttribute('cx', '0');
-  halo.setAttribute('cy', '0');
+  halo.setAttribute('cx', String(-rx * 0.15));
+  halo.setAttribute('cy', String(-size * 0.05));
   halo.setAttribute('rx', String(rx * 2));
   halo.setAttribute('ry', String(rx * 1.4));
   halo.setAttribute('fill', `url(#${haloId})`);
   innerG.appendChild(halo);
+
+  // ── Ground contact shadow ───────────────────────────────────────────
+  const groundShadowId = `cache-gshadow-${entityId}`;
+  if (!defs.querySelector(`#${groundShadowId}`)) {
+    const gsg = document.createElementNS(SVG_NS, 'radialGradient');
+    gsg.setAttribute('id', groundShadowId);
+    gsg.setAttribute('cx', '50%'); gsg.setAttribute('cy', '50%'); gsg.setAttribute('r', '50%');
+    const gs1 = document.createElementNS(SVG_NS, 'stop');
+    gs1.setAttribute('offset', '0%'); gs1.setAttribute('stop-color', '#000000'); gs1.setAttribute('stop-opacity', '0.18');
+    const gs2 = document.createElementNS(SVG_NS, 'stop');
+    gs2.setAttribute('offset', '100%'); gs2.setAttribute('stop-color', '#000000'); gs2.setAttribute('stop-opacity', '0');
+    gsg.appendChild(gs1); gsg.appendChild(gs2);
+    defs.appendChild(gsg);
+  }
+  const groundShadow = document.createElementNS(SVG_NS, 'ellipse');
+  groundShadow.setAttribute('cx', '0');
+  groundShadow.setAttribute('cy', String(botY + ry * 0.6));
+  groundShadow.setAttribute('rx', String(rx * 1.1));
+  groundShadow.setAttribute('ry', String(ry * 0.45));
+  groundShadow.setAttribute('fill', `url(#${groundShadowId})`);
+  innerG.appendChild(groundShadow);
+
+  // ── Ambient occlusion ───────────────────────────────────────────────
+  const aoId = `cache-ao-${entityId}`;
+  if (!defs.querySelector(`#${aoId}`)) {
+    const aoGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    aoGrad.setAttribute('id', aoId);
+    aoGrad.setAttribute('cx', '70%'); aoGrad.setAttribute('cy', '75%'); aoGrad.setAttribute('r', '60%');
+    const ao1 = document.createElementNS(SVG_NS, 'stop');
+    ao1.setAttribute('offset', '0%'); ao1.setAttribute('stop-color', '#000000'); ao1.setAttribute('stop-opacity', '0.12');
+    const ao2 = document.createElementNS(SVG_NS, 'stop');
+    ao2.setAttribute('offset', '100%'); ao2.setAttribute('stop-color', '#000000'); ao2.setAttribute('stop-opacity', '0');
+    aoGrad.appendChild(ao1); aoGrad.appendChild(ao2);
+    defs.appendChild(aoGrad);
+  }
+  const ao = document.createElementNS(SVG_NS, 'rect');
+  ao.setAttribute('x', String(-rx));
+  ao.setAttribute('y', String(topY));
+  ao.setAttribute('width', String(rx * 2));
+  ao.setAttribute('height', String(bodyH));
+  ao.setAttribute('fill', `url(#${aoId})`);
+  ao.setAttribute('pointer-events', 'none');
+  innerG.appendChild(ao);
 
   // ── Gradient IDs (unique per instance) ──────────────────────────────
   const capGradId = `cache-cap-${entityId}`;
@@ -269,6 +310,71 @@ export function renderCache(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   glowDot.setAttribute('fill', `url(#${glowDotId})`);
   glowDot.setAttribute('filter', `url(#${glowFilterId})`);
   innerG.appendChild(glowDot);
+
+  // ── 4 subtle scan lines on body ─────────────────────────────────────
+  for (let i = 0; i < 4; i++) {
+    const ly = topY + bodyH * ((i + 1) / 5);
+    const scanLine = document.createElementNS(SVG_NS, 'line');
+    scanLine.setAttribute('x1', String(-rx * 0.8));
+    scanLine.setAttribute('y1', String(ly));
+    scanLine.setAttribute('x2', String(rx * 0.8));
+    scanLine.setAttribute('y2', String(ly));
+    scanLine.setAttribute('stroke', 'rgba(255,255,255,0.05)');
+    scanLine.setAttribute('stroke-width', '0.5');
+    scanLine.setAttribute('pointer-events', 'none');
+    innerG.appendChild(scanLine);
+  }
+
+  // ── Specular highlight on top cap ───────────────────────────────────
+  const specId = `cache-spec-${entityId}`;
+  if (!defs.querySelector(`#${specId}`)) {
+    const specGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    specGrad.setAttribute('id', specId);
+    specGrad.setAttribute('cx', '35%'); specGrad.setAttribute('cy', '35%'); specGrad.setAttribute('r', '45%');
+    const sp1 = document.createElementNS(SVG_NS, 'stop');
+    sp1.setAttribute('offset', '0%'); sp1.setAttribute('stop-color', '#ffffff'); sp1.setAttribute('stop-opacity', '0.18');
+    const sp2 = document.createElementNS(SVG_NS, 'stop');
+    sp2.setAttribute('offset', '100%'); sp2.setAttribute('stop-color', '#ffffff'); sp2.setAttribute('stop-opacity', '0');
+    specGrad.appendChild(sp1); specGrad.appendChild(sp2);
+    defs.appendChild(specGrad);
+  }
+  const specular = document.createElementNS(SVG_NS, 'ellipse');
+  specular.setAttribute('cx', String(-rx * 0.2));
+  specular.setAttribute('cy', String(topY));
+  specular.setAttribute('rx', String(rx * 0.6));
+  specular.setAttribute('ry', String(ry * 0.5));
+  specular.setAttribute('fill', `url(#${specId})`);
+  specular.setAttribute('pointer-events', 'none');
+  innerG.appendChild(specular);
+
+  // ── Breathing micro-animation — bolt pulse + cap breathe ────────────
+  const styleId = `cache-style-${entityId}`;
+  const svg = parentEl.ownerSVGElement ?? (parentEl as SVGSVGElement);
+  if (!svg.querySelector(`#${styleId}`)) {
+    const style = document.createElementNS(SVG_NS, 'style');
+    style.setAttribute('id', styleId);
+    style.textContent = `
+      @keyframes cacheBreathe_${entityId} {
+        0%, 100% { opacity: 0.7; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.15); }
+      }
+      @keyframes cacheFloat_${entityId} {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-2.5px); }
+      }
+      .cache-breathe-${entityId} {
+        animation: cacheBreathe_${entityId} 2.5s ease-in-out infinite;
+      }
+      .cache-float-${entityId} {
+        animation: cacheFloat_${entityId} 3.5s ease-in-out infinite;
+      }
+    `;
+    svg.insertBefore(style, svg.firstChild);
+  }
+  capFill.classList.add(`cache-breathe-${entityId}`);
+  bolt.classList.add(`cache-breathe-${entityId}`);
+  bolt.style.animationDelay = '0.5s';
+  innerG.classList.add(`cache-float-${entityId}`);
 
   // ── Label below ──────────────────────────────────────────────────────
   if (entity.label) {

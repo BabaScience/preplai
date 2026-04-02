@@ -1,13 +1,12 @@
 /**
- * @preplai/illustrations — FlowDiagram Component
+ * @preplai/illustrations — FlowDiagram Component (Cinematic Depth)
  *
  * Vertical flowchart: rect/diamond steps connected by arrows.
+ * 5 Cinematic Pillars: directional lighting, ground shadow, ambient occlusion,
+ * specular highlight, micro-life (float + breathe).
+ *
  * Use for: process flows, decision trees, algorithms.
- *
- * @see METADATA_SCHEMAS.md#flowdiagram
- *
- * Metadata:
- *   steps: Array<{ label: string, type?: 'default' | 'decision' }>
+ * Metadata: { steps: Array<{ label: string, type?: 'default' | 'decision' }> }
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
@@ -22,6 +21,7 @@ import {
   colorWithAlpha,
   OPACITY,
 } from '../design-tokens.js';
+import { resolveColorCascade } from '../color-cascade.js';
 import type { VisualEntity } from '@preplai/shared';
 
 type StepDef = { label: string; type?: 'default' | 'decision' };
@@ -33,11 +33,13 @@ const DIAMOND_R = 18;
 
 export function renderFlowDiagram(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
   const { outerG, innerG } = buildEntityGroup(entity);
+  const cc = resolveColorCascade(entity);
 
   const s = getSizeParam(entity);
   const scale = s / 50;
   const color = entity.color ?? getCategoryColor('FlowDiagram');
   const defs = ensureDefs(parentEl);
+  const entityId = (entity.id ?? Math.random().toString(36).slice(2)).replace(/[^a-zA-Z0-9]/g, '').slice(0, 8);
 
   const meta = entity.metadata ?? {};
   const stepsRaw = (meta.steps as StepDef[] | undefined) ?? [
@@ -57,10 +59,95 @@ export function renderFlowDiagram(entity: VisualEntity, parentEl: SVGElement): S
     : [{ label: 'Start', type: 'default' }];
 
   const strokeWidth = Math.max(0.4, getStrokeWidth('minimal', scale) * 0.5);
-  const shapeStrokeWidth = Math.max(0.5, getStrokeWidth('minimal', scale) * 0.67);
+  const _shapeStrokeWidth = Math.max(0.5, getStrokeWidth('minimal', scale) * 0.67);
   const fontSize = getLabelFontSize('value', 1) / scale;
 
-  const markerId = `arrow-fd-${entity.id.replace(/[^a-z0-9]/gi, '')}`;
+  const totalH = steps.length * STEP_H - 4;
+  const startY = -totalH / 2 + STEP_H / 2;
+  const diagramW = BOX_W * scale * 1.5;
+  const diagramH = totalH * scale;
+
+  // ── Pillar 1: Directional Lighting ────────────────────────────────────
+  const haloId = `flow-halo-${entityId}`;
+  if (!defs.querySelector(`#${haloId}`)) {
+    const haloGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    haloGrad.setAttribute('id', haloId);
+    haloGrad.setAttribute('cx', '38%'); haloGrad.setAttribute('cy', '38%');
+    haloGrad.setAttribute('r', '50%');
+    const s1 = document.createElementNS(SVG_NS, 'stop');
+    s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', color); s1.setAttribute('stop-opacity', '0.13');
+    const s2 = document.createElementNS(SVG_NS, 'stop');
+    s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', color); s2.setAttribute('stop-opacity', '0');
+    haloGrad.appendChild(s1); haloGrad.appendChild(s2);
+    defs.appendChild(haloGrad);
+  }
+  const halo = document.createElementNS(SVG_NS, 'ellipse');
+  halo.setAttribute('cx', '0');
+  halo.setAttribute('cy', '0');
+  halo.setAttribute('rx', String(diagramW * 0.7));
+  halo.setAttribute('ry', String(diagramH * 0.55));
+  halo.setAttribute('fill', `url(#${haloId})`);
+  innerG.appendChild(halo);
+
+  // ── Pillar 2: Ground Shadow ───────────────────────────────────────────
+  const gsId = `flow-gshadow-${entityId}`;
+  if (!defs.querySelector(`#${gsId}`)) {
+    const gsg = document.createElementNS(SVG_NS, 'radialGradient');
+    gsg.setAttribute('id', gsId);
+    gsg.setAttribute('cx', '50%'); gsg.setAttribute('cy', '50%'); gsg.setAttribute('r', '50%');
+    const gs1 = document.createElementNS(SVG_NS, 'stop');
+    gs1.setAttribute('offset', '0%'); gs1.setAttribute('stop-color', '#000000'); gs1.setAttribute('stop-opacity', '0.18');
+    const gs2 = document.createElementNS(SVG_NS, 'stop');
+    gs2.setAttribute('offset', '100%'); gs2.setAttribute('stop-color', '#000000'); gs2.setAttribute('stop-opacity', '0');
+    gsg.appendChild(gs1); gsg.appendChild(gs2);
+    defs.appendChild(gsg);
+  }
+  const groundShadow = document.createElementNS(SVG_NS, 'ellipse');
+  groundShadow.setAttribute('cx', '0');
+  groundShadow.setAttribute('cy', String(diagramH / 2 + 4));
+  groundShadow.setAttribute('rx', String(diagramW * 0.4));
+  groundShadow.setAttribute('ry', String(diagramH * 0.04));
+  groundShadow.setAttribute('fill', `url(#${gsId})`);
+  innerG.appendChild(groundShadow);
+
+  // ── Pillar 3: Ambient Occlusion ───────────────────────────────────────
+  const aoId = `flow-ao-${entityId}`;
+  if (!defs.querySelector(`#${aoId}`)) {
+    const aoGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    aoGrad.setAttribute('id', aoId);
+    aoGrad.setAttribute('cx', '70%'); aoGrad.setAttribute('cy', '75%'); aoGrad.setAttribute('r', '55%');
+    const ao1 = document.createElementNS(SVG_NS, 'stop');
+    ao1.setAttribute('offset', '0%'); ao1.setAttribute('stop-color', '#000000'); ao1.setAttribute('stop-opacity', '0.10');
+    const ao2 = document.createElementNS(SVG_NS, 'stop');
+    ao2.setAttribute('offset', '100%'); ao2.setAttribute('stop-color', '#000000'); ao2.setAttribute('stop-opacity', '0');
+    aoGrad.appendChild(ao1); aoGrad.appendChild(ao2);
+    defs.appendChild(aoGrad);
+  }
+  const aoRect = document.createElementNS(SVG_NS, 'rect');
+  aoRect.setAttribute('x', String(-diagramW / 2));
+  aoRect.setAttribute('y', String(-diagramH / 2));
+  aoRect.setAttribute('width', String(diagramW));
+  aoRect.setAttribute('height', String(diagramH));
+  aoRect.setAttribute('fill', `url(#${aoId})`);
+  aoRect.setAttribute('pointer-events', 'none');
+  innerG.appendChild(aoRect);
+
+  // ── Pillar 4: Specular Highlight ──────────────────────────────────────
+  const specId = `flow-spec-${entityId}`;
+  if (!defs.querySelector(`#${specId}`)) {
+    const specGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    specGrad.setAttribute('id', specId);
+    specGrad.setAttribute('cx', '35%'); specGrad.setAttribute('cy', '25%'); specGrad.setAttribute('r', '40%');
+    const sp1 = document.createElementNS(SVG_NS, 'stop');
+    sp1.setAttribute('offset', '0%'); sp1.setAttribute('stop-color', '#ffffff'); sp1.setAttribute('stop-opacity', '0.18');
+    const sp2 = document.createElementNS(SVG_NS, 'stop');
+    sp2.setAttribute('offset', '100%'); sp2.setAttribute('stop-color', '#ffffff'); sp2.setAttribute('stop-opacity', '0');
+    specGrad.appendChild(sp1); specGrad.appendChild(sp2);
+    defs.appendChild(specGrad);
+  }
+
+  // ── Arrow marker ──────────────────────────────────────────────────────
+  const markerId = `arrow-fd-${entityId}`;
   if (!defs.querySelector(`#${markerId}`)) {
     const marker = document.createElementNS(SVG_NS, 'marker');
     marker.setAttribute('id', markerId);
@@ -78,9 +165,6 @@ export function renderFlowDiagram(entity: VisualEntity, parentEl: SVGElement): S
 
   const scaleGroup = document.createElementNS(SVG_NS, 'g');
   scaleGroup.setAttribute('transform', `scale(${scale})`);
-
-  const totalH = steps.length * STEP_H - 4;
-  const startY = -totalH / 2 + STEP_H / 2;
 
   steps.forEach((step, i) => {
     const y = startY + i * STEP_H;
@@ -104,19 +188,19 @@ export function renderFlowDiagram(entity: VisualEntity, parentEl: SVGElement): S
       scaleGroup.appendChild(line);
     }
 
-    const displayLabel = step.label.length > 14 ? step.label.slice(0, 11) + '…' : step.label;
+    const displayLabel = step.label.length > 14 ? step.label.slice(0, 11) + '\u2026' : step.label;
 
     if (isDecision) {
       const stepG = document.createElementNS(SVG_NS, 'g');
       stepG.setAttribute('transform', `translate(0, ${y})`);
 
-      const d = DIAMOND_R;
-      const points = `0,${-d} ${d},0 0,${d} ${-d},0`;
+      const dR = DIAMOND_R;
+      const points = `0,${-dR} ${dR},0 0,${dR} ${-dR},0`;
       const poly = document.createElementNS(SVG_NS, 'polygon');
       poly.setAttribute('points', points);
       poly.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       poly.setAttribute('stroke', color);
-      poly.setAttribute('stroke-width', String(shapeStrokeWidth));
+      poly.setAttribute('stroke-width', '2.5');
       poly.setAttribute('stroke-linejoin', 'round');
       poly.setAttribute('stroke-linecap', 'round');
       stepG.appendChild(poly);
@@ -142,7 +226,7 @@ export function renderFlowDiagram(entity: VisualEntity, parentEl: SVGElement): S
       rect.setAttribute('rx', String(SHAPES.borderRadius));
       rect.setAttribute('fill', colorWithAlpha(color, OPACITY.fillLight));
       rect.setAttribute('stroke', color);
-      rect.setAttribute('stroke-width', String(shapeStrokeWidth));
+      rect.setAttribute('stroke-width', '2.5');
       rect.setAttribute('stroke-linejoin', 'round');
       scaleGroup.appendChild(rect);
 
@@ -162,18 +246,54 @@ export function renderFlowDiagram(entity: VisualEntity, parentEl: SVGElement): S
 
   innerG.appendChild(scaleGroup);
 
+  // Specular overlay
+  const specular = document.createElementNS(SVG_NS, 'rect');
+  specular.setAttribute('x', String(-diagramW / 2));
+  specular.setAttribute('y', String(-diagramH / 2));
+  specular.setAttribute('width', String(diagramW));
+  specular.setAttribute('height', String(diagramH));
+  specular.setAttribute('fill', `url(#${specId})`);
+  specular.setAttribute('pointer-events', 'none');
+  innerG.appendChild(specular);
+
   if (entity.label) {
     const labelEl = document.createElementNS(SVG_NS, 'text');
     labelEl.setAttribute('x', '0');
     labelEl.setAttribute('y', String(totalH / 2 * scale + LABEL_DEFAULTS.offsetBelow));
     labelEl.setAttribute('text-anchor', LABEL_DEFAULTS.textAnchor);
-    labelEl.setAttribute('fill', color);
+    labelEl.setAttribute('fill', cc.textPrimary);
     labelEl.setAttribute('font-size', String(getLabelFontSize('label', scale)));
     labelEl.setAttribute('font-weight', String(TYPOGRAPHY.fontWeightLabel));
     labelEl.setAttribute('font-family', TYPOGRAPHY.fontLabel);
     labelEl.textContent = entity.label;
     innerG.appendChild(labelEl);
   }
+
+  // ── Pillar 5: Micro-Life ──────────────────────────────────────────────
+  const styleId = `flow-style-${entityId}`;
+  const svg = parentEl.ownerSVGElement ?? (parentEl as SVGSVGElement);
+  if (!svg.querySelector(`#${styleId}`)) {
+    const style = document.createElementNS(SVG_NS, 'style');
+    style.setAttribute('id', styleId);
+    style.textContent = `
+      @keyframes flowFloat_${entityId} {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-2px); }
+      }
+      @keyframes flowBreathe_${entityId} {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.008); }
+      }
+      .flow-float-${entityId} {
+        animation: flowFloat_${entityId} 4s ease-in-out infinite;
+      }
+      .flow-breathe-${entityId} {
+        animation: flowBreathe_${entityId} 3s ease-in-out infinite;
+      }
+    `;
+    svg.insertBefore(style, svg.firstChild);
+  }
+  innerG.classList.add(`flow-float-${entityId}`);
 
   applyEntranceAnimation(innerG, entity);
   parentEl.appendChild(outerG);

@@ -10,12 +10,14 @@
  * - Thin stroke
  * - Label below
  * - Optional highlight glow
+ *
+ * Cinematic 5-pillar depth: offset halo, ground shadow, AO, glass filter,
+ * shimmer overlay, flow shimmer animation, specular highlight.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
-import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';
-import { resolveColorCascade, applyGlowColors } from '../color-cascade.js';
-import { ensureDefs, ensureGlowFilter } from '../visual-utils.js';
+import { TYPOGRAPHY, STROKE, LABEL_DEFAULTS, getLabelFontSize, getStrokeWidth } from '../design-tokens.js';import { resolveColorCascade, applyGlowColors } from '../color-cascade.js';
+import { ensureDefs, ensureGlowFilter, ensureGlassFilter } from '../visual-utils.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -38,13 +40,14 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
   const startX = -totalW / 2 + cellW / 2;
 
   const defs = ensureDefs(parentEl);
+  const svg = parentEl.ownerSVGElement ?? (parentEl as unknown as SVGSVGElement);
 
-  // ── Radial depth halo ────────────────────────────────────────────────
+  // ── 1. Offset radial halo ───────────────────────────────────────────
   const haloId = `queue-halo-${entityId}`;
   if (!defs.querySelector(`#${haloId}`)) {
     const haloGrad = document.createElementNS(SVG_NS, 'radialGradient');
     haloGrad.setAttribute('id', haloId);
-    haloGrad.setAttribute('cx', '50%'); haloGrad.setAttribute('cy', '50%');
+    haloGrad.setAttribute('cx', '38%'); haloGrad.setAttribute('cy', '38%');
     haloGrad.setAttribute('r', '50%');
     const hhs1 = document.createElementNS(SVG_NS, 'stop');
     hhs1.setAttribute('offset', '0%');
@@ -58,12 +61,62 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     defs.appendChild(haloGrad);
   }
   const halo = document.createElementNS(SVG_NS, 'ellipse');
-  halo.setAttribute('cx', '0');
-  halo.setAttribute('cy', '0');
+  halo.setAttribute('cx', String(-totalW * 0.06));
+  halo.setAttribute('cy', String(-cellH * 0.12));
   halo.setAttribute('rx', String(totalW * 0.7));
   halo.setAttribute('ry', String(cellH * 1.5));
   halo.setAttribute('fill', `url(#${haloId})`);
   innerG.appendChild(halo);
+
+  // ── 2. Ground contact shadow ────────────────────────────────────────
+  const gndShadowId = `queue-gnd-${entityId}`;
+  if (!defs.querySelector(`#${gndShadowId}`)) {
+    const gndGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    gndGrad.setAttribute('id', gndShadowId);
+    const gs1 = document.createElementNS(SVG_NS, 'stop');
+    gs1.setAttribute('offset', '0%');
+    gs1.setAttribute('stop-color', '#000000');
+    gs1.setAttribute('stop-opacity', '0.18');
+    const gs2 = document.createElementNS(SVG_NS, 'stop');
+    gs2.setAttribute('offset', '100%');
+    gs2.setAttribute('stop-color', '#000000');
+    gs2.setAttribute('stop-opacity', '0');
+    gndGrad.appendChild(gs1); gndGrad.appendChild(gs2);
+    defs.appendChild(gndGrad);
+  }
+  const gndShadow = document.createElementNS(SVG_NS, 'ellipse');
+  gndShadow.setAttribute('cx', '0');
+  gndShadow.setAttribute('cy', String(cellH / 2 + 4));
+  gndShadow.setAttribute('rx', String(totalW * 0.45));
+  gndShadow.setAttribute('ry', String(cellH * 0.2));
+  gndShadow.setAttribute('fill', `url(#${gndShadowId})`);
+  innerG.appendChild(gndShadow);
+
+  // ── 3. Ambient occlusion ────────────────────────────────────────────
+  const aoId = `queue-ao-${entityId}`;
+  if (!defs.querySelector(`#${aoId}`)) {
+    const aoGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    aoGrad.setAttribute('id', aoId);
+    aoGrad.setAttribute('cx', '75%'); aoGrad.setAttribute('cy', '75%');
+    aoGrad.setAttribute('r', '50%');
+    const ao1 = document.createElementNS(SVG_NS, 'stop');
+    ao1.setAttribute('offset', '0%');
+    ao1.setAttribute('stop-color', '#000000');
+    ao1.setAttribute('stop-opacity', '0.12');
+    const ao2 = document.createElementNS(SVG_NS, 'stop');
+    ao2.setAttribute('offset', '100%');
+    ao2.setAttribute('stop-color', '#000000');
+    ao2.setAttribute('stop-opacity', '0');
+    aoGrad.appendChild(ao1); aoGrad.appendChild(ao2);
+    defs.appendChild(aoGrad);
+  }
+  const ao = document.createElementNS(SVG_NS, 'ellipse');
+  ao.setAttribute('cx', String(totalW * 0.15));
+  ao.setAttribute('cy', String(cellH * 0.15));
+  ao.setAttribute('rx', String(totalW * 0.5));
+  ao.setAttribute('ry', String(cellH * 0.8));
+  ao.setAttribute('fill', `url(#${aoId})`);
+  innerG.appendChild(ao);
 
   // ── Cell gradient (per-color, shared across cells) ───────────────────
   const cellGradId = `queue-cell-${entityId}`;
@@ -98,7 +151,9 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     innerG.appendChild(glow);
   }
 
-  const glowUrl = ensureGlowFilter(parentEl, color);
+  // ── 4. Glass filter on first cell ───────────────────────────────────
+  const _glowUrl = ensureGlowFilter(parentEl, color);
+  const glassUrl = ensureGlassFilter(parentEl);
 
   visibleValues.forEach((val, i) => {
     const x = startX + i * (cellW + gap);
@@ -112,7 +167,9 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     cell.setAttribute('fill', `url(#${cellGradId})`);
     cell.setAttribute('stroke', cc.stroke);
     cell.setAttribute('stroke-width', String(getStrokeWidth('thin', scale)));
-    if (i === 0) cell.setAttribute('filter', glowUrl);
+    if (i === 0) {
+      cell.setAttribute('filter', glassUrl);
+    }
     innerG.appendChild(cell);
 
     const valueText = document.createElementNS(SVG_NS, 'text');
@@ -126,6 +183,83 @@ export function renderQueue(entity: VisualEntity, parentEl: SVGElement): SVGGEle
     valueText.textContent = String(val);
     innerG.appendChild(valueText);
   });
+
+  // ── 5. Material texture — shimmer overlay gradient ──────────────────
+  const shimmerId = `queue-shimmer-${entityId}`;
+  if (!defs.querySelector(`#${shimmerId}`)) {
+    const shimmerGrad = document.createElementNS(SVG_NS, 'linearGradient');
+    shimmerGrad.setAttribute('id', shimmerId);
+    shimmerGrad.setAttribute('x1', '0%'); shimmerGrad.setAttribute('y1', '0%');
+    shimmerGrad.setAttribute('x2', '100%'); shimmerGrad.setAttribute('y2', '0%');
+    [['0%', '0'], ['40%', '0'], ['50%', '0.06'], ['60%', '0'], ['100%', '0']].forEach(([off, op]) => {
+      const st = document.createElementNS(SVG_NS, 'stop');
+      st.setAttribute('offset', off);
+      st.setAttribute('stop-color', '#ffffff');
+      st.setAttribute('stop-opacity', op);
+      shimmerGrad.appendChild(st);
+    });
+    defs.appendChild(shimmerGrad);
+  }
+  const shimmerRect = document.createElementNS(SVG_NS, 'rect');
+  shimmerRect.setAttribute('x', String(-totalW / 2));
+  shimmerRect.setAttribute('y', String(-cellH / 2));
+  shimmerRect.setAttribute('width', String(totalW));
+  shimmerRect.setAttribute('height', String(cellH));
+  shimmerRect.setAttribute('rx', '4');
+  shimmerRect.setAttribute('fill', `url(#${shimmerId})`);
+  shimmerRect.setAttribute('pointer-events', 'none');
+  innerG.appendChild(shimmerRect);
+
+  // ── 6. Breathing micro-animation — flow shimmer ─────────────────────
+  const styleId = `queue-style-${entityId}`;
+  if (!svg.querySelector(`#${styleId}`)) {
+    const style = document.createElementNS(SVG_NS, 'style');
+    style.setAttribute('id', styleId);
+    style.textContent = `
+      @keyframes queueFlowShimmer_${entityId} {
+        0%   { opacity: 0.3; transform: translateX(-4px); }
+        50%  { opacity: 1; transform: translateX(4px); }
+        100% { opacity: 0.3; transform: translateX(-4px); }
+      }
+      @keyframes queueFloat_${entityId} {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-2px); }
+      }
+      .queue-float-${entityId} {
+        animation: queueFloat_${entityId} 3.5s ease-in-out infinite;
+      }
+    `;
+    svg.insertBefore(style, svg.firstChild);
+  }
+  shimmerRect.setAttribute('style', `animation: queueFlowShimmer_${entityId} 2.5s ease-in-out infinite`);
+  innerG.classList.add(`queue-float-${entityId}`);
+
+  // ── 7. Specular highlight ───────────────────────────────────────────
+  const specId = `queue-spec-${entityId}`;
+  if (!defs.querySelector(`#${specId}`)) {
+    const specGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    specGrad.setAttribute('id', specId);
+    specGrad.setAttribute('cx', '30%'); specGrad.setAttribute('cy', '25%');
+    specGrad.setAttribute('r', '40%');
+    const sp1 = document.createElementNS(SVG_NS, 'stop');
+    sp1.setAttribute('offset', '0%');
+    sp1.setAttribute('stop-color', '#ffffff');
+    sp1.setAttribute('stop-opacity', '0.18');
+    const sp2 = document.createElementNS(SVG_NS, 'stop');
+    sp2.setAttribute('offset', '100%');
+    sp2.setAttribute('stop-color', '#ffffff');
+    sp2.setAttribute('stop-opacity', '0');
+    specGrad.appendChild(sp1); specGrad.appendChild(sp2);
+    defs.appendChild(specGrad);
+  }
+  const specular = document.createElementNS(SVG_NS, 'ellipse');
+  specular.setAttribute('cx', String(-totalW * 0.18));
+  specular.setAttribute('cy', String(-cellH * 0.22));
+  specular.setAttribute('rx', String(totalW * 0.28));
+  specular.setAttribute('ry', String(cellH * 0.35));
+  specular.setAttribute('fill', `url(#${specId})`);
+  specular.setAttribute('pointer-events', 'none');
+  innerG.appendChild(specular);
 
   // Label below
   if (entity.label) {

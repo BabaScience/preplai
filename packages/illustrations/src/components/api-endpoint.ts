@@ -5,12 +5,15 @@
  * Use for: REST endpoints, API routes, service endpoints.
  *
  * Glassmorphic Depth: glass panel fill, gradient border, neon method badge with glow.
+ *
+ * Cinematic 5-pillar depth: offset halo, ground shadow, AO, glass filter,
+ * terminal scan lines, cursor blink animation, specular highlight.
  */
 
 import { SVG_NS, buildEntityGroup, applyEntranceAnimation, getSizeParam } from '../utils.js';
 import { TYPOGRAPHY, SHAPES, STROKE, LABEL_DEFAULTS, colorWithAlpha } from '../design-tokens.js';
 import { resolveColorCascade } from '../color-cascade.js';
-import { ensureDefs, ensureGlowFilter } from '../visual-utils.js';
+import { ensureDefs, ensureGlowFilter, ensureGlassFilter } from '../visual-utils.js';
 import type { VisualEntity } from '@preplai/shared';
 
 export function renderAPIEndpoint(entity: VisualEntity, parentEl: SVGElement): SVGGElement {
@@ -29,13 +32,14 @@ export function renderAPIEndpoint(entity: VisualEntity, parentEl: SVGElement): S
   const rx = SHAPES.borderRadius;
 
   const defs = ensureDefs(parentEl);
+  const svg = parentEl.ownerSVGElement ?? (parentEl as unknown as SVGSVGElement);
 
-  // ── Radial depth halo (atmospheric glow behind entity) ───────────────
+  // ── 1. Offset radial halo (atmospheric glow behind entity) ──────────
   const haloId = `api-halo-${entityId}`;
   if (!defs.querySelector(`#${haloId}`)) {
     const grad = document.createElementNS(SVG_NS, 'radialGradient');
     grad.setAttribute('id', haloId);
-    grad.setAttribute('cx', '50%'); grad.setAttribute('cy', '50%');
+    grad.setAttribute('cx', '38%'); grad.setAttribute('cy', '38%');
     grad.setAttribute('r', '50%');
     const hs1 = document.createElementNS(SVG_NS, 'stop');
     hs1.setAttribute('offset', '0%');
@@ -49,12 +53,63 @@ export function renderAPIEndpoint(entity: VisualEntity, parentEl: SVGElement): S
     defs.appendChild(grad);
   }
   const halo = document.createElementNS(SVG_NS, 'ellipse');
-  halo.setAttribute('cx', '0');
-  halo.setAttribute('cy', '0');
+  halo.setAttribute('cx', String(-hw * 0.08));
+  halo.setAttribute('cy', String(-hh * 0.08));
   halo.setAttribute('rx', String(hw * 1.6));
   halo.setAttribute('ry', String(hh * 1.6));
   halo.setAttribute('fill', `url(#${haloId})`);
   innerG.appendChild(halo);
+
+  // ── 2. Ground contact shadow ────────────────────────────────────────
+  const gndShadowId = `api-gnd-${entityId}`;
+  if (!defs.querySelector(`#${gndShadowId}`)) {
+    const gndGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    gndGrad.setAttribute('id', gndShadowId);
+    const gs1 = document.createElementNS(SVG_NS, 'stop');
+    gs1.setAttribute('offset', '0%');
+    gs1.setAttribute('stop-color', '#000000');
+    gs1.setAttribute('stop-opacity', '0.18');
+    const gs2 = document.createElementNS(SVG_NS, 'stop');
+    gs2.setAttribute('offset', '100%');
+    gs2.setAttribute('stop-color', '#000000');
+    gs2.setAttribute('stop-opacity', '0');
+    gndGrad.appendChild(gs1); gndGrad.appendChild(gs2);
+    defs.appendChild(gndGrad);
+  }
+  const gndShadow = document.createElementNS(SVG_NS, 'ellipse');
+  gndShadow.setAttribute('cx', '0');
+  gndShadow.setAttribute('cy', String(hh + 4));
+  gndShadow.setAttribute('rx', String(hw * 0.7));
+  gndShadow.setAttribute('ry', String(hh * 0.12));
+  gndShadow.setAttribute('fill', `url(#${gndShadowId})`);
+  innerG.appendChild(gndShadow);
+
+  // ── 3. Ambient occlusion ────────────────────────────────────────────
+  const aoId = `api-ao-${entityId}`;
+  if (!defs.querySelector(`#${aoId}`)) {
+    const aoGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    aoGrad.setAttribute('id', aoId);
+    aoGrad.setAttribute('cx', '75%'); aoGrad.setAttribute('cy', '75%');
+    aoGrad.setAttribute('r', '50%');
+    const ao1 = document.createElementNS(SVG_NS, 'stop');
+    ao1.setAttribute('offset', '0%');
+    ao1.setAttribute('stop-color', '#000000');
+    ao1.setAttribute('stop-opacity', '0.10');
+    const ao2 = document.createElementNS(SVG_NS, 'stop');
+    ao2.setAttribute('offset', '100%');
+    ao2.setAttribute('stop-color', '#000000');
+    ao2.setAttribute('stop-opacity', '0');
+    aoGrad.appendChild(ao1); aoGrad.appendChild(ao2);
+    defs.appendChild(aoGrad);
+  }
+  const ao = document.createElementNS(SVG_NS, 'rect');
+  ao.setAttribute('x', String(-hw));
+  ao.setAttribute('y', String(-hh));
+  ao.setAttribute('width', String(w));
+  ao.setAttribute('height', String(h));
+  ao.setAttribute('rx', String(rx));
+  ao.setAttribute('fill', `url(#${aoId})`);
+  innerG.appendChild(ao);
 
   // ── Gradient IDs (unique per instance) ──────────────────────────────
   const bgGradId = `api-bg-${entityId}`;
@@ -124,8 +179,9 @@ export function renderAPIEndpoint(entity: VisualEntity, parentEl: SVGElement): S
     innerG.appendChild(glow);
   }
 
-  // ── Card body (glass panel) ──────────────────────────────────────────
-  const glowUrl = ensureGlowFilter(parentEl, color);
+  // ── 4. Card body (glass panel) — with glass filter ──────────────────
+  const _glowUrl = ensureGlowFilter(parentEl, color);
+  const glassUrl = ensureGlassFilter(parentEl);
   const card = document.createElementNS(SVG_NS, 'rect');
   card.setAttribute('x', String(-hw));
   card.setAttribute('y', String(-hh));
@@ -135,7 +191,7 @@ export function renderAPIEndpoint(entity: VisualEntity, parentEl: SVGElement): S
   card.setAttribute('fill', `url(#${bgGradId})`);
   card.setAttribute('stroke', `url(#${borderGradId})`);
   card.setAttribute('stroke-width', String(STROKE.default));
-  card.setAttribute('filter', glowUrl);
+  card.setAttribute('filter', glassUrl);
   innerG.appendChild(card);
 
   // ── Header bar (dark terminal title bar) ─────────────────────────────
@@ -234,7 +290,7 @@ export function renderAPIEndpoint(entity: VisualEntity, parentEl: SVGElement): S
   pathTxt.setAttribute('fill', colorWithAlpha(color, '88'));
   pathTxt.setAttribute('font-size', String(TYPOGRAPHY.fontSizeValue));
   pathTxt.setAttribute('font-family', TYPOGRAPHY.fontBadge);
-  pathTxt.textContent = pathStr.length > maxChars ? pathStr.slice(0, maxChars - 1) + '…' : pathStr;
+  pathTxt.textContent = pathStr.length > maxChars ? pathStr.slice(0, maxChars - 1) + '\u2026' : pathStr;
   innerG.appendChild(pathTxt);
 
   // Row 2: status badge (dim)
@@ -288,6 +344,82 @@ export function renderAPIEndpoint(entity: VisualEntity, parentEl: SVGElement): S
   glint.setAttribute('stroke-width', '1');
   glint.setAttribute('stroke-linecap', 'round');
   innerG.appendChild(glint);
+
+  // ── 5. Material texture — 3 terminal scan lines ────────────────────
+  for (let i = 0; i < 3; i++) {
+    const scanY = contentTopY + contentH * (0.25 + i * 0.25);
+    const scanLine = document.createElementNS(SVG_NS, 'line');
+    scanLine.setAttribute('x1', String(-hw + 4));
+    scanLine.setAttribute('y1', String(scanY));
+    scanLine.setAttribute('x2', String(hw - 4));
+    scanLine.setAttribute('y2', String(scanY));
+    scanLine.setAttribute('stroke', '#ffffff');
+    scanLine.setAttribute('stroke-width', '0.5');
+    scanLine.setAttribute('stroke-opacity', '0.04');
+    scanLine.setAttribute('pointer-events', 'none');
+    innerG.appendChild(scanLine);
+  }
+
+  // ── 6. Breathing micro-animation — cursor blink ─────────────────────
+  const cursorEl = document.createElementNS(SVG_NS, 'rect');
+  cursorEl.setAttribute('x', String(padX + badgeW + 5 + (pathStr.length > maxChars ? maxChars - 1 : pathStr.length) * 5.5));
+  cursorEl.setAttribute('y', String(row1Y - 4));
+  cursorEl.setAttribute('width', '1.5');
+  cursorEl.setAttribute('height', '8');
+  cursorEl.setAttribute('fill', color);
+  cursorEl.setAttribute('opacity', '0.6');
+  cursorEl.setAttribute('pointer-events', 'none');
+  innerG.appendChild(cursorEl);
+
+  const styleId = `api-style-${entityId}`;
+  if (!svg.querySelector(`#${styleId}`)) {
+    const style = document.createElementNS(SVG_NS, 'style');
+    style.setAttribute('id', styleId);
+    style.textContent = `
+      @keyframes apiCursorBlink_${entityId} {
+        0%   { opacity: 0.8; }
+        50%  { opacity: 0; }
+        100% { opacity: 0.8; }
+      }
+      @keyframes apiFloat_${entityId} {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-2px); }
+      }
+      .api-float-${entityId} {
+        animation: apiFloat_${entityId} 4s ease-in-out infinite;
+      }
+    `;
+    svg.insertBefore(style, svg.firstChild);
+  }
+  cursorEl.setAttribute('style', `animation: apiCursorBlink_${entityId} 1s step-end infinite`);
+  innerG.classList.add(`api-float-${entityId}`);
+
+  // ── 7. Specular highlight ───────────────────────────────────────────
+  const specId = `api-spec-${entityId}`;
+  if (!defs.querySelector(`#${specId}`)) {
+    const specGrad = document.createElementNS(SVG_NS, 'radialGradient');
+    specGrad.setAttribute('id', specId);
+    specGrad.setAttribute('cx', '28%'); specGrad.setAttribute('cy', '22%');
+    specGrad.setAttribute('r', '38%');
+    const sp1 = document.createElementNS(SVG_NS, 'stop');
+    sp1.setAttribute('offset', '0%');
+    sp1.setAttribute('stop-color', '#ffffff');
+    sp1.setAttribute('stop-opacity', '0.16');
+    const sp2 = document.createElementNS(SVG_NS, 'stop');
+    sp2.setAttribute('offset', '100%');
+    sp2.setAttribute('stop-color', '#ffffff');
+    sp2.setAttribute('stop-opacity', '0');
+    specGrad.appendChild(sp1); specGrad.appendChild(sp2);
+    defs.appendChild(specGrad);
+  }
+  const specular = document.createElementNS(SVG_NS, 'ellipse');
+  specular.setAttribute('cx', String(-hw * 0.3));
+  specular.setAttribute('cy', String(-hh * 0.3));
+  specular.setAttribute('rx', String(hw * 0.45));
+  specular.setAttribute('ry', String(hh * 0.3));
+  specular.setAttribute('fill', `url(#${specId})`);
+  specular.setAttribute('pointer-events', 'none');
+  innerG.appendChild(specular);
 
   // ── Label below ──────────────────────────────────────────────────────
   if (entity.label) {
